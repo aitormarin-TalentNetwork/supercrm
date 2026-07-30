@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  @keyframes loginSpin{to{transform:rotate(360deg)}}
+  .login-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:loginSpin .7s linear infinite;flex:none}
+  .login-spin-dark{width:30px;height:30px;border:3px solid var(--color-neutral-200);border-top-color:var(--color-primary);border-radius:50%;animation:loginSpin .8s linear infinite}
+  .login-root{display:grid;grid-template-columns:1.05fr 1fr;min-height:100vh}
+  .login-brand{display:flex}
+  .login-mobilelogo{display:none}
+  @media(max-width:880px){
+    .login-root{grid-template-columns:1fr}
+    .login-brand{display:none!important}
+    .login-mobilelogo{display:flex!important}
+  }
+</style>
+</helmet>
+
+<div class="login-root" style="font-family:var(--font-sans);background:var(--color-surface);color:var(--color-text)">
+
+  <!-- BRAND PANEL (desktop) -->
+  <aside class="login-brand" style="flex-direction:column;justify-content:space-between;background:var(--color-neutral-900);color:#fff;padding:56px 56px 44px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      </span>
+      <span style="font-weight:700;font-size:19px;letter-spacing:-.01em">SuperCRM</span>
+    </div>
+
+    <div style="max-width:420px">
+      <h1 style="font-size:34px;line-height:1.18;font-weight:700;letter-spacing:-.02em;margin:0 0 16px">No pierdas ventas por falta de seguimiento.</h1>
+      <p style="font-size:16px;line-height:1.55;color:var(--color-neutral-400);margin:0 0 28px">Tu pipeline, tus contactos y tu próximo paso, en un único lugar. Valor desde el primer día.</p>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:13px"><span style="width:34px;height:34px;border-radius:9px;background:rgba(13,148,136,.18);color:#5EEAD4;display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="trending-up"></i></span><span style="font-size:14.5px;color:var(--color-neutral-200)">El estado de cada venta, de un vistazo</span></div>
+        <div style="display:flex;align-items:center;gap:13px"><span style="width:34px;height:34px;border-radius:9px;background:rgba(13,148,136,.18);color:#5EEAD4;display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="bell"></i></span><span style="font-size:14.5px;color:var(--color-neutral-200)">Un próximo paso automático para cada oportunidad</span></div>
+        <div style="display:flex;align-items:center;gap:13px"><span style="width:34px;height:34px;border-radius:9px;background:rgba(13,148,136,.18);color:#5EEAD4;display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="shield-check"></i></span><span style="font-size:14.5px;color:var(--color-neutral-200)">Tu negocio bajo control, desde el móvil o el escritorio</span></div>
+      </div>
+    </div>
+
+    <div style="font-size:12.5px;color:var(--color-neutral-500)">© 2026 SuperCRM · CRM de ventas para pequeños negocios</div>
+  </aside>
+
+  <!-- FORM PANEL -->
+  <main style="display:flex;align-items:center;justify-content:center;padding:40px 28px">
+    <div style="width:100%;max-width:380px">
+
+      <div class="login-mobilelogo" style="align-items:center;gap:11px;margin-bottom:28px">
+        <span style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        </span>
+        <span style="font-weight:700;font-size:18px;letter-spacing:-.01em">SuperCRM</span>
+      </div>
+
+      <h2 style="font-size:26px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px">Inicia sesión</h2>
+      <p style="font-size:15px;color:var(--color-text-secondary);margin:0 0 24px">Entra para ver tu pipeline y los seguimientos de hoy.</p>
+
+      <form onSubmit="{{ onSubmit }}" novalidate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+
+        <sc-if value="{{ credError }}" hint-placeholder-val="">
+          <div role="alert" style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;background:var(--color-error-subtle);border-radius:var(--radius-md)">
+            <i data-lucide="alert-circle" style="color:var(--color-error);flex:none;margin-top:1px"></i>
+            <span style="font-size:13px;color:var(--color-error);line-height:1.45">{{ credError }}</span>
+          </div>
+        </sc-if>
+
+        <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="login-email" name="email" type="email" auto-complete="username" label="Email o usuario" placeholder="tu@empresa.es" left-icon="{{ icons.mail }}" error="{{ emailError }}" required="{{ true }}" hint-size="100%,72px"></x-import>
+
+        <div>
+          <label for="login-password" style="display:block;font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px">Contraseña <span style="color:var(--color-error)">*</span></label>
+          <div style="position:relative;display:flex;align-items:center">
+            <span style="position:absolute;left:12px;display:inline-flex;color:var(--color-neutral-400);pointer-events:none"><i data-lucide="lock"></i></span>
+            <input id="login-password" name="password" type="{{ pwType }}" placeholder="Tu contraseña" auto-complete="current-password" aria-label="Contraseña"
+              style="width:100%;height:44px;padding:0 44px 0 38px;font-family:var(--font-sans);font-size:14px;color:var(--color-text);background:var(--color-surface);border:1px solid {{ pwBorder }};border-radius:var(--radius-md);outline:none;box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease"
+              style-focus="border-color:var(--color-primary);box-shadow:var(--focus-ring)">
+            <button type="button" onClick="{{ togglePw }}" aria-label="{{ pwAria }}" title="{{ pwAria }}"
+              style="position:absolute;right:6px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--color-neutral-500);cursor:pointer;border-radius:var(--radius-sm)"
+              style-hover="background:var(--color-neutral-100);color:var(--color-text)" style-focus="box-shadow:var(--focus-ring);outline:none">{{ eyeEl }}</button>
+          </div>
+          <sc-if value="{{ pwError }}" hint-placeholder-val="">
+            <div style="font-size:12px;margin-top:6px;color:var(--color-error)">{{ pwError }}</div>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:-4px">
+          <a href="#" onClick="{{ forgot }}" style="font-size:13px;font-weight:600;color:var(--color-primary);text-decoration:none">¿Olvidaste la contraseña?</a>
+        </div>
+
+        <x-import component-from-global-scope="DesignSystem_ddd184.Button" type="submit" size="lg" full-width="{{ true }}" disabled="{{ loading }}" hint-size="100%,52px">
+          <sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}"><span class="login-spin"></span>Entrando…</sc-if>
+          <sc-if value="{{ notLoading }}" hint-placeholder-val="{{ true }}">Entrar</sc-if>
+        </x-import>
+
+      </form>
+
+      <div style="margin-top:22px;padding:14px 16px;background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md)">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">Cuentas de prueba</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:11px">
+          <button type="button" onClick="{{ fillMarta }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 11px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans)" style-hover="border-color:var(--color-border-strong);background:var(--color-neutral-100)" style-focus="box-shadow:var(--focus-ring);outline:none">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--color-primary-subtle);color:var(--color-primary);font-size:11px;font-weight:700;flex:none">ML</span>
+            <span style="min-width:0;flex:1"><span style="display:block;font-size:13px;font-weight:600;color:var(--color-text)">Marta Ledo</span><span style="display:block;font-size:11.5px;color:var(--color-text-muted)">Dueña · entra al Panel</span></span>
+            <span style="font-size:12px;font-weight:600;color:var(--color-primary)">Usar</span>
+          </button>
+          <button type="button" onClick="{{ fillCarlos }}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 11px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);cursor:pointer;font-family:var(--font-sans)" style-hover="border-color:var(--color-border-strong);background:var(--color-neutral-100)" style-focus="box-shadow:var(--focus-ring);outline:none">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--color-secondary-subtle);color:var(--color-secondary);font-size:11px;font-weight:700;flex:none">CV</span>
+            <span style="min-width:0;flex:1"><span style="display:block;font-size:13px;font-weight:600;color:var(--color-text)">Carlos Vega</span><span style="display:block;font-size:11.5px;color:var(--color-text-muted)">Vendedor · entra a Hoy</span></span>
+            <span style="font-size:12px;font-weight:600;color:var(--color-primary)">Usar</span>
+          </button>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--color-text-muted)">Contraseña para ambas: <span style="font-family:var(--font-mono);color:var(--color-text-secondary)">demo1234</span></div>
+      </div>
+
+      <p style="margin:20px 0 0;text-align:center;font-size:12.5px;color:var(--color-text-muted);line-height:1.5">Los accesos los crea la dueña de tu empresa.<br>No hay registro público.</p>
+
+    </div>
+  </main>
+
+  <!-- SUCCESS OVERLAY -->
+  <sc-if value="{{ success }}" hint-placeholder-val="">
+    <div style="position:fixed;inset:0;z-index:90;background:rgba(248,250,252,.92);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px">
+      <span class="login-spin-dark"></span>
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--color-text)">Entrando como {{ successName }}</div>
+        <div style="font-size:14px;color:var(--color-text-secondary);margin-top:4px">{{ successMeta }}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="">
+    <div style="position:fixed;right:24px;bottom:24px;z-index:80;max-width:340px">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="{{ toastVariant }}" title="{{ toastTitle }}" message="{{ toastMessage }}" on-close="{{ dismissToast }}" hint-size="320px,64px"></x-import>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const USERS = {
+  'marta@supercrm.es': { name: 'Marta Ledo', role: 'duena', roleLabel: 'Dueña', tienda: 'Tienda Centro', target: 'Panel.dc.html' },
+  'carlos@supercrm.es': { name: 'Carlos Vega', role: 'vendedor', roleLabel: 'Vendedor', tienda: 'Tienda Centro', target: 'Hoy.dc.html' },
+};
+const DEMO_PW = 'demo1234';
+
+class Component extends DCLogic {
+  state = {
+    showPw: false,
+    loading: false,
+    emailError: '',
+    pwError: '',
+    credError: '',
+    success: null,
+    toast: null,
+  };
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  componentDidMount() { this.refreshIcons(); }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 240, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+  onSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (this.state.loading) return;
+    const email = (this.val('login-email') || '').trim();
+    const pw = this.val('login-password') || '';
+    let ee = '', pe = '';
+    if (!email) ee = 'Introduce tu email.';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) ee = 'El email no tiene un formato válido.';
+    if (!pw) pe = 'Introduce tu contraseña.';
+    if (ee || pe) {
+      this.setState({ emailError: ee, pwError: pe, credError: '' });
+      const focusId = ee ? 'login-email' : 'login-password';
+      setTimeout(() => { const f = document.getElementById(focusId); f && f.focus(); }, 0);
+      return;
+    }
+    this.setState({ emailError: '', pwError: '', credError: '', loading: true });
+    setTimeout(() => {
+      const u = USERS[email.toLowerCase()];
+      if (!u || pw !== DEMO_PW) {
+        this.setState({ loading: false, credError: 'Email o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.' });
+        return;
+      }
+      try {
+        localStorage.setItem('supercrm_session', JSON.stringify({ email: email.toLowerCase(), name: u.name, role: u.role, roleLabel: u.roleLabel, tienda: u.tienda }));
+      } catch (_) {}
+      this.setState({ loading: false, success: u });
+      setTimeout(() => { window.location.href = u.target; }, 850);
+    }, 950);
+  }
+
+  togglePw() { this.setState(s => ({ showPw: !s.showPw })); }
+
+  fill(email) {
+    const e = document.getElementById('login-email');
+    const p = document.getElementById('login-password');
+    if (e) e.value = email;
+    if (p) p.value = DEMO_PW;
+    this.setState({ emailError: '', pwError: '', credError: '' });
+    if (e) e.focus();
+  }
+
+  forgot(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    this.setState({ toast: { variant: 'info', title: 'Recuperar contraseña', message: 'Pide a la dueña de tu empresa que restablezca tu acceso.' } });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 4800);
+  }
+
+  renderVals() {
+    const showPw = this.state.showPw;
+    const eyePaths = showPw
+      ? [
+          React.createElement('path', { key: 'p', d: 'M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24' }),
+          React.createElement('path', { key: 'l1', d: 'M6.61 6.61A18.5 18.5 0 0 0 2 12s3 8 10 8a9.12 9.12 0 0 0 5.39-1.61' }),
+          React.createElement('line', { key: 'l2', x1: 2, y1: 2, x2: 22, y2: 22 }),
+        ]
+      : [
+          React.createElement('path', { key: 'p', d: 'M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z' }),
+          React.createElement('circle', { key: 'c', cx: 12, cy: 12, r: 3 }),
+        ];
+    const eyeEl = React.createElement('svg', {
+      key: showPw ? 'off' : 'on', width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none',
+      stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round',
+    }, eyePaths);
+
+    const s = this.state.success;
+    return {
+      icons: { mail: this.ic('mail') },
+      eyeEl,
+      pwType: showPw ? 'text' : 'password',
+      pwAria: showPw ? 'Ocultar contraseña' : 'Mostrar contraseña',
+      pwBorder: this.state.pwError ? 'var(--color-error)' : 'var(--color-border)',
+      loading: this.state.loading,
+      notLoading: !this.state.loading,
+      emailError: this.state.emailError,
+      pwError: this.state.pwError,
+      credError: this.state.credError,
+      success: s ? true : '',
+      successName: s ? s.name : '',
+      successMeta: s ? (s.roleLabel + ' · ' + s.tienda) : '',
+      toast: this.state.toast ? true : '',
+      toastVariant: this.state.toast ? this.state.toast.variant : 'info',
+      toastTitle: this.state.toast ? this.state.toast.title : '',
+      toastMessage: this.state.toast ? this.state.toast.message : '',
+      onSubmit: (e) => this.onSubmit(e),
+      togglePw: () => this.togglePw(),
+      fillMarta: () => this.fill('marta@supercrm.es'),
+      fillCarlos: () => this.fill('carlos@supercrm.es'),
+      forgot: (e) => this.forgot(e),
+      dismissToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

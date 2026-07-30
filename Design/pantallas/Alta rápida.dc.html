@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  @keyframes altaSpin{to{transform:rotate(360deg)}}
+  .alta-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:altaSpin .7s linear infinite;flex:none;display:inline-block}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text);display:flex;align-items:center;justify-content:center;padding:24px">
+
+  <!-- LAUNCHER (demo) -->
+  <div style="width:100%;max-width:440px;text-align:center">
+    <span style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px"><i data-lucide="user-plus" style="color:#fff;width:24px;height:24px"></i></span>
+    <h1 style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 8px">Alta rápida</h1>
+    <p style="font-size:15px;color:var(--color-text-secondary);margin:0 0 20px;line-height:1.55">Captura un contacto y su oportunidad en segundos. Se abre desde Hoy, Pipeline o la ficha de cliente.</p>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><i data-lucide="calendar"></i>Hoy</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><i data-lucide="trending-up"></i>Pipeline</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><i data-lucide="users"></i>Ficha de cliente</span>
+    </div>
+    <x-import component-from-global-scope="DesignSystem_ddd184.Button" size="lg" left-icon="{{ icons.plus }}" on-click="{{ open }}" hint-size="auto,52px">Abrir Alta rápida</x-import>
+    <p style="font-size:12.5px;color:var(--color-text-muted);margin:18px 0 0">Comercial y tienda se asignan según tu sesión.</p>
+  </div>
+
+  <!-- MODAL -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ modalOpen }}" on-close="{{ close }}" title="Alta rápida" description="Captura el contacto y la oportunidad. Crearemos su primer próximo paso." width="480" footer="{{ footer }}" hint-size="1px,1px">
+    <form onSubmit="{{ onSubmit }}" novalidate="{{ true }}" style="display:flex;flex-direction:column;gap:14px">
+
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="alta-nombre" label="Nombre del cliente" placeholder="p.ej. Café Aroma" left-icon="{{ icons.user }}" error="{{ errNombre }}" required="{{ true }}" hint-size="100%,72px"></x-import>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="alta-tel" type="tel" label="Teléfono" placeholder="600 000 000" left-icon="{{ icons.phone }}" error="{{ errTel }}" required="{{ true }}" hint-size="100%,72px"></x-import></div>
+        <div style="flex:1;min-width:160px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="alta-email" type="email" label="Email (opcional)" placeholder="nombre@correo.com" left-icon="{{ icons.mail }}" hint-size="100%,72px"></x-import></div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px"><x-import component-from-global-scope="DesignSystem_ddd184.Select" id="alta-canal" label="Canal de origen" hint-size="100%,72px"><option>Llamada</option><option>WhatsApp</option><option>Recomendación</option><option>Web</option><option>Visita</option></x-import></div>
+        <div style="flex:1;min-width:160px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="alta-importe" label="Importe estimado (opcional)" placeholder="0,00" left-icon="{{ icons.euro }}" hint-size="100%,72px"></x-import></div>
+      </div>
+
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="alta-producto" label="Producto / interés (opcional)" placeholder="p.ej. Rediseño web" hint-size="100%,72px"></x-import>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--color-text-secondary)"><i data-lucide="user-check" style="color:var(--color-neutral-400)"></i>Comercial: <b style="font-weight:600;color:var(--color-text)">{{ comercial }}</b></span>
+        <span style="width:1px;height:14px;background:var(--color-border)"></span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--color-text-secondary)"><i data-lucide="store" style="color:var(--color-neutral-400)"></i>Tienda: <b style="font-weight:600;color:var(--color-text)">{{ tienda }}</b></span>
+      </div>
+
+      <button type="submit" style="display:none" aria-hidden="true"></button>
+    </form>
+  </x-import>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const CANAL_PASO = {
+  'Llamada': 'Llamar para presentar la propuesta',
+  'WhatsApp': 'Enviar WhatsApp de presentación',
+  'Recomendación': 'Llamar para agradecer y presentar',
+  'Web': 'Responder la solicitud web',
+  'Visita': 'Agendar visita comercial',
+};
+const eur = (n) => '€' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+class Component extends DCLogic {
+  state = {
+    modal: false,
+    loading: false,
+    errNombre: '',
+    errTel: '',
+    comercial: 'Carlos Vega',
+    tienda: 'Tienda Centro',
+  };
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  componentDidMount() {
+    try {
+      const s = JSON.parse(localStorage.getItem('supercrm_session') || 'null');
+      if (s) this.setState({ comercial: s.name || 'Carlos Vega', tienda: s.tienda || 'Tienda Centro' });
+    } catch (_) {}
+    this.refreshIcons();
+  }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+  open() { this.setState({ modal: true, loading: false, errNombre: '', errTel: '' }); }
+  close() { if (!this.state.loading) this.setState({ modal: false }); }
+
+  onSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (this.state.loading) return;
+    const nombre = this.val('alta-nombre').trim();
+    const tel = this.val('alta-tel').trim();
+    let en = '', et = '';
+    if (!nombre) en = 'El nombre es obligatorio.';
+    if (!tel) et = 'El teléfono es obligatorio.';
+    else if (tel.replace(/[^\d]/g, '').length < 9) et = 'Introduce un teléfono válido (9 dígitos).';
+    if (en || et) {
+      this.setState({ errNombre: en, errTel: et });
+      setTimeout(() => { const f = document.getElementById(en ? 'alta-nombre' : 'alta-tel'); f && f.focus(); }, 0);
+      return;
+    }
+    this.setState({ errNombre: '', errTel: '', loading: true });
+
+    const email = this.val('alta-email').trim();
+    const canal = this.val('alta-canal') || 'Llamada';
+    const producto = this.val('alta-producto').trim() || 'Sin especificar';
+    const importeRaw = parseInt((this.val('alta-importe') || '').replace(/[^\d]/g, ''), 10) || 0;
+
+    setTimeout(() => {
+      const id = 'OPP-' + Math.floor(1000 + Math.random() * 9000);
+      const d = new Date();
+      const now = 'Hoy · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      const cierre = new Date(d.getTime() + 14 * 864e5).toLocaleDateString('es-ES');
+      const opp = {
+        id, cliente: nombre, contacto: nombre, telefono: tel, email,
+        etapa: 'contactado', importeRaw, cierre, producto,
+        comercial: this.state.comercial, tienda: this.state.tienda,
+        paso: { accion: CANAL_PASO[canal] || 'Primer contacto', fecha: 'Hoy', estado: 'pendiente' },
+        presupuesto: { importeRaw: importeRaw, fecha: '—', estado: 'borrador' },
+        historial: [{ tipo: 'sistema', titulo: 'Oportunidad creada', nota: 'Origen: ' + canal + '.' + (importeRaw ? ' Importe estimado ' + eur(importeRaw) + '.' : ''), fecha: now, autor: this.state.comercial.split(' ')[0] }],
+      };
+      try {
+        const map = JSON.parse(localStorage.getItem('supercrm_created_opps') || '{}');
+        map[id] = opp;
+        localStorage.setItem('supercrm_created_opps', JSON.stringify(map));
+      } catch (_) {}
+      window.location.href = 'Detalle de oportunidad.dc.html?id=' + encodeURIComponent(id);
+    }, 950);
+  }
+
+  renderVals() {
+    const footer = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.close(), disabled: this.state.loading }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: (e) => this.onSubmit(e), disabled: this.state.loading },
+        this.state.loading
+          ? React.createElement(React.Fragment, null, React.createElement('span', { className: 'alta-spin' }), 'Creando…')
+          : 'Crear oportunidad'),
+    );
+    return {
+      modalOpen: this.state.modal,
+      loading: this.state.loading,
+      errNombre: this.state.errNombre,
+      errTel: this.state.errTel,
+      comercial: this.state.comercial,
+      tienda: this.state.tienda,
+      footer,
+      icons: {
+        plus: this.ic('plus'), user: this.ic('user'), phone: this.ic('phone'),
+        mail: this.ic('mail'), euro: this.ic('euro'),
+      },
+      open: () => this.open(),
+      close: () => this.close(),
+      onSubmit: (e) => this.onSubmit(e),
+    };
+  }
+}
+
+function DSBtn(props) {
+  const NS = window.DesignSystem_ddd184 || {};
+  const B = NS.Button || 'button';
+  return React.createElement(B, props);
+}
+</script>
+</body>
+</html>

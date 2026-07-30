@@ -1,0 +1,119 @@
+<!-- @dsCard group="Components" viewport="700x600" name="Core" subtitle="Botones, badges de estado, avatares y tarjetas" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; font-family:var(--font-sans); background:var(--color-bg); color:var(--color-text); padding:20px; }
+  .row { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:16px; }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--color-text-muted); margin:0 0 8px; }
+  .sec { margin-bottom:18px; }
+  svg.lucide { width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  function findNS(){
+    for (const k of Object.keys(window)) {
+      const v = window[k];
+      if (v && typeof v === 'object' && typeof v.Button === 'function' && typeof v.StatusBadge === 'function') return v;
+    }
+    return window;
+  }
+  const { Button, IconButton, Badge, StatusBadge, Avatar, Card } = findNS();
+  const Ic = (n) => <i data-lucide={n}></i>;
+
+  function Demo(){
+    return (
+      <div>
+        <div className="sec">
+          <p className="lbl">Buttons</p>
+          <div className="row">
+            <Button variant="primary">Nuevo trato</Button>
+            <Button variant="secondary" leftIcon={Ic('filter')}>Filtrar</Button>
+            <Button variant="ghost">Cancelar</Button>
+            <Button variant="danger" leftIcon={Ic('trash-2')}>Eliminar</Button>
+            <Button variant="primary" disabled>Guardando…</Button>
+          </div>
+          <div className="row">
+            <Button size="sm">Pequeño</Button>
+            <Button size="md">Mediano</Button>
+            <Button size="lg" rightIcon={Ic('arrow-right')}>Grande</Button>
+          </div>
+        </div>
+
+        <div className="sec">
+          <p className="lbl">Icon buttons</p>
+          <div className="row">
+            <IconButton variant="primary" aria-label="Añadir">{Ic('plus')}</IconButton>
+            <IconButton variant="outline" aria-label="Buscar">{Ic('search')}</IconButton>
+            <IconButton variant="ghost" aria-label="Más">{Ic('more-horizontal')}</IconButton>
+            <IconButton variant="ghost" aria-label="Editar">{Ic('pencil')}</IconButton>
+          </div>
+        </div>
+
+        <div className="sec">
+          <p className="lbl">Badges</p>
+          <div className="row">
+            <Badge variant="neutral" dot>Borrador</Badge>
+            <Badge variant="primary">Nuevo</Badge>
+            <Badge variant="success" dot>Conectado</Badge>
+            <Badge variant="warning">Pendiente</Badge>
+            <Badge variant="error" dot>Error</Badge>
+            <Badge variant="info">Info</Badge>
+          </div>
+        </div>
+
+        <div className="sec">
+          <p className="lbl">Status badges — pipeline / presupuesto / tarea / riesgo</p>
+          <div className="row">
+            <StatusBadge kind="pipeline" value="nuevo" />
+            <StatusBadge kind="pipeline" value="contactado" />
+            <StatusBadge kind="pipeline" value="propuesta" />
+            <StatusBadge kind="pipeline" value="negociacion" />
+            <StatusBadge kind="pipeline" value="ganado" />
+            <StatusBadge kind="pipeline" value="perdido" />
+          </div>
+          <div className="row">
+            <StatusBadge kind="quote" value="enviado" />
+            <StatusBadge kind="quote" value="aceptado" />
+            <StatusBadge kind="task" value="encurso" />
+            <StatusBadge kind="task" value="vencida" />
+            <StatusBadge kind="risk" value="low" />
+            <StatusBadge kind="risk" value="high" />
+          </div>
+        </div>
+
+        <div className="sec">
+          <p className="lbl">Avatars + Card</p>
+          <div className="row">
+            <Avatar name="María Ríos" size="lg" />
+            <Avatar name="Jorge Lema" size="md" />
+            <Avatar name="Ana Soto" size="sm" />
+            <Card padding="md" interactive style={{ marginLeft: 8, minWidth: 220 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <Avatar name="María Ríos" size="md" />
+                <div>
+                  <div style={{ fontWeight:600, fontSize:14 }}>María Ríos</div>
+                  <div style={{ fontSize:12, color:'var(--color-text-muted)' }}>Estudio Ríos · €12.400</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+  setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+</script>
+</body>
+</html>

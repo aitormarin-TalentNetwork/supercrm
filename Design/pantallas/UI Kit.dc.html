@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+  @keyframes toastIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+  .kit-skel{background:linear-gradient(90deg,var(--color-neutral-100) 25%,var(--color-neutral-200) 37%,var(--color-neutral-100) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:6px}
+  .kit-toc a{color:var(--color-text-secondary);text-decoration:none;font-size:13.5px;font-weight:500;padding:7px 12px;border-radius:var(--radius-md);display:block;transition:background .12s,color .12s}
+  .kit-toc a:hover{background:var(--color-neutral-100);color:var(--color-text)}
+  @media(max-width:980px){.kit-toc-wrap{display:none!important}.kit-body{grid-template-columns:1fr!important}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text)">
+
+  <header style="position:sticky;top:0;z-index:40;height:64px;display:flex;align-items:center;gap:14px;padding:0 28px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+    <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+    </span>
+    <span style="font-weight:700;font-size:16px;letter-spacing:-.01em">SuperCRM</span>
+    <span style="width:1px;height:22px;background:var(--color-border)"></span>
+    <span style="font-size:14px;font-weight:600;color:var(--color-text-secondary)">UI Kit · MVP</span>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:4px 11px">Modo claro</span>
+      <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:4px 11px">Contraste AA</span>
+    </span>
+  </header>
+
+  <div class="kit-body" style="display:grid;grid-template-columns:212px 1fr;gap:44px;max-width:1200px;margin:0 auto;padding:36px 28px 96px">
+
+    <nav class="kit-toc-wrap" style="align-self:start;position:sticky;top:96px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);padding:0 12px 8px">Componentes</div>
+      <div class="kit-toc">
+        <a href="#botones">01 · Botones y enlaces</a>
+        <a href="#inputs">02 · Inputs</a>
+        <a href="#tarjetas">03 · Tarjetas</a>
+        <a href="#badges">04 · Badges y etiquetas</a>
+        <a href="#modales">05 · Modales</a>
+        <a href="#navegacion">06 · Navegación</a>
+        <a href="#listas">07 · Listas y filas</a>
+        <a href="#kpi">08 · Widgets KPI</a>
+        <a href="#feedback">09 · Feedback</a>
+      </div>
+    </nav>
+
+    <main style="min-width:0">
+
+      <div style="margin-bottom:48px">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-primary)">Biblioteca de componentes</div>
+        <h1 style="font-size:34px;font-weight:800;letter-spacing:-.02em;margin:8px 0 10px;line-height:1.1">Todo lo necesario para montar el MVP</h1>
+        <p style="margin:0;color:var(--color-text-secondary);font-size:16px;max-width:660px;line-height:1.55">Componentes reutilizables construidos sólo con los tokens de SuperCRM. Cada bloque documenta variantes, estados, comportamiento responsive y los tokens que consume. Con estos elementos se montan todas las pantallas del MVP.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">
+          <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><span style="width:13px;height:13px;border-radius:50%;background:var(--color-primary)"></span>Primario #2563EB</span>
+          <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><span style="width:13px;height:13px;border-radius:50%;background:var(--color-secondary)"></span>Secundario #0D9488</span>
+          <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><span style="font-family:var(--font-mono)">Aa</span>Plus Jakarta · IBM Plex Mono</span>
+        </div>
+      </div>
+
+      <!-- 01 BOTONES -->
+      <section id="botones" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">01 · Acción</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Botones y enlaces</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Una sola acción primaria por pantalla. El resto en secundario, terciario (ghost) o enlace.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+
+          <div style="margin-bottom:24px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:13px">Jerarquía</div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" hint-size="auto,44px">Guardar trato</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" hint-size="auto,44px">Cancelar</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" hint-size="auto,44px">Ver detalle</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="danger" hint-size="auto,44px">Marcar perdida</x-import>
+            </div>
+          </div>
+
+          <div style="margin-bottom:24px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:13px">Con icono</div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" hint-size="auto,44px">Nuevo trato</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" left-icon="{{ icons.filter }}" hint-size="auto,44px">Filtrar</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" right-icon="{{ icons.arrowRight }}" hint-size="auto,44px">Siguiente</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" left-icon="{{ icons.pencil }}" hint-size="auto,44px">Editar</x-import>
+            </div>
+          </div>
+
+          <div style="margin-bottom:24px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:13px">Tamaños</div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" size="sm" hint-size="auto,36px">Pequeño</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" size="md" hint-size="auto,44px">Mediano</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" size="lg" hint-size="auto,52px">Grande</x-import>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:13px">Deshabilitado · ancho completo</div>
+              <div style="display:flex;flex-direction:column;gap:12px;max-width:260px">
+                <x-import component-from-global-scope="DesignSystem_ddd184.Button" disabled="{{ true }}" hint-size="auto,44px">No disponible</x-import>
+                <x-import component-from-global-scope="DesignSystem_ddd184.Button" full-width="{{ true }}" left-icon="{{ icons.check }}" hint-size="100%,44px">Crear trato</x-import>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:13px">Sólo icono (IconButton)</div>
+              <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+                <x-import component-from-global-scope="DesignSystem_ddd184.IconButton" variant="ghost" aria-label="Notificaciones" hint-size="44px,44px"><i data-lucide="bell"></i></x-import>
+                <x-import component-from-global-scope="DesignSystem_ddd184.IconButton" variant="outline" aria-label="Buscar" hint-size="44px,44px"><i data-lucide="search"></i></x-import>
+                <x-import component-from-global-scope="DesignSystem_ddd184.IconButton" variant="primary" aria-label="Añadir" hint-size="44px,44px"><i data-lucide="plus"></i></x-import>
+                <x-import component-from-global-scope="DesignSystem_ddd184.IconButton" variant="ghost" aria-label="Más" hint-size="44px,44px"><i data-lucide="more-horizontal"></i></x-import>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:13px">Enlaces</div>
+            <div style="display:flex;flex-wrap:wrap;gap:22px;align-items:center">
+              <a href="#botones" style="color:var(--color-primary);font-weight:600;text-decoration:none;font-size:15px">Ver ficha del cliente</a>
+              <a href="#botones" style="color:var(--color-primary);font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:6px;text-decoration:none">Abrir oportunidad <i data-lucide="arrow-right"></i></a>
+              <a href="#botones" style="color:var(--color-text-muted);font-weight:600;font-size:15px;text-decoration:underline">Enlace atenuado</a>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Primario · Secundario · Ghost · Danger · IconButton · Enlace</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Reposo · Hover · Active · Focus ring · Disabled</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">≥44px táctil en móvil · fullWidth en formularios</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-primary · --radius-md · --focus-ring</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 INPUTS -->
+      <section id="inputs" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">02 · Formularios</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Inputs</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Texto, teléfono, email, select y fecha. Foco con anillo azul, error con borde rojo y texto de ayuda.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 24px">
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Nombre del cliente" placeholder="p.ej. Estudio Ríos" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Teléfono" type="tel" left-icon="{{ icons.phone }}" placeholder="600 000 000" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Email" type="email" left-icon="{{ icons.mail }}" placeholder="nombre@correo.com" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Select" label="Canal de origen" hint-size="100%,72px">
+              <option>Llamada</option><option>WhatsApp</option><option>Recomendación</option><option>Web</option>
+            </x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Fecha prevista de cierre" type="date" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Importe estimado" left-icon="{{ icons.euro }}" placeholder="0,00" hint-size="100%,72px"></x-import>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 24px;margin-top:20px;padding-top:22px;border-top:1px solid var(--color-border)">
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Teléfono" type="tel" left-icon="{{ icons.phone }}" value="600 12" error="Introduce un teléfono válido (9 dígitos)." hint-size="100%,80px"></x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Identificador" value="OPP-0241" disabled="{{ true }}" hint="Se asigna automáticamente." hint-size="100%,80px"></x-import>
+            <div style="grid-column:1 / -1">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Textarea" label="Nota" rows="3" placeholder="Resumen breve de la conversación…" hint-size="100%,110px"></x-import>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--color-border);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <x-import component-from-global-scope="DesignSystem_ddd184.Switch" label="Recordatorios push" checked="{{ sw }}" on-change="{{ toggleSw }}" hint-size="auto,28px"></x-import>
+            <span style="font-size:13px;color:var(--color-text-muted)">El foco muestra el anillo <code style="font-family:var(--font-mono)">--focus-ring</code> — haz clic en cualquier campo.</span>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Texto · Tel · Email · Select · Fecha · Importe · Textarea</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Reposo · Foco · Error · Deshabilitado · Con icono</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">2 columnas en escritorio · 1 columna en móvil · alto ≥44px</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-border · --color-error · --radius-md · --focus-ring</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 TARJETAS -->
+      <section id="tarjetas" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">03 · Contenido</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Tarjetas</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Tres composiciones clave del MVP: oportunidad (pipeline), cliente y seguimiento de "Hoy".</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;align-items:start">
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:11px">Oportunidad</div>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Card" padding="md" interactive="{{ true }}" hint-size="100%,200px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="min-width:0"><div style="font-weight:600;font-size:15px">Estudio Ríos — web</div><div style="font-size:12.5px;color:var(--color-text-muted);margin-top:2px">Rediseño corporativo</div></div>
+                  <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="risk" value="medium" label="Medio" hint-size="auto,24px"></x-import>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+                  <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="propuesta" hint-size="auto,24px"></x-import>
+                  <span style="font-family:var(--font-mono);font-weight:600;font-size:15px">€12.400</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;margin-top:14px;padding:9px 12px;background:var(--color-neutral-50);border-radius:var(--radius-md);font-size:13px;color:var(--color-text-secondary)">
+                  <i data-lucide="clock" style="color:var(--color-warning)"></i>
+                  <span style="min-width:0">Llamar para revisar · <span style="font-family:var(--font-mono);font-weight:500">28/06</span></span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;margin-top:13px;padding-top:12px;border-top:1px solid var(--color-border)">
+                  <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="María Ríos" size="sm" hint-size="32px,32px"></x-import>
+                  <span style="font-size:13px;color:var(--color-text-secondary)">María Ríos</span>
+                  <span style="margin-left:auto;color:var(--color-text-muted);display:inline-flex"><i data-lucide="arrow-right"></i></span>
+                </div>
+              </x-import>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:11px">Cliente</div>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Card" padding="md" interactive="{{ true }}" hint-size="100%,200px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="Iván Mora" size="lg" hint-size="48px,48px"></x-import>
+                  <div style="min-width:0"><div style="font-weight:600;font-size:15px">Café Aroma</div><div style="font-size:12.5px;color:var(--color-text-muted)">Iván Mora</div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px;margin-top:14px;font-size:13px;color:var(--color-text-secondary)">
+                  <span style="display:flex;align-items:center;gap:9px"><i data-lucide="phone" style="color:var(--color-neutral-400)"></i><span style="font-family:var(--font-mono)">623 451 902</span></span>
+                  <span style="display:flex;align-items:center;gap:9px"><i data-lucide="mail" style="color:var(--color-neutral-400)"></i>ivan@cafearoma.es</span>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:14px;padding-top:13px;border-top:1px solid var(--color-border)">
+                  <div style="flex:1"><div style="font-size:11px;color:var(--color-text-muted)">Oportunidades</div><div style="font-weight:700;font-size:18px">2</div></div>
+                  <div style="flex:1"><div style="font-size:11px;color:var(--color-text-muted)">Valor total</div><div style="font-weight:700;font-size:18px;font-family:var(--font-mono)">€9.4k</div></div>
+                </div>
+              </x-import>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:11px">Seguimiento · Hoy</div>
+              <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid var(--color-warning);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:16px 18px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                    <span style="width:34px;height:34px;border-radius:var(--radius-md);background:var(--color-primary-subtle);color:var(--color-primary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="phone"></i></span>
+                    <div style="min-width:0"><div style="font-weight:600;font-size:14.5px">Llamar a María Ríos</div><div style="font-size:12.5px;color:var(--color-text-muted)">Estudio Ríos · revisar propuesta</div></div>
+                  </div>
+                  <span style="font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--color-warning);white-space:nowrap">Hoy 10:00</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:13px">
+                  <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="propuesta" hint-size="auto,24px"></x-import>
+                  <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" left-icon="{{ icons.check }}" hint-size="auto,36px">Hecho</x-import>
+                  <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" hint-size="auto,36px">Posponer</x-import>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Oportunidad · Cliente · Seguimiento (acento de riesgo)</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Reposo · Hover (e1→e2) · Interactiva</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Grid fluido · 1 columna en móvil</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-surface · --radius-lg · --shadow-e1 · --font-mono</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 BADGES -->
+      <section id="badges" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">04 · Estado</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Badges y etiquetas</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Pareja color sólido + fondo subtle. Nunca se inventan combinaciones fuera de las definidas.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+
+          <div style="margin-bottom:22px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Etapa del pipeline</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="nuevo" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="contactado" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="propuesta" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="negociacion" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="ganado" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="perdido" hint-size="auto,24px"></x-import>
+            </div>
+          </div>
+
+          <div style="margin-bottom:22px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Indicador de riesgo</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="risk" value="low" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="risk" value="medium" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="risk" value="high" hint-size="auto,24px"></x-import>
+            </div>
+          </div>
+
+          <div style="margin-bottom:22px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Estado de presupuesto</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="quote" value="borrador" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="quote" value="enviado" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="quote" value="aceptado" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="quote" value="rechazado" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="quote" value="vencido" hint-size="auto,24px"></x-import>
+            </div>
+          </div>
+
+          <div style="margin-bottom:22px">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Estado del paso</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="task" value="pendiente" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="task" value="hecha" label="Hecho" hint-size="auto,24px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="info" dot="{{ true }}" hint-size="auto,24px">Pospuesto</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="task" value="vencida" label="Vencido" hint-size="auto,24px"></x-import>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Genéricos (Badge)</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="neutral" hint-size="auto,24px">Neutral</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="primary" hint-size="auto,24px">Primary</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="success" hint-size="auto,24px">Success</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="warning" hint-size="auto,24px">Warning</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="error" hint-size="auto,24px">Error</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Badge" variant="info" hint-size="auto,24px">Info</x-import>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Pipeline · Riesgo · Presupuesto · Paso · Genéricos</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Con punto · Sin punto · Etiqueta personalizada</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">No truncan · sin emoji · color + texto (AA)</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--pipeline-* · --risk-* · --quote-* · --task-* · --radius-pill</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 MODALES -->
+      <section id="modales" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">05 · Overlay</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Modales</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Contenedor para Alta rápida y Registrar interacción. Se invocan desde varias pantallas y devuelven al origen.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:flex;flex-wrap:wrap;gap:12px">
+            <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" on-click="{{ openAlta }}" hint-size="auto,44px">Abrir · Alta rápida</x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" on-click="{{ openInt }}" hint-size="auto,44px">Abrir · Registrar interacción</x-import>
+          </div>
+          <p style="margin:14px 0 0;font-size:13px;color:var(--color-text-muted)">Centrado, fondo oscurecido, elevación <code style="font-family:var(--font-mono)">--shadow-e3</code>. Cierra con la X, el botón Cancelar o clic fuera.</p>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Alta rápida · Registrar interacción</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Abierto · Cerrado · Con scroll interno</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Centrado en escritorio · hoja a pantalla en móvil</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--shadow-e3 · --radius-xl · --color-surface</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 06 NAVEGACION -->
+      <section id="navegacion" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">06 · Estructura</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Navegación</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Menú por rol: sidebar fija para Marta (escritorio), barra inferior para Carlos (móvil). "+ Nuevo" siempre a mano.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start">
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:11px">Sidebar · Marta (web)</div>
+              <div style="width:240px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:14px 10px;display:flex;flex-direction:column;min-height:320px">
+                <div style="display:flex;align-items:center;gap:10px;padding:4px 8px 14px">
+                  <span style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+                  <span style="font-weight:700;font-size:15px">SuperCRM</span>
+                </div>
+                <x-import component-from-global-scope="DesignSystem_ddd184.SidebarNav" items="{{ martaItems }}" value="{{ navMarta }}" on-change="{{ setNavMarta }}" hint-size="100%,230px"></x-import>
+                <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 4px;border-top:1px solid var(--color-border)">
+                  <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="Marta Ledo" size="sm" hint-size="32px,32px"></x-import>
+                  <div style="min-width:0"><div style="font-size:13px;font-weight:600">Marta Ledo</div><div style="font-size:11.5px;color:var(--color-text-muted)">Directora</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:11px">Barra inferior · Carlos (móvil)</div>
+              <div style="max-width:340px;border:1px solid var(--color-border);border-radius:var(--radius-xl);overflow:hidden;background:var(--color-bg)">
+                <div style="height:120px;display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);font-size:13px">Contenido de la pantalla</div>
+                <div style="display:flex;align-items:flex-end;justify-content:space-around;background:var(--color-surface);border-top:1px solid var(--color-border);padding:8px 8px 12px">
+                  <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-primary);font-size:11px;font-weight:600"><i data-lucide="calendar"></i>Hoy</span>
+                  <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-text-muted);font-size:11px;font-weight:600"><i data-lucide="trending-up"></i>Pipeline</span>
+                  <span style="width:48px;height:48px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-e2);margin-top:-22px"><i data-lucide="plus" style="stroke-width:2.25"></i></span>
+                  <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-text-muted);font-size:11px;font-weight:600"><i data-lucide="users"></i>Clientes</span>
+                  <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-text-muted);font-size:11px;font-weight:600"><i data-lucide="user"></i>Perfil</span>
+                </div>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin:20px 0 11px">Pestañas · acción "+ Nuevo"</div>
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <x-import component-from-global-scope="DesignSystem_ddd184.Tabs" items="{{ tabItems }}" value="{{ tab }}" on-change="{{ setTab }}" hint-size="auto,40px"></x-import>
+                <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" on-click="{{ openAlta }}" hint-size="auto,44px">Nuevo</x-import>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:26px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">SidebarNav · Barra inferior · Tabs · Botón Nuevo</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Activo · Inactivo · Con contador</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Sidebar en escritorio · barra inferior en móvil</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-primary-subtle · --radius-md · --tap-min</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 07 LISTAS -->
+      <section id="listas" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">07 · Datos</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Listas y filas</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">La lista de "Hoy" prioriza la siguiente acción; el historial muestra las interacciones en orden cronológico.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px;align-items:start">
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Lista "Hoy"</div>
+              <div style="border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--color-border)">
+                  <span style="width:34px;height:34px;border-radius:var(--radius-md);background:var(--color-error-subtle);color:var(--color-error);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="phone"></i></span>
+                  <div style="min-width:0;flex:1"><div style="font-weight:600;font-size:14px">Llamar a Ana Soto</div><div style="font-size:12px;color:var(--color-text-muted)">Soto Diseño · negociación</div></div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none;white-space:nowrap"><div style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--color-error)">Vencido</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted)">€21.000</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--color-border);background:var(--color-neutral-50)">
+                  <span style="width:34px;height:34px;border-radius:var(--radius-md);background:var(--color-primary-subtle);color:var(--color-primary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="message-circle"></i></span>
+                  <div style="min-width:0;flex:1"><div style="font-weight:600;font-size:14px">WhatsApp a María Ríos</div><div style="font-size:12px;color:var(--color-text-muted)">Estudio Ríos · propuesta</div></div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none;white-space:nowrap"><div style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--color-text-secondary)">Hoy 10:00</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted)">€12.400</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:13px 15px">
+                  <span style="width:34px;height:34px;border-radius:var(--radius-md);background:var(--color-secondary-subtle);color:var(--color-secondary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="calendar"></i></span>
+                  <div style="min-width:0;flex:1"><div style="font-weight:600;font-size:14px">Visita a Nordic Studio</div><div style="font-size:12px;color:var(--color-text-muted)">Eva Ruiz · negociación</div></div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none;white-space:nowrap"><div style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--color-text-secondary)">Hoy 17:30</div><div style="font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted)">€15.600</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Historial de interacciones</div>
+              <div style="display:flex;flex-direction:column;gap:0">
+                <div style="display:flex;gap:12px;padding-bottom:16px;position:relative">
+                  <div style="display:flex;flex-direction:column;align-items:center"><span style="width:30px;height:30px;border-radius:50%;background:var(--color-primary-subtle);color:var(--color-primary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="phone"></i></span><span style="flex:1;width:2px;background:var(--color-border);margin-top:4px"></span></div>
+                  <div style="padding-top:3px"><div style="font-size:14px;font-weight:600">Llamada · interesada en la propuesta</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">Pide ajustar el alcance del rediseño. Reenviar versión.</div><div style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono);margin-top:4px">27/06 · 12:40 · Carlos</div></div>
+                </div>
+                <div style="display:flex;gap:12px;padding-bottom:16px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><span style="width:30px;height:30px;border-radius:50%;background:var(--color-secondary-subtle);color:var(--color-secondary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="mail"></i></span><span style="flex:1;width:2px;background:var(--color-border);margin-top:4px"></span></div>
+                  <div style="padding-top:3px"><div style="font-size:14px;font-weight:600">Email · propuesta enviada</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">Documento con presupuesto de €12.400.</div><div style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono);margin-top:4px">24/06 · 09:15 · Carlos</div></div>
+                </div>
+                <div style="display:flex;gap:12px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><span style="width:30px;height:30px;border-radius:50%;background:var(--color-neutral-100);color:var(--color-neutral-500);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="user"></i></span></div>
+                  <div style="padding-top:3px"><div style="font-size:14px;font-weight:600">Oportunidad creada</div><div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">Origen: recomendación.</div><div style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono);margin-top:4px">22/06 · 18:02 · Carlos</div></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Fila "Hoy" · Timeline de historial</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Reposo · Hover (neutral-100) · Vencido</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Alto de fila 44–48px · importes a la derecha</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-border · --color-neutral-50 · --font-mono</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 08 KPI -->
+      <section id="kpi" style="scroll-margin-top:90px;margin-bottom:56px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">08 · Panel</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Widgets KPI</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Los indicadores del panel de Marta: valor del pipeline, forecast y oportunidades en riesgo.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+
+            <x-import component-from-global-scope="DesignSystem_ddd184.Card" padding="md" hint-size="100%,128px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:var(--color-text-muted)">Valor del pipeline</span><span style="width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--color-primary-subtle);color:var(--color-primary)"><i data-lucide="trending-up"></i></span></div>
+              <div style="font-size:28px;font-weight:700;margin-top:10px;font-family:var(--font-mono);letter-spacing:-.01em">€61.000</div>
+              <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:2px">12 oportunidades abiertas</div>
+            </x-import>
+
+            <x-import component-from-global-scope="DesignSystem_ddd184.Card" padding="md" hint-size="100%,128px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:var(--color-text-muted)">Forecast</span><span style="width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--color-secondary-subtle);color:var(--color-secondary)"><i data-lucide="calendar"></i></span></div>
+              <div style="font-size:28px;font-weight:700;margin-top:10px;font-family:var(--font-mono);letter-spacing:-.01em">€38.500</div>
+              <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:2px">Previsto · próximas 4 semanas</div>
+            </x-import>
+
+            <x-import component-from-global-scope="DesignSystem_ddd184.Card" padding="md" hint-size="100%,128px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:var(--color-text-muted)">En riesgo</span><span style="width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--color-error-subtle);color:var(--color-error)"><i data-lucide="alert-triangle"></i></span></div>
+              <div style="font-size:28px;font-weight:700;margin-top:10px;letter-spacing:-.01em">3</div>
+              <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:2px">Sin actividad +5 días</div>
+            </x-import>
+          </div>
+
+          <div style="margin-top:18px">
+            <x-import component-from-global-scope="DesignSystem_ddd184.ProgressBar" value="68" label="Objetivo del mes · €40.000" show-value="{{ true }}" hint-size="100%,44px"></x-import>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Pipeline · Forecast · En riesgo · ProgressBar</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Acento por significado · valor monoespaciado</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">4 col → 2 col → 1 col</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-primary-subtle · --color-error · --font-mono</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09 FEEDBACK -->
+      <section id="feedback" style="scroll-margin-top:90px;margin-bottom:24px">
+        <div style="margin-bottom:18px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">09 · Feedback</div>
+          <h2 style="font-size:26px;font-weight:600;margin:6px 0 4px;letter-spacing:-.01em">Estado vacío, carga y toasts</h2>
+          <p style="margin:0;color:var(--color-text-secondary);font-size:15px;max-width:640px">Mensajes amables y accionables, esqueleto de carga y notificaciones efímeras.</p>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:26px 28px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start">
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Estado vacío</div>
+              <div style="border:1px dashed var(--color-border-strong);border-radius:var(--radius-lg);padding:8px">
+                <x-import component-from-global-scope="DesignSystem_ddd184.EmptyState" icon="{{ icons.users }}" title="Aún no hay contactos" description="Añade tu primer cliente para empezar a seguir ventas." hint-size="100%,200px">
+                  <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" hint-size="auto,44px">Añadir cliente</x-import>
+                </x-import>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Skeleton de carga</div>
+              <div style="border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px 18px">
+                <div style="display:flex;align-items:center;gap:12px"><span class="kit-skel" style="width:40px;height:40px;border-radius:50%"></span><div style="flex:1"><div class="kit-skel" style="height:12px;width:55%;margin-bottom:8px"></div><div class="kit-skel" style="height:10px;width:35%"></div></div></div>
+                <div class="kit-skel" style="height:12px;width:100%;margin-top:18px"></div>
+                <div class="kit-skel" style="height:12px;width:80%;margin-top:10px"></div>
+                <div style="display:flex;gap:10px;margin-top:18px"><span class="kit-skel" style="height:24px;width:84px;border-radius:var(--radius-pill)"></span><span class="kit-skel" style="height:24px;width:60px;border-radius:var(--radius-pill)"></span></div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="margin-top:24px;padding-top:22px;border-top:1px solid var(--color-border)">
+            <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:12px">Toasts</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="success" title="Trato guardado" message="Estudio Ríos se ha creado correctamente." hint-size="100%,70px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="warning" title="Seguimiento vencido" message="Tienes 1 paso sin completar hoy." hint-size="100%,70px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="error" title="No se ha podido guardar" message="Revisa el teléfono e inténtalo de nuevo." hint-size="100%,70px"></x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="info" title="Próximo paso creado" message="Llamar a María Ríos · mañana 10:00." hint-size="100%,70px"></x-import>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" on-click="{{ pushSuccess }}" hint-size="auto,36px">Lanzar éxito</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" on-click="{{ pushWarning }}" hint-size="auto,36px">Lanzar aviso</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" on-click="{{ pushError }}" hint-size="auto,36px">Lanzar error</x-import>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" on-click="{{ pushInfo }}" hint-size="auto,36px">Lanzar info</x-import>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;padding-top:18px;border-top:1px solid var(--color-border)">
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Variantes</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">EmptyState · Skeleton · Toast (4 tipos)</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Estados</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Cargando · Vacío · Éxito · Aviso · Error · Info</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Responsive</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">Toast arriba en móvil · abajo-derecha en escritorio</div></div>
+            <div style="flex:1;min-width:150px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px">Tokens</div><div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">--color-success · --shadow-e2 · --color-neutral-100/200</div></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: Alta rápida -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ altaOpen }}" on-close="{{ closeAlta }}" title="Alta rápida" description="Captura el contacto y la oportunidad en segundos." width="480" footer="{{ altaFooter }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Nombre del cliente" placeholder="p.ej. Café Aroma" required="{{ true }}" hint-size="100%,72px"></x-import>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1"><x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Teléfono" type="tel" left-icon="{{ icons.phone }}" placeholder="600 000 000" hint-size="100%,72px"></x-import></div>
+        <div style="flex:1"><x-import component-from-global-scope="DesignSystem_ddd184.Select" label="Canal de origen" hint-size="100%,72px"><option>Llamada</option><option>WhatsApp</option><option>Recomendación</option><option>Web</option></x-import></div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1"><x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Importe estimado" left-icon="{{ icons.euro }}" placeholder="0,00" hint-size="100%,72px"></x-import></div>
+        <div style="flex:1"><x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Producto / interés" placeholder="Opcional" hint-size="100%,72px"></x-import></div>
+      </div>
+    </div>
+  </x-import>
+
+  <!-- MODAL: Registrar interacción -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ intOpen }}" on-close="{{ closeInt }}" title="Registrar interacción" description="Deja constancia de lo que pasó con el cliente." width="480" footer="{{ intFooter }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px">Tipo</div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Tabs" items="{{ typeItems }}" value="{{ typeSel }}" on-change="{{ setType }}" hint-size="100%,40px"></x-import>
+      </div>
+      <x-import component-from-global-scope="DesignSystem_ddd184.Textarea" label="Nota / resultado" rows="3" placeholder="Resumen breve…" hint-size="100%,110px"></x-import>
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" label="Fecha y hora" type="datetime-local" hint-size="100%,72px"></x-import>
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--color-info-subtle);border-radius:var(--radius-md)">
+        <i data-lucide="info" style="color:var(--color-info)"></i>
+        <span style="font-size:13px;color:var(--color-text-secondary)">Próximo paso sugerido: <b>Llamar de seguimiento</b> · en 3 días.</span>
+      </div>
+    </div>
+  </x-import>
+
+  <!-- TOAST STACK -->
+  <div style="position:fixed;right:24px;bottom:24px;z-index:80;display:flex;flex-direction:column;gap:10px;max-width:340px">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+      <div style="animation:toastIn .18s ease">
+        <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="{{ t.variant }}" title="{{ t.title }}" message="{{ t.message }}" on-close="{{ t.onClose }}" hint-size="320px,64px"></x-import>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    navMarta: 'pipeline',
+    tab: 'tablero',
+    typeSel: 'llamada',
+    sw: true,
+    altaOpen: false,
+    intOpen: false,
+    toasts: [],
+  };
+  _id = 0;
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+
+  componentDidMount() { this.refreshIcons(); }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 240, 500, 900, 1500].forEach(t => setTimeout(run, t));
+  }
+
+  addToast(variant) {
+    const map = {
+      success: { title: 'Trato guardado', message: 'Estudio Ríos se ha creado correctamente.' },
+      warning: { title: 'Seguimiento vencido', message: 'Tienes 1 paso sin completar hoy.' },
+      error: { title: 'No se ha podido guardar', message: 'Revisa el teléfono e inténtalo de nuevo.' },
+      info: { title: 'Próximo paso creado', message: 'Llamar a María Ríos · mañana 10:00.' },
+    };
+    const id = ++this._id;
+    this.setState(s => ({ toasts: [...s.toasts, { id, variant, ...map[variant] }] }));
+    setTimeout(() => this.dismiss(id), 4200);
+  }
+  dismiss(id) { this.setState(s => ({ toasts: s.toasts.filter(t => t.id !== id) })); }
+
+  renderVals() {
+    const ic = (n) => this.ic(n);
+    const names = { plus: 'plus', search: 'search', filter: 'filter', arrowRight: 'arrow-right', pencil: 'pencil', trash: 'trash-2', check: 'check', phone: 'phone', mail: 'mail', euro: 'euro', calendar: 'calendar', user: 'user', users: 'users', fileText: 'file-text', clock: 'clock' };
+    const icons = {};
+    Object.keys(names).forEach(k => { icons[k] = ic(names[k]); });
+
+    const martaItems = [
+      { value: 'panel', label: 'Panel', icon: ic('layout-dashboard') },
+      { value: 'pipeline', label: 'Pipeline', icon: ic('trending-up') },
+      { value: 'clientes', label: 'Clientes', icon: ic('users') },
+      { value: 'supervision', label: 'Supervisión', icon: ic('user-check'), badge: 2 },
+      { value: 'ajustes', label: 'Ajustes', icon: ic('settings') },
+    ];
+    const tabItems = [
+      { value: 'tablero', label: 'Tablero', icon: ic('columns-3') },
+      { value: 'lista', label: 'Lista', icon: ic('list'), count: 7 },
+    ];
+    const typeItems = [
+      { value: 'llamada', label: 'Llamada', icon: ic('phone') },
+      { value: 'whatsapp', label: 'WhatsApp', icon: ic('message-circle') },
+      { value: 'email', label: 'Email', icon: ic('mail') },
+      { value: 'visita', label: 'Visita', icon: ic('map-pin') },
+    ];
+
+    const toasts = this.state.toasts.map(t => ({ ...t, onClose: () => this.dismiss(t.id) }));
+
+    const altaFooter = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.setState({ altaOpen: false }) }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => { this.setState({ altaOpen: false }); this.addToast('success'); } }, 'Crear trato'),
+    );
+    const intFooter = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.setState({ intOpen: false }) }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => { this.setState({ intOpen: false }); this.addToast('info'); } }, 'Guardar'),
+    );
+
+    return {
+      icons, martaItems, tabItems, typeItems, toasts, altaFooter, intFooter,
+      navMarta: this.state.navMarta,
+      setNavMarta: (v) => this.setState({ navMarta: v }),
+      tab: this.state.tab,
+      setTab: (v) => this.setState({ tab: v }),
+      typeSel: this.state.typeSel,
+      setType: (v) => this.setState({ typeSel: v }),
+      sw: this.state.sw,
+      toggleSw: () => this.setState(s => ({ sw: !s.sw })),
+      altaOpen: this.state.altaOpen,
+      intOpen: this.state.intOpen,
+      openAlta: () => this.setState({ altaOpen: true }),
+      closeAlta: () => this.setState({ altaOpen: false }),
+      openInt: () => this.setState({ intOpen: true }),
+      closeInt: () => this.setState({ intOpen: false }),
+      pushSuccess: () => this.addToast('success'),
+      pushWarning: () => this.addToast('warning'),
+      pushError: () => this.addToast('error'),
+      pushInfo: () => this.addToast('info'),
+    };
+  }
+}
+
+function DSBtn(props) {
+  const NS = window.DesignSystem_ddd184 || {};
+  const B = NS.Button || 'button';
+  return React.createElement(B, props);
+}
+</script>
+</body>
+</html>

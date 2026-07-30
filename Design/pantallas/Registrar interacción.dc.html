@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  @keyframes regSpin{to{transform:rotate(360deg)}}
+  .reg-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:regSpin .7s linear infinite;flex:none;display:inline-block}
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text);display:flex;align-items:center;justify-content:center;padding:24px">
+
+  <!-- LAUNCHER (demo) -->
+  <div style="width:100%;max-width:440px;text-align:center">
+    <span style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px"><i data-lucide="message-square-plus" style="color:#fff;width:24px;height:24px"></i></span>
+    <h1 style="font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 8px">Registrar interacción</h1>
+    <p style="font-size:15px;color:var(--color-text-secondary);margin:0 0 20px;line-height:1.55">Anota lo que pasó con el cliente en dos toques. Se abre desde el detalle de la oportunidad, la ficha de cliente o "Hoy".</p>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><i data-lucide="file-text"></i>Detalle</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><i data-lucide="users"></i>Ficha de cliente</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:6px 12px"><i data-lucide="calendar"></i>Hoy</span>
+    </div>
+    <x-import component-from-global-scope="DesignSystem_ddd184.Button" size="lg" left-icon="{{ icons.message }}" on-click="{{ open }}" hint-size="auto,52px">Registrar interacción</x-import>
+    <p style="font-size:12.5px;color:var(--color-text-muted);margin:18px 0 0">Cliente, oportunidad y autor se asignan automáticamente.</p>
+  </div>
+
+  <!-- MODAL -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ modalOpen }}" on-close="{{ close }}" title="Registrar interacción" description="Deja constancia de lo que pasó con el cliente." width="480" footer="{{ footer }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- contexto auto -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);font-size:12.5px;color:var(--color-text-secondary)">
+        <span style="display:inline-flex;align-items:center;gap:6px"><i data-lucide="building-2" style="color:var(--color-neutral-400)"></i><b style="font-weight:600;color:var(--color-text)">{{ cliente }}</b></span>
+        <span style="width:1px;height:13px;background:var(--color-border)"></span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><i data-lucide="target" style="color:var(--color-neutral-400)"></i><span style="font-family:var(--font-mono)">{{ oportunidad }}</span></span>
+        <span style="width:1px;height:13px;background:var(--color-border)"></span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><i data-lucide="user" style="color:var(--color-neutral-400)"></i>{{ autor }}</span>
+      </div>
+
+      <!-- tipo (requerido) -->
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px">Tipo <span style="color:var(--color-error)">*</span></div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Tabs" items="{{ typeItems }}" value="{{ typeSel }}" on-change="{{ setType }}" hint-size="100%,40px"></x-import>
+        <sc-if value="{{ typeErr }}" hint-placeholder-val="">
+          <div style="font-size:12px;margin-top:6px;color:var(--color-error)">{{ typeErr }}</div>
+        </sc-if>
+      </div>
+
+      <!-- nota -->
+      <x-import component-from-global-scope="DesignSystem_ddd184.Textarea" id="reg-nota" label="Nota / resultado" rows="3" placeholder="¿Qué ha pasado? p.ej. Interesado, pide ajustar el precio." hint-size="100%,110px"></x-import>
+
+      <!-- fecha y hora -->
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="reg-fecha" type="datetime-local" label="Fecha y hora" value="{{ fechaHora }}" onInput="{{ onFecha }}" hint-size="100%,72px"></x-import>
+
+      <!-- proximo paso sugerido -->
+      <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:13px 14px;background:var(--color-surface)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+          <i data-lucide="sparkles" style="color:var(--color-primary)"></i>
+          <span style="font-size:13px;font-weight:600">Próximo paso sugerido</span>
+          <span style="font-size:11px;font-weight:600;color:var(--color-primary);background:var(--color-primary-subtle);border-radius:var(--radius-pill);padding:1px 8px">editable</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="flex:2;min-width:180px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="reg-paso-accion" label="Acción" value="{{ pasoAccion }}" onInput="{{ onPasoAccion }}" hint-size="100%,72px"></x-import></div>
+          <div style="flex:1;min-width:130px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="reg-paso-fecha" type="date" label="Fecha" value="{{ pasoFecha }}" onInput="{{ onPasoFecha }}" hint-size="100%,72px"></x-import></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;font-size:12px;color:var(--color-text-muted)">
+        <i data-lucide="info" style="width:15px;height:15px"></i>
+        <span>Registro manual. La captura automática de WhatsApp, email y llamadas llegará más adelante.</span>
+      </div>
+    </div>
+  </x-import>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="">
+    <div style="position:fixed;left:16px;right:16px;bottom:24px;z-index:80;max-width:380px;margin:0 auto;animation:toastIn .2s ease">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="{{ toastVariant }}" title="{{ toastTitle }}" message="{{ toastMessage }}" on-close="{{ dismissToast }}" hint-size="100%,64px"></x-import>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const TYPE_LABEL = { llamada: 'Llamada', whatsapp: 'WhatsApp', email: 'Email', visita: 'Visita' };
+const SUGG = {
+  llamada: 'Llamar de seguimiento',
+  whatsapp: 'Enviar WhatsApp de seguimiento',
+  email: 'Enviar email de seguimiento',
+  visita: 'Agendar próxima visita',
+};
+function pad(n) { return String(n).padStart(2, '0'); }
+function nowLocal() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function plusDays(n) { const d = new Date(Date.now() + n * 864e5); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+
+class Component extends DCLogic {
+  state = {
+    modal: false,
+    loading: false,
+    typeSel: null,
+    typeErr: '',
+    fechaHora: nowLocal(),
+    pasoAccion: 'Llamar de seguimiento',
+    pasoFecha: plusDays(3),
+    cliente: 'Estudio Ríos',
+    oportunidad: 'OPP-0241',
+    autor: 'Carlos Vega',
+    toast: null,
+  };
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  componentDidMount() {
+    try {
+      const s = JSON.parse(localStorage.getItem('supercrm_session') || 'null');
+      if (s && s.name) this.setState({ autor: s.name });
+    } catch (_) {}
+    this.refreshIcons();
+  }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  open() { this.setState({ modal: true, loading: false, typeSel: null, typeErr: '', fechaHora: nowLocal(), pasoAccion: 'Llamar de seguimiento', pasoFecha: plusDays(3) }); }
+  close() { if (!this.state.loading) this.setState({ modal: false }); }
+
+  setType(v) { this.setState({ typeSel: v, typeErr: '', pasoAccion: SUGG[v] || this.state.pasoAccion }); }
+
+  save() {
+    if (this.state.loading) return;
+    if (!this.state.typeSel) { this.setState({ typeErr: 'Selecciona el tipo de interacción.' }); return; }
+    this.setState({ loading: true });
+    setTimeout(() => {
+      const label = TYPE_LABEL[this.state.typeSel] || 'Interacción';
+      this.setState({ loading: false, modal: false });
+      this.showToast('success', label + ' registrada', 'Próximo paso: ' + this.state.pasoAccion + '.');
+    }, 950);
+  }
+
+  showToast(variant, title, message) {
+    this.setState({ toast: { variant, title, message } });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 4200);
+  }
+
+  renderVals() {
+    const footer = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.close(), disabled: this.state.loading }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => this.save(), disabled: this.state.loading },
+        this.state.loading
+          ? React.createElement(React.Fragment, null, React.createElement('span', { className: 'reg-spin' }), 'Guardando…')
+          : 'Guardar'),
+    );
+    return {
+      modalOpen: this.state.modal,
+      loading: this.state.loading,
+      cliente: this.state.cliente,
+      oportunidad: this.state.oportunidad,
+      autor: this.state.autor,
+      typeSel: this.state.typeSel,
+      typeErr: this.state.typeErr,
+      fechaHora: this.state.fechaHora,
+      pasoAccion: this.state.pasoAccion,
+      pasoFecha: this.state.pasoFecha,
+      typeItems: [
+        { value: 'llamada', label: 'Llamada', icon: this.ic('phone') },
+        { value: 'whatsapp', label: 'WhatsApp', icon: this.ic('message-circle') },
+        { value: 'email', label: 'Email', icon: this.ic('mail') },
+        { value: 'visita', label: 'Visita', icon: this.ic('map-pin') },
+      ],
+      icons: { message: this.ic('message-square') },
+      footer,
+      open: () => this.open(),
+      close: () => this.close(),
+      setType: (v) => this.setType(v),
+      onFecha: (e) => this.setState({ fechaHora: e.target.value }),
+      onPasoAccion: (e) => this.setState({ pasoAccion: e.target.value }),
+      onPasoFecha: (e) => this.setState({ pasoFecha: e.target.value }),
+      toast: this.state.toast ? true : '',
+      toastVariant: this.state.toast ? this.state.toast.variant : 'success',
+      toastTitle: this.state.toast ? this.state.toast.title : '',
+      toastMessage: this.state.toast ? this.state.toast.message : '',
+      dismissToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+
+function DSBtn(props) {
+  const NS = window.DesignSystem_ddd184 || {};
+  const B = NS.Button || 'button';
+  return React.createElement(B, props);
+}
+</script>
+</body>
+</html>

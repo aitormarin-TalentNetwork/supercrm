@@ -1,0 +1,92 @@
+<!-- @dsCard group="Components" viewport="700x600" name="Data" subtitle="Tabla de tratos, paginación y columna de pipeline" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; font-family:var(--font-sans); background:var(--color-bg); color:var(--color-text); padding:20px; }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--color-text-muted); margin:0 0 10px; }
+  svg.lucide { width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  function findNS(){
+    for (const k of Object.keys(window)) {
+      const v = window[k];
+      if (v && typeof v === 'object' && typeof v.Table === 'function' && typeof v.KanbanColumn === 'function') return v;
+    }
+    return window;
+  }
+  const { Table, Pagination, KanbanColumn, StatusBadge, Avatar, Card } = findNS();
+
+  const deals = [
+    { id:1, name:'María Ríos', company:'Estudio Ríos', stage:'propuesta', value:'€12.400' },
+    { id:2, name:'Jorge Lema', company:'Lema & Co', stage:'ganado', value:'€8.900' },
+    { id:3, name:'Ana Soto', company:'Soto Diseño', stage:'negociacion', value:'€21.000' },
+    { id:4, name:'Pau Vidal', company:'Vidal Tech', stage:'contactado', value:'€4.300' },
+  ];
+
+  function Demo(){
+    const [page, setPage] = React.useState(2);
+    return (
+      <div>
+        <p className="lbl">Tabla de tratos</p>
+        <Table
+          rows={deals}
+          columns={[
+            { key:'name', header:'Contacto', width:2, render:(v,r)=>(
+              <span style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+                <Avatar name={v} size="sm" />
+                <span style={{ overflow:'hidden' }}>
+                  <span style={{ display:'block', fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{v}</span>
+                  <span style={{ display:'block', fontSize:12, color:'var(--color-text-muted)' }}>{r.company}</span>
+                </span>
+              </span>
+            )},
+            { key:'stage', header:'Etapa', width:1.2, render:v=><StatusBadge kind="pipeline" value={v} /> },
+            { key:'value', header:'Valor', align:'right', mono:true },
+          ]}
+          onRowClick={()=>{}}
+        />
+        <div style={{ display:'flex', justifyContent:'flex-end', marginTop:12 }}>
+          <Pagination page={page} totalPages={8} onChange={setPage} />
+        </div>
+
+        <p className="lbl" style={{ marginTop:22 }}>Columna de pipeline (kanban)</p>
+        <div style={{ display:'flex', gap:12 }}>
+          <KanbanColumn stage="propuesta" title="Propuesta" count={2} total="€33.400">
+            <Card padding="sm">
+              <div style={{ fontWeight:600, fontSize:13 }}>Estudio Ríos</div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:8 }}>
+                <Avatar name="María Ríos" size="xs" />
+                <span style={{ fontFamily:'var(--font-mono)', fontSize:12 }}>€12.400</span>
+              </div>
+            </Card>
+            <Card padding="sm">
+              <div style={{ fontWeight:600, fontSize:13 }}>Soto Diseño</div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:8 }}>
+                <Avatar name="Ana Soto" size="xs" />
+                <span style={{ fontFamily:'var(--font-mono)', fontSize:12 }}>€21.000</span>
+              </div>
+            </Card>
+          </KanbanColumn>
+          <KanbanColumn stage="negociacion" title="Negociación" count={1} total="€21.000" />
+          <KanbanColumn stage="ganado" title="Ganado" count={1} total="€8.900" />
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+  setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+</script>
+</body>
+</html>

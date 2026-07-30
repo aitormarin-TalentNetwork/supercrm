@@ -1,0 +1,67 @@
+<!-- @dsCard group="Components" viewport="700x560" name="Forms" subtitle="Inputs, select, checkbox, radio y switch" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; font-family:var(--font-sans); background:var(--color-bg); color:var(--color-text); padding:20px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px 24px; max-width:660px; }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--color-text-muted); margin:0 0 10px; }
+  svg.lucide { width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  function findNS(){
+    for (const k of Object.keys(window)) {
+      const v = window[k];
+      if (v && typeof v === 'object' && typeof v.Input === 'function' && typeof v.Switch === 'function') return v;
+    }
+    return window;
+  }
+  const { Input, Textarea, Select, Checkbox, Radio, Switch } = findNS();
+
+  function Demo(){
+    const [done, setDone] = React.useState(true);
+    const [plan, setPlan] = React.useState('mes');
+    const [notif, setNotif] = React.useState(true);
+    return (
+      <div>
+        <div className="grid">
+          <Input label="Empresa" placeholder="Estudio Ríos" defaultValue="Estudio Ríos" required />
+          <Input label="Email" type="email" leftIcon={<i data-lucide="mail"></i>} defaultValue="hola@" error="Email no válido" />
+          <Select label="Etapa del trato" defaultValue="propuesta">
+            <option value="nuevo">Nuevo</option>
+            <option value="contactado">Contactado</option>
+            <option value="propuesta">Propuesta</option>
+            <option value="ganado">Ganado</option>
+          </Select>
+          <Input label="Valor" leftIcon={<i data-lucide="euro"></i>} placeholder="0,00" hint="Importe estimado del trato" />
+        </div>
+
+        <div style={{ maxWidth: 660, marginTop: 18 }}>
+          <Textarea label="Nota de la actividad" rows={3} placeholder="Resumen de la llamada…" />
+        </div>
+
+        <div style={{ display:'flex', flexWrap:'wrap', gap:'18px 28px', marginTop:20, alignItems:'center' }}>
+          <Checkbox checked={done} onChange={e=>setDone(e.target.checked)} label="Tarea completada" />
+          <Radio name="plan" value="mes" checked={plan==='mes'} onChange={()=>setPlan('mes')} label="Mensual" />
+          <Radio name="plan" value="anio" checked={plan==='anio'} onChange={()=>setPlan('anio')} label="Anual" />
+          <Switch checked={notif} onChange={e=>setNotif(e.target.checked)} label="Recordatorios por email" />
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+  setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+</script>
+</body>
+</html>

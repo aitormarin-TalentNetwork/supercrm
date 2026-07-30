@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:20px;height:20px;stroke-width:1.75}
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+  @keyframes fabPop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .skel{background:linear-gradient(90deg,var(--color-neutral-100) 25%,var(--color-neutral-200) 37%,var(--color-neutral-100) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:6px}
+  .hoy-col{box-shadow:0 0 0 1px var(--color-border)}
+  @media(max-width:480px){.hoy-col{box-shadow:none}}
+</style>
+</helmet>
+
+<div style="background:var(--color-bg);min-height:100vh;display:flex;justify-content:center;font-family:var(--font-sans);color:var(--color-text)">
+  <div class="hoy-col" style="width:100%;max-width:460px;height:100vh;background:var(--color-bg);position:relative;display:flex;flex-direction:column;overflow:hidden">
+
+    <!-- HEADER -->
+    <header style="flex:none;background:var(--color-surface);border-bottom:1px solid var(--color-border);padding:16px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
+        <div style="font-size:20px;font-weight:700;letter-spacing:-.01em">{{ greeting }}, {{ name }}</div>
+        <div style="font-size:13px;color:var(--color-text-muted);margin-top:2px;text-transform:capitalize">{{ today }}</div>
+      </div>
+      <button type="button" aria-label="Notificaciones" style="position:relative;width:42px;height:42px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-md);color:var(--color-text-secondary);cursor:pointer" style-hover="background:var(--color-neutral-100)" style-focus="box-shadow:var(--focus-ring);outline:none">
+        <i data-lucide="bell"></i>
+        <sc-if value="{{ hasAlerts }}" hint-placeholder-val="{{ true }}">
+          <span style="position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;background:var(--color-error);color:#fff;border-radius:var(--radius-pill);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border:2px solid var(--color-surface)">{{ alertCount }}</span>
+        </sc-if>
+      </button>
+    </header>
+
+    <!-- REGISTRO RÁPIDO -->
+    <div style="flex:none;background:var(--color-surface);border-bottom:1px solid var(--color-border);padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin:0 4px 9px">Registro rápido</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+        <button type="button" onClick="{{ openContacto }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px;border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-lg);cursor:pointer;min-height:44px" style-hover="background:var(--color-neutral-100);border-color:var(--color-secondary)" style-focus="box-shadow:var(--focus-ring);outline:none">
+          <span style="width:34px;height:34px;border-radius:50%;background:var(--color-secondary-subtle);color:var(--color-secondary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="user-plus" style="width:18px;height:18px"></i></span>
+          <span style="font-size:12.5px;font-weight:600;color:var(--color-text)">Cliente</span>
+        </button>
+        <button type="button" onClick="{{ openOportunidad }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px;border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-lg);cursor:pointer;min-height:44px" style-hover="background:var(--color-neutral-100);border-color:var(--color-primary)" style-focus="box-shadow:var(--focus-ring);outline:none">
+          <span style="width:34px;height:34px;border-radius:50%;background:var(--color-primary-subtle);color:var(--color-primary);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="trending-up" style="width:18px;height:18px"></i></span>
+          <span style="font-size:12.5px;font-weight:600;color:var(--color-text)">Venta</span>
+        </button>
+        <button type="button" onClick="{{ openActividad }}" style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px;border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-lg);cursor:pointer;min-height:44px" style-hover="background:var(--color-neutral-100);border-color:var(--color-info)" style-focus="box-shadow:var(--focus-ring);outline:none">
+          <span style="width:34px;height:34px;border-radius:50%;background:var(--color-info-subtle);color:var(--color-info);display:inline-flex;align-items:center;justify-content:center;flex:none"><i data-lucide="clipboard-check" style="width:18px;height:18px"></i></span>
+          <span style="font-size:12.5px;font-weight:600;color:var(--color-text)">Actividad</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <main style="flex:1;overflow-y:auto;padding:18px 18px 96px">
+
+      <!-- LOADING -->
+      <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="skel" style="height:13px;width:90px;margin-bottom:2px"></div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px"><div style="display:flex;gap:12px"><span class="skel" style="width:38px;height:38px;border-radius:var(--radius-md)"></span><div style="flex:1"><div class="skel" style="height:13px;width:60%;margin-bottom:8px"></div><div class="skel" style="height:11px;width:80%"></div></div></div><div style="display:flex;gap:8px;margin-top:14px"><span class="skel" style="height:30px;width:84px;border-radius:var(--radius-md)"></span><span class="skel" style="height:30px;width:84px;border-radius:var(--radius-md)"></span></div></div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px"><div style="display:flex;gap:12px"><span class="skel" style="width:38px;height:38px;border-radius:var(--radius-md)"></span><div style="flex:1"><div class="skel" style="height:13px;width:50%;margin-bottom:8px"></div><div class="skel" style="height:11px;width:70%"></div></div></div><div style="display:flex;gap:8px;margin-top:14px"><span class="skel" style="height:30px;width:84px;border-radius:var(--radius-md)"></span><span class="skel" style="height:30px;width:84px;border-radius:var(--radius-md)"></span></div></div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px"><div style="display:flex;gap:12px"><span class="skel" style="width:38px;height:38px;border-radius:var(--radius-md)"></span><div style="flex:1"><div class="skel" style="height:13px;width:64%;margin-bottom:8px"></div><div class="skel" style="height:11px;width:55%"></div></div></div></div>
+        </div>
+      </sc-if>
+
+      <!-- LOADED -->
+      <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+
+        <!-- EMPTY -->
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="">
+          <div style="padding:36px 8px">
+            <x-import component-from-global-scope="DesignSystem_ddd184.EmptyState" icon="{{ icons.check }}" title="¡Todo al día!" description="No te queda ningún seguimiento para hoy. Buen momento para captar una nueva oportunidad." hint-size="100%,220px">
+              <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" on-click="{{ openOportunidad }}" hint-size="auto,44px">Nueva oportunidad</x-import>
+            </x-import>
+          </div>
+        </sc-if>
+
+        <!-- VENCIDOS -->
+        <sc-if value="{{ hasVencidos }}" hint-placeholder-val="">
+          <div style="margin-bottom:22px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+              <i data-lucide="alert-triangle" style="color:var(--color-error)"></i>
+              <span style="font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--color-error)">Vencidos</span>
+              <span style="font-size:12px;font-weight:700;color:var(--color-error);background:var(--color-error-subtle);border-radius:var(--radius-pill);padding:1px 9px">{{ vencidosCount }}</span>
+              <span style="font-size:12.5px;color:var(--color-text-muted);margin-left:2px">no dejes que se enfríen</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ vencidos }}" as="item" hint-placeholder-count="2">
+                <div onClick="{{ item.onOpen }}" role="button" tabindex="0" style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid var(--color-error);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:14px 15px;cursor:pointer" style-hover="box-shadow:var(--shadow-e2)">
+                  <div style="display:flex;align-items:flex-start;gap:12px">
+                    <span style="width:38px;height:38px;border-radius:var(--radius-md);background:var(--color-error-subtle);color:var(--color-error);display:inline-flex;align-items:center;justify-content:center;flex:none">{{ item.iconEl }}</span>
+                    <div style="min-width:0;flex:1">
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.clienteNombre }}</span><span style="font-family:var(--font-mono);font-size:13px;font-weight:600;flex:none">{{ item.importe }}</span></div>
+                      <div style="font-size:13.5px;color:var(--color-text-secondary);margin-top:2px">{{ item.accion }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap">
+                        <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="{{ item.etapa }}" hint-size="auto,24px"></x-import>
+                        <span style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--color-error)"><i data-lucide="clock" style="width:14px;height:14px"></i>{{ item.vencimiento }}</span>
+                      </div>
+                      <div style="font-size:11.5px;color:var(--color-text-muted);margin-top:7px">Sin actividad · {{ item.riesgoDias }} días</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:8px;margin-top:13px;flex-wrap:wrap">
+                    <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" left-icon="{{ icons.check }}" on-click="{{ item.onHecho }}" hint-size="auto,36px">Hecho</x-import>
+                    <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" on-click="{{ item.onPosponer }}" hint-size="auto,36px">Posponer</x-import>
+                    <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" on-click="{{ item.onRegistrar }}" hint-size="auto,36px">Registrar</x-import>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- HOY -->
+        <sc-if value="{{ hasHoy }}" hint-placeholder-val="">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+              <span style="font-size:13px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--color-text-secondary)">Hoy</span>
+              <span style="font-size:12px;font-weight:700;color:var(--color-text-secondary);background:var(--color-neutral-100);border-radius:var(--radius-pill);padding:1px 9px">{{ hoyCount }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ hoy }}" as="item" hint-placeholder-count="4">
+                <div onClick="{{ item.onOpen }}" role="button" tabindex="0" style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:14px 15px;cursor:pointer" style-hover="box-shadow:var(--shadow-e2)">
+                  <div style="display:flex;align-items:flex-start;gap:12px">
+                    <span style="width:38px;height:38px;border-radius:var(--radius-md);background:{{ item.iconBg }};color:{{ item.iconFg }};display:inline-flex;align-items:center;justify-content:center;flex:none">{{ item.iconEl }}</span>
+                    <div style="min-width:0;flex:1">
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span style="flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.clienteNombre }}</span><span style="font-family:var(--font-mono);font-size:13px;font-weight:600;flex:none">{{ item.importe }}</span></div>
+                      <div style="font-size:13.5px;color:var(--color-text-secondary);margin-top:2px">{{ item.accion }}</div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap">
+                        <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="{{ item.etapa }}" hint-size="auto,24px"></x-import>
+                        <span style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--color-text-muted)"><i data-lucide="clock" style="width:14px;height:14px"></i>{{ item.vencimiento }}</span>
+                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:{{ item.riskFg }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ item.riskFg }}"></span>{{ item.riskLabel }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:8px;margin-top:13px;flex-wrap:wrap">
+                    <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" left-icon="{{ icons.check }}" on-click="{{ item.onHecho }}" hint-size="auto,36px">Hecho</x-import>
+                    <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" on-click="{{ item.onPosponer }}" hint-size="auto,36px">Posponer</x-import>
+                    <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" on-click="{{ item.onRegistrar }}" hint-size="auto,36px">Registrar</x-import>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+      </sc-if>
+    </main>
+
+    <!-- FAB SPEED DIAL -->
+    <sc-if value="{{ fabOpen }}" hint-placeholder-val="">
+      <div onClick="{{ toggleFab }}" style="position:absolute;inset:0;z-index:60;background:rgba(15,23,42,.18)"></div>
+    </sc-if>
+    <div style="position:absolute;right:18px;bottom:80px;z-index:65;display:flex;flex-direction:column;align-items:flex-end;gap:12px">
+      <sc-if value="{{ fabOpen }}" hint-placeholder-val="">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:11px">
+          <button type="button" onClick="{{ openOportunidad }}" style="display:flex;align-items:center;gap:11px;border:none;background:none;cursor:pointer;padding:0">
+            <span style="font-size:13px;font-weight:600;color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border);box-shadow:var(--shadow-e2);border-radius:var(--radius-pill);padding:7px 13px">Oportunidad</span>
+            <span style="width:46px;height:46px;border-radius:50%;background:var(--color-primary);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow-e2);flex:none"><i data-lucide="trending-up"></i></span>
+          </button>
+          <button type="button" onClick="{{ openContacto }}" style="display:flex;align-items:center;gap:11px;border:none;background:none;cursor:pointer;padding:0">
+            <span style="font-size:13px;font-weight:600;color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border);box-shadow:var(--shadow-e2);border-radius:var(--radius-pill);padding:7px 13px">Contacto</span>
+            <span style="width:46px;height:46px;border-radius:50%;background:var(--color-secondary);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow-e2);flex:none"><i data-lucide="user-plus"></i></span>
+          </button>
+          <button type="button" onClick="{{ openActividad }}" style="display:flex;align-items:center;gap:11px;border:none;background:none;cursor:pointer;padding:0">
+            <span style="font-size:13px;font-weight:600;color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border);box-shadow:var(--shadow-e2);border-radius:var(--radius-pill);padding:7px 13px">Actividad</span>
+            <span style="width:46px;height:46px;border-radius:50%;background:var(--color-info);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow-e2);flex:none"><i data-lucide="message-square"></i></span>
+          </button>
+        </div>
+      </sc-if>
+      <button type="button" aria-label="Nuevo" onClick="{{ toggleFab }}" style="width:56px;height:56px;border-radius:50%;background:var(--color-primary);color:#fff;border:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow-e3);cursor:pointer;transition:transform .18s ease;transform:rotate({{ fabDeg }})" style-hover="background:var(--color-primary-hover)" style-focus="box-shadow:var(--focus-ring);outline:none">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav style="flex:none;background:var(--color-surface);border-top:1px solid var(--color-border);display:flex;align-items:stretch;justify-content:space-around;padding:8px 6px 10px">
+      <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-primary);font-size:11px;font-weight:600;padding:4px 10px"><i data-lucide="calendar"></i>Hoy</span>
+      <a href="Pipeline.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-text-muted);font-size:11px;font-weight:600;padding:4px 10px;text-decoration:none"><i data-lucide="trending-up"></i>Pipeline</a>
+      <a href="Clientes.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-text-muted);font-size:11px;font-weight:600;padding:4px 10px;text-decoration:none"><i data-lucide="users"></i>Clientes</a>
+      <a href="Login.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--color-text-muted);font-size:11px;font-weight:600;padding:4px 10px;text-decoration:none"><i data-lucide="user"></i>Perfil</a>
+    </nav>
+
+    <!-- MODAL: Nueva oportunidad -->
+    <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ oportunidadOpen }}" on-close="{{ closeModal }}" title="Nueva oportunidad" description="Asocia un cliente y crea la oportunidad con su primer próximo paso." width="470" footer="{{ oportunidadFooter }}" hint-size="1px,1px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px">Cliente</div>
+          <x-import component-from-global-scope="DesignSystem_ddd184.Select" id="cli-sel" aria-label="Cliente" value="{{ cliVal }}" on-change="{{ handleCliSelect }}" hint-size="100%,52px"><sc-for list="{{ cliOptions }}" as="c" hint-placeholder-count="3"><option value="{{ c.name }}">{{ c.name }}</option></sc-for><option value="__new__">+ Nuevo cliente…</option></x-import>
+          <sc-if value="{{ cliNew }}" hint-placeholder-val="">
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;padding:13px;background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md)">
+              <div style="font-size:12px;font-weight:600;color:var(--color-text-muted)">Datos del nuevo cliente</div>
+              <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="cli-nombre" label="Nombre del cliente" left-icon="{{ icons.user }}" placeholder="p.ej. Café Aroma" required="{{ true }}" hint-size="100%,72px"></x-import>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <div style="flex:1;min-width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="cli-tel" type="tel" label="Teléfono" left-icon="{{ icons.phone }}" placeholder="600 000 000" required="{{ true }}" hint-size="100%,72px"></x-import></div>
+                <div style="flex:1;min-width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Select" id="cli-canal" label="Canal de origen" hint-size="100%,72px"><option>Llamada</option><option>WhatsApp</option><option>Recomendación</option><option>Web</option><option>Visita</option></x-import></div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="op-importe" label="Importe estimado" left-icon="{{ icons.euro }}" placeholder="0,00" hint-size="100%,72px"></x-import></div>
+          <div style="flex:1;min-width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="op-producto" label="Producto / interés" placeholder="Opcional" hint-size="100%,72px"></x-import></div>
+        </div>
+      </div>
+    </x-import>
+
+    <!-- MODAL: Nuevo contacto -->
+    <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ contactoOpen }}" on-close="{{ closeModal }}" title="Nuevo contacto" description="Da de alta un cliente, sin oportunidad asociada." width="440" footer="{{ contactoFooter }}" hint-size="1px,1px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="ct-nombre" label="Nombre del cliente" left-icon="{{ icons.user }}" placeholder="p.ej. Café Aroma" required="{{ true }}" hint-size="100%,72px"></x-import>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="ct-tel" type="tel" label="Teléfono" left-icon="{{ icons.phone }}" placeholder="600 000 000" required="{{ true }}" hint-size="100%,72px"></x-import></div>
+          <div style="flex:1;min-width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="ct-email" type="email" label="Email (opcional)" left-icon="{{ icons.mail }}" placeholder="nombre@correo.com" hint-size="100%,72px"></x-import></div>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Select" id="ct-canal" label="Canal de origen" hint-size="100%,72px"><option>Llamada</option><option>WhatsApp</option><option>Recomendación</option><option>Web</option><option>Visita</option></x-import>
+      </div>
+    </x-import>
+
+    <!-- MODAL: Registrar actividad -->
+    <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ regOpen }}" on-close="{{ closeModal }}" title="Registrar actividad" description="Deja constancia de lo que pasó con el cliente." width="470" footer="{{ regFooter }}" hint-size="1px,1px">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <sc-if value="{{ hasActiveClient }}" hint-placeholder-val="">
+          <div style="display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md)"><i data-lucide="user" style="color:var(--color-neutral-500)"></i><span style="font-size:14px;font-weight:600">{{ activeClientName }}</span></div>
+        </sc-if>
+        <sc-if value="{{ noActiveClient }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px">Cliente</div>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Select" id="cli-sel2" aria-label="Cliente" value="{{ cliVal }}" on-change="{{ handleCliSelect }}" hint-size="100%,52px"><sc-for list="{{ cliOptions }}" as="c" hint-placeholder-count="3"><option value="{{ c.name }}">{{ c.name }}</option></sc-for><option value="__new__">+ Nuevo cliente…</option></x-import>
+            <sc-if value="{{ cliNew }}" hint-placeholder-val=""><div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;padding:13px;background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md)"><div style="font-size:12px;font-weight:600;color:var(--color-text-muted)">Datos del nuevo cliente</div><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="cli-nombre2" label="Nombre del cliente" left-icon="{{ icons.user }}" placeholder="p.ej. Café Aroma" required="{{ true }}" hint-size="100%,72px"></x-import><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="cli-tel2" type="tel" label="Teléfono" left-icon="{{ icons.phone }}" placeholder="600 000 000" hint-size="100%,72px"></x-import></div></sc-if>
+          </div>
+        </sc-if>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px">Tipo</div>
+          <x-import component-from-global-scope="DesignSystem_ddd184.Tabs" items="{{ typeItems }}" value="{{ typeSel }}" on-change="{{ setType }}" hint-size="100%,40px"></x-import>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Textarea" label="Nota / resultado" rows="3" placeholder="Resumen breve…" hint-size="100%,110px"></x-import>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--color-info-subtle);border-radius:var(--radius-md)">
+          <i data-lucide="info" style="color:var(--color-info)"></i>
+          <span style="font-size:13px;color:var(--color-text-secondary)">Al guardar se actualizará el <b>próximo paso</b> automáticamente.</span>
+        </div>
+      </div>
+    </x-import>
+
+    <!-- TOAST -->
+    <sc-if value="{{ toast }}" hint-placeholder-val="">
+      <div style="position:absolute;left:16px;right:16px;bottom:88px;z-index:70;animation:toastIn .2s ease">
+        <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="{{ toastVariant }}" title="{{ toastTitle }}" message="{{ toastMessage }}" on-close="{{ dismissToast }}" hint-size="100%,64px"></x-import>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ICON_PATHS = {
+  phone: [['path', { d: 'M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.08 4.18 2 2 0 0 1 5.06 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L9.1 9.91a16 16 0 0 0 6 6l1.27-1.21a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z' }]],
+  message: [['path', { d: 'M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z' }]],
+  mail: [['rect', { x: 2, y: 4, width: 20, height: 16, rx: 2 }], ['path', { d: 'm22 7-10 6L2 7' }]],
+  calendar: [['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4M8 2v4M3 10h18' }]],
+  arrow: [['path', { d: 'M5 12h14M12 5l7 7-7 7' }]],
+};
+
+const SEED = [
+  { id: 'OPP-0231', clienteNombre: 'Soto Diseño', accion: 'Llamar para cerrar la negociación', etapa: 'negociacion', vencimiento: 'Ayer 17:00', estadoPaso: 'vencida', riesgoDias: 6, importe: 21000 },
+  { id: 'OPP-0244', clienteNombre: 'Vidal Tech', accion: 'Enviar propuesta revisada', etapa: 'propuesta', vencimiento: 'Hace 2 días', estadoPaso: 'vencida', riesgoDias: 8, importe: 4300 },
+  { id: 'OPP-0241', clienteNombre: 'Estudio Ríos', accion: 'Llamar para revisar la propuesta', etapa: 'propuesta', vencimiento: 'Hoy 10:00', estadoPaso: 'pendiente', riesgoDias: 2, importe: 12400 },
+  { id: 'OPP-0250', clienteNombre: 'Café Aroma', accion: 'WhatsApp de primer contacto', etapa: 'contactado', vencimiento: 'Hoy 12:30', estadoPaso: 'pendiente', riesgoDias: 1, importe: 3200 },
+  { id: 'OPP-0238', clienteNombre: 'Nordic Studio', accion: 'Visita comercial', etapa: 'negociacion', vencimiento: 'Hoy 17:30', estadoPaso: 'pendiente', riesgoDias: 4, importe: 15600 },
+  { id: 'OPP-0252', clienteNombre: 'Marca Verde', accion: 'Email de seguimiento', etapa: 'contactado', vencimiento: 'Hoy 19:00', estadoPaso: 'pendiente', riesgoDias: 2, importe: 6800 },
+];
+
+const CLIENTS = [
+  { name: 'Estudio Ríos', tel: '612 345 678' },
+  { name: 'Soto Diseño', tel: '628 904 117' },
+  { name: 'Café Aroma', tel: '623 451 902' },
+  { name: 'Nordic Studio', tel: '600 112 233' },
+  { name: 'Marca Verde', tel: '655 980 471' },
+  { name: 'Vidal Tech', tel: '699 220 145' },
+  { name: 'Lema & Co', tel: '644 781 020' },
+];
+
+class Component extends DCLogic {
+  state = {
+    loading: true,
+    items: SEED.map(x => ({ ...x })),
+    modal: null,
+    activeId: null,
+    typeSel: 'llamada',
+    toast: null,
+    name: 'Carlos',
+    fabOpen: false,
+    cliMode: 'existente',
+  };
+  _tid = 0;
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  svg(name) {
+    const paths = (ICON_PATHS[name] || ICON_PATHS.arrow).map((p, i) =>
+      React.createElement(p[0], { key: i, ...p[1] }));
+    return React.createElement('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' }, paths);
+  }
+
+  componentDidMount() {
+    try {
+      const s = JSON.parse(localStorage.getItem('supercrm_session') || 'null');
+      if (s && s.name) this.setState({ name: s.name.split(' ')[0] });
+    } catch (_) {}
+    setTimeout(() => this.setState({ loading: false }), 850);
+    this.refreshIcons();
+  }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  showToast(variant, title, message) {
+    this.setState({ toast: { variant, title, message } });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 3800);
+  }
+
+  hecho(id) {
+    const it = this.state.items.find(x => x.id === id);
+    this.setState(s => ({ items: s.items.filter(x => x.id !== id) }));
+    this.showToast('success', 'Paso completado', it ? (it.clienteNombre + ' — seguimiento hecho.') : 'Seguimiento hecho.');
+  }
+  posponer(id) {
+    const it = this.state.items.find(x => x.id === id);
+    this.setState(s => ({ items: s.items.filter(x => x.id !== id) }));
+    this.showToast('info', 'Pospuesto a mañana', it ? (it.clienteNombre + ' volverá a tu lista mañana.') : 'Movido a mañana.');
+  }
+  val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+  openRegistrar(id) { this.setState({ modal: 'registrar', activeId: id }); }
+  openActividad() { this.setState({ modal: 'registrar', activeId: null, cliMode: 'existente', cliVal: (CLIENTS[0] && CLIENTS[0].name) || '', typeSel: 'llamada', fabOpen: false }); }
+  openOportunidad() { this.setState({ modal: 'oportunidad', cliMode: 'existente', cliVal: (CLIENTS[0] && CLIENTS[0].name) || '', fabOpen: false }); }
+  openContacto() { this.setState({ modal: 'contacto', fabOpen: false }); }
+  toggleFab() { this.setState(s => ({ fabOpen: !s.fabOpen })); }
+  setCliMode(v) { this.setState({ cliMode: v }); }
+
+  resolveClient(suffix) {
+    if (this.state.cliMode === 'nuevo') {
+      return { name: this.val('cli-nombre' + suffix).trim(), tel: this.val('cli-tel' + suffix).trim(), isNew: true };
+    }
+    const name = (this.state.cliVal && this.state.cliVal !== '__new__') ? this.state.cliVal : (CLIENTS[0] && CLIENTS[0].name) || '';
+    const c = CLIENTS.find(x => x.name === name) || {};
+    return { name, tel: c.tel || '', isNew: false };
+  }
+
+  createOportunidad() {
+    const cli = this.resolveClient('');
+    if (!cli.name) { this.showToast('error', 'Falta el cliente', 'Indica o selecciona un cliente.'); return; }
+    const importeRaw = parseInt((this.val('op-importe') || '').replace(/[^\d]/g, ''), 10) || 0;
+    const producto = this.val('op-producto').trim() || 'Sin especificar';
+    const canal = this.state.cliMode === 'nuevo' ? (this.val('cli-canal') || 'Llamada') : 'Cliente existente';
+    const d = new Date();
+    const now = 'Hoy · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    const cierre = new Date(d.getTime() + 14 * 864e5).toLocaleDateString('es-ES');
+    const id = 'OPP-' + Math.floor(1000 + Math.random() * 9000);
+    const opp = {
+      id, cliente: cli.name, contacto: cli.name, telefono: cli.tel || '—',
+      etapa: 'contactado', importeRaw, cierre, producto,
+      comercial: 'Carlos Vega', tienda: 'Tienda Centro',
+      paso: { accion: 'Llamar para presentar la propuesta', fecha: 'Hoy', estado: 'pendiente' },
+      presupuesto: { importeRaw: importeRaw, fecha: '—', estado: 'borrador' },
+      historial: [{ tipo: 'sistema', titulo: 'Oportunidad creada', nota: 'Origen: ' + canal + '.', fecha: now, autor: 'Carlos' }],
+    };
+    try { const m = JSON.parse(localStorage.getItem('supercrm_created_opps') || '{}'); m[id] = opp; localStorage.setItem('supercrm_created_opps', JSON.stringify(m)); } catch (_) {}
+    window.location.href = 'Detalle de oportunidad.dc.html?id=' + encodeURIComponent(id);
+  }
+
+  createContacto() {
+    const nombre = this.val('ct-nombre').trim();
+    const tel = this.val('ct-tel').trim();
+    if (!nombre || !tel) { this.showToast('error', 'Faltan datos', 'Nombre y teléfono son obligatorios.'); return; }
+    this.setState({ modal: null });
+    this.showToast('success', 'Contacto creado', nombre + ' se ha añadido a tus clientes.');
+  }
+
+  saveRegistrar() {
+    const id = this.state.activeId;
+    if (id) {
+      const it = this.state.items.find(x => x.id === id);
+      this.setState(s => ({ items: s.items.filter(x => x.id !== id), modal: null, activeId: null }));
+      this.showToast('success', 'Actividad registrada', it ? ('Próximo paso creado para ' + it.clienteNombre + '.') : 'Próximo paso creado.');
+      return;
+    }
+    const cli = this.resolveClient('2');
+    if (!cli.name) { this.showToast('error', 'Falta el cliente', 'Indica o selecciona un cliente.'); return; }
+    this.setState({ modal: null });
+    this.showToast('success', 'Actividad registrada', 'Anotada para ' + cli.name + '.');
+  }
+
+  closeModal() { this.setState({ modal: null, activeId: null }); }
+  openDetalle(id) { window.location.href = 'Detalle de oportunidad.dc.html?id=' + encodeURIComponent(id); }
+
+  decorate(it) {
+    const a = (it.accion || '').toLowerCase();
+    let iconName = 'arrow', bg = 'var(--color-primary-subtle)', fg = 'var(--color-primary)';
+    if (/whats/.test(a)) { iconName = 'message'; bg = 'var(--color-secondary-subtle)'; fg = 'var(--color-secondary)'; }
+    else if (/llam/.test(a)) { iconName = 'phone'; bg = 'var(--color-primary-subtle)'; fg = 'var(--color-primary)'; }
+    else if (/email|correo|enviar/.test(a)) { iconName = 'mail'; bg = 'var(--color-info-subtle)'; fg = 'var(--color-info)'; }
+    else if (/visit/.test(a)) { iconName = 'calendar'; bg = 'var(--color-secondary-subtle)'; fg = 'var(--color-secondary)'; }
+    const d = it.riesgoDias;
+    const riskFg = d >= 5 ? 'var(--color-risk-high, #DC2626)' : d >= 3 ? 'var(--color-warning)' : 'var(--color-success)';
+    const riskLabel = d >= 5 ? 'Riesgo alto' : d >= 3 ? 'Riesgo medio' : 'Riesgo bajo';
+    return {
+      ...it,
+      importe: '€' + String(it.importe).replace(/\B(?=(\d{3})+(?!\d))/g, '.'),
+      iconEl: this.svg(iconName),
+      iconBg: bg, iconFg: fg,
+      riskFg: d >= 5 ? '#DC2626' : d >= 3 ? '#D97706' : '#16A34A',
+      riskLabel,
+      onOpen: () => this.openDetalle(it.id),
+      onHecho: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.hecho(it.id); },
+      onPosponer: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.posponer(it.id); },
+      onRegistrar: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.openRegistrar(it.id); },
+    };
+  }
+
+  renderVals() {
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
+    const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    const vencidos = this.state.items.filter(x => x.estadoPaso === 'vencida').map(x => this.decorate(x));
+    const hoy = this.state.items.filter(x => x.estadoPaso !== 'vencida').map(x => this.decorate(x));
+    const ready = !this.state.loading;
+    const isEmpty = ready && vencidos.length === 0 && hoy.length === 0;
+
+    const activeIt = this.state.items.find(x => x.id === this.state.activeId);
+
+    const oportunidadFooter = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => this.createOportunidad() }, 'Crear oportunidad'),
+    );
+    const contactoFooter = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => this.createContacto() }, 'Crear contacto'),
+    );
+    const regFooter = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => this.saveRegistrar() }, 'Guardar'),
+    );
+
+    return {
+      greeting, today, name: this.state.name,
+      loading: this.state.loading, ready,
+      isEmpty: isEmpty ? true : '',
+      vencidos, hoy,
+      hasVencidos: vencidos.length ? true : '',
+      hasHoy: hoy.length ? true : '',
+      vencidosCount: vencidos.length, hoyCount: hoy.length,
+      alertCount: vencidos.length, hasAlerts: vencidos.length ? true : '',
+      icons: { check: this.ic('check'), plus: this.ic('plus'), phone: this.ic('phone'), euro: this.ic('euro'), user: this.ic('user'), mail: this.ic('mail') },
+      oportunidadOpen: this.state.modal === 'oportunidad',
+      contactoOpen: this.state.modal === 'contacto',
+      regOpen: this.state.modal === 'registrar',
+      hasActiveClient: activeIt ? true : '',
+      noActiveClient: activeIt ? '' : true,
+      activeClientName: activeIt ? activeIt.clienteNombre : '',
+      fabOpen: this.state.fabOpen ? true : '',
+      fabDeg: this.state.fabOpen ? '45deg' : '0deg',
+      cliMode: this.state.cliMode,
+      cliExisting: this.state.cliMode === 'existente' ? true : '',
+      cliNew: this.state.cliMode === 'nuevo' ? true : '',
+      cliTabs: [{ value: 'existente', label: 'Cliente existente' }, { value: 'nuevo', label: 'Nuevo cliente' }],
+      cliOptions: CLIENTS,
+      typeItems: [
+        { value: 'llamada', label: 'Llamada', icon: this.ic('phone') },
+        { value: 'whatsapp', label: 'WhatsApp', icon: this.ic('message-circle') },
+        { value: 'email', label: 'Email', icon: this.ic('mail') },
+        { value: 'visita', label: 'Visita', icon: this.ic('map-pin') },
+      ],
+      typeSel: this.state.typeSel,
+      setType: (v) => this.setState({ typeSel: v }),
+      oportunidadFooter, contactoFooter, regFooter,
+      toggleFab: () => this.toggleFab(),
+      setCliMode: (v) => this.setCliMode(v),
+      cliVal: this.state.cliVal || (CLIENTS[0] && CLIENTS[0].name) || '',
+      handleCliSelect: (e) => { const v = (e && e.target && e.target.value) || ''; this.setState({ cliVal: v, cliMode: v === '__new__' ? 'nuevo' : 'existente' }); },
+      openOportunidad: () => this.openOportunidad(),
+      openContacto: () => this.openContacto(),
+      openActividad: () => this.openActividad(),
+      closeModal: () => this.closeModal(),
+      toast: this.state.toast ? true : '',
+      toastVariant: this.state.toast ? this.state.toast.variant : 'info',
+      toastTitle: this.state.toast ? this.state.toast.title : '',
+      toastMessage: this.state.toast ? this.state.toast.message : '',
+      dismissToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+
+function DSBtn(props) {
+  const NS = window.DesignSystem_ddd184 || {};
+  const B = NS.Button || 'button';
+  return React.createElement(B, props);
+}
+</script>
+</body>
+</html>

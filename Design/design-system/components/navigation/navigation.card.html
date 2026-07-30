@@ -1,0 +1,68 @@
+<!-- @dsCard group="Components" viewport="700x420" name="Navigation" subtitle="Tabs, breadcrumb y navegación lateral" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; font-family:var(--font-sans); background:var(--color-bg); color:var(--color-text); padding:20px; }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--color-text-muted); margin:0 0 10px; }
+  svg.lucide { width:18px; height:18px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  function findNS(){
+    for (const k of Object.keys(window)) {
+      const v = window[k];
+      if (v && typeof v === 'object' && typeof v.Tabs === 'function' && typeof v.SidebarNav === 'function') return v;
+    }
+    return window;
+  }
+  const { Tabs, Breadcrumb, SidebarNav } = findNS();
+
+  function Demo(){
+    const [tab, setTab] = React.useState('actividad');
+    const [view, setView] = React.useState('pipeline');
+    return (
+      <div>
+        <p className="lbl">Breadcrumb</p>
+        <Breadcrumb items={[{ label:'Contactos', href:'#' }, { label:'Estudio Ríos' }]} />
+
+        <p className="lbl" style={{ marginTop:20 }}>Tabs</p>
+        <Tabs value={tab} onChange={setTab} items={[
+          { value:'resumen', label:'Resumen' },
+          { value:'actividad', label:'Actividad', count:5 },
+          { value:'presupuestos', label:'Presupuestos' },
+          { value:'tareas', label:'Tareas', count:2 },
+        ]} />
+
+        <div style={{ display:'flex', gap:32, marginTop:24 }}>
+          <div style={{ width:240 }}>
+            <p className="lbl">Sidebar nav</p>
+            <div style={{ background:'var(--color-surface)', border:'1px solid var(--color-border)', borderRadius:'var(--radius-lg)', padding:8 }}>
+              <SidebarNav value={view} onChange={setView} items={[
+                { value:'inicio', label:'Inicio', icon:<i data-lucide="layout-dashboard"></i> },
+                { value:'contactos', label:'Contactos', icon:<i data-lucide="users"></i> },
+                { value:'pipeline', label:'Pipeline', icon:<i data-lucide="trending-up"></i> },
+                { value:'tareas', label:'Tareas', icon:<i data-lucide="check-circle-2"></i>, badge:3 },
+                { value:'presupuestos', label:'Presupuestos', icon:<i data-lucide="file-text"></i> },
+              ]} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+  setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+</script>
+</body>
+</html>

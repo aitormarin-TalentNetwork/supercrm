@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  .sup-shell{display:flex;min-height:100vh}
+  .sup-side{width:240px;flex:none}
+  .sup-mtop{display:none}
+  .sup-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .sup-row{display:flex;align-items:center;cursor:pointer;transition:background .12s}
+  .sup-row:hover{background:var(--color-neutral-100)}
+  @media(max-width:980px){.sup-side{display:none}.sup-mtop{display:flex}.sup-kpis{grid-template-columns:1fr 1fr}}
+</style>
+</helmet>
+
+<sc-if value="{{ denied }}" hint-placeholder-val="">
+  <div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="max-width:380px;text-align:center">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:var(--color-warning-subtle);color:var(--color-warning);margin-bottom:16px"><i data-lucide="lock"></i></span>
+      <h1 style="font-size:22px;font-weight:700;margin:0 0 8px">Acceso restringido</h1>
+      <p style="font-size:15px;color:var(--color-text-secondary);line-height:1.55;margin:0 0 20px">La supervisión del equipo es solo para la dueña del negocio.</p>
+      <a href="Hoy.dc.html" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;background:var(--color-primary);color:#fff;border-radius:var(--radius-md);font-weight:600;font-size:14px;text-decoration:none">Ir a mi pantalla "Hoy"</a>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ allowed }}" hint-placeholder-val="{{ true }}">
+<div class="sup-shell" style="font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text)">
+
+  <aside class="sup-side" style="background:var(--color-surface);border-right:1px solid var(--color-border);display:flex;flex-direction:column;padding:14px 12px;position:sticky;top:0;height:100vh">
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 16px">
+      <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+      <span style="font-weight:700;font-size:16px;letter-spacing:-.01em">SuperCRM</span>
+    </div>
+    <x-import component-from-global-scope="DesignSystem_ddd184.SidebarNav" items="{{ navItems }}" value="supervision" on-change="{{ navTo }}" hint-size="100%,250px"></x-import>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 4px;border-top:1px solid var(--color-border)">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="Marta Ledo" size="sm" hint-size="32px,32px"></x-import>
+      <div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Marta Ledo</div><div style="font-size:11.5px;color:var(--color-text-muted)">Directora</div></div>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <header class="sup-mtop" style="height:56px;align-items:center;gap:10px;padding:0 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+      <span style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+      <span style="font-weight:700;font-size:15px">SuperCRM</span>
+      <a href="Panel.dc.html" style="margin-left:auto;font-size:13px;font-weight:600;color:var(--color-primary);text-decoration:none">Panel</a>
+    </header>
+
+    <div style="flex:1;padding:24px 28px 48px;max-width:1100px;width:100%;margin:0 auto">
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <h1 style="font-size:28px;font-weight:700;letter-spacing:-.015em;margin:0">Supervisión del equipo</h1>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:3px 10px;white-space:nowrap"><i data-lucide="store" style="width:14px;height:14px"></i>Tienda Centro</span>
+          </div>
+          <p style="margin:6px 0 0;color:var(--color-text-secondary);font-size:15px">Rendimiento de tus comerciales este periodo.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:170px"><x-import component-from-global-scope="DesignSystem_ddd184.Select" value="{{ filtro }}" on-change="{{ setFiltro }}" size="sm" hint-size="170px,40px"><option value="todos">Todos los comerciales</option><sc-for list="{{ comercialOptions }}" as="c" hint-placeholder-count="3"><option value="{{ c.nombre }}">{{ c.nombre }}</option></sc-for></x-import></div>
+          <div style="width:140px"><x-import component-from-global-scope="DesignSystem_ddd184.Select" value="{{ period }}" on-change="{{ setPeriod }}" size="sm" hint-size="140px,40px"><option value="mes">Este mes</option><option value="trim">Este trimestre</option><option value="ano">Este año</option></x-import></div>
+        </div>
+      </div>
+
+      <!-- TEAM KPIs -->
+      <div class="sup-kpis" style="margin-bottom:18px">
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:15px 17px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--color-text-muted)">Comerciales</div>
+          <div style="font-size:25px;font-weight:700;margin-top:7px">{{ team.comerciales }}</div>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:15px 17px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--color-text-muted)">Oportunidades abiertas</div>
+          <div style="font-size:25px;font-weight:700;margin-top:7px">{{ team.abiertas }}</div>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:15px 17px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--color-text-muted)">Valor en juego</div>
+          <div style="font-size:25px;font-weight:700;margin-top:7px;font-family:var(--font-mono)">{{ team.valor }}</div>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:15px 17px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--color-text-muted)">Seguimientos atrasados</div>
+          <div style="font-size:25px;font-weight:700;margin-top:7px;color:{{ team.atrasFg }}">{{ team.atrasados }}</div>
+        </div>
+      </div>
+
+      <!-- COMPARATIVA -->
+      <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);overflow:hidden;margin-bottom:18px">
+        <div style="padding:18px 22px 12px"><h2 style="font-size:16px;font-weight:700;margin:0">Comparativa por comercial</h2></div>
+        <div style="display:flex;align-items:center;padding:0 22px 8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted)">
+          <span style="flex:1.8;min-width:0">Comercial</span>
+          <span style="flex:2.2">Valor abierto</span>
+          <span style="flex:.8;text-align:center">Abiertas</span>
+          <span style="flex:.9;text-align:center">Interacciones</span>
+          <span style="flex:.9;text-align:center">Atrasados</span>
+        </div>
+        <sc-for list="{{ comerciales }}" as="c" hint-placeholder-count="3">
+          <div class="sup-row" onClick="{{ c.onFicha }}" style="padding:13px 22px;border-top:1px solid var(--color-border);background:{{ c.rowBg }}">
+            <span style="flex:1.8;min-width:0;display:flex;align-items:center;gap:10px"><x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ c.nombre }}" size="sm" hint-size="32px,32px"></x-import><span style="min-width:0"><span style="font-weight:600;font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.nombre }}</span><span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--color-primary);font-weight:600"><i data-lucide="id-card" style="width:12px;height:12px"></i>Ver ficha</span></span></span>
+            <span style="flex:2.2;display:flex;align-items:center;gap:12px;min-width:0"><span style="flex:1;min-width:40px;height:10px;background:var(--color-neutral-100);border-radius:var(--radius-pill);overflow:hidden"><span style="display:block;height:100%;width:{{ c.barW }};background:var(--color-primary);border-radius:var(--radius-pill)"></span></span><span style="font-family:var(--font-mono);font-size:13.5px;font-weight:600;white-space:nowrap">{{ c.valor }}</span></span>
+            <span style="flex:.8;text-align:center;font-size:14px;font-weight:600">{{ c.count }}</span>
+            <span style="flex:.9;text-align:center;font-size:14px;color:var(--color-text-secondary)">{{ c.interacciones }}</span>
+            <span style="flex:.9;display:flex;justify-content:center"><span style="display:inline-flex;align-items:center;min-width:26px;justify-content:center;font-size:12.5px;font-weight:700;color:{{ c.atrasFg }};background:{{ c.atrasBg }};border-radius:var(--radius-pill);padding:2px 9px">{{ c.atrasados }}</span></span>
+          </div>
+        </sc-for>
+      </section>
+
+      <!-- OPORTUNIDADES (drill) -->
+      <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px">
+          <h2 style="font-size:16px;font-weight:700;margin:0">Oportunidades · {{ filtroLabel }}</h2>
+          <span style="font-size:12.5px;color:var(--color-text-muted)">{{ oppCount }} abiertas</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 22px 8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted)">
+          <span style="flex:2;min-width:0">Cliente</span>
+          <span style="flex:1.4">Etapa</span>
+          <span style="flex:1.4">Comercial</span>
+          <span style="flex:1;text-align:right">Importe</span>
+        </div>
+        <sc-for list="{{ opps }}" as="o" hint-placeholder-count="4">
+          <div class="sup-row" onClick="{{ o.onOpen }}" style="padding:12px 22px;border-top:1px solid var(--color-border)">
+            <span style="flex:2;min-width:0;display:flex;align-items:center;gap:10px"><x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ o.cliente }}" size="xs" hint-size="26px,26px"></x-import><span style="min-width:0;overflow:hidden"><span style="font-weight:600;font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.cliente }}</span><sc-if value="{{ o.atrasoTxt }}" hint-placeholder-val=""><span style="font-size:11.5px;color:var(--color-error);font-weight:600">{{ o.atrasoTxt }}</span></sc-if></span></span>
+            <span style="flex:1.4"><x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="{{ o.etapa }}" hint-size="auto,24px"></x-import></span>
+            <span style="flex:1.4;font-size:13px;color:var(--color-text-secondary);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.comercial }}</span>
+            <span style="flex:1;text-align:right;font-family:var(--font-mono);font-size:13.5px;font-weight:600">{{ o.importe }}</span>
+          </div>
+        </sc-for>
+      </section>
+
+      <!-- FICHA COMERCIAL -->
+      <sc-if value="{{ fichaOpen }}" hint-placeholder-val="">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ fichaOpen }}" on-close="{{ closeFicha }}" width="{{ 540 }}" hint-size="0,0">
+        <div style="max-height:74vh;overflow-y:auto;margin:-2px;padding:2px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+          <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ ficha.nombre }}" size="lg" hint-size="48px,48px"></x-import>
+          <div style="min-width:0">
+            <h2 style="margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em">{{ ficha.nombre }}</h2>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-secondary);margin-top:2px"><i data-lucide="circle" style="width:9px;height:9px;fill:var(--color-success);color:var(--color-success)"></i>Comercial · última actividad {{ ficha.ultima }}</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Abiertas</div><div style="font-size:20px;font-weight:700;margin-top:3px">{{ ficha.count }}</div></div>
+          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Valor</div><div style="font-size:20px;font-weight:700;margin-top:3px;font-family:var(--font-mono)">{{ ficha.valor }}</div></div>
+          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Interacc.</div><div style="font-size:20px;font-weight:700;margin-top:3px">{{ ficha.interacciones }}</div></div>
+          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Atrasados</div><div style="font-size:20px;font-weight:700;margin-top:3px;color:{{ ficha.atrasFg }}">{{ ficha.atrasados }}</div></div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:10px">Actividad reciente</div>
+        <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:20px">
+          <sc-for list="{{ ficha.acts }}" as="a" hint-placeholder-count="4">
+            <div style="display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--color-border)">
+              <span style="width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:{{ a.bg }};color:{{ a.fg }}"><i data-lucide="{{ a.icon }}" style="width:15px;height:15px"></i></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13.5px;font-weight:600">{{ a.cliente }}</div>
+                <div style="font-size:12.5px;color:var(--color-text-secondary);line-height:1.45">{{ a.nota }}</div>
+              </div>
+              <span style="font-size:11.5px;color:var(--color-text-muted);white-space:nowrap;padding-top:1px">{{ a.cuando }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:10px">Próximos seguimientos</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ ficha.prox }}" as="p" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:{{ p.bg }};border:1px solid {{ p.bd }};border-radius:var(--radius-md)">
+              <i data-lucide="{{ p.icon }}" style="width:15px;height:15px;color:{{ p.fg }};flex:none"></i>
+              <span style="flex:1;font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.cliente }}</span>
+              <span style="font-size:12px;font-weight:600;color:{{ p.fg }};white-space:nowrap">{{ p.cuando }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px">
+          <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" onClick="{{ closeFicha }}" hint-size="90px,40px">Cerrar</x-import>
+          <x-import component-from-global-scope="DesignSystem_ddd184.Button" onClick="{{ ficha.verOpps }}" hint-size="170px,40px">Ver sus oportunidades</x-import>
+        </div>
+        </div>
+      </x-import>
+      </sc-if>
+
+    </div>
+  </main>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const eur = (n) => '€' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+const COMERCIALES = [
+  { nombre: 'Carlos Vega', count: 8, valor: 71200, interacciones: 34, atrasados: 2 },
+  { nombre: 'Ana López', count: 6, valor: 48500, interacciones: 41, atrasados: 1 },
+  { nombre: 'Diego Sanz', count: 4, valor: 22300, interacciones: 18, atrasados: 3 },
+];
+const OPPS = [
+  { id: 'OPP-0231', cliente: 'Soto Diseño', etapa: 'negociacion', importe: 21000, comercial: 'Carlos Vega', atraso: 8 },
+  { id: 'OPP-0238', cliente: 'Nordic Studio', etapa: 'negociacion', importe: 15600, comercial: 'Carlos Vega', atraso: 0 },
+  { id: 'OPP-0241', cliente: 'Estudio Ríos', etapa: 'propuesta', importe: 12400, comercial: 'Carlos Vega', atraso: 0 },
+  { id: 'OPP-0244', cliente: 'Vidal Tech', etapa: 'propuesta', importe: 4300, comercial: 'Carlos Vega', atraso: 6 },
+  { id: 'OPP-0271', cliente: 'Bahía Foods', etapa: 'negociacion', importe: 18200, comercial: 'Ana López', atraso: 0 },
+  { id: 'OPP-0270', cliente: 'Lema & Co', etapa: 'propuesta', importe: 8900, comercial: 'Ana López', atraso: 0 },
+  { id: 'OPP-0252', cliente: 'Marca Verde', etapa: 'contactado', importe: 6800, comercial: 'Ana López', atraso: 5 },
+  { id: 'OPP-0262', cliente: 'Café del Puerto', etapa: 'contactado', importe: 7900, comercial: 'Diego Sanz', atraso: 0 },
+  { id: 'OPP-0263', cliente: 'Taller Gómez', etapa: 'propuesta', importe: 5200, comercial: 'Diego Sanz', atraso: 4 },
+];
+
+const ACT_STYLE = {
+  llamada:  { icon: 'phone',          fg: 'var(--color-primary)', bg: 'var(--color-primary-subtle)' },
+  whatsapp: { icon: 'message-circle', fg: 'var(--color-success)', bg: 'var(--color-success-subtle)' },
+  email:    { icon: 'mail',           fg: 'var(--color-info)',    bg: 'var(--color-info-subtle)' },
+  visita:   { icon: 'map-pin',        fg: 'var(--color-warning)', bg: 'var(--color-warning-subtle)' },
+};
+
+const ACTIVIDAD = {
+  'Carlos Vega': {
+    ultima: 'hace 2 h',
+    acts: [
+      { tipo: 'llamada',  cliente: 'Soto Diseño',   cuando: 'Hoy · 12:40',  nota: 'Negocia descuento por volumen' },
+      { tipo: 'whatsapp', cliente: 'Nordic Studio', cuando: 'Hoy · 10:15',  nota: 'Envió propuesta revisada' },
+      { tipo: 'visita',   cliente: 'Estudio Ríos',  cuando: 'Ayer · 17:00', nota: 'Presentó el muestrario en tienda' },
+      { tipo: 'email',    cliente: 'Vidal Tech',    cuando: 'Ayer · 09:30', nota: 'Recordatorio de presupuesto pendiente' },
+    ],
+    prox: [
+      { cliente: 'Soto Diseño', cuando: 'Atrasado · 8 días', late: true },
+      { cliente: 'Vidal Tech',  cuando: 'Atrasado · 6 días', late: true },
+      { cliente: 'Nordic Studio', cuando: 'Mañana · 11:00',  late: false },
+    ],
+  },
+  'Ana López': {
+    ultima: 'hace 35 min',
+    acts: [
+      { tipo: 'llamada',  cliente: 'Bahía Foods', cuando: 'Hoy · 13:05',  nota: 'Cierre verbal, prepara contrato' },
+      { tipo: 'email',    cliente: 'Lema & Co',   cuando: 'Hoy · 11:20',  nota: 'Envió comparativa de planes' },
+      { tipo: 'whatsapp', cliente: 'Marca Verde', cuando: 'Ayer · 16:10', nota: 'Pidió referencias de clientes' },
+      { tipo: 'llamada',  cliente: 'Bahía Foods', cuando: 'Ayer · 10:00', nota: 'Resolvió dudas de implantación' },
+    ],
+    prox: [
+      { cliente: 'Marca Verde', cuando: 'Atrasado · 5 días', late: true },
+      { cliente: 'Bahía Foods', cuando: 'Hoy · 18:00',       late: false },
+      { cliente: 'Lema & Co',   cuando: 'Jueves · 12:30',    late: false },
+    ],
+  },
+  'Diego Sanz': {
+    ultima: 'ayer',
+    acts: [
+      { tipo: 'visita',   cliente: 'Café del Puerto', cuando: 'Ayer · 12:00', nota: 'Demo del producto en local' },
+      { tipo: 'email',    cliente: 'Taller Gómez',    cuando: 'Ayer · 09:15', nota: 'Envió presupuesto inicial' },
+      { tipo: 'whatsapp', cliente: 'Café del Puerto', cuando: 'Lunes · 17:40', nota: 'Confirmó interés en plan Pro' },
+    ],
+    prox: [
+      { cliente: 'Taller Gómez',    cuando: 'Atrasado · 4 días', late: true },
+      { cliente: 'Café del Puerto', cuando: 'Viernes · 10:00',   late: false },
+    ],
+  },
+};
+
+function getRole() {
+  try { const q = new URLSearchParams(location.search).get('role'); if (q === 'duena' || q === 'vendedor') return q; } catch (_) {}
+  try { const s = JSON.parse(localStorage.getItem('supercrm_session') || 'null'); return s && s.role ? s.role : 'duena'; } catch (_) { return 'duena'; }
+}
+
+class Component extends DCLogic {
+  state = { role: getRole(), filtro: 'todos', period: 'mes', fichaId: null };
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  componentDidMount() { this.refreshIcons(); }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  navTo(v) {
+    const map = { panel: 'Panel.dc.html', pipeline: 'Pipeline.dc.html', clientes: 'Ficha de cliente.dc.html' };
+    if (map[v]) window.location.href = map[v];
+  }
+  openDetalle(id) { window.location.href = 'Detalle de oportunidad.dc.html?id=' + encodeURIComponent(id); }
+  selectComercial(nombre) { this.setState(s => ({ filtro: s.filtro === nombre ? 'todos' : nombre })); }
+  openFicha(nombre) { this.setState({ fichaId: nombre }); }
+  closeFicha() { this.setState({ fichaId: null }); }
+
+  renderVals() {
+    const denied = this.state.role === 'vendedor';
+    const filtro = this.state.filtro;
+    const maxValor = Math.max.apply(null, COMERCIALES.map(c => c.valor));
+    const comerciales = COMERCIALES.map(c => ({
+      ...c, valor: eur(c.valor), barW: Math.round((c.valor / maxValor) * 100) + '%',
+      rowBg: filtro === c.nombre ? 'var(--color-primary-subtle)' : 'transparent',
+      atrasFg: c.atrasados > 0 ? 'var(--color-error)' : 'var(--color-success)',
+      atrasBg: c.atrasados > 0 ? 'var(--color-error-subtle)' : 'var(--color-success-subtle)',
+      onSelect: () => this.selectComercial(c.nombre),
+      onFicha: () => this.openFicha(c.nombre),
+    }));
+
+    const fc = this.state.fichaId ? COMERCIALES.find(c => c.nombre === this.state.fichaId) : null;
+    const fa = fc ? (ACTIVIDAD[fc.nombre] || { ultima: '—', acts: [], prox: [] }) : null;
+    const ficha = fc ? {
+      nombre: fc.nombre,
+      ultima: fa.ultima,
+      count: String(fc.count),
+      valor: eur(fc.valor),
+      interacciones: String(fc.interacciones),
+      atrasados: String(fc.atrasados),
+      atrasFg: fc.atrasados > 0 ? 'var(--color-error)' : 'var(--color-success)',
+      acts: fa.acts.map(a => ({ ...a, icon: (ACT_STYLE[a.tipo] || ACT_STYLE.llamada).icon, fg: (ACT_STYLE[a.tipo] || ACT_STYLE.llamada).fg, bg: (ACT_STYLE[a.tipo] || ACT_STYLE.llamada).bg })),
+      prox: fa.prox.map(p => ({
+        ...p,
+        icon: p.late ? 'alert-circle' : 'calendar-clock',
+        fg: p.late ? 'var(--color-error)' : 'var(--color-text-secondary)',
+        bg: p.late ? 'var(--color-error-subtle)' : 'var(--color-neutral-50)',
+        bd: p.late ? 'var(--color-error)' : 'var(--color-border)',
+      })),
+      verOpps: () => this.setState({ filtro: fc.nombre, fichaId: null }),
+    } : null;
+    const filteredOpps = OPPS.filter(o => filtro === 'todos' || o.comercial === filtro);
+    const opps = filteredOpps.map(o => ({
+      ...o, importe: eur(o.importe),
+      atrasoTxt: o.atraso > 0 ? ('Atrasado · ' + o.atraso + ' días') : '',
+      onOpen: () => this.openDetalle(o.id),
+    }));
+    const team = {
+      comerciales: String(COMERCIALES.length),
+      abiertas: String(COMERCIALES.reduce((a, c) => a + c.count, 0)),
+      valor: eur(COMERCIALES.reduce((a, c) => a + c.valor, 0)),
+      atrasados: String(COMERCIALES.reduce((a, c) => a + c.atrasados, 0)),
+      atrasFg: 'var(--color-error)',
+    };
+    return {
+      denied: denied ? true : '', allowed: denied ? '' : true,
+      filtro, filtroLabel: filtro === 'todos' ? 'Todo el equipo' : filtro,
+      period: this.state.period,
+      setPeriod: (e) => this.setState({ period: e && e.target ? e.target.value : 'mes' }),
+      setFiltro: (e) => this.setState({ filtro: e && e.target ? e.target.value : 'todos' }),
+      comercialOptions: COMERCIALES.map(c => ({ nombre: c.nombre })),
+      navItems: [
+        { value: 'panel', label: 'Panel', icon: this.ic('layout-dashboard') },
+        { value: 'pipeline', label: 'Pipeline', icon: this.ic('trending-up') },
+        { value: 'clientes', label: 'Clientes', icon: this.ic('users') },
+        { value: 'supervision', label: 'Supervisión', icon: this.ic('user-check'), badge: team.atrasados },
+        { value: 'ajustes', label: 'Ajustes', icon: this.ic('settings') },
+      ],
+      navTo: (v) => this.navTo(v),
+      comerciales, opps, oppCount: String(opps.length), team,
+      fichaOpen: fc ? true : '', ficha: ficha || {}, closeFicha: () => this.closeFicha(),
+    };
+  }
+}
+</script>
+</body>
+</html>

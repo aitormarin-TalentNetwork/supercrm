@@ -1,0 +1,68 @@
+:root {
+  /* ── Marca y acción ── */
+  --color-primary:#2563EB;
+  --color-primary-hover:#1D4ED8;
+  --color-primary-active:#1E40AF;
+  --color-primary-subtle:#EFF4FF;
+  --color-on-primary:#FFFFFF;
+  --color-secondary:#0D9488;
+  --color-secondary-hover:#0F766E;
+  --color-secondary-active:#115E59;
+  --color-secondary-subtle:#ECFDF5;
+  --color-on-secondary:#FFFFFF;
+
+  /* ── Neutros (slate) ── */
+  --color-bg:#F8FAFC;
+  --color-surface:#FFFFFF;
+  --color-neutral-50:#F8FAFC;
+  --color-neutral-100:#F1F5F9;
+  --color-neutral-200:#E2E8F0;
+  --color-neutral-300:#CBD5E1;
+  --color-neutral-400:#94A3B8;
+  --color-neutral-500:#64748B;
+  --color-neutral-600:#475569;
+  --color-neutral-700:#334155;
+  --color-neutral-800:#1E293B;
+  --color-neutral-900:#0F172A;
+  --color-neutral-950:#020617;
+
+  /* ── Texto y borde ── */
+  --color-text:#0F172A;
+  --color-text-secondary:#475569;
+  --color-text-muted:#64748B;
+  --color-text-inverse:#FFFFFF;
+  --color-border:#E2E8F0;
+  --color-border-strong:#CBD5E1;
+
+  /* ── Semánticos (feedback) ── */
+  --color-success:#16A34A;  --color-success-subtle:#DCFCE7;
+  --color-warning:#D97706;  --color-warning-subtle:#FEF3C7;
+  --color-error:#DC2626;    --color-error-subtle:#FEE2E2;
+  --color-info:#0284C7;     --color-info-subtle:#E0F2FE;
+
+  /* ── Pipeline (etapas del trato) ── */
+  --pipeline-nuevo:#64748B;
+  --pipeline-contactado:#0891B2;
+  --pipeline-propuesta:#6366F1;
+  --pipeline-negociacion:#D97706;
+  --pipeline-ganado:#16A34A;
+  --pipeline-perdido:#DC2626;
+
+  /* ── Riesgo ── */
+  --risk-low:#16A34A;
+  --risk-medium:#D97706;
+  --risk-high:#DC2626;
+
+  /* ── Estado de presupuesto ── */
+  --quote-borrador:#64748B;
+  --quote-enviado:#0284C7;
+  --quote-aceptado:#16A34A;
+  --quote-rechazado:#DC2626;
+  --quote-vencido:#D97706;
+
+  /* ── Estado de tarea ── */
+  --task-pendiente:#64748B;
+  --task-encurso:#2563EB;
+  --task-hecha:#16A34A;
+  --task-vencida:#DC2626;
+}

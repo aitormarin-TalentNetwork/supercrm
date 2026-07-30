@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .pipe-board{scrollbar-width:thin}
+  .pipe-board::-webkit-scrollbar{height:10px}
+  .pipe-board::-webkit-scrollbar-thumb{background:var(--color-neutral-300);border-radius:999px}
+  @media(max-width:760px){.pipe-hidesm{display:none!important}}
+</style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text);overflow:hidden">
+
+  <!-- HEADER -->
+  <header style="flex:none;background:var(--color-surface);border-bottom:1px solid var(--color-border);padding:14px 22px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <a href="Hoy.dc.html" aria-label="Inicio" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit">
+        <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none"><svg width="17" height="17" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+        <span style="font-weight:700;font-size:16px;letter-spacing:-.01em" class="pipe-hidesm">SuperCRM</span>
+      </a>
+      <div style="min-width:0">
+        <h1 style="font-size:19px;font-weight:700;letter-spacing:-.01em;margin:0">Pipeline</h1>
+        <div style="font-size:12.5px;color:var(--color-text-muted)">{{ openCount }} oportunidades abiertas · <span style="font-family:var(--font-mono)">{{ openSum }}</span> en juego</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div class="pipe-hidesm" style="width:220px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" size="sm" left-icon="{{ icons.search }}" placeholder="Buscar cliente…" value="{{ query }}" onInput="{{ onSearch }}" hint-size="100%,36px"></x-import></div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" on-click="{{ openAlta }}" hint-size="auto,44px">Nueva oportunidad</x-import>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <div class="pipe-hidesm" style="display:none"></div>
+      <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-text-muted);background:var(--color-neutral-100);border-radius:var(--radius-pill);padding:5px 11px"><i data-lucide="{{ scopeIcon }}"></i>{{ scopeLabel }}</span>
+      <span style="flex:1"></span>
+      <div style="display:flex;align-items:center;gap:7px">
+        <i data-lucide="filter" style="color:var(--color-text-muted)"></i>
+        <select aria-label="Filtrar por riesgo" onChange="{{ onRisk }}" style="height:36px;padding:0 30px 0 11px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-family:var(--font-sans);font-size:13px;color:var(--color-text);cursor:pointer">
+          <option value="">Todos los riesgos</option>
+          <option value="high">Riesgo alto</option>
+          <option value="medium">Riesgo medio</option>
+          <option value="low">Riesgo bajo</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <i data-lucide="arrow-up-down" style="color:var(--color-text-muted)"></i>
+        <select aria-label="Ordenar" onChange="{{ onSort }}" style="height:36px;padding:0 30px 0 11px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);font-family:var(--font-sans);font-size:13px;color:var(--color-text);cursor:pointer">
+          <option value="importe-desc">Importe (mayor)</option>
+          <option value="importe-asc">Importe (menor)</option>
+          <option value="cliente">Cliente (A–Z)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- BOARD -->
+  <div class="pipe-board" style="flex:1;min-height:0;display:flex;align-items:flex-start;gap:16px;overflow-x:auto;overflow-y:hidden;padding:18px 22px 22px;height:100%">
+    <sc-for list="{{ columns }}" as="col" hint-placeholder-count="5">
+      <div onDragOver="{{ col.onDragOver }}" onDragLeave="{{ col.onDragLeave }}" onDrop="{{ col.onDrop }}" style="flex:none;width:280px;max-height:100%;border-radius:var(--radius-lg);box-shadow:{{ col.ring }};transition:box-shadow .12s ease">
+        <x-import component-from-global-scope="DesignSystem_ddd184.KanbanColumn" stage="{{ col.stage }}" title="{{ col.title }}" count="{{ col.count }}" total="{{ col.total }}" hint-size="280px,300px">
+          <sc-for list="{{ col.cards }}" as="item" hint-placeholder-count="2">
+            <div draggable="{{ true }}" onDragStart="{{ item.onDragStart }}" onDragEnd="{{ item.onDragEnd }}" onClick="{{ item.onOpen }}" role="button" tabindex="0"
+              style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);box-shadow:var(--shadow-e1);padding:11px 12px;cursor:grab;opacity:{{ item.opacity }}"
+              style-hover="box-shadow:var(--shadow-e2);border-color:var(--color-border-strong)">
+              <div style="display:flex;align-items:flex-start;gap:8px">
+                <span style="flex:1;min-width:0;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.clienteNombre }}</span>
+                <span style="font-family:var(--font-mono);font-size:13px;font-weight:600;flex:none">{{ item.importe }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:8px;color:var(--color-text-muted);font-size:12px">
+                <span style="display:inline-flex;color:var(--color-text-muted);flex:none">{{ item.clockEl }}</span>
+                <span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ item.proximoPaso }}</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+                <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="risk" value="{{ item.riesgo }}" label="{{ item.riskLabel }}" hint-size="auto,24px"></x-import>
+                <span style="display:inline-flex;color:var(--color-neutral-300)">{{ gripEl }}</span>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ col.empty }}" hint-placeholder-val="">
+            <div style="border:1.5px dashed var(--color-border-strong);border-radius:var(--radius-md);padding:18px 12px;text-align:center;font-size:12.5px;color:var(--color-text-muted)">Sin oportunidades<br>Suelta aquí para mover</div>
+          </sc-if>
+        </x-import>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- MODAL: Alta rápida -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ altaOpen }}" on-close="{{ closeModal }}" title="Nueva oportunidad" description="{{ altaDesc }}" width="460" footer="{{ altaFooter }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="pl-cliente" label="Nombre del cliente" placeholder="p.ej. Café Aroma" required="{{ true }}" hint-size="100%,72px"></x-import>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1"><x-import component-from-global-scope="DesignSystem_ddd184.Input" id="pl-importe" label="Importe estimado" left-icon="{{ icons.euro }}" placeholder="0,00" hint-size="100%,72px"></x-import></div>
+        <div style="flex:1"><x-import component-from-global-scope="DesignSystem_ddd184.Select" id="pl-etapa" label="Etapa" hint-size="100%,72px"><option value="contactado">Contacto</option><option value="propuesta">Presupuesto</option><option value="negociacion">Negociación</option></x-import></div>
+      </div>
+      <sc-if value="{{ isDuena }}" hint-placeholder-val="">
+        <x-import component-from-global-scope="DesignSystem_ddd184.Select" id="pl-resp" label="Responsable" hint-size="100%,72px">
+          <option value="{{ ownerName }}">{{ ownerName }} (yo)</option>
+          <option value="Carlos Vega">Carlos Vega</option>
+          <option value="Lucía Marín">Lucía Marín</option>
+          <option value="Diego Sanz">Diego Sanz</option>
+        </x-import>
+      </sc-if>
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="pl-paso" label="Próximo paso" placeholder="p.ej. Llamar para presentar" hint-size="100%,72px"></x-import>
+    </div>
+  </x-import>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="">
+    <div style="position:fixed;right:24px;bottom:24px;z-index:80;max-width:340px;animation:toastIn .2s ease">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="{{ toastVariant }}" title="{{ toastTitle }}" message="{{ toastMessage }}" on-close="{{ dismissToast }}" hint-size="320px,64px"></x-import>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ICON_PATHS = {
+  clock: [['circle', { cx: 12, cy: 12, r: 9 }], ['path', { d: 'M12 7.5V12l3 1.8' }]],
+};
+
+const SEED = [
+  { id: 'OPP-0250', clienteNombre: 'Café Aroma', importe: 3200, proximoPaso: 'WhatsApp de primer contacto', riesgo: 'low', etapa: 'contactado' },
+  { id: 'OPP-0252', clienteNombre: 'Marca Verde', importe: 6800, proximoPaso: 'Email de seguimiento', riesgo: 'medium', etapa: 'contactado' },
+  { id: 'OPP-0260', clienteNombre: 'Bahía Foods', importe: 5400, proximoPaso: 'Llamar para presentar', riesgo: 'low', etapa: 'contactado' },
+  { id: 'OPP-0241', clienteNombre: 'Estudio Ríos', importe: 12400, proximoPaso: 'Revisar la propuesta enviada', riesgo: 'medium', etapa: 'propuesta' },
+  { id: 'OPP-0244', clienteNombre: 'Vidal Tech', importe: 4300, proximoPaso: 'Reenviar propuesta revisada', riesgo: 'high', etapa: 'propuesta' },
+  { id: 'OPP-0262', clienteNombre: 'Café del Puerto', importe: 7900, proximoPaso: 'Enviar presupuesto', riesgo: 'low', etapa: 'propuesta' },
+  { id: 'OPP-0231', clienteNombre: 'Soto Diseño', importe: 21000, proximoPaso: 'Cerrar condiciones', riesgo: 'high', etapa: 'negociacion' },
+  { id: 'OPP-0238', clienteNombre: 'Nordic Studio', importe: 15600, proximoPaso: 'Visita comercial', riesgo: 'medium', etapa: 'negociacion' },
+  { id: 'OPP-0220', clienteNombre: 'Lema & Co', importe: 8900, proximoPaso: 'Listo para facturar', riesgo: 'low', etapa: 'ganado' },
+  { id: 'OPP-0210', clienteNombre: 'Taller Gómez', importe: 2500, proximoPaso: 'Eligió otra opción', riesgo: 'low', etapa: 'perdido' },
+];
+
+const STAGES = [
+  { stage: 'contactado', title: 'Contacto' },
+  { stage: 'propuesta', title: 'Presupuesto' },
+  { stage: 'negociacion', title: 'Negociación' },
+  { stage: 'ganado', title: 'Ganada' },
+  { stage: 'perdido', title: 'Perdida' },
+];
+const OPEN = ['contactado', 'propuesta', 'negociacion'];
+const RISK_LABEL = { low: 'Bajo', medium: 'Medio', high: 'Alto' };
+const eur = (n) => '€' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+class Component extends DCLogic {
+  state = {
+    items: SEED.map(x => ({ ...x })),
+    query: '',
+    risk: '',
+    sort: 'importe-desc',
+    overStage: null,
+    dragId: null,
+    modal: null,
+    toast: null,
+    role: 'vendedor',
+    ownerName: 'Carlos Vega',
+    tienda: 'Tienda Centro',
+  };
+  _dragId = null;
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  svg(name) {
+    const paths = (ICON_PATHS[name] || ICON_PATHS.clock).map((p, i) => React.createElement(p[0], { key: i, ...p[1] }));
+    return React.createElement('svg', { width: 14, height: 14, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' }, paths);
+  }
+  gripIcon() {
+    const dots = [[9, 6], [9, 12], [9, 18], [15, 6], [15, 12], [15, 18]].map((c, i) => React.createElement('circle', { key: i, cx: c[0], cy: c[1], r: 1.4 }));
+    return React.createElement('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'currentColor' }, dots);
+  }
+
+  componentDidMount() {
+    try {
+      let role = null;
+      try { role = new URLSearchParams(location.search).get('role'); } catch (_) {}
+      const s = JSON.parse(localStorage.getItem('supercrm_session') || 'null');
+      const next = {};
+      if (s) { if (s.role) next.role = s.role; if (s.name) next.ownerName = s.name; if (s.tienda) next.tienda = s.tienda; }
+      if (role) next.role = role === 'duena' ? 'duena' : (role === 'dueña' ? 'duena' : role);
+      if (next.role === 'duena' && !next.ownerName) next.ownerName = 'Marta López';
+      if (Object.keys(next).length) this.setState(next);
+    } catch (_) {}
+    this.refreshIcons();
+  }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  showToast(variant, title, message) {
+    this.setState({ toast: { variant, title, message } });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 3600);
+  }
+
+  moveTo(id, stage) {
+    if (!id) return;
+    const it = this.state.items.find(x => x.id === id);
+    if (!it || it.etapa === stage) { this.setState({ overStage: null, dragId: null }); return; }
+    this.setState(s => ({ items: s.items.map(x => x.id === id ? { ...x, etapa: stage } : x), overStage: null, dragId: null }));
+    const label = (STAGES.find(s => s.stage === stage) || {}).title || stage;
+    if (stage === 'ganado') this.showToast('success', '¡Oportunidad ganada!', it.clienteNombre + ' · ' + eur(it.importe));
+    else if (stage === 'perdido') this.showToast('warning', 'Oportunidad perdida', it.clienteNombre + ' movida a Perdida.');
+    else this.showToast('info', 'Movida a ' + label, it.clienteNombre + ' está ahora en ' + label + '.');
+  }
+
+  openAlta() { this.setState({ modal: 'alta' }); }
+  val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+  createAlta() {
+    const nombre = (this.val('pl-cliente') || '').trim();
+    if (!nombre) { this.showToast('warning', 'Falta el cliente', 'Escribe el nombre del cliente.'); return; }
+    const importeRaw = parseInt((this.val('pl-importe') || '').replace(/[^\d]/g, ''), 10) || 0;
+    const etapa = this.val('pl-etapa') || 'contactado';
+    const paso = (this.val('pl-paso') || '').trim() || 'Primer contacto';
+    const isDuena = this.state.role === 'duena';
+    const owner = isDuena ? (this.val('pl-resp') || this.state.ownerName) : this.state.ownerName;
+    const id = 'OPP-' + Math.floor(1000 + Math.random() * 9000);
+    const card = { id, clienteNombre: nombre, importe: importeRaw, proximoPaso: paso, riesgo: 'low', etapa, comercial: owner };
+    this.setState(s => ({ items: [card, ...s.items], modal: null }));
+    try {
+      const opp = {
+        id, cliente: nombre, contacto: nombre, telefono: '—', etapa,
+        importeRaw, cierre: 'Por definir', producto: paso, comercial: owner, tienda: this.state.tienda,
+        paso: { accion: paso, fecha: 'Hoy', estado: 'pendiente' },
+        presupuesto: { importeRaw, fecha: '—', estado: 'borrador' },
+        historial: [{ tipo: 'sistema', titulo: 'Oportunidad creada', nota: 'Responsable: ' + owner + '.', fecha: 'Hoy', autor: owner }],
+      };
+      const m = JSON.parse(localStorage.getItem('supercrm_created_opps') || '{}');
+      m[id] = opp; localStorage.setItem('supercrm_created_opps', JSON.stringify(m));
+    } catch (_) {}
+    this._newId = id;
+    this.showToast('success', 'Oportunidad creada', nombre + (isDuena ? ' · ' + owner : '') + ' añadida. Ábrela para gestionarla.');
+  }
+  closeModal() { this.setState({ modal: null }); }
+  openDetalle(id) { window.location.href = 'Detalle de oportunidad.dc.html?id=' + encodeURIComponent(id); }
+
+  decorate(it) {
+    return {
+      ...it,
+      importe: eur(it.importe),
+      riskLabel: RISK_LABEL[it.riesgo] || it.riesgo,
+      clockEl: this.svg('clock'),
+      opacity: this.state.dragId === it.id ? 0.4 : 1,
+      onOpen: () => this.openDetalle(it.id),
+      onDragStart: (e) => {
+        this._dragId = it.id;
+        if (e && e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', it.id); } catch (_) {} }
+        this.setState({ dragId: it.id });
+      },
+      onDragEnd: () => this.setState({ dragId: null, overStage: null }),
+    };
+  }
+
+  renderVals() {
+    const q = this.state.query.trim().toLowerCase();
+    let list = this.state.items.filter(x =>
+      (!q || x.clienteNombre.toLowerCase().includes(q)) &&
+      (!this.state.risk || x.riesgo === this.state.risk)
+    );
+    const sort = this.state.sort;
+    list = list.slice().sort((a, b) =>
+      sort === 'importe-asc' ? a.importe - b.importe :
+      sort === 'cliente' ? a.clienteNombre.localeCompare(b.clienteNombre, 'es') :
+      b.importe - a.importe
+    );
+
+    const columns = STAGES.map(st => {
+      const cards = list.filter(x => x.etapa === st.stage).map(x => this.decorate(x));
+      const sum = list.filter(x => x.etapa === st.stage).reduce((s, x) => s + x.importe, 0);
+      return {
+        stage: st.stage, title: st.title,
+        count: cards.length,
+        total: eur(sum),
+        cards,
+        empty: cards.length === 0 ? true : '',
+        ring: this.state.overStage === st.stage ? '0 0 0 2px var(--color-primary)' : 'none',
+        onDragOver: (e) => { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'; if (this.state.overStage !== st.stage) this.setState({ overStage: st.stage }); },
+        onDragLeave: () => {},
+        onDrop: (e) => { e.preventDefault(); const id = this._dragId || (e.dataTransfer && e.dataTransfer.getData('text/plain')); this._dragId = null; this.moveTo(id, st.stage); },
+      };
+    });
+
+    const openItems = this.state.items.filter(x => OPEN.indexOf(x.etapa) !== -1);
+    const openSum = eur(openItems.reduce((s, x) => s + x.importe, 0));
+
+    const altaFooter = React.createElement(React.Fragment, null,
+      React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+      React.createElement(DSBtn, { onClick: () => this.createAlta() }, 'Crear oportunidad'),
+    );
+
+    const isDuena = this.state.role === 'duena';
+    const scopeLabel = isDuena ? 'Todas las oportunidades · Todas las tiendas' : ('Tus oportunidades · ' + this.state.tienda);
+    const scopeIcon = isDuena ? 'building-2' : 'user';
+
+    return {
+      columns,
+      gripEl: this.gripIcon(),
+      openCount: openItems.length,
+      openSum,
+      isDuena: isDuena ? true : '',
+      ownerName: this.state.ownerName,
+      scopeLabel,
+      scopeIcon,
+      altaDesc: isDuena ? 'Crea una oportunidad y asígnale responsable (o llévala tú).' : 'Captura el cliente y la oportunidad en segundos.',
+      icons: { search: this.ic('search'), plus: this.ic('plus'), euro: this.ic('euro') },
+      query: this.state.query,
+      onSearch: (e) => this.setState({ query: e.target.value }),
+      onRisk: (e) => this.setState({ risk: e.target.value }),
+      onSort: (e) => this.setState({ sort: e.target.value }),
+      altaOpen: this.state.modal === 'alta',
+      altaFooter,
+      openAlta: () => this.openAlta(),
+      closeModal: () => this.closeModal(),
+      toast: this.state.toast ? true : '',
+      toastVariant: this.state.toast ? this.state.toast.variant : 'info',
+      toastTitle: this.state.toast ? this.state.toast.title : '',
+      toastMessage: this.state.toast ? this.state.toast.message : '',
+      dismissToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+
+function DSBtn(props) {
+  const NS = window.DesignSystem_ddd184 || {};
+  const B = NS.Button || 'button';
+  return React.createElement(B, props);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Estados y riesgo" subtitle="Presupuesto · tarea · indicador de riesgo" -->
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-sans);background:var(--color-surface);padding:16px;color:var(--color-text)}
+.lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin:0 0 7px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.b{font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px}
+.rk{display:inline-flex;align-items:center;gap:7px;font-size:12px}
+.bar{width:34px;height:7px;border-radius:999px}</style></head>
+<body>
+<div class="lbl">Presupuesto</div>
+<div class="row">
+  <span class="b" style="background:#F1F5F9;color:#475569">Borrador</span>
+  <span class="b" style="background:#E0F2FE;color:#0369A1">Enviado</span>
+  <span class="b" style="background:#DCFCE7;color:#15803D">Aceptado</span>
+  <span class="b" style="background:#FEE2E2;color:#B91C1C">Rechazado</span>
+  <span class="b" style="background:#FEF3C7;color:#B45309">Vencido</span>
+</div>
+<div class="lbl">Tarea · Riesgo</div>
+<div class="row" style="margin-bottom:0;align-items:center">
+  <span class="b" style="background:#F1F5F9;color:#475569">Pendiente</span>
+  <span class="b" style="background:#EFF4FF;color:#1D4ED8">En curso</span>
+  <span class="b" style="background:#DCFCE7;color:#15803D">Hecha</span>
+  <span class="b" style="background:#FEE2E2;color:#B91C1C">Vencida</span>
+  <span style="width:14px"></span>
+  <span class="rk"><span class="bar" style="background:var(--risk-low)"></span>Bajo</span>
+  <span class="rk"><span class="bar" style="background:var(--risk-medium)"></span>Medio</span>
+  <span class="rk"><span class="bar" style="background:var(--risk-high)"></span>Alto</span>
+</div>
+</body></html>

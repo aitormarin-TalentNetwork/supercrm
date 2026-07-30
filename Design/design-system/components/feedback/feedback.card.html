@@ -1,0 +1,86 @@
+<!-- @dsCard group="Components" viewport="700x560" name="Feedback" subtitle="Dialog, toast, tooltip, estado vacío y progreso" -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin:0; font-family:var(--font-sans); background:var(--color-bg); color:var(--color-text); padding:20px; }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--color-text-muted); margin:0 0 10px; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start; }
+  svg.lucide { width:16px; height:16px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  function findNS(){
+    for (const k of Object.keys(window)) {
+      const v = window[k];
+      if (v && typeof v === 'object' && typeof v.Dialog === 'function' && typeof v.Toast === 'function') return v;
+    }
+    return window;
+  }
+  const NS = findNS();
+  const { Toast, Tooltip, EmptyState, ProgressBar, Dialog, Button, IconButton } = NS;
+
+  function Demo(){
+    const [open, setOpen] = React.useState(false);
+    return (
+      <div>
+        <div className="cols">
+          <div>
+            <p className="lbl">Toasts</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <Toast variant="success" title="Trato guardado" message="Se actualizó el pipeline." onClose={()=>{}} />
+              <Toast variant="warning" title="Vence hoy" message="La propuesta de Ana caduca." onClose={()=>{}} />
+            </div>
+            <p className="lbl" style={{ marginTop:20 }}>Progreso</p>
+            <ProgressBar value={68} label="Objetivo del mes" showValue />
+            <div style={{ height:12 }} />
+            <ProgressBar value={42} color="var(--pipeline-negociacion)" label="En negociación" showValue />
+            <p className="lbl" style={{ marginTop:20 }}>Tooltip · Dialog</p>
+            <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+              <Tooltip content="Marcar como ganado">
+                <IconButton variant="outline" aria-label="Ganar"><i data-lucide="check"></i></IconButton>
+              </Tooltip>
+              <Button variant="secondary" onClick={()=>setOpen(true)}>Abrir modal</Button>
+            </div>
+          </div>
+          <div>
+            <p className="lbl">Estado vacío</p>
+            <div style={{ background:'var(--color-surface)', border:'1px solid var(--color-border)', borderRadius:'var(--radius-lg)' }}>
+              <EmptyState
+                icon={<i data-lucide="users"></i>}
+                title="Aún no hay contactos"
+                description="Añade tu primer cliente para empezar a seguir ventas."
+                action={<Button leftIcon={<i data-lucide="plus"></i>}>Nuevo contacto</Button>}
+              />
+            </div>
+          </div>
+        </div>
+
+        <Dialog
+          open={open}
+          onClose={()=>setOpen(false)}
+          title="Eliminar trato"
+          description="Esta acción no se puede deshacer. El trato y su historial se borrarán."
+          footer={<>
+            <Button variant="secondary" onClick={()=>setOpen(false)}>Cancelar</Button>
+            <Button variant="danger" onClick={()=>setOpen(false)}>Eliminar</Button>
+          </>}
+        />
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+  setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+</script>
+</body>
+</html>

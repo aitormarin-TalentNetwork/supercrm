@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text)">
+
+  <!-- TOPBAR -->
+  <header style="position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+    <a href="Pipeline.dc.html" aria-label="Volver al pipeline" style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:var(--radius-md);color:var(--color-text-secondary);text-decoration:none" style-hover="background:var(--color-neutral-100)"><i data-lucide="arrow-left"></i></a>
+    <div style="min-width:0">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted)">Oportunidad</div>
+      <div style="font-size:13px;font-weight:600;font-family:var(--font-mono);color:var(--color-text-secondary);margin-top:-1px">{{ opp.id }}</div>
+    </div>
+    <a href="tel:{{ opp.telefono }}" aria-label="Llamar" style="margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--radius-md);border:1px solid var(--color-border);color:var(--color-primary);text-decoration:none" style-hover="background:var(--color-primary-subtle)"><i data-lucide="phone"></i></a>
+  </header>
+
+  <div style="max-width:760px;margin:0 auto;padding:18px 16px 96px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- CLOSED BANNER -->
+    <sc-if value="{{ closed }}" hint-placeholder-val="">
+      <div style="display:flex;align-items:center;gap:11px;padding:13px 16px;border-radius:var(--radius-md);background:{{ bannerBg }};color:{{ bannerFg }}">
+        <span style="display:inline-flex">{{ bannerIcon }}</span>
+        <span style="font-size:14px;font-weight:600">{{ bannerText }}</span>
+      </div>
+    </sc-if>
+
+    <!-- HEADER CARD -->
+    <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <a href="Ficha de cliente.dc.html" style="display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:inherit;border-radius:var(--radius-sm)" style-hover="color:var(--color-primary)">
+            <h1 style="font-size:23px;font-weight:700;letter-spacing:-.01em;margin:0">{{ opp.cliente }}</h1>
+            <i data-lucide="chevron-right" style="width:18px;height:18px;color:var(--color-text-muted);flex:none"></i>
+          </a>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-top:2px">Ver ficha del cliente</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:5px;color:var(--color-text-secondary);font-size:14px;white-space:nowrap;flex-wrap:wrap">
+            <span>{{ opp.contacto }}</span>
+            <span style="width:3px;height:3px;border-radius:50%;background:var(--color-neutral-300)"></span>
+            <span style="font-family:var(--font-mono);white-space:nowrap">{{ opp.telefono }}</span>
+          </div>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="pipeline" value="{{ opp.etapa }}" hint-size="auto,24px"></x-import>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px 18px;margin-top:18px;padding-top:18px;border-top:1px solid var(--color-border)">
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:3px">Importe estimado</div><div style="font-family:var(--font-mono);font-size:17px;font-weight:600">{{ opp.importe }}</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:3px">Cierre previsto</div><div style="font-family:var(--font-mono);font-size:14px;font-weight:500">{{ opp.cierre }}</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:3px">Producto / interés</div><div style="font-size:14px;font-weight:500">{{ opp.producto }}</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:3px">Comercial</div><div style="font-size:14px;font-weight:500">{{ opp.comercial }}</div></div>
+        <div><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:3px">Tienda</div><div style="font-size:14px;font-weight:500">{{ opp.tienda }}</div></div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;padding-top:18px;border-top:1px solid var(--color-border)">
+        <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.message }}" on-click="{{ openReg }}" hint-size="auto,44px">Registrar interacción</x-import>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" left-icon="{{ icons.move }}" on-click="{{ openStage }}" hint-size="auto,44px">Cambiar etapa</x-import>
+        <span style="flex:1"></span>
+        <sc-if value="{{ notClosed }}" hint-placeholder-val="{{ true }}">
+          <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" left-icon="{{ icons.checkGreen }}" on-click="{{ openWin }}" hint-size="auto,44px">Ganada</x-import>
+        </sc-if>
+        <sc-if value="{{ notClosed }}" hint-placeholder-val="{{ true }}">
+          <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="danger" left-icon="{{ icons.x }}" on-click="{{ openLoss }}" hint-size="auto,44px">Perdida</x-import>
+        </sc-if>
+        <sc-if value="{{ closed }}" hint-placeholder-val="">
+          <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" left-icon="{{ icons.reopen }}" on-click="{{ reopen }}" hint-size="auto,44px">Reabrir oportunidad</x-import>
+        </sc-if>
+      </div>
+    </section>
+
+    <!-- PROXIMO PASO -->
+    <section style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid {{ pasoAccent }};border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">Próximo paso</span>
+        <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="task" value="{{ opp.paso.estado }}" label="{{ pasoEstadoLabel }}" hint-size="auto,24px"></x-import>
+      </div>
+      <sc-if value="{{ hasPaso }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:12px">
+          <div style="font-size:16px;font-weight:600">{{ opp.paso.accion }}</div>
+          <div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-family:var(--font-mono);font-size:13px;font-weight:500;color:{{ pasoAccent }}"><i data-lucide="clock" style="width:15px;height:15px"></i>{{ opp.paso.fecha }}</div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" size="sm" left-icon="{{ icons.check }}" on-click="{{ pasoHecho }}" hint-size="auto,36px">Marcar hecho</x-import>
+            <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" on-click="{{ pasoPosponer }}" hint-size="auto,36px">Posponer</x-import>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noPaso }}" hint-placeholder-val="">
+        <div style="margin-top:10px;font-size:14px;color:var(--color-text-muted)">Sin próximo paso — la oportunidad está cerrada.</div>
+      </sc-if>
+    </section>
+
+    <!-- PRESUPUESTO -->
+    <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">Presupuesto</span>
+        <x-import component-from-global-scope="DesignSystem_ddd184.StatusBadge" kind="quote" value="{{ opp.presupuesto.estado }}" hint-size="auto,24px"></x-import>
+      </div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;letter-spacing:-.01em">{{ opp.presupuesto.importe }}</div>
+          <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:2px">Enviado el <span style="font-family:var(--font-mono)">{{ opp.presupuesto.fecha }}</span></div>
+        </div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" left-icon="{{ icons.refresh }}" on-click="{{ cyclePresupuesto }}" hint-size="auto,36px">Cambiar estado</x-import>
+      </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px">
+        <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)">Historial de interacciones</span>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="ghost" size="sm" left-icon="{{ icons.plus }}" on-click="{{ openReg }}" hint-size="auto,36px">Registrar</x-import>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ historial }}" as="h" hint-placeholder-count="3">
+          <div style="display:flex;gap:13px">
+            <div style="display:flex;flex-direction:column;align-items:center;flex:none">
+              <span style="width:32px;height:32px;border-radius:50%;background:{{ h.bg }};color:{{ h.fg }};display:inline-flex;align-items:center;justify-content:center">{{ h.iconEl }}</span>
+              <sc-if value="{{ h.line }}" hint-placeholder-val="{{ true }}"><span style="flex:1;width:2px;background:var(--color-border);margin:4px 0"></span></sc-if>
+            </div>
+            <div style="padding-bottom:18px;min-width:0">
+              <div style="font-size:14px;font-weight:600">{{ h.titulo }}</div>
+              <div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">{{ h.nota }}</div>
+              <div style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono);margin-top:4px">{{ h.fecha }} · {{ h.autor }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- MODAL: Registrar interacción -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ regOpen }}" on-close="{{ closeModal }}" title="Registrar interacción" description="Deja constancia de lo que pasó con el cliente." width="460" footer="{{ regFooter }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);margin-bottom:8px">Tipo</div>
+        <x-import component-from-global-scope="DesignSystem_ddd184.Tabs" items="{{ typeItems }}" value="{{ typeSel }}" on-change="{{ setType }}" hint-size="100%,40px"></x-import>
+      </div>
+      <x-import component-from-global-scope="DesignSystem_ddd184.Textarea" id="reg-nota" label="Nota / resultado" rows="3" placeholder="Resumen breve…" hint-size="100%,110px"></x-import>
+      <div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--color-info-subtle);border-radius:var(--radius-md)">
+        <i data-lucide="info" style="color:var(--color-info)"></i>
+        <span style="font-size:13px;color:var(--color-text-secondary)">Al guardar se creará el <b>próximo paso</b> automáticamente.</span>
+      </div>
+    </div>
+  </x-import>
+
+  <!-- MODAL: Cambiar etapa -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ stageOpen }}" on-close="{{ closeModal }}" title="Cambiar etapa" description="Mueve la oportunidad a otra fase del proceso." width="440" footer="{{ stageFooter }}" hint-size="1px,1px">
+    <x-import component-from-global-scope="DesignSystem_ddd184.Tabs" items="{{ stageItems }}" value="{{ stageSel }}" on-change="{{ setStage }}" hint-size="100%,40px"></x-import>
+  </x-import>
+
+  <!-- MODAL: Ganada -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ winOpen }}" on-close="{{ closeModal }}" title="Marcar como ganada" description="Registra la venta cerrada." width="420" footer="{{ winFooter }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:11px;padding:13px 15px;background:var(--color-success-subtle);border-radius:var(--radius-md)">
+        <i data-lucide="party-popper" style="color:var(--color-success)"></i>
+        <span style="font-size:13.5px;color:var(--color-text-secondary)">¡Buen trabajo! Confirma el importe final de la venta.</span>
+      </div>
+      <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="win-importe" label="Importe final (€)" left-icon="{{ icons.euro }}" value="{{ opp.importeRaw }}" hint-size="100%,72px"></x-import>
+    </div>
+  </x-import>
+
+  <!-- MODAL: Perdida -->
+  <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ lossOpen }}" on-close="{{ closeModal }}" title="Marcar como perdida" description="Indica el motivo para aprender de cada cierre." width="440" footer="{{ lossFooter }}" hint-size="1px,1px">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Select" id="loss-reason" label="Motivo de la pérdida" required="{{ true }}" hint-size="100%,72px">
+        <option value="Precio">Precio</option>
+        <option value="Eligió a la competencia">Eligió a la competencia</option>
+        <option value="Sin respuesta">Sin respuesta</option>
+        <option value="No era el momento">No era el momento</option>
+        <option value="Otro">Otro</option>
+      </x-import>
+      <x-import component-from-global-scope="DesignSystem_ddd184.Textarea" id="loss-nota" label="Nota (opcional)" rows="2" placeholder="Detalle del cierre…" hint-size="100%,90px"></x-import>
+    </div>
+  </x-import>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="">
+    <div style="position:fixed;left:16px;right:16px;bottom:20px;z-index:80;max-width:360px;margin:0 auto;animation:toastIn .2s ease">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Toast" variant="{{ toastVariant }}" title="{{ toastTitle }}" message="{{ toastMessage }}" on-close="{{ dismissToast }}" hint-size="100%,64px"></x-import>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const ICON_PATHS = {
+  phone: [['path', { d: 'M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.08 4.18 2 2 0 0 1 5.06 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L9.1 9.91a16 16 0 0 0 6 6l1.27-1.21a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z' }]],
+  message: [['path', { d: 'M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z' }]],
+  mail: [['rect', { x: 2, y: 4, width: 20, height: 16, rx: 2 }], ['path', { d: 'm22 7-10 6L2 7' }]],
+  calendar: [['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4M8 2v4M3 10h18' }]],
+  spark: [['path', { d: 'M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4' }]],
+  check: [['path', { d: 'M20 6 9 17l-5-5' }]],
+};
+
+const TYPE_STYLE = {
+  llamada: { icon: 'phone', bg: 'var(--color-primary-subtle)', fg: 'var(--color-primary)', label: 'Llamada' },
+  whatsapp: { icon: 'message', bg: 'var(--color-secondary-subtle)', fg: 'var(--color-secondary)', label: 'WhatsApp' },
+  email: { icon: 'mail', bg: 'var(--color-info-subtle)', fg: 'var(--color-info)', label: 'Email' },
+  visita: { icon: 'calendar', bg: 'var(--color-secondary-subtle)', fg: 'var(--color-secondary)', label: 'Visita' },
+  sistema: { icon: 'spark', bg: 'var(--color-neutral-100)', fg: 'var(--color-neutral-500)', label: 'Sistema' },
+};
+
+const eur = (n) => '€' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const QUOTE_CYCLE = ['borrador', 'enviado', 'aceptado', 'rechazado', 'vencido'];
+
+const DATA = {
+  'OPP-0241': {
+    id: 'OPP-0241', cliente: 'Estudio Ríos', contacto: 'María Ríos', telefono: '612 345 678',
+    etapa: 'propuesta', importeRaw: 12400, cierre: '05/07/2026', producto: 'Rediseño web corporativo',
+    comercial: 'Carlos Vega', tienda: 'Tienda Centro',
+    paso: { accion: 'Llamar para revisar la propuesta', fecha: 'Hoy · 10:00', estado: 'pendiente' },
+    presupuesto: { importeRaw: 12400, fecha: '24/06/2026', estado: 'enviado' },
+    historial: [
+      { tipo: 'llamada', titulo: 'Llamada · interesada en la propuesta', nota: 'Pide ajustar el alcance del rediseño. Reenviar versión.', fecha: '27/06 · 12:40', autor: 'Carlos' },
+      { tipo: 'email', titulo: 'Email · propuesta enviada', nota: 'Documento con presupuesto de €12.400.', fecha: '24/06 · 09:15', autor: 'Carlos' },
+      { tipo: 'sistema', titulo: 'Oportunidad creada', nota: 'Origen: recomendación.', fecha: '22/06 · 18:02', autor: 'Carlos' },
+    ],
+  },
+  'OPP-0231': {
+    id: 'OPP-0231', cliente: 'Soto Diseño', contacto: 'Ana Soto', telefono: '628 904 117',
+    etapa: 'negociacion', importeRaw: 21000, cierre: '02/07/2026', producto: 'Identidad de marca + web',
+    comercial: 'Carlos Vega', tienda: 'Tienda Centro',
+    paso: { accion: 'Llamar para cerrar la negociación', fecha: 'Ayer · 17:00', estado: 'vencida' },
+    presupuesto: { importeRaw: 21000, fecha: '20/06/2026', estado: 'enviado' },
+    historial: [
+      { tipo: 'visita', titulo: 'Visita · revisión de condiciones', nota: 'Acordado un descuento del 5% si firman esta semana.', fecha: '25/06 · 11:00', autor: 'Carlos' },
+      { tipo: 'email', titulo: 'Email · propuesta enviada', nota: 'Presupuesto de €21.000 con dos fases.', fecha: '20/06 · 10:30', autor: 'Carlos' },
+      { tipo: 'sistema', titulo: 'Oportunidad creada', nota: 'Origen: llamada entrante.', fecha: '15/06 · 09:10', autor: 'Carlos' },
+    ],
+  },
+};
+
+function loadOpp() {
+  let id = null;
+  try { id = new URLSearchParams(location.search).get('id'); } catch (_) {}
+  try {
+    const created = JSON.parse(localStorage.getItem('supercrm_created_opps') || '{}');
+    if (id && created[id]) return JSON.parse(JSON.stringify(created[id]));
+  } catch (_) {}
+  const base = (id && DATA[id]) ? DATA[id] : DATA['OPP-0241'];
+  return JSON.parse(JSON.stringify(base));
+}
+
+class Component extends DCLogic {
+  state = {
+    opp: loadOpp(),
+    modal: null,
+    typeSel: 'llamada',
+    stageSel: null,
+    toast: null,
+  };
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  svg(name, size) {
+    const paths = (ICON_PATHS[name] || ICON_PATHS.spark).map((p, i) => React.createElement(p[0], { key: i, ...p[1] }));
+    return React.createElement('svg', { width: size || 16, height: size || 16, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round' }, paths);
+  }
+
+  componentDidMount() { this.refreshIcons(); }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  showToast(variant, title, message) {
+    this.setState({ toast: { variant, title, message } });
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => this.setState({ toast: null }), 3600);
+  }
+
+  val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+  nowTime() { const d = new Date(); return 'Hoy · ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+
+  openReg() { this.setState({ modal: 'reg', typeSel: 'llamada' }); }
+  openStage() { this.setState({ modal: 'stage', stageSel: this.state.opp.etapa }); }
+  openWin() { this.setState({ modal: 'win' }); }
+  openLoss() { this.setState({ modal: 'loss' }); }
+  closeModal() { this.setState({ modal: null }); }
+
+  saveReg() {
+    const t = TYPE_STYLE[this.state.typeSel] || TYPE_STYLE.llamada;
+    const nota = this.val('reg-nota').trim() || 'Sin nota.';
+    const entry = { tipo: this.state.typeSel, titulo: t.label + ' registrada', nota, fecha: this.nowTime(), autor: 'Carlos' };
+    this.setState(s => {
+      const opp = { ...s.opp, historial: [entry, ...s.opp.historial], paso: { accion: 'Llamar de seguimiento', fecha: 'En 3 días', estado: 'pendiente' } };
+      return { opp, modal: null };
+    });
+    this.showToast('success', 'Interacción registrada', 'Próximo paso creado automáticamente.');
+  }
+
+  applyStage() {
+    const st = this.state.stageSel;
+    const label = (STAGE_LABEL[st] || st);
+    const entry = { tipo: 'sistema', titulo: 'Etapa cambiada a ' + label, nota: 'Actualizada por Carlos.', fecha: this.nowTime(), autor: 'Carlos' };
+    this.setState(s => ({ opp: { ...s.opp, etapa: st, historial: [entry, ...s.opp.historial] }, modal: null }));
+    this.showToast('info', 'Etapa actualizada', 'Ahora en ' + label + '.');
+  }
+
+  marcarGanada() {
+    const raw = parseInt((this.val('win-importe') || '').replace(/[^\d]/g, ''), 10);
+    const importeRaw = isNaN(raw) ? this.state.opp.importeRaw : raw;
+    const entry = { tipo: 'sistema', titulo: 'Oportunidad ganada', nota: 'Venta cerrada por ' + eur(importeRaw) + '.', fecha: this.nowTime(), autor: 'Carlos' };
+    this.setState(s => ({ opp: { ...s.opp, etapa: 'ganado', importeRaw, paso: { estado: 'hecha' }, historial: [entry, ...s.opp.historial] }, modal: null }));
+    this.showToast('success', '¡Oportunidad ganada!', 'Enhorabuena por el cierre.');
+  }
+
+  marcarPerdida() {
+    const motivo = this.val('loss-reason') || 'Otro';
+    const nota = this.val('loss-nota').trim();
+    const entry = { tipo: 'sistema', titulo: 'Oportunidad perdida', nota: 'Motivo: ' + motivo + (nota ? ' — ' + nota : '') + '.', fecha: this.nowTime(), autor: 'Carlos' };
+    this.setState(s => ({ opp: { ...s.opp, etapa: 'perdido', lossReason: motivo, paso: { estado: 'hecha' }, historial: [entry, ...s.opp.historial] }, modal: null }));
+    this.showToast('warning', 'Oportunidad perdida', 'Registrada con motivo: ' + motivo + '.');
+  }
+
+  reopen() {
+    this.setState(s => ({ opp: { ...s.opp, etapa: 'negociacion', lossReason: null, paso: { accion: 'Retomar el seguimiento', fecha: 'Hoy', estado: 'pendiente' } } }));
+    this.showToast('info', 'Oportunidad reabierta', 'Vuelve a estar en Negociación.');
+  }
+
+  pasoHecho() {
+    this.setState(s => ({ opp: { ...s.opp, paso: { ...s.opp.paso, estado: 'hecha' } } }));
+    this.showToast('success', 'Paso completado', 'Registra el resultado para crear el siguiente.');
+  }
+  pasoPosponer() {
+    this.setState(s => ({ opp: { ...s.opp, paso: { ...s.opp.paso, fecha: 'Mañana', estado: 'pendiente' } } }));
+    this.showToast('info', 'Paso pospuesto', 'Movido a mañana.');
+  }
+
+  cyclePresupuesto() {
+    const cur = this.state.opp.presupuesto.estado;
+    const next = QUOTE_CYCLE[(QUOTE_CYCLE.indexOf(cur) + 1) % QUOTE_CYCLE.length];
+    this.setState(s => ({ opp: { ...s.opp, presupuesto: { ...s.opp.presupuesto, estado: next } } }));
+    this.showToast('info', 'Presupuesto actualizado', 'Estado: ' + next + '.');
+  }
+
+  renderVals() {
+    const o = this.state.opp;
+    const closed = o.etapa === 'ganado' || o.etapa === 'perdido';
+    const won = o.etapa === 'ganado';
+    const pasoEstado = (o.paso && o.paso.estado) || 'pendiente';
+    const pasoAccent = pasoEstado === 'vencida' ? 'var(--color-error)' : pasoEstado === 'hecha' ? 'var(--color-success)' : 'var(--color-primary)';
+
+    const historial = (o.historial || []).map((h, i, arr) => {
+      const t = TYPE_STYLE[h.tipo] || TYPE_STYLE.sistema;
+      return { ...h, bg: t.bg, fg: t.fg, iconEl: this.svg(t.icon, 15), line: i < arr.length - 1 ? true : '' };
+    });
+
+    const oppView = {
+      ...o,
+      importe: eur(o.importeRaw),
+      presupuesto: { ...o.presupuesto, importe: eur(o.presupuesto.importeRaw) },
+    };
+
+    const PEST = { pendiente: 'Pendiente', vencida: 'Vencido', hecha: 'Hecho' };
+
+    return {
+      opp: oppView,
+      historial,
+      closed: closed ? true : '',
+      notClosed: closed ? '' : true,
+      won,
+      bannerBg: won ? 'var(--color-success-subtle)' : 'var(--color-error-subtle)',
+      bannerFg: won ? '#15803D' : '#B91C1C',
+      bannerIcon: won ? this.svg('check', 18) : this.svg('spark', 18),
+      bannerText: won ? ('Oportunidad ganada · ' + eur(o.importeRaw)) : ('Oportunidad perdida · Motivo: ' + (o.lossReason || '—')),
+      pasoAccent,
+      pasoEstadoLabel: PEST[pasoEstado] || pasoEstado,
+      hasPaso: closed ? '' : true,
+      noPaso: closed ? true : '',
+      icons: {
+        message: this.ic('message-square'), move: this.ic('arrow-left-right'), x: this.ic('x'),
+        checkGreen: React.createElement('span', { style: { color: 'var(--color-success)', display: 'inline-flex' } }, this.ic('check')),
+        reopen: this.ic('rotate-ccw'), check: this.ic('check'), plus: this.ic('plus'),
+        refresh: this.ic('refresh-cw'), euro: this.ic('euro'),
+      },
+      regOpen: this.state.modal === 'reg',
+      stageOpen: this.state.modal === 'stage',
+      winOpen: this.state.modal === 'win',
+      lossOpen: this.state.modal === 'loss',
+      typeItems: [
+        { value: 'llamada', label: 'Llamada', icon: this.ic('phone') },
+        { value: 'whatsapp', label: 'WhatsApp', icon: this.ic('message-circle') },
+        { value: 'email', label: 'Email', icon: this.ic('mail') },
+        { value: 'visita', label: 'Visita', icon: this.ic('map-pin') },
+      ],
+      typeSel: this.state.typeSel,
+      setType: (v) => this.setState({ typeSel: v }),
+      stageItems: [
+        { value: 'contactado', label: 'Contacto' },
+        { value: 'propuesta', label: 'Presupuesto' },
+        { value: 'negociacion', label: 'Negociación' },
+      ],
+      stageSel: this.state.stageSel,
+      setStage: (v) => this.setState({ stageSel: v }),
+      regFooter: React.createElement(React.Fragment, null,
+        React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+        React.createElement(DSBtn, { onClick: () => this.saveReg() }, 'Guardar')),
+      stageFooter: React.createElement(React.Fragment, null,
+        React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+        React.createElement(DSBtn, { onClick: () => this.applyStage() }, 'Guardar etapa')),
+      winFooter: React.createElement(React.Fragment, null,
+        React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+        React.createElement(DSBtn, { onClick: () => this.marcarGanada() }, 'Marcar ganada')),
+      lossFooter: React.createElement(React.Fragment, null,
+        React.createElement(DSBtn, { variant: 'secondary', onClick: () => this.closeModal() }, 'Cancelar'),
+        React.createElement(DSBtn, { variant: 'danger', onClick: () => this.marcarPerdida() }, 'Marcar perdida')),
+      openReg: () => this.openReg(),
+      openStage: () => this.openStage(),
+      openWin: () => this.openWin(),
+      openLoss: () => this.openLoss(),
+      reopen: () => this.reopen(),
+      closeModal: () => this.closeModal(),
+      pasoHecho: () => this.pasoHecho(),
+      pasoPosponer: () => this.pasoPosponer(),
+      cyclePresupuesto: () => this.cyclePresupuesto(),
+      toast: this.state.toast ? true : '',
+      toastVariant: this.state.toast ? this.state.toast.variant : 'info',
+      toastTitle: this.state.toast ? this.state.toast.title : '',
+      toastMessage: this.state.toast ? this.state.toast.message : '',
+      dismissToast: () => this.setState({ toast: null }),
+    };
+  }
+}
+
+const STAGE_LABEL = { contactado: 'Contacto', propuesta: 'Presupuesto', negociacion: 'Negociación', ganado: 'Ganada', perdido: 'Perdida' };
+
+function DSBtn(props) {
+  const NS = window.DesignSystem_ddd184 || {};
+  const B = NS.Button || 'button';
+  return React.createElement(B, props);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/colors.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/typography.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/shape.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/tokens/layout.css">
+<link rel="stylesheet" href="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/styles.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="_ds/ator-design-system-crmvibecoding-ddd18410-ca27-4747-916b-31f0ee238595/_ds_bundle.js"></script>
+<style>
+  body{margin:0}
+  *{box-sizing:border-box}
+  svg.lucide{width:18px;height:18px;stroke-width:1.75}
+  .panel-shell{display:flex;min-height:100vh}
+  .panel-side{width:240px;flex:none}
+  .panel-mtop{display:none}
+  .panel-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .panel-row{display:flex;align-items:center;cursor:pointer;transition:background .12s}
+  .panel-row:hover{background:var(--color-neutral-100)}
+  @media(max-width:980px){.panel-side{display:none}.panel-mtop{display:flex}.panel-kpis{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.panel-kpis{grid-template-columns:1fr}}
+</style>
+</helmet>
+
+<sc-if value="{{ denied }}" hint-placeholder-val="">
+  <div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div style="max-width:380px;text-align:center">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:var(--color-warning-subtle);color:var(--color-warning);margin-bottom:16px"><i data-lucide="lock"></i></span>
+      <h1 style="font-size:22px;font-weight:700;margin:0 0 8px">Acceso restringido</h1>
+      <p style="font-size:15px;color:var(--color-text-secondary);line-height:1.55;margin:0 0 20px">El panel con datos financieros es solo para la dueña del negocio. Tu perfil de comercial no tiene acceso.</p>
+      <a href="Hoy.dc.html" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;background:var(--color-primary);color:#fff;border-radius:var(--radius-md);font-weight:600;font-size:14px;text-decoration:none">Ir a mi pantalla "Hoy"</a>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ allowed }}" hint-placeholder-val="{{ true }}">
+<div class="panel-shell" style="font-family:var(--font-sans);background:var(--color-bg);color:var(--color-text)">
+
+  <!-- SIDEBAR (escritorio) -->
+  <aside class="panel-side" style="background:var(--color-surface);border-right:1px solid var(--color-border);display:flex;flex-direction:column;padding:14px 12px;position:sticky;top:0;height:100vh">
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 8px 16px">
+      <span style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+      <span style="font-weight:700;font-size:16px;letter-spacing:-.01em">SuperCRM</span>
+    </div>
+    <x-import component-from-global-scope="DesignSystem_ddd184.SidebarNav" items="{{ navItems }}" value="panel" on-change="{{ navTo }}" hint-size="100%,250px"></x-import>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 8px 4px;border-top:1px solid var(--color-border)">
+      <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="Marta Ledo" size="sm" hint-size="32px,32px"></x-import>
+      <div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Marta Ledo</div><div style="font-size:11.5px;color:var(--color-text-muted)">Directora</div></div>
+    </div>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <!-- TOPBAR -->
+    <header class="panel-mtop" style="height:56px;align-items:center;gap:10px;padding:0 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border)">
+      <span style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3B82F6,#2563EB 55%,#6366F1);display:flex;align-items:center;justify-content:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span>
+      <span style="font-weight:700;font-size:15px">SuperCRM</span>
+      <a href="Supervisión.dc.html" style="margin-left:auto;font-size:13px;font-weight:600;color:var(--color-primary);text-decoration:none">Supervisión</a>
+    </header>
+
+    <div style="flex:1;padding:24px 28px 48px;max-width:1100px;width:100%;margin:0 auto">
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <h1 style="font-size:28px;font-weight:700;letter-spacing:-.015em;margin:0">Panel</h1>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--color-text-secondary);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-pill);padding:3px 10px;white-space:nowrap"><i data-lucide="store" style="width:14px;height:14px"></i>Tienda Centro</span>
+          </div>
+          <p style="margin:6px 0 0;color:var(--color-text-secondary);font-size:15px">Hola Marta — así van las ventas de tu negocio.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:150px"><x-import component-from-global-scope="DesignSystem_ddd184.Select" value="{{ period }}" on-change="{{ setPeriod }}" size="sm" hint-size="150px,40px"><option value="mes">Este mes</option><option value="trim">Este trimestre</option><option value="ano">Este año</option></x-import></div>
+          <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" right-icon="{{ icons.arrow }}" on-click="{{ goSupervision }}" hint-size="auto,40px">Supervisión</x-import>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="panel-kpis" style="margin-bottom:18px">
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:var(--color-text-muted)">Valor del pipeline</span><span style="width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--color-primary-subtle);color:var(--color-primary)"><i data-lucide="trending-up"></i></span></div>
+          <div style="font-size:30px;font-weight:700;margin-top:12px;font-family:var(--font-mono);letter-spacing:-.01em">{{ kpi.pipeline }}</div>
+          <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:3px">{{ kpi.pipelineSub }}</div>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:var(--color-text-muted)">Forecast</span><span style="width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--color-secondary-subtle);color:var(--color-secondary)"><i data-lucide="calendar"></i></span></div>
+          <div style="font-size:30px;font-weight:700;margin-top:12px;font-family:var(--font-mono);letter-spacing:-.01em">{{ kpi.forecast }}</div>
+          <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:3px">{{ kpi.forecastSub }}</div>
+        </div>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600;color:var(--color-text-muted)">Oportunidades en riesgo</span><span style="width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;background:var(--color-error-subtle);color:var(--color-error)"><i data-lucide="alert-triangle"></i></span></div>
+          <div style="font-size:30px;font-weight:700;margin-top:12px;letter-spacing:-.01em">{{ kpi.riesgo }}</div>
+          <div style="font-size:12.5px;color:var(--color-text-muted);margin-top:3px">{{ kpi.riesgoSub }}</div>
+        </div>
+      </div>
+
+      <!-- EMBUDO -->
+      <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:20px 22px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <h2 style="font-size:16px;font-weight:700;margin:0">Embudo por etapa</h2>
+          <a href="Pipeline.dc.html" style="font-size:13px;font-weight:600;color:var(--color-primary);text-decoration:none">Ver pipeline</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ embudo }}" as="e" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:120px;flex:none;display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;background:{{ e.color }};flex:none"></span><span style="font-size:13.5px;font-weight:600">{{ e.label }}</span></div>
+              <div style="flex:1;min-width:0;height:26px;background:var(--color-neutral-100);border-radius:var(--radius-sm);overflow:hidden"><div style="height:100%;width:{{ e.width }};background:{{ e.color }};border-radius:var(--radius-sm);transition:width .3s ease"></div></div>
+              <div style="width:54px;flex:none;text-align:right;font-size:12.5px;color:var(--color-text-muted)">{{ e.count }} op.</div>
+              <div style="width:84px;flex:none;text-align:right;font-family:var(--font-mono);font-size:13.5px;font-weight:600">{{ e.suma }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- EN RIESGO -->
+      <section style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <h2 style="font-size:16px;font-weight:700;margin:0">Oportunidades en riesgo</h2>
+            <span style="font-size:11px;font-weight:700;color:var(--color-error);background:var(--color-error-subtle);border-radius:var(--radius-pill);padding:2px 9px">{{ kpi.riesgo }}</span>
+          </div>
+          <a href="Supervisión.dc.html" style="font-size:13px;font-weight:600;color:var(--color-primary);text-decoration:none">Ver supervisión</a>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 22px 8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted)">
+          <span style="flex:2;min-width:0">Cliente</span>
+          <span style="flex:1;text-align:right">Importe</span>
+          <span style="flex:1.3;text-align:center">Sin actividad</span>
+          <span style="flex:1.4;text-align:right">Comercial</span>
+        </div>
+        <sc-for list="{{ riesgo }}" as="r" hint-placeholder-count="3">
+          <div class="panel-row" onClick="{{ r.onOpen }}" style="padding:12px 22px;border-top:1px solid var(--color-border)">
+            <span style="flex:2;min-width:0;display:flex;align-items:center;gap:10px"><x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ r.cliente }}" size="xs" hint-size="26px,26px"></x-import><span style="font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.cliente }}</span></span>
+            <span style="flex:1;text-align:right;font-family:var(--font-mono);font-size:13.5px;font-weight:600">{{ r.importe }}</span>
+            <span style="flex:1.3;display:flex;justify-content:center"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:{{ r.fg }};background:{{ r.bg }};border-radius:var(--radius-pill);padding:3px 10px"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.fg }}"></span>{{ r.dias }} días</span></span>
+            <span style="flex:1.4;display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0"><x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ r.comercial }}" size="xs" hint-size="26px,26px"></x-import><span style="font-size:13px;color:var(--color-text-secondary);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.comercial }}</span></span>
+          </div>
+        </sc-for>
+      </section>
+
+    </div>
+  </main>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const eur = (n) => '€' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+const EMBUDO = [
+  { etapa: 'contactado', label: 'Contacto', count: 5, suma: 18700, color: 'var(--pipeline-contactado)' },
+  { etapa: 'propuesta', label: 'Presupuesto', count: 4, suma: 31500, color: 'var(--pipeline-propuesta)' },
+  { etapa: 'negociacion', label: 'Negociación', count: 3, suma: 42300, color: 'var(--pipeline-negociacion)' },
+  { etapa: 'ganado', label: 'Ganado (mes)', count: 2, suma: 14500, color: 'var(--pipeline-ganado)' },
+];
+const RIESGO = [
+  { id: 'OPP-0231', cliente: 'Soto Diseño', importe: 21000, dias: 8, comercial: 'Carlos Vega' },
+  { id: 'OPP-0244', cliente: 'Vidal Tech', importe: 4300, dias: 6, comercial: 'Carlos Vega' },
+  { id: 'OPP-0252', cliente: 'Marca Verde', importe: 6800, dias: 5, comercial: 'Ana López' },
+];
+
+function getRole() {
+  try {
+    const q = new URLSearchParams(location.search).get('role');
+    if (q === 'duena' || q === 'vendedor') return q;
+  } catch (_) {}
+  try { const s = JSON.parse(localStorage.getItem('supercrm_session') || 'null'); return s && s.role ? s.role : 'duena'; } catch (_) { return 'duena'; }
+}
+
+class Component extends DCLogic {
+  state = { role: getRole(), period: 'mes' };
+
+  ic(n) { return React.createElement('i', { 'data-lucide': n }); }
+  componentDidMount() { this.refreshIcons(); }
+  componentDidUpdate() { this.refreshIcons(); }
+  refreshIcons() {
+    const run = () => { try { window.lucide && window.lucide.createIcons(); } catch (e) {} };
+    run();
+    [80, 250, 600, 1100].forEach(t => setTimeout(run, t));
+  }
+
+  navTo(v) {
+    const map = { pipeline: 'Pipeline.dc.html', clientes: 'Ficha de cliente.dc.html', supervision: 'Supervisión.dc.html' };
+    if (map[v]) window.location.href = map[v];
+  }
+  goSupervision() { window.location.href = 'Supervisión.dc.html'; }
+  openDetalle(id) { window.location.href = 'Detalle de oportunidad.dc.html?id=' + encodeURIComponent(id); }
+
+  renderVals() {
+    const denied = this.state.role === 'vendedor';
+    const openSuma = EMBUDO.filter(e => e.etapa !== 'ganado' && e.etapa !== 'perdido').reduce((a, e) => a + e.suma, 0);
+    const openCount = EMBUDO.filter(e => e.etapa !== 'ganado' && e.etapa !== 'perdido').reduce((a, e) => a + e.count, 0);
+    const maxSuma = Math.max.apply(null, EMBUDO.map(e => e.suma));
+    const embudo = EMBUDO.map(e => ({ ...e, suma: eur(e.suma), width: Math.round((e.suma / maxSuma) * 100) + '%' }));
+    const riesgo = RIESGO.map(r => {
+      const high = r.dias >= 7;
+      return {
+        ...r, importe: eur(r.importe),
+        fg: high ? 'var(--color-error)' : 'var(--color-warning)',
+        bg: high ? 'var(--color-error-subtle)' : 'var(--color-warning-subtle)',
+        onOpen: () => this.openDetalle(r.id),
+      };
+    });
+    return {
+      denied: denied ? true : '',
+      allowed: denied ? '' : true,
+      period: this.state.period,
+      setPeriod: (e) => this.setState({ period: e && e.target ? e.target.value : 'mes' }),
+      icons: { arrow: this.ic('arrow-right') },
+      navItems: [
+        { value: 'panel', label: 'Panel', icon: this.ic('layout-dashboard') },
+        { value: 'pipeline', label: 'Pipeline', icon: this.ic('trending-up') },
+        { value: 'clientes', label: 'Clientes', icon: this.ic('users') },
+        { value: 'supervision', label: 'Supervisión', icon: this.ic('user-check'), badge: 3 },
+        { value: 'ajustes', label: 'Ajustes', icon: this.ic('settings') },
+      ],
+      navTo: (v) => this.navTo(v),
+      goSupervision: () => this.goSupervision(),
+      kpi: {
+        pipeline: eur(openSuma), pipelineSub: openCount + ' oportunidades abiertas',
+        forecast: eur(38500), forecastSub: 'Previsto · próximas 4 semanas',
+        riesgo: String(RIESGO.length), riesgoSub: 'Sin actividad +5 días',
+      },
+      embudo, riesgo,
+    };
+  }
+}
+</script>
+</body>
+</html>
