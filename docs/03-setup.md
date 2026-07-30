@@ -8,7 +8,7 @@ Todos los comandos se lanzan **desde esta carpeta**.
 | Paso | Estado |
 |---|---|
 | 1–2 · Proyecto Next.js en la raíz | 🟢 Hecho (Next 16.2.10, React 19, Tailwind 4) |
-| 3 · Git | 🟢 `git init`, rama `main` (sin commit todavía) |
+| 3 · Git | 🟢 `git init`, rama `main`, historial de commits en marcha |
 | 4 · Convex | 🟢 Proyecto `vibecrm`, deployment `third-goldfinch-805` |
 | 5 · Conectar Next.js con Convex | 🟢 `app/ConvexClientProvider.tsx` + prueba de humo OK |
 

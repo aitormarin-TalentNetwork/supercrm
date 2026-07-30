@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Design/ son artefactos de referencia del design system (Fase 0),
+    // no código de la aplicación — no deben mezclar ruido con el lint real.
+    "Design/**",
   ]),
 ]);
 

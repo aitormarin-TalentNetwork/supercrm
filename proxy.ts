@@ -9,7 +9,12 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "./convex/_generated/api";
 
 const isPanelRoute = createRouteMatcher(["/panel(.*)"]);
-const isProtectedRoute = createRouteMatcher(["/panel(.*)", "/hoy(.*)"]);
+// "/" incluida explícitamente: sin ella, una visita sin sesión a "/" no la
+// bloqueaba aquí (isProtectedRoute no la cubría), sino que app/page.tsx
+// redirigía primero a "/hoy" y solo AHÍ actuaba este proxy — un salto de
+// más, y contradecía el comentario de app/page.tsx de que "solo se llega
+// aquí autenticado". Con "/" protegida, el salto extra desaparece.
+const isProtectedRoute = createRouteMatcher(["/", "/panel(.*)", "/hoy(.*)"]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const isAuthed = await convexAuth.isAuthenticated();

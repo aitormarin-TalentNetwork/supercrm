@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
@@ -15,8 +16,11 @@ export default function HoyPage() {
   const { signOut } = useAuthActions();
   const router = useRouter();
 
+  useEffect(() => {
+    if (role === "owner") router.replace("/panel");
+  }, [role, router]);
+
   if (role === "owner") {
-    router.replace("/panel");
     return null;
   }
 

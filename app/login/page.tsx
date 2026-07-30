@@ -85,7 +85,13 @@ export default function LoginPage() {
       formData.set("password", password);
       await signIn("password", formData);
       router.push("/");
-    } catch {
+    } catch (err) {
+      // El mensaje al usuario se mantiene genérico a propósito (no revelar
+      // si el email existe o no), pero el error real —credenciales
+      // incorrectas o un fallo de infraestructura (p. ej. JWT_PRIVATE_KEY
+      // sin configurar en el deployment)— queda en consola para poder
+      // diagnosticarlo sin exponerlo al usuario.
+      console.error("Fallo en signIn:", err);
       setCredError(
         "Email o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.",
       );

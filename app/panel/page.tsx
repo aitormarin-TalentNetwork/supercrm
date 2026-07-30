@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
@@ -16,8 +17,11 @@ export default function PanelPage() {
   const { signOut } = useAuthActions();
   const router = useRouter();
 
+  useEffect(() => {
+    if (role === "sales") router.replace("/hoy");
+  }, [role, router]);
+
   if (role === "sales") {
-    router.replace("/hoy");
     return null;
   }
 
