@@ -12,7 +12,7 @@
 | Framework | **Next.js** (App Router) + TypeScript | Es lo que pide el curso. Un solo proyecto para UI y servidor. |
 | Estilos | **Tailwind CSS** | El design system ya está en tokens CSS → encaja directo. |
 | Backend + BBDD | **Convex** | Base de datos, lógica de servidor y **tiempo real** en el mismo sitio. Sin API REST propia, sin ORM, sin migraciones a mano. |
-| Autenticación | **Convex Auth** (proveedor email + contraseña) | El PRD solo pide email/contraseña con rol. ⚠️ *Decisión abierta: si el curso usa Clerk, cambiamos aquí.* |
+| Autenticación | **Convex Auth** (`@convex-dev/auth`, proveedor `Password`) | El PRD solo pide email/contraseña con rol. **Decisión provisional** — ver ADR-001 en §6. |
 | Despliegue | Pendiente (Vercel es lo natural con Next.js) | ⚪ Se decide en la Fase 6. |
 
 ### Qué significa "backend = Convex"
@@ -24,6 +24,8 @@ No escribimos endpoints. Convex expone tres tipos de función y la app las llama
 - **action** → hablar con el mundo exterior (envío de emails, push…). En el MVP casi no hará falta.
 
 Las reglas de negocio (generar el próximo paso, calcular el riesgo) viven **dentro de las funciones de Convex**, no en la UI. Así valen igual para móvil que para web y no se pueden saltar desde el cliente.
+
+**Excepción explícita: `convex/http.ts`.** Convex Auth exige registrar sus propias rutas HTTP (`/.well-known/openid-configuration`, `/.well-known/jwks.json`) para funcionar — son infraestructura que exige la propia librería de auth, no endpoints REST propios de la aplicación. Ningún dato del CRM se sirve por ahí; todo lo demás sigue pasando exclusivamente por queries/mutations/actions tipadas de Convex.
 
 ---
 
@@ -54,8 +56,14 @@ CRM curso Vibe Coding/
 │   └── crm/              # De dominio (OpportunityCard, PipelineColumn, NextStepRow…)
 │
 ├── convex/                # Backend
-│   ├── schema.ts          # Las 7 tablas → ver 02-modelo-de-datos.md
-│   ├── auth.ts
+│   ├── schema.ts          # Las 7 tablas + tablas de auth → ver 02-modelo-de-datos.md
+│   ├── auth.config.ts     # Configuración de Convex Auth
+│   ├── auth.ts            # Proveedor Password, createOrUpdateUser
+│   ├── http.ts            # Rutas HTTP que exige Convex Auth (no REST propio)
+│   ├── users.ts           # getCurrentUserRole + bootstrap de las 2 cuentas iniciales
+│   ├── stores.ts          # getStoreInfo (owner-only)
+│   ├── model/
+│   │   └── access.ts      # requireUser / requireOwner — helpers de rol reutilizables
 │   ├── customers.ts
 │   ├── opportunities.ts
 │   ├── interactions.ts
@@ -64,6 +72,7 @@ CRM curso Vibe Coding/
 │   └── dashboard.ts       # KPIs de Marta (pipeline, forecast, riesgo)
 │
 ├── lib/                   # Utilidades puras (formato de fechas, importes, cálculo de riesgo)
+├── proxy.ts               # Protección de rutas (Next.js 16 — sustituye a middleware.ts)
 └── public/
 ```
 
@@ -113,11 +122,28 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 
 ---
 
-## 6. Decisiones abiertas
+## 6. Decisiones cerradas (ADR)
+
+### ADR-001 · Proveedor de autenticación — 2026-07-30
+
+**Contexto:** el MVP necesita login por email + contraseña con dos roles (`owner`, `sales`) y sin registro público. El backend ya es Convex en su totalidad.
+
+**Decisión:** Convex Auth (`@convex-dev/auth`, proveedor `Password`). Corre en el mismo deployment que el resto de los datos — sin servicio de auth externo ni claves adicionales que gestionar — y `getAuthUserId(ctx)` da acceso directo al usuario autenticado desde cualquier query/mutation, que es justo donde debe vivir el filtro por rol (ver §4).
+
+**Alternativa descartada:** Clerk. Añade un servicio externo y una integración por webhook con Convex solo para mantener sincronizado el usuario — coste que no se justifica para un MVP de una sola tienda y dos usuarios.
+
+**Consecuencias:**
+- No hay recuperación de contraseña real ni verificación de email (el PRD no lo pide; "¿Olvidaste la contraseña?" en el login es solo informativo).
+- No hay registro público: los dos usuarios iniciales se crean con una `internalAction` (`convex/users.ts`), no con un formulario.
+- **Provisional**: si el curso pide Clerk, el cambio queda acotado a `convex/auth.ts`, la tabla `users` en `convex/schema.ts` y `app/ConvexClientProvider.tsx`/`app/layout.tsx`. El modelo de roles (`role`, `storeId` en `users`) no cambia.
+- La compatibilidad de `@convex-dev/auth` con la convención `proxy.ts` de Next.js 16 (que sustituye a `middleware.ts`) se verificó por inspección de código — usa únicamente APIs estables de `next/server`/`next/headers`, agnósticas al nombre del archivo — pero el README/changelog de la librería no menciona Next.js 16 explícitamente. Es una inferencia de bajo riesgo, no una confirmación del fabricante; se valida con un build de producción real antes de cerrar AIT-9.
+
+**Estado:** 🟢 Cerrada.
+
+## 7. Decisiones abiertas
 
 | # | Decisión | Estado |
 |---|---|---|
-| 1 | Autenticación: Convex Auth vs Clerk | ⚪ A confirmar con el curso |
-| 2 | Dónde se despliega (Vercel?) | ⚪ Fase 6 |
-| 3 | Notificaciones push del PRD (Fase 3) — en web responsive solo hay in-app + email | ⚪ A decidir en Fase 3 |
-| 4 | Portar el design system a componentes Tailwind reales | ⚪ Fase 1 |
+| 1 | Dónde se despliega (Vercel?) | ⚪ Fase 6 |
+| 2 | Notificaciones push del PRD (Fase 3) — en web responsive solo hay in-app + email | ⚪ A decidir en Fase 3 |
+| 3 | Portar el design system a componentes Tailwind reales | 🟡 En curso (AIT-9) |
