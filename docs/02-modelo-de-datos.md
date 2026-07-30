@@ -1,6 +1,6 @@
 # 02 · Modelo de datos
 
-**Estado:** 🟢 Validado y escrito en `convex/schema.ts` (Fase 1 · Fundamentos, issue AIT-7).
+**Estado:** 🟢 Validado y escrito en `convex/schema.ts` (Fase 1 · Fundamentos, issues AIT-7 y AIT-8).
 **Origen:** PRD §8 (Datos), bloque "Resumen — la información principal".
 
 ---
@@ -43,10 +43,25 @@ stores (1 en el MVP)
 ### `users`
 | Campo | Tipo | Notas |
 |---|---|---|
-| `name` | string | |
-| `email` | string | Login |
-| `role` | `"owner"` \| `"sales"` | Marta / Carlos |
-| `storeId` | id(`stores`) | Se asigna al crear el usuario |
+| `name` | string? | Opcional a nivel de Convex Auth; siempre presente en la práctica (lo fija el bootstrap) |
+| `email` | string? | Login. Índice `"email"` (no `by_email`): así lo busca internamente Convex Auth |
+| `emailVerificationTime`, `phone`, `phoneVerificationTime`, `isAnonymous`, `image` | — | Campos propios de Convex Auth, no usados en el MVP (sin verificación de email, sin login por teléfono) |
+| `role` | `"owner"` \| `"sales"` | Marta / Carlos. **Obligatorio** — se asigna en servidor (`convex/auth.ts:createOrUpdateUser`), nunca desde el cliente |
+| `storeId` | id(`stores`) | **Obligatorio** — igual, asignado en servidor al crear el usuario |
+
+**Por qué `users` tiene campos opcionales de Convex Auth mezclados con los nuestros obligatorios:** la tabla `users` la crea y gestiona la librería `@convex-dev/auth`, que solo exige campos opcionales (para admitir proveedores sin email, como OAuth). `role` y `storeId` son la extensión propia del proyecto sobre esa tabla, y sí son obligatorios — ver ADR-001 en `docs/01-arquitectura.md`.
+
+Además de `users`, Convex Auth gestiona **6 tablas propias** (`authSessions`, `authAccounts`, `authRefreshTokens`, `authVerificationCodes`, `authVerifiers`, `authRateLimits`), añadidas vía `...authTables` en `convex/schema.ts`. No se tocan a mano ni se documentan campo a campo aquí — son infraestructura de la librería, no entidades de negocio.
+
+### `appConfig` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `key` | string | Clave fija, hoy solo `"default_store"` |
+| `storeId` | id(`stores`)? | La tienda por defecto del MVP |
+
+Existe para que "la tienda por defecto" tenga un identificador explícito (un documento con clave conocida) en vez de asumir "la primera fila de `stores`". La rellena una sola vez `convex/users.ts:ensureDefaultStore`; no se administra a mano — un alta manual duplicada rompería el `.unique()` que la consulta.
+
+**Por qué los 2 usuarios iniciales (Marta y Carlos) no son "datos mock":** son las credenciales reales con las que se entra a la aplicación. Como el PRD no contempla registro público ("los accesos los crea la dueña de tu empresa"), no hay formulario de alta — se crean una sola vez con `convex/users.ts:bootstrapInitialAccounts`, una acción interna invocable solo desde el CLI/dashboard de Convex, nunca desde el cliente.
 
 ### `customers`
 | Campo | Tipo | Notas |
@@ -129,19 +144,34 @@ Esto es **`convex/schema.ts`**, ya escrito. Si tocas uno, toca el otro en el mis
 
 ```ts
 import { defineSchema, defineTable } from "convex/server";
+import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  ...authTables, // authSessions, authAccounts, authRefreshTokens, etc. — gestionadas por la librería
+
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    role: v.union(v.literal("owner"), v.literal("sales")),
+    storeId: v.id("stores"),
+  })
+    .index("email", ["email"])
+    .index("phone", ["phone"]),
+
   stores: defineTable({
     name: v.string(),
   }),
 
-  users: defineTable({
-    name: v.string(),
-    email: v.string(),
-    role: v.union(v.literal("owner"), v.literal("sales")),
-    storeId: v.id("stores"),
-  }).index("by_email", ["email"]),
+  appConfig: defineTable({
+    key: v.string(),
+    storeId: v.optional(v.id("stores")),
+  }).index("by_key", ["key"]),
 
   customers: defineTable({
     name: v.string(),

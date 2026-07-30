@@ -1,17 +1,37 @@
 import { defineSchema, defineTable } from "convex/server";
+import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  ...authTables,
+
+  // Sustituye la tabla `users` de authTables: mismos campos de Convex Auth
+  // (todos opcionales) + los nuestros (obligatorios). El índice se llama
+  // "email" a secas porque el código interno de Convex Auth lo busca así.
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    role: v.union(v.literal("owner"), v.literal("sales")),
+    storeId: v.id("stores"),
+  })
+    .index("email", ["email"])
+    .index("phone", ["phone"]),
+
   stores: defineTable({
     name: v.string(),
   }),
 
-  users: defineTable({
-    name: v.string(),
-    email: v.string(),
-    role: v.union(v.literal("owner"), v.literal("sales")),
-    storeId: v.id("stores"),
-  }).index("by_email", ["email"]),
+  // Invariante explícito de "la tienda por defecto": un documento con
+  // clave conocida, no "la primera fila de stores". No se administra a mano.
+  appConfig: defineTable({
+    key: v.string(),
+    storeId: v.optional(v.id("stores")),
+  }).index("by_key", ["key"]),
 
   customers: defineTable({
     name: v.string(),
