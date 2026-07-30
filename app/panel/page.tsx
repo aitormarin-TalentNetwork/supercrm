@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 // requireUser/requireOwner dentro de cada función de Convex (datos).
 export default function PanelPage() {
   const role = useQuery(api.users.getCurrentUserRole);
+  const store = useQuery(api.stores.getStoreInfo);
   const { signOut } = useAuthActions();
   const router = useRouter();
 
@@ -25,6 +26,9 @@ export default function PanelPage() {
       <h1 className="text-h1 font-bold text-text">Panel</h1>
       <p className="text-text-secondary">
         Sesión iniciada con rol: <strong>{role ?? "…"}</strong>
+      </p>
+      <p className="text-text-secondary">
+        Tienda: <strong>{store?.name ?? "…"}</strong>
       </p>
       <p className="text-sm text-text-muted">Pantalla real pendiente (Fase 5).</p>
       <Button variant="secondary" onClick={() => signOut()}>

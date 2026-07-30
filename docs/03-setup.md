@@ -151,6 +151,36 @@ Y en `app/layout.tsx`, envolver `{children}` con `<ConvexClientProvider>`.
 
 **Prueba de humo:** crea el `schema.ts` de [`02-modelo-de-datos.md`](02-modelo-de-datos.md), añade una query trivial, píntala en una página y comprueba que se ve. Si eso funciona, la Fase 1 está en marcha.
 
+## 6. Configurar Convex Auth (AIT-8)
+
+**⚠️ La trampa que cuesta más detectar de todas:** sin esto, el login **falla silenciosamente** — el proveedor `Password` valida bien las credenciales, pero al generar el token de sesión revienta con `Missing environment variable JWT_PRIVATE_KEY` y el cliente lo confunde con un simple "credenciales incorrectas". No hay pista visual de que sea un problema de configuración, no de contraseña.
+
+```bash
+npm install @convex-dev/auth@0.0.94 @auth/core@0.41.3   # versión exacta, la librería está en beta
+npx @convex-dev/auth
+```
+
+El asistente de `npx @convex-dev/auth` hace, en el deployment de Convex (no en `.env.local`):
+- `SITE_URL` — necesario aunque no haya OAuth.
+- `JWT_PRIVATE_KEY` / `JWKS` — el par de claves con el que Convex Auth firma los tokens de sesión. **Sin esto, ningún login funciona nunca**, con independencia de si la contraseña es correcta.
+
+Además, el bootstrap de las 2 cuentas iniciales (`convex/users.ts:bootstrapInitialAccounts`, ver ADR-001 en [`01-arquitectura.md`](01-arquitectura.md)) necesita estas dos, puestas a mano (no las genera el asistente):
+
+```bash
+npx convex env set SEED_OWNER_PASSWORD <contraseña-owner>
+npx convex env set SEED_SALES_PASSWORD <contraseña-sales>
+npx convex run users:bootstrapInitialAccounts '{}'   # una sola vez; re-ejecutarlo es seguro (idempotente)
+```
+
+Y en `.env.local` (frontend, para el autorrelleno de "cuentas de prueba" en `/login` — solo se usa si `NODE_ENV !== "production"`):
+
+```
+NEXT_PUBLIC_DEMO_OWNER_PASSWORD=<mismo valor que SEED_OWNER_PASSWORD>
+NEXT_PUBLIC_DEMO_SALES_PASSWORD=<mismo valor que SEED_SALES_PASSWORD>
+```
+
+**Verificación:** iniciar sesión en `/login` con `marta@supercrm.es` (owner) o `carlos@supercrm.es` (sales), contraseña la que hayas puesto en `SEED_*_PASSWORD`. Si falla con "Email o contraseña incorrectos" aun con la contraseña correcta, revisa los logs de `npx convex dev` — el mensaje real (`JWT_PRIVATE_KEY`, `InvalidSecret`, etc.) sale ahí, no en el navegador.
+
 ---
 
 ## Variables de entorno
@@ -161,6 +191,9 @@ Las escribe Convex solo. **Nunca se commitean.**
 |---|---|---|
 | `CONVEX_DEPLOYMENT` | `.env.local` | El deployment de desarrollo. |
 | `NEXT_PUBLIC_CONVEX_URL` | `.env.local` | La URL que usa el navegador. `NEXT_PUBLIC_` = pública, no meter secretos con ese prefijo. |
+| `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD` | `.env.local` | Autorrelleno de "cuentas de prueba" en `/login`, solo fuera de producción (ver AIT-9). |
+| `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
+| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de las 2 cuentas iniciales — las lee `bootstrapInitialAccounts`. |
 
 ## Comandos del día a día
 
