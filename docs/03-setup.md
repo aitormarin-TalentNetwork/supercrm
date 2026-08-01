@@ -181,6 +181,10 @@ NEXT_PUBLIC_DEMO_SALES_PASSWORD=<mismo valor que SEED_SALES_PASSWORD>
 
 **Verificación:** iniciar sesión en `/login` con `marta@supercrm.es` (owner) o `carlos@supercrm.es` (sales), contraseña la que hayas puesto en `SEED_*_PASSWORD`. Si falla con "Email o contraseña incorrectos" aun con la contraseña correcta, revisa los logs de `npx convex dev` — el mensaje real (`JWT_PRIVATE_KEY`, `InvalidSecret`, etc.) sale ahí, no en el navegador.
 
+**Si `bootstrapInitialAccounts` falla a mitad:** el comando libera su reserva interna al fallar, así que relanzarlo es seguro (probado contra el deployment real: falla con un mensaje explícito y el reintento crea la cuenta correctamente). Si aun así la cuenta sigue sin poder iniciar sesión, abre `npx convex dashboard` y revisa a mano las tablas `authAccounts` y `users`.
+
+**Si el proceso muere en seco a mitad (no una excepción, sino que se corta el propio comando/deployment):** la reserva interna (`appConfig` con `key="bootstrap_claim:<email>"`) puede quedar huérfana, porque solo se libera cuando el código llega a ejecutarse — un proceso muerto no ejecuta nada. Síntoma: relanzar el bootstrap avisa por consola de "otra ejecución concurrente ya está creando" esa cuenta, pero nunca la crea. Recuperación manual: abrir `npx convex dashboard` → tabla `appConfig` → borrar a mano el documento con `key="bootstrap_claim:<email>"` correspondiente → relanzar el bootstrap. No hay recuperación automática a propósito: es un riesgo aceptado para un script manual de una sola ejecución (ver auditoría de seguridad, ronda 5).
+
 ---
 
 ## Variables de entorno

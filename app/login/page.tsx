@@ -90,8 +90,11 @@ export default function LoginPage() {
       // si el email existe o no), pero el error real —credenciales
       // incorrectas o un fallo de infraestructura (p. ej. JWT_PRIVATE_KEY
       // sin configurar en el deployment)— queda en consola para poder
-      // diagnosticarlo sin exponerlo al usuario.
-      console.error("Fallo en signIn:", err);
+      // diagnosticarlo, solo en desarrollo: en producción no debe llegar
+      // a la consola del navegador del usuario final.
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo en signIn:", err);
+      }
       setCredError(
         "Email o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.",
       );

@@ -18,7 +18,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
             "Registro público deshabilitado. Los accesos los crea la dueña de tu empresa.",
           );
         }
-        return { email: params.email as string };
+        if (typeof params.email !== "string" || params.email.trim().length === 0) {
+          throw new Error("Email inválido o ausente.");
+        }
+        return { email: params.email.trim().toLowerCase() };
       },
     }),
   ],
@@ -36,12 +39,24 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         role: "owner" | "sales";
         storeId: Id<"stores">;
       };
-      if (!role || !storeId) {
-        throw new Error(
-          "No se puede crear un usuario sin role/storeId; el registro público está deshabilitado.",
-        );
+      if (typeof email !== "string" || email.trim().length === 0) {
+        throw new Error("No se puede crear un usuario sin un email válido.");
       }
-      return await ctx.db.insert("users", { email, name, role, storeId });
+      if (typeof name !== "string" || name.trim().length === 0) {
+        throw new Error("No se puede crear un usuario sin un name válido.");
+      }
+      if (role !== "owner" && role !== "sales") {
+        throw new Error(`Role inválido: "${role}". Debe ser "owner" o "sales".`);
+      }
+      if (!storeId || (await ctx.db.get(storeId)) === null) {
+        throw new Error(`storeId "${storeId}" no corresponde a ninguna tienda existente.`);
+      }
+      return await ctx.db.insert("users", {
+        email: email.trim().toLowerCase(),
+        name: name.trim(),
+        role,
+        storeId,
+      });
     },
   },
 });
