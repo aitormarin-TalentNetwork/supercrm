@@ -43,5 +43,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# volcado temporal para rondas de auditoría externa, no es código de la app
-supercrm-auth-codigo-completo.txt
+# volcados de código para rondas de auditoría externa, no son código de la app
+/codigo para auditar/

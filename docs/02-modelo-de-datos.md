@@ -122,6 +122,15 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `status` | `"pending"` \| `"done"` \| `"postponed"` | |
 | `assigneeId` | id(`users`) | |
 
+### `opportunityRequests` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `clientRequestId` | string | Generada por el cliente, una por apertura del modal de Alta rápida |
+| `userId` | id(`users`) | Quién la generó — acota la clave a su dueño, para que una clave ajena conocida no devuelva el ID de otro usuario |
+| `opportunityId` | id(`opportunities`) | La oportunidad que produjo esa petición |
+
+Idempotencia de `opportunities.createQuick`: un reintento de red con la misma `clientRequestId` (Convex confirmó la mutation pero la respuesta no llegó al cliente) debe devolver la oportunidad ya creada, no duplicar cliente + oportunidad + próximo paso. Se apoya en la misma garantía de aislamiento serializable de Convex que `claimBootstrapSlot` (`convex/users.ts`): dos llamadas concurrentes con la misma clave nunca pasan las dos el chequeo de "no existe todavía".
+
 ---
 
 ## 3. Datos que NO se guardan (se calculan)
@@ -244,6 +253,12 @@ export default defineSchema({
   })
     .index("by_assignee_status", ["assigneeId", "status"])
     .index("by_opportunity", ["opportunityId"]),
+
+  opportunityRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    opportunityId: v.id("opportunities"),
+  }).index("by_client_request_id", ["clientRequestId"]),
 });
 ```
 

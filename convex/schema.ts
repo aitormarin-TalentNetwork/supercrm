@@ -104,4 +104,16 @@ export default defineSchema({
   })
     .index("by_assignee_status", ["assigneeId", "status"])
     .index("by_opportunity", ["opportunityId"]),
+
+  // Interna (no es una de las 7 entidades del PRD): idempotencia de
+  // createQuick. Un reintento de red con la misma clientRequestId debe
+  // devolver la oportunidad ya creada, no duplicarla. userId acota la
+  // clave a quien la generó: si alguien reutilizara una clave ajena
+  // conocida, no recibe el ID de la oportunidad de otro usuario (ronda de
+  // auditoría 3, sugerencia #1).
+  opportunityRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    opportunityId: v.id("opportunities"),
+  }).index("by_client_request_id", ["clientRequestId"]),
 });

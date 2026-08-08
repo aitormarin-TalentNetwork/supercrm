@@ -14,7 +14,12 @@ const isPanelRoute = createRouteMatcher(["/panel(.*)"]);
 // redirigía primero a "/hoy" y solo AHÍ actuaba este proxy — un salto de
 // más, y contradecía el comentario de app/page.tsx de que "solo se llega
 // aquí autenticado". Con "/" protegida, el salto extra desaparece.
-const isProtectedRoute = createRouteMatcher(["/", "/panel(.*)", "/hoy(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/",
+  "/panel(.*)",
+  "/hoy(.*)",
+  "/oportunidades(.*)",
+]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const isAuthed = await convexAuth.isAuthenticated();

@@ -7,6 +7,7 @@ import {
   query,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { requireUser } from "./model/access";
 
 export const ensureDefaultStore = internalMutation({
   args: { name: v.string() },
@@ -169,5 +170,17 @@ export const getCurrentUserRole = query({
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
     return (await ctx.db.get(userId))?.role ?? null;
+  },
+});
+
+export const getCurrentUserInfo = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireUser(ctx);
+    const store = await ctx.db.get(user.storeId);
+    return {
+      name: user.name ?? "",
+      storeName: store?.name ?? "",
+    };
   },
 });
