@@ -14,27 +14,23 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 
-// Cuentas de prueba: solo en desarrollo. La guarda `NODE_ENV !== "production"`
-// hace que el minificador de Next.js (webpack y Turbopack, verificado con un
-// build real) elimine este array por completo del bundle de producción —
-// ninguna contraseña llega a un visitante real.
-const DEMO_ACCOUNTS =
-  process.env.NODE_ENV !== "production"
-    ? [
-        {
-          label: "Marta Ledo",
-          sublabel: "Dueña · entra al Panel",
-          email: "marta@supercrm.es",
-          password: process.env.NEXT_PUBLIC_DEMO_OWNER_PASSWORD ?? "",
-        },
-        {
-          label: "Carlos Vega",
-          sublabel: "Vendedor · entra a Hoy",
-          email: "carlos@supercrm.es",
-          password: process.env.NEXT_PUBLIC_DEMO_SALES_PASSWORD ?? "",
-        },
-      ]
-    : [];
+// Cuentas de prueba visibles siempre, incluida producción — decisión
+// explícita del proyecto (es un entorno de pruebas, sin datos reales) para
+// no tener que ir a buscar las credenciales cada vez.
+const DEMO_ACCOUNTS = [
+  {
+    label: "Marta Ledo",
+    sublabel: "Dueña · entra al Panel",
+    email: "marta@supercrm.es",
+    password: process.env.NEXT_PUBLIC_DEMO_OWNER_PASSWORD ?? "",
+  },
+  {
+    label: "Carlos Vega",
+    sublabel: "Vendedor · entra a Hoy",
+    email: "carlos@supercrm.es",
+    password: process.env.NEXT_PUBLIC_DEMO_SALES_PASSWORD ?? "",
+  },
+];
 
 export default function LoginPage() {
   const { signIn } = useAuthActions();
