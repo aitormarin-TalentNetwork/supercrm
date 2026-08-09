@@ -32,3 +32,33 @@ export const listByCustomer = query({
       }));
   },
 });
+
+// Historial de interacciones de UNA oportunidad para el Detalle de
+// oportunidad (AIT-13) — no confundir con listByCustomer (AIT-11), que es
+// el historial completo del cliente a través de todas sus oportunidades.
+// Estará vacío hasta AIT-19. Mismo criterio de acceso que
+// opportunities.getSummary: misma tienda, y si es sales, solo lo suyo.
+export const listByOpportunity = query({
+  args: { opportunityId: v.id("opportunities") },
+  handler: async (ctx, { opportunityId }) => {
+    const user = await requireUser(ctx);
+    const opportunity = await ctx.db.get(opportunityId);
+    if (opportunity === null) return null;
+    if (opportunity.storeId !== user.storeId) return null;
+    if (user.role !== "owner" && opportunity.ownerId !== user._id) return null;
+
+    const interactions = await ctx.db
+      .query("interactions")
+      .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
+      .collect();
+
+    return interactions
+      .sort((a, b) => b.occurredAt - a.occurredAt)
+      .map((i) => ({
+        id: i._id,
+        type: i.type,
+        note: i.note,
+        occurredAt: i.occurredAt,
+      }));
+  },
+});

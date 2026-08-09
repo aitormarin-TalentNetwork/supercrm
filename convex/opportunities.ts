@@ -150,11 +150,11 @@ export const createQuick = mutation({
   },
 });
 
-// Consulta mínima para la ficha de confirmación (Detalle de oportunidad
-// real = AIT-13, aún no construido). No basta con comprobar la
-// oportunidad: el cliente relacionado se valida también contra la misma
-// tienda, para que una relación cruzada futura no filtre el nombre de un
-// cliente ajeno.
+// Todo lo que pide la cabecera + próximo paso del Detalle de oportunidad
+// (AIT-13), además del resumen mínimo que ya usaba la ficha de confirmación
+// de Alta rápida (AIT-10). No basta con comprobar la oportunidad: el
+// cliente relacionado se valida también contra la misma tienda, para que
+// una relación cruzada futura no filtre el nombre de un cliente ajeno.
 export const getSummary = query({
   args: { opportunityId: v.id("opportunities") },
   handler: async (ctx, { opportunityId }) => {
@@ -167,18 +167,43 @@ export const getSummary = query({
     const customer = await ctx.db.get(opportunity.customerId);
     if (customer === null || customer.storeId !== user.storeId) return null;
 
-    const nextStep = await ctx.db
-      .query("nextSteps")
-      .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
-      .filter((q) => q.eq(q.field("status"), "pending"))
-      .first();
+    const [owner, store, nextStep] = await Promise.all([
+      ctx.db.get(opportunity.ownerId),
+      ctx.db.get(opportunity.storeId),
+      ctx.db
+        .query("nextSteps")
+        .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
+        .filter((q) => q.eq(q.field("status"), "pending"))
+        .first(),
+    ]);
 
     return {
       customerId: customer._id,
       customerName: customer.name,
+      customerPhone: customer.phone,
       interest: opportunity.interest ?? null,
       estimatedAmount: opportunity.estimatedAmount ?? null,
-      nextStepAction: nextStep?.action ?? null,
+      stage: opportunity.stage,
+      status: opportunity.status,
+      expectedCloseDate: opportunity.expectedCloseDate ?? null,
+      ownerName: owner?.name ?? null,
+      storeName: store?.name ?? null,
+      closedAt: opportunity.closedAt ?? null,
+      finalAmount: opportunity.finalAmount ?? null,
+      lostReason: opportunity.lostReason ?? null,
+      // Solo el próximo paso PENDIENTE (regla 6: toda oportunidad abierta
+      // tiene siempre uno). En una cerrada será null — closePendingNextSteps
+      // ya los marcó "done" al cerrar. "overdue" (paso vencido) se calcula
+      // aquí, no se guarda — docs/02-modelo-de-datos.md §3 — y va en la
+      // query en vez de la UI porque Date.now() no es una función pura y
+      // no puede llamarse durante el render de un componente.
+      nextStep: nextStep
+        ? {
+            action: nextStep.action,
+            dueDate: nextStep.dueDate,
+            overdue: nextStep.dueDate < Date.now(),
+          }
+        : null,
     };
   },
 });
