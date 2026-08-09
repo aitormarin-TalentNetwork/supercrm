@@ -2,11 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireUser } from "./model/access";
 import { startOfBusinessDay, startOfNextBusinessDay } from "../lib/businessTime";
-
-// Riesgo (docs/02-modelo-de-datos.md §3): "hoy - lastActivityAt > X días
-// (X configurable, empezamos con 7)". El sistema completo de alertas es
-// AIT-17 (Fase 3, otra issue) — aquí solo se calcula el indicador visual.
-const RISK_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+import { isAtRisk } from "../lib/risk";
 
 // Pasos accionables para "Hoy": pending y postponed cuentan igual una vez
 // llega su fecha — "postponed" no es un estado terminal como "done", es un
@@ -61,7 +57,7 @@ export const listForToday = query({
           stage: opportunity.stage,
           estimatedAmount: opportunity.estimatedAmount ?? null,
           isOverdue: step.dueDate < startOfToday,
-          isAtRisk: now - opportunity.lastActivityAt > RISK_THRESHOLD_MS,
+          isAtRisk: isAtRisk(opportunity.lastActivityAt, now),
         };
       }),
     );
