@@ -317,3 +317,66 @@ export const markLost = mutation({
     await closePendingNextSteps(ctx, opportunityId);
   },
 });
+
+// docs/02-modelo-de-datos.md §3: el riesgo no se guarda, se calcula al
+// leer. 7 días es el valor de partida que fija el documento.
+const RISK_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+
+// AIT-12: listado para el Pipeline (embudo por etapas). Mismo criterio de
+// acceso que el resto de este archivo — storeId siempre, y ownerId además
+// si el usuario es sales — aplicado en memoria porque el índice
+// by_status_stage no incluye ownerId. Función nueva e independiente: no
+// reutiliza ni modifica getSummary.
+export const listOpen = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireUser(ctx);
+
+    const openOpportunities = await ctx.db
+      .query("opportunities")
+      .withIndex("by_status_stage", (q) => q.eq("status", "open"))
+      .collect();
+
+    const visible = openOpportunities.filter((opportunity) => {
+      if (opportunity.storeId !== user.storeId) return false;
+      if (user.role !== "owner" && opportunity.ownerId !== user._id) {
+        return false;
+      }
+      return true;
+    });
+
+    const now = Date.now();
+    const enriched = await Promise.all(
+      visible.map(async (opportunity) => {
+        const [customer, nextStep] = await Promise.all([
+          ctx.db.get(opportunity.customerId),
+          ctx.db
+            .query("nextSteps")
+            .withIndex("by_opportunity", (q) =>
+              q.eq("opportunityId", opportunity._id),
+            )
+            .filter((q) => q.eq(q.field("status"), "pending"))
+            .first(),
+        ]);
+        // Mismo chequeo que getSummary: no basta con que la oportunidad ya
+        // esté filtrada por storeId — si una relación cruzada o corrupta
+        // apuntara a un cliente de otra tienda, este segundo chequeo evita
+        // filtrar su nombre. En uso normal nunca ocurre (un cliente nunca
+        // falta ni cambia de tienda), pero no se asume.
+        if (customer === null || customer.storeId !== user.storeId) {
+          return null;
+        }
+        return {
+          id: opportunity._id,
+          stage: opportunity.stage,
+          customerName: customer.name,
+          estimatedAmount: opportunity.estimatedAmount ?? null,
+          nextStepAction: nextStep?.action ?? null,
+          atRisk: now - opportunity.lastActivityAt > RISK_THRESHOLD_MS,
+        };
+      }),
+    );
+
+    return enriched.filter((item) => item !== null);
+  },
+});
