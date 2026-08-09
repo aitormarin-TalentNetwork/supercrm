@@ -174,6 +174,7 @@ export const getSummary = query({
       .first();
 
     return {
+      customerId: customer._id,
       customerName: customer.name,
       interest: opportunity.interest ?? null,
       estimatedAmount: opportunity.estimatedAmount ?? null,

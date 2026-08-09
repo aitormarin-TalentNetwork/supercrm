@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -55,6 +56,12 @@ export default function OportunidadPage({
           Próximo paso: <strong>{summary.nextStepAction}</strong>
         </p>
       )}
+      <Link
+        href={`/clientes/${summary.customerId}`}
+        className="text-sm font-semibold text-primary hover:underline"
+      >
+        Ver ficha del cliente
+      </Link>
       <p className="text-sm text-text-muted">
         Pantalla real pendiente (Fase 2 — AIT-13).
       </p>
