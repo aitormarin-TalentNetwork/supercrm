@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import { requireUser } from "./model/access";
+import type { Doc, Id } from "./_generated/dataModel";
 
 // Primer próximo paso según el canal de origen (PRD: Alta rápida → "genera
 // la oportunidad y su primer próximo paso automático"). Mismos canales que
@@ -13,10 +15,22 @@ const FIRST_STEP_BY_SOURCE: Record<string, string> = {
   Visita: "Agendar visita comercial",
 };
 
+// Próximo paso al cambiar de etapa (AIT-15). Distinto del de creación: ya
+// no es "primer contacto", depende de a qué fase entra la oportunidad.
+const NEXT_STEP_BY_STAGE: Record<
+  "contacto" | "presupuesto" | "negociacion",
+  string
+> = {
+  contacto: "Contactar para iniciar el seguimiento",
+  presupuesto: "Enviar el presupuesto",
+  negociacion: "Llamar para cerrar la negociación",
+};
+
 // Techo puramente defensivo (no una regla de negocio real): bloquea
 // importes negativos, no numéricos o desproporcionados enviados por una
 // llamada directa a la mutation, sin depender de que el formulario valide.
-const MAX_ESTIMATED_AMOUNT = 100_000_000;
+// Se usa tanto para el importe estimado como para el importe final de cierre.
+const MAX_AMOUNT = 100_000_000;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -89,7 +103,7 @@ export const createQuick = mutation({
       if (
         !Number.isFinite(args.estimatedAmount) ||
         args.estimatedAmount < 0 ||
-        args.estimatedAmount > MAX_ESTIMATED_AMOUNT
+        args.estimatedAmount > MAX_AMOUNT
       ) {
         throw new Error("El importe estimado no es válido.");
       }
@@ -165,5 +179,140 @@ export const getSummary = query({
       estimatedAmount: opportunity.estimatedAmount ?? null,
       nextStepAction: nextStep?.action ?? null,
     };
+  },
+});
+
+// Mismo criterio de acceso que getSummary, pero lanzando en vez de
+// devolviendo null: aquí estamos en una mutation que va a escribir, no en
+// una consulta de solo lectura. "No encontrada" cubre tanto que no exista
+// como que no sea de la tienda o del comercial — no se distingue el motivo
+// para no filtrar qué IDs existen.
+async function loadOpenOpportunityOrThrow(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  opportunityId: Id<"opportunities">,
+): Promise<Doc<"opportunities">> {
+  const opportunity = await ctx.db.get(opportunityId);
+  if (opportunity === null) throw new Error("Oportunidad no encontrada.");
+  if (opportunity.storeId !== user.storeId) {
+    throw new Error("Oportunidad no encontrada.");
+  }
+  if (user.role !== "owner" && opportunity.ownerId !== user._id) {
+    throw new Error("Oportunidad no encontrada.");
+  }
+  if (opportunity.status !== "open") {
+    throw new Error("La oportunidad ya está cerrada.");
+  }
+  return opportunity;
+}
+
+// Regla 5 (docs/02-modelo-de-datos.md): al cerrar o cambiar de etapa, el(los)
+// nextStep(s) pendiente(s) dejan de contar como tal — se marcan "done" en vez
+// de dejarlos "pending" apuntando a una etapa o cierre que ya no aplica.
+async function closePendingNextSteps(
+  ctx: MutationCtx,
+  opportunityId: Id<"opportunities">,
+) {
+  const pendingSteps = await ctx.db
+    .query("nextSteps")
+    .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
+    .filter((q) => q.eq(q.field("status"), "pending"))
+    .collect();
+  for (const step of pendingSteps) {
+    await ctx.db.patch(step._id, { status: "done" });
+  }
+}
+
+// AIT-14 + AIT-15: mover de etapa actualiza lastActivityAt y regenera el
+// próximo paso (regla 3). El paso anterior se cierra antes de crear el
+// nuevo para que nunca haya dos pendientes a la vez.
+export const changeStage = mutation({
+  args: {
+    opportunityId: v.id("opportunities"),
+    stage: v.union(
+      v.literal("contacto"),
+      v.literal("presupuesto"),
+      v.literal("negociacion"),
+    ),
+  },
+  handler: async (ctx, { opportunityId, stage }) => {
+    const user = await requireUser(ctx);
+    const opportunity = await loadOpenOpportunityOrThrow(
+      ctx,
+      user,
+      opportunityId,
+    );
+
+    if (opportunity.stage === stage) {
+      throw new Error("La oportunidad ya está en esa etapa.");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(opportunityId, { stage, lastActivityAt: now });
+    await closePendingNextSteps(ctx, opportunityId);
+    await ctx.db.insert("nextSteps", {
+      opportunityId,
+      action: NEXT_STEP_BY_STAGE[stage],
+      dueDate: now,
+      status: "pending",
+      assigneeId: opportunity.ownerId,
+    });
+  },
+});
+
+// AIT-14: cierre ganado. El importe final es el real de la venta, distinto
+// del estimatedAmount que alimentaba el forecast.
+export const markWon = mutation({
+  args: {
+    opportunityId: v.id("opportunities"),
+    finalAmount: v.number(),
+  },
+  handler: async (ctx, { opportunityId, finalAmount }) => {
+    const user = await requireUser(ctx);
+    await loadOpenOpportunityOrThrow(ctx, user, opportunityId);
+
+    if (
+      !Number.isFinite(finalAmount) ||
+      finalAmount < 0 ||
+      finalAmount > MAX_AMOUNT
+    ) {
+      throw new Error("El importe final no es válido.");
+    }
+    const roundedFinalAmount = Math.round(finalAmount * 100) / 100;
+
+    const now = Date.now();
+    await ctx.db.patch(opportunityId, {
+      status: "won",
+      closedAt: now,
+      finalAmount: roundedFinalAmount,
+      lastActivityAt: now,
+    });
+    await closePendingNextSteps(ctx, opportunityId);
+  },
+});
+
+// AIT-14: cierre perdido. lostReason es obligatorio (regla 4).
+export const markLost = mutation({
+  args: {
+    opportunityId: v.id("opportunities"),
+    lostReason: v.string(),
+  },
+  handler: async (ctx, { opportunityId, lostReason }) => {
+    const user = await requireUser(ctx);
+    await loadOpenOpportunityOrThrow(ctx, user, opportunityId);
+
+    const reason = lostReason.trim();
+    if (reason.length === 0) {
+      throw new Error("El motivo de la pérdida es obligatorio.");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(opportunityId, {
+      status: "lost",
+      closedAt: now,
+      lostReason: reason,
+      lastActivityAt: now,
+    });
+    await closePendingNextSteps(ctx, opportunityId);
   },
 });
