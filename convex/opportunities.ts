@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
+import { startOfBusinessDay } from "../lib/businessTime";
 
 // Primer próximo paso según el canal de origen (PRD: Alta rápida → "genera
 // la oportunidad y su primer próximo paso automático"). Mismos canales que
@@ -173,7 +174,18 @@ export const getSummary = query({
       ctx.db
         .query("nextSteps")
         .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
-        .filter((q) => q.eq(q.field("status"), "pending"))
+        // "pending" y "postponed" (no solo "pending"): un paso pospuesto
+        // sigue siendo el próximo paso accionable de la oportunidad, solo
+        // con la fecha movida — mismo criterio que closePendingNextSteps
+        // más abajo (AIT-16, ronda de auditoría 4, mayor #1). Si solo se
+        // mirara "pending", el detalle mostraría "sin próximo paso" en
+        // cuanto se pospusiera uno, aunque la oportunidad siga abierta.
+        .filter((q) =>
+          q.or(
+            q.eq(q.field("status"), "pending"),
+            q.eq(q.field("status"), "postponed"),
+          ),
+        )
         .first(),
     ]);
 
@@ -191,17 +203,22 @@ export const getSummary = query({
       closedAt: opportunity.closedAt ?? null,
       finalAmount: opportunity.finalAmount ?? null,
       lostReason: opportunity.lostReason ?? null,
-      // Solo el próximo paso PENDIENTE (regla 6: toda oportunidad abierta
-      // tiene siempre uno). En una cerrada será null — closePendingNextSteps
-      // ya los marcó "done" al cerrar. "overdue" (paso vencido) se calcula
-      // aquí, no se guarda — docs/02-modelo-de-datos.md §3 — y va en la
-      // query en vez de la UI porque Date.now() no es una función pura y
-      // no puede llamarse durante el render de un componente.
+      // Solo el próximo paso accionable, pending o postponed (regla 6:
+      // toda oportunidad abierta tiene siempre uno). En una cerrada será
+      // null — closePendingNextSteps ya los marcó "done" al cerrar.
+      // "overdue" (paso vencido) se calcula aquí, no se guarda —
+      // docs/02-modelo-de-datos.md §3 — y va en la query en vez de la UI
+      // porque Date.now() no es una función pura y no puede llamarse
+      // durante el render de un componente. Frontera del día de negocio
+      // (Europe/Madrid), no el instante exacto: mismo criterio que "Hoy"
+      // (convex/nextSteps.ts) — si no, un paso de hoy a las 10:00 sería
+      // "Hoy" en la agenda todo el día pero "Vencido" en el detalle desde
+      // esa misma hora (AIT-16, ronda de auditoría 4, mayor #2).
       nextStep: nextStep
         ? {
             action: nextStep.action,
             dueDate: nextStep.dueDate,
-            overdue: nextStep.dueDate < Date.now(),
+            overdue: nextStep.dueDate < startOfBusinessDay(Date.now()),
           }
         : null,
     };
@@ -233,18 +250,28 @@ async function loadOpenOpportunityOrThrow(
 }
 
 // Regla 5 (docs/02-modelo-de-datos.md): al cerrar o cambiar de etapa, el(los)
-// nextStep(s) pendiente(s) dejan de contar como tal — se marcan "done" en vez
-// de dejarlos "pending" apuntando a una etapa o cierre que ya no aplica.
+// nextStep(s) accionables dejan de contar como tal — se marcan "done" en vez
+// de dejarlos apuntando a una etapa o cierre que ya no aplica. Incluye
+// "postponed" además de "pending" (AIT-16, convex/nextSteps.ts:postpone):
+// un paso pospuesto sigue siendo accionable, solo con la fecha movida — si
+// solo se cerraran los "pending", uno pospuesto sobreviviría a un cambio de
+// etapa o a un cierre y quedaría huérfano junto al paso nuevo que genera
+// changeStage, violando la regla de "un solo paso accionable a la vez".
 async function closePendingNextSteps(
   ctx: MutationCtx,
   opportunityId: Id<"opportunities">,
 ) {
-  const pendingSteps = await ctx.db
+  const actionableSteps = await ctx.db
     .query("nextSteps")
     .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
-    .filter((q) => q.eq(q.field("status"), "pending"))
+    .filter((q) =>
+      q.or(
+        q.eq(q.field("status"), "pending"),
+        q.eq(q.field("status"), "postponed"),
+      ),
+    )
     .collect();
-  for (const step of pendingSteps) {
+  for (const step of actionableSteps) {
     await ctx.db.patch(step._id, { status: "done" });
   }
 }
@@ -380,7 +407,15 @@ export const listOpen = query({
             .withIndex("by_opportunity", (q) =>
               q.eq("opportunityId", opportunity._id),
             )
-            .filter((q) => q.eq(q.field("status"), "pending"))
+            // pending y postponed: mismo criterio que getSummary más arriba
+            // (AIT-16, ronda de auditoría 4, mayor #1) — si no, el Pipeline
+            // pierde nextStepAction en cuanto se pospone el paso.
+            .filter((q) =>
+              q.or(
+                q.eq(q.field("status"), "pending"),
+                q.eq(q.field("status"), "postponed"),
+              ),
+            )
             .first(),
         ]);
         // Mismo chequeo que getSummary: no basta con que la oportunidad ya
