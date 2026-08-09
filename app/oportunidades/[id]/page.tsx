@@ -1,25 +1,56 @@
 "use client";
 
-import { use } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
+import {
+  ArrowLeft,
+  ArrowLeftRight,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Euro,
+  MessageSquare,
+  Phone,
+  PartyPopper,
+  XCircle,
+} from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
+import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
+import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
 
-// Stub mínimo — el Detalle de oportunidad real es AIT-13 (Fase 2, aún no
-// construido). Esto solo confirma que Alta rápida (AIT-10) creó la
-// oportunidad y su primer próximo paso.
+const STAGES = [
+  { value: "contacto", label: "Contacto" },
+  { value: "presupuesto", label: "Presupuesto" },
+  { value: "negociacion", label: "Negociación" },
+] as const;
+
+const LOST_REASONS = [
+  "Precio",
+  "Eligió a la competencia",
+  "Sin respuesta",
+  "No era el momento",
+  "Otro",
+] as const;
+
 export default function OportunidadPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const summary = useQuery(api.opportunities.getSummary, {
-    opportunityId: id as Id<"opportunities">,
-  });
+  const opportunityId = id as Id<"opportunities">;
+  const summary = useQuery(api.opportunities.getSummary, { opportunityId });
+  const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
+  const [modal, setModal] = useState<"stage" | "won" | "lost" | null>(null);
 
-  if (summary === undefined) {
+  if (summary === undefined || interactions === undefined) {
     return (
       <main className="flex flex-1 items-center justify-center p-8 font-sans">
         <p className="text-text-secondary">Cargando…</p>
@@ -27,44 +58,497 @@ export default function OportunidadPage({
     );
   }
 
-  if (summary === null) {
+  if (summary === null || interactions === null) {
     return (
       <main className="flex flex-1 items-center justify-center p-8 font-sans">
-        <p className="text-text-secondary">
-          Oportunidad no encontrada o sin acceso.
-        </p>
+        <p className="text-text-secondary">Oportunidad no encontrada o sin acceso.</p>
       </main>
     );
   }
 
+  const isOpen = summary.status === "open";
+  const isOverdue = summary.nextStep?.overdue ?? false;
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 font-sans">
-      <h1 className="text-h1 font-bold text-text">Oportunidad creada</h1>
-      <p className="text-text-secondary">
-        Cliente: <strong>{summary.customerName}</strong>
-      </p>
-      {summary.interest && (
-        <p className="text-text-secondary">Interés: {summary.interest}</p>
-      )}
-      {summary.estimatedAmount !== null && (
-        <p className="text-text-secondary">
-          Importe estimado: {summary.estimatedAmount} €
-        </p>
-      )}
-      {summary.nextStepAction && (
-        <p className="text-text-secondary">
-          Próximo paso: <strong>{summary.nextStepAction}</strong>
-        </p>
-      )}
-      <Link
-        href={`/clientes/${summary.customerId}`}
-        className="text-sm font-semibold text-primary hover:underline"
-      >
-        Ver ficha del cliente
-      </Link>
-      <p className="text-sm text-text-muted">
-        Pantalla real pendiente (Fase 2 — AIT-13).
-      </p>
+    <main className="flex flex-1 flex-col bg-bg font-sans text-text">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+        <Link
+          href="/hoy"
+          aria-label="Volver"
+          className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+        >
+          <ArrowLeft size={18} />
+        </Link>
+        <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+          Oportunidad
+        </div>
+        <a
+          href={`tel:${summary.customerPhone}`}
+          aria-label="Llamar"
+          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
+        >
+          <Phone size={18} />
+        </a>
+      </header>
+
+      <div className="mx-auto flex max-w-[760px] flex-col gap-4 px-4 pb-24 pt-[18px]">
+        {!isOpen && (
+          <div
+            className="flex items-center gap-2.5 rounded-md px-4 py-3.5"
+            style={{
+              background:
+                summary.status === "won"
+                  ? "var(--color-success-subtle)"
+                  : "var(--color-error-subtle)",
+              color: summary.status === "won" ? "#15803D" : "#B91C1C",
+            }}
+          >
+            {summary.status === "won" ? (
+              <CheckCircle2 size={18} />
+            ) : (
+              <XCircle size={18} />
+            )}
+            <span className="text-sm font-semibold">
+              {summary.status === "won"
+                ? `Oportunidad ganada · ${
+                    summary.finalAmount !== null ? formatCurrency(summary.finalAmount) : "—"
+                  }`
+                : `Oportunidad perdida · Motivo: ${summary.lostReason ?? "—"}`}
+            </span>
+          </div>
+        )}
+
+        <section className="rounded-lg border border-border bg-surface p-5 shadow-[var(--shadow-e1)]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <Link
+                href={`/clientes/${summary.customerId}`}
+                className="inline-flex items-center gap-1.5 text-inherit no-underline hover:text-primary"
+              >
+                <h1 className="m-0 text-[23px] font-bold tracking-tight">
+                  {summary.customerName}
+                </h1>
+                <ChevronRight size={18} className="flex-none text-neutral-400" />
+              </Link>
+              <div className="mt-0.5 text-xs text-text-muted">Ver ficha del cliente</div>
+              <div className="mt-1.5 font-mono text-sm text-text-secondary">
+                {summary.customerPhone}
+              </div>
+            </div>
+            <OpportunityStageBadge stage={summary.stage} status={summary.status} />
+          </div>
+
+          <div className="mt-[18px] grid grid-cols-1 gap-x-[18px] gap-y-3.5 border-t border-border pt-[18px] sm:grid-cols-2">
+            <HeaderField label="Importe estimado">
+              <span className="font-mono text-[17px] font-semibold">
+                {summary.estimatedAmount !== null
+                  ? formatCurrency(summary.estimatedAmount)
+                  : "—"}
+              </span>
+            </HeaderField>
+            <HeaderField label="Cierre previsto">
+              <span className="font-mono text-sm">
+                {summary.expectedCloseDate !== null
+                  ? formatDate(summary.expectedCloseDate)
+                  : "—"}
+              </span>
+            </HeaderField>
+            <HeaderField label="Producto / interés">
+              {summary.interest ?? "—"}
+            </HeaderField>
+            <HeaderField label="Comercial">{summary.ownerName ?? "—"}</HeaderField>
+            <HeaderField label="Tienda">{summary.storeName ?? "—"}</HeaderField>
+          </div>
+
+          <div className="mt-[18px] flex flex-wrap items-center gap-2.5 border-t border-border pt-[18px]">
+            <Button
+              variant="secondary"
+              leftIcon={<MessageSquare size={16} />}
+              disabled
+              title="Disponible próximamente"
+            >
+              Registrar interacción
+            </Button>
+            {isOpen && (
+              <>
+                <Button
+                  variant="secondary"
+                  leftIcon={<ArrowLeftRight size={16} />}
+                  onClick={() => setModal("stage")}
+                >
+                  Cambiar etapa
+                </Button>
+                <span className="flex-1" />
+                <Button
+                  variant="secondary"
+                  leftIcon={<CheckCircle2 size={16} />}
+                  onClick={() => setModal("won")}
+                >
+                  Ganada
+                </Button>
+                <Button
+                  variant="danger"
+                  leftIcon={<XCircle size={16} />}
+                  onClick={() => setModal("lost")}
+                >
+                  Perdida
+                </Button>
+              </>
+            )}
+          </div>
+          <p className="mt-2.5 text-xs text-text-muted">
+            Registrar interacción llegará próximamente.
+          </p>
+        </section>
+
+        <section
+          className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]"
+          style={{
+            borderLeft: `3px solid ${isOverdue ? "var(--color-error)" : "var(--color-primary)"}`,
+          }}
+        >
+          <div className="flex items-center justify-between gap-2.5">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+              Próximo paso
+            </span>
+            {summary.nextStep && (
+              <span
+                className="rounded-pill px-2.5 py-[3px] text-xs font-semibold"
+                style={{
+                  background: isOverdue ? "var(--color-error-subtle)" : "var(--color-primary-subtle)",
+                  color: isOverdue ? "#B91C1C" : "var(--color-primary)",
+                }}
+              >
+                {isOverdue ? "Vencido" : "Pendiente"}
+              </span>
+            )}
+          </div>
+          {summary.nextStep ? (
+            <div className="mt-3">
+              <div className="text-base font-semibold">{summary.nextStep.action}</div>
+              <div
+                className="mt-1.5 inline-flex items-center gap-1.5 font-mono text-[13px] font-medium"
+                style={{ color: isOverdue ? "var(--color-error)" : "var(--color-primary)" }}
+              >
+                <Clock size={15} />
+                {formatDateTime(summary.nextStep.dueDate)}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2.5 text-sm text-text-muted">
+              Sin próximo paso — la oportunidad está cerrada.
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+            Presupuesto
+          </span>
+          <p className="mt-2.5 text-sm text-text-secondary">
+            Todavía no se ha creado ningún presupuesto para esta oportunidad.
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
+          <span className="mb-4 block text-[11px] font-bold uppercase tracking-wide text-text-muted">
+            Historial de interacciones
+          </span>
+          <InteractionTimeline
+            interactions={interactions}
+            emptyMessage="Sin interacciones registradas todavía."
+          />
+        </section>
+      </div>
+
+      <ChangeStageDialog
+        open={modal === "stage"}
+        onClose={() => setModal(null)}
+        opportunityId={opportunityId}
+        currentStage={summary.stage}
+      />
+      <MarkWonDialog
+        open={modal === "won"}
+        onClose={() => setModal(null)}
+        opportunityId={opportunityId}
+        estimatedAmount={summary.estimatedAmount}
+      />
+      <MarkLostDialog
+        open={modal === "lost"}
+        onClose={() => setModal(null)}
+        opportunityId={opportunityId}
+      />
     </main>
+  );
+}
+
+function HeaderField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+        {label}
+      </div>
+      <div className="text-sm font-medium">{children}</div>
+    </div>
+  );
+}
+
+function ChangeStageDialog({
+  open,
+  onClose,
+  opportunityId,
+  currentStage,
+}: {
+  open: boolean;
+  onClose: () => void;
+  opportunityId: Id<"opportunities">;
+  currentStage: "contacto" | "presupuesto" | "negociacion";
+}) {
+  const changeStage = useMutation(api.opportunities.changeStage);
+  const [stage, setStage] = useState(currentStage);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading || stage === currentStage) return;
+    setLoading(true);
+    setError("");
+    try {
+      await changeStage({ opportunityId, stage });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo cambiando etapa:", err);
+      }
+      setError("No se ha podido cambiar la etapa. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button type="submit" form="change-stage-form" disabled={loading || stage === currentStage}>
+        {loading ? "Guardando…" : "Guardar etapa"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Cambiar etapa"
+      description="Mueve la oportunidad a otra fase del proceso."
+      width={420}
+      footer={footer}
+    >
+      <form id="change-stage-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        {error && (
+          <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+        )}
+        <Select
+          label="Etapa"
+          value={stage}
+          onChange={(e) => setStage(e.target.value as typeof stage)}
+        >
+          {STAGES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </Select>
+      </form>
+    </Dialog>
+  );
+}
+
+function MarkWonDialog({
+  open,
+  onClose,
+  opportunityId,
+  estimatedAmount,
+}: {
+  open: boolean;
+  onClose: () => void;
+  opportunityId: Id<"opportunities">;
+  estimatedAmount: number | null;
+}) {
+  const markWon = useMutation(api.opportunities.markWon);
+  const [amount, setAmount] = useState(() =>
+    estimatedAmount !== null ? String(estimatedAmount).replace(".", ",") : "",
+  );
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setAmount(estimatedAmount !== null ? String(estimatedAmount).replace(".", ",") : "");
+    }
+  }
+  const [amountError, setAmountError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setAmountError("");
+    setError("");
+    onClose();
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading) return;
+
+    const parsed = parseEuroAmount(amount);
+    if (parsed === undefined || parsed === null) {
+      setAmountError("Introduce el importe final de la venta.");
+      return;
+    }
+    setAmountError("");
+    setError("");
+    setLoading(true);
+    try {
+      await markWon({ opportunityId, finalAmount: parsed });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo marcando ganada:", err);
+      }
+      setError("No se ha podido marcar la oportunidad como ganada. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button type="submit" form="mark-won-form" disabled={loading}>
+        {loading ? "Guardando…" : "Marcar ganada"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Marcar como ganada"
+      description="Registra la venta cerrada."
+      width={420}
+      footer={footer}
+    >
+      <form id="mark-won-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        {error && (
+          <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+        )}
+        <div className="flex items-center gap-2.5 rounded-md bg-success-subtle p-3">
+          <PartyPopper size={18} className="flex-none text-[#15803D]" />
+          <span className="text-[13.5px] text-text-secondary">
+            ¡Buen trabajo! Confirma el importe final de la venta.
+          </span>
+        </div>
+        <Input
+          label="Importe final (€)"
+          leftIcon={<Euro size={16} />}
+          error={amountError}
+          required
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+      </form>
+    </Dialog>
+  );
+}
+
+function MarkLostDialog({
+  open,
+  onClose,
+  opportunityId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  opportunityId: Id<"opportunities">;
+}) {
+  const markLost = useMutation(api.opportunities.markLost);
+  const [reason, setReason] = useState<string>(LOST_REASONS[0]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await markLost({ opportunityId, lostReason: reason });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo marcando perdida:", err);
+      }
+      setError("No se ha podido marcar la oportunidad como perdida. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button type="submit" form="mark-lost-form" variant="danger" disabled={loading}>
+        {loading ? "Guardando…" : "Marcar perdida"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Marcar como perdida"
+      description="Indica el motivo para aprender de cada cierre."
+      width={420}
+      footer={footer}
+    >
+      <form id="mark-lost-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        {error && (
+          <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+        )}
+        <Select
+          label="Motivo de la pérdida"
+          required
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        >
+          {LOST_REASONS.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </Select>
+      </form>
+    </Dialog>
   );
 }

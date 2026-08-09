@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Dialog } from "@/components/ui/Dialog";
+import { parseEuroAmount } from "@/lib/format";
 
 interface AltaRapidaModalProps {
   open: boolean;
@@ -17,32 +18,6 @@ interface AltaRapidaModalProps {
 
 const CANALES = ["Llamada", "WhatsApp", "Recomendación", "Web", "Visita"] as const;
 type Canal = (typeof CANALES)[number];
-
-// Formatos válidos: es-ES agrupado ("1.234.567,89"), decimal simple con
-// coma ("1250,50") o con punto ("1250.50" / "1250"). Cualquier otra cosa
-// se rechaza de forma explícita en vez de intentar adivinarla — un
-// replace(/\D/g,"") o una heurística de "qué separador va último" pueden
-// interpretar mal casos reales como "1250.50" o dejar pasar basura como
-// "1,2,3" convertida en un número sin sentido (ronda de auditoría 2, mayor
-// #1). Con patrones cerrados, lo que no encaja da error, no un número raro.
-const AMOUNT_PATTERNS = [
-  /^\d{1,3}(\.\d{3})*(,\d{1,2})?$/, // es-ES agrupado: 1.234.567,89
-  /^\d+(,\d{1,2})?$/, // decimal con coma, sin agrupar: 1250,50
-  /^\d+(\.\d{1,2})?$/, // decimal con punto, sin agrupar, o entero: 1250.50 / 1250
-];
-
-// undefined = campo vacío (sin importe); null = texto no interpretable.
-function parseEuroAmount(raw: string): number | null | undefined {
-  const trimmed = raw.trim().replace(/\s/g, "");
-  if (!trimmed) return undefined;
-  if (!AMOUNT_PATTERNS.some((re) => re.test(trimmed))) return null;
-
-  const normalized = trimmed.includes(",")
-    ? trimmed.replace(/\./g, "").replace(",", ".")
-    : trimmed;
-  const value = Number(normalized);
-  return Number.isFinite(value) ? value : null;
-}
 
 export function AltaRapidaModal({ open, onClose }: AltaRapidaModalProps) {
   const router = useRouter();
