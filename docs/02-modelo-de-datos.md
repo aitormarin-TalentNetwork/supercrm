@@ -140,7 +140,7 @@ Guardarlos sería garantizar que se desfasan. Se calculan en la query:
 | Dato | Cómo se calcula | Dónde se ve |
 |---|---|---|
 | **Riesgo** de una oportunidad | `hoy - lastActivityAt > X días` (X configurable, empezamos con 7) | Hoy, Pipeline, Panel |
-| **Paso vencido** | `nextStep.dueDate < hoy` y `status = "pending"` | Hoy, Supervisión |
+| **Paso vencido** | `nextStep.dueDate < hoy` y `status` en (`"pending"`, `"postponed"`) — un paso pospuesto sigue siendo accionable, no es un estado terminal como `"done"` | Hoy, Supervisión |
 | **Valor del pipeline** | suma de `estimatedAmount` de las oportunidades abiertas | Panel |
 | **Forecast** | suma de `estimatedAmount` con `expectedCloseDate` dentro del periodo | Panel |
 | **Carga de trabajo** por comercial | nº y valor de oportunidades abiertas | Supervisión |
