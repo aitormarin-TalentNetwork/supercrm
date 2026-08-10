@@ -198,6 +198,16 @@ export default function PipelinePage() {
                       setOverStage(null);
                     }}
                     onClick={() => router.push(`/oportunidades/${item.id}`)}
+                    onKeyDown={(e) => {
+                      // role="button" no activa con teclado por sí solo —
+                      // Enter/Espacio son el comportamiento nativo de un
+                      // <button>, hay que replicarlo a mano aquí (ronda de
+                      // auditoría 1 de AIT-25, sugerencia #2).
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(`/oportunidades/${item.id}`);
+                      }
+                    }}
                     role="button"
                     tabIndex={0}
                     className="cursor-grab rounded-md border border-border bg-surface p-3 shadow-[var(--shadow-e1)] transition-shadow hover:border-border-strong hover:shadow-[var(--shadow-e2)]"

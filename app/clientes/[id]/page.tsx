@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { ArrowLeft, Mail, MessageSquare, Phone, Plus, Store, UserCheck } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -21,6 +22,7 @@ export default function FichaClientePage({
 }) {
   const { id } = use(params);
   const customerId = id as Id<"customers">;
+  const router = useRouter();
   const ficha = useQuery(api.customers.getFicha, { customerId });
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
   // La oportunidad del modal se fija al abrirlo (no se recalcula en cada
@@ -58,16 +60,28 @@ export default function FichaClientePage({
   // enganchar el próximo paso (regla 6, docs/02-modelo-de-datos.md §1).
   const activeOpportunity = opportunities.find((o) => o.status === "open") ?? null;
 
+  // Mismo criterio que app/oportunidades/[id]/page.tsx (ronda de auditoría
+  // 1 de AIT-25, sugerencia #1): la Ficha de cliente también se alcanza
+  // desde varias pantallas (Detalle, Pipeline...), no solo Hoy.
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
+
   return (
     <main className="flex flex-1 flex-col bg-bg font-sans text-text">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
-        <Link
-          href="/hoy"
+        <button
+          type="button"
+          onClick={handleBack}
           aria-label="Volver"
           className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
         >
           <ArrowLeft size={18} />
-        </Link>
+        </button>
         <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
           Ficha de cliente
         </div>

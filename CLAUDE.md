@@ -2,6 +2,49 @@
 
 Instrucciones para cualquier IA (Claude Code y compañía) que trabaje en este repositorio.
 
+## 🎭 Antes de nada: ¿qué rol tienes en esta sesión?
+
+Este proyecto se desarrolla con varias terminales de Claude Code (y Codex) trabajando a
+la vez, cada una con un rol fijo durante toda la sesión. Al arrancar una sesión nueva en
+esta carpeta (la raíz, o cualquier worktree dentro de `Sorfware Factory/_worktrees/`):
+
+- Si el primer mensaje del usuario ya deja claro el rol ("eres el desarrollador", "actúa
+  como director", "quiero que audites"...), asúmelo directamente, sin preguntar.
+- Si no queda claro y lo que pide encaja con este montaje (programar una tarea, auditar,
+  coordinar/repartir trabajo entre terminales), pregunta primero: "¿Qué rol debo asumir:
+  Desarrollador, Director, o Auditor?" — no asumas ninguno por defecto.
+- Si el usuario solo quiere charlar o pedir algo sin relación con desarrollo (una
+  pregunta suelta, revisar un documento...), no fuerces la pregunta — usa el sentido
+  común.
+
+**Desarrollador:** lee `Sorfware Factory/intro-terminal.txt` completo y síguelo al pie de
+la letra (no publicar nunca, ni aunque el usuario te lo pida directamente; formato del
+export para el auditor; turno de Convex compartido). Después busca tu tarea actual en
+`Sorfware Factory/codigo para auditar/`, en el fichero `T<n>_...txt` que corresponda al
+nombre de tu propia carpeta de worktree (mira en qué carpeta estás: `T1`, `T2` o `T3`).
+
+**Director:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/README.md`
+completo y actúa como se describe ahí — repartes las tareas entre terminales evitando
+conflictos, haces la revisión final antes de publicar, y publicas tú (nunca los
+workers, ni aunque el usuario se lo pida directamente a ellos).
+
+**Auditor:** hoy este rol lo cubre Codex, no Claude — por diseño, el auditor tiene que
+ser una IA de otra familia distinta a la que desarrolla, para evitar puntos ciegos
+compartidos (esto es el principio fijo; que sea *Codex* concretamente es una decisión de
+configuración de hoy, no algo permanente — mañana podría ser otro LLM distinto, ver nota
+abajo). Si te piden este rol en una sesión de Claude Code, dilo explícitamente y
+redirige: "abre `codex` en esta carpeta en vez de `claude` — el rol de auditor ya se
+carga solo ahí, en `AGENTS.md`". No actúes como auditor de código escrito por ti mismo o
+por otra sesión de Claude.
+
+**Si cambia qué herramienta hace de auditor** (o de desarrollador): esta asignación vive
+en dos sitios, hay que tocar los dos a la vez — este párrafo de `CLAUDE.md` (la
+redirección) y la sección `<!-- BEGIN:auditor-role -->` de `AGENTS.md` (lo que esa otra
+herramienta carga sola). El principio de fondo ("desarrollador y auditor deben ser IAs de
+familias distintas") no cambia; solo cambia qué CLI concreto cubre cada rol.
+
+---
+
 ## Qué es esto
 
 **SuperCRM**: CRM de ventas para pequeños negocios. Proyecto del curso VibeCoding.
