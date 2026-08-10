@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
+import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency } from "@/lib/format";
 import { BUSINESS_TIME_ZONE, getBusinessHour, startOfBusinessDay } from "@/lib/businessTime";
 
@@ -48,6 +49,7 @@ function NextStepCard({ item }: { item: NextStepItem }) {
   const postpone = useMutation(api.nextSteps.postpone);
   const [acting, setActing] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [interactionModalOpen, setInteractionModalOpen] = useState(false);
 
   async function handleDone() {
     if (acting) return;
@@ -150,8 +152,7 @@ function NextStepCard({ item }: { item: NextStepItem }) {
         <Button
           variant="ghost"
           size="sm"
-          disabled
-          title="Disponible próximamente (AIT-19)"
+          onClick={() => setInteractionModalOpen(true)}
           className="relative z-10"
         >
           Registrar
@@ -160,6 +161,11 @@ function NextStepCard({ item }: { item: NextStepItem }) {
       {actionError && (
         <p className="relative z-10 mt-2 text-xs font-medium text-error">{actionError}</p>
       )}
+      <RegistrarInteraccionModal
+        open={interactionModalOpen}
+        onClose={() => setInteractionModalOpen(false)}
+        opportunityId={item.opportunityId}
+      />
     </div>
   );
 }

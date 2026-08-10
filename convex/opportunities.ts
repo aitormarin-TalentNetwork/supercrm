@@ -230,7 +230,7 @@ export const getSummary = query({
 // una consulta de solo lectura. "No encontrada" cubre tanto que no exista
 // como que no sea de la tienda o del comercial — no se distingue el motivo
 // para no filtrar qué IDs existen.
-async function loadOpenOpportunityOrThrow(
+export async function loadOpenOpportunityOrThrow(
   ctx: MutationCtx,
   user: Doc<"users">,
   opportunityId: Id<"opportunities">,
@@ -257,7 +257,10 @@ async function loadOpenOpportunityOrThrow(
 // solo se cerraran los "pending", uno pospuesto sobreviviría a un cambio de
 // etapa o a un cierre y quedaría huérfano junto al paso nuevo que genera
 // changeStage, violando la regla de "un solo paso accionable a la vez".
-async function closePendingNextSteps(
+// Exportada: convex/interactions.ts:create (AIT-19) la reutiliza tal cual
+// para cerrar el paso anterior antes de crear el que sigue a una
+// interacción — mismo patrón que changeStage aquí abajo, no una copia.
+export async function closePendingNextSteps(
   ctx: MutationCtx,
   opportunityId: Id<"opportunities">,
 ) {

@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
+import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
 
 const STAGES = [
@@ -49,6 +50,7 @@ export default function OportunidadPage({
   const summary = useQuery(api.opportunities.getSummary, { opportunityId });
   const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
   const [modal, setModal] = useState<"stage" | "won" | "lost" | null>(null);
+  const [interactionModalOpen, setInteractionModalOpen] = useState(false);
 
   if (summary === undefined || interactions === undefined) {
     return (
@@ -164,8 +166,9 @@ export default function OportunidadPage({
             <Button
               variant="secondary"
               leftIcon={<MessageSquare size={16} />}
-              disabled
-              title="Disponible próximamente"
+              disabled={!isOpen}
+              title={isOpen ? undefined : "La oportunidad está cerrada."}
+              onClick={() => setInteractionModalOpen(true)}
             >
               Registrar interacción
             </Button>
@@ -196,9 +199,6 @@ export default function OportunidadPage({
               </>
             )}
           </div>
-          <p className="mt-2.5 text-xs text-text-muted">
-            Registrar interacción llegará próximamente.
-          </p>
         </section>
 
         <section
@@ -261,6 +261,11 @@ export default function OportunidadPage({
         </section>
       </div>
 
+      <RegistrarInteraccionModal
+        open={interactionModalOpen}
+        onClose={() => setInteractionModalOpen(false)}
+        opportunityId={opportunityId}
+      />
       <ChangeStageDialog
         open={modal === "stage"}
         onClose={() => setModal(null)}

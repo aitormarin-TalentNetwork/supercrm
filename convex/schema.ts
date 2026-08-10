@@ -116,4 +116,15 @@ export default defineSchema({
     userId: v.id("users"),
     opportunityId: v.id("opportunities"),
   }).index("by_client_request_id", ["clientRequestId"]),
+
+  // Idempotencia de interactions.create (AIT-19), mismo mecanismo que
+  // opportunityRequests para createQuick: una clave por apertura del
+  // modal, reutilizada en un reintento del MISMO envío — si el servidor ya
+  // confirmó pero la respuesta se perdió, un reintento no debe duplicar ni
+  // el historial ni el próximo paso (ronda de auditoría 1, mayor #1).
+  interactionRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    interactionId: v.id("interactions"),
+  }).index("by_client_request_id", ["clientRequestId"]),
 });
