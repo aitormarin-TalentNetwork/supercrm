@@ -136,3 +136,82 @@ export const getWorkloadByOwner = query({
     return workload.sort((a, b) => b.totalAmount - a.totalAmount);
   },
 });
+
+// AIT-22 (Panel): embudo por etapa — nº y suma de importes de las
+// oportunidades abiertas, agrupado por stage. Las 3 etapas reales del MVP
+// (docs/02-modelo-de-datos.md §2) — no las 6 de la paleta del prototipo de
+// diseño: ganada/perdida son status, no etapa, igual que ya se resolvió en
+// el Pipeline (AIT-12).
+const STAGES = ["contacto", "presupuesto", "negociacion"] as const;
+
+export const getFunnelByStage = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireOwner(ctx);
+    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+
+    return STAGES.map((stage) => {
+      const inStage = open.filter((opportunity) => opportunity.stage === stage);
+      return {
+        stage,
+        count: inStage.length,
+        totalAmount: inStage.reduce(
+          (sum, opportunity) => sum + (opportunity.estimatedAmount ?? 0),
+          0,
+        ),
+      };
+    });
+  },
+});
+
+// AIT-22 (Panel): lista de oportunidades en riesgo (cliente, importe, días
+// sin actividad, comercial) para la tabla del Panel — getAtRiskCount
+// (AIT-24) solo da el número, no estos datos, así que hace falta una query
+// nueva. Mismo umbral que getAtRiskCount: no lo reimplementa, pero
+// necesariamente repite el cálculo porque ninguna de las dos exporta un
+// resultado intermedio reutilizable entre queries de Convex.
+export const getAtRiskList = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireOwner(ctx);
+    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+    const now = Date.now();
+    const atRisk = open.filter(
+      (opportunity) => now - opportunity.lastActivityAt > RISK_THRESHOLD_MS,
+    );
+
+    const enriched = await Promise.all(
+      atRisk.map(async (opportunity) => {
+        const [customer, owner] = await Promise.all([
+          ctx.db.get(opportunity.customerId),
+          ctx.db.get(opportunity.ownerId),
+        ]);
+        // Mismo chequeo de storeId cruzado que listOpen/getWorkloadByOwner:
+        // sin cliente de la misma tienda no hay fila (se omite, no se
+        // inventa un nombre); sin comercial de la misma tienda, el nombre
+        // queda null pero la fila se mantiene (mismo criterio que
+        // getWorkloadByOwner).
+        if (customer === null || customer.storeId !== user.storeId) {
+          return null;
+        }
+        const ownerName =
+          owner !== null && owner.storeId === user.storeId
+            ? (owner.name ?? null)
+            : null;
+        return {
+          opportunityId: opportunity._id,
+          customerName: customer.name,
+          estimatedAmount: opportunity.estimatedAmount ?? null,
+          daysSinceActivity: Math.floor(
+            (now - opportunity.lastActivityAt) / (24 * 60 * 60 * 1000),
+          ),
+          ownerName,
+        };
+      }),
+    );
+
+    return enriched
+      .filter((item) => item !== null)
+      .sort((a, b) => b.daysSinceActivity - a.daysSinceActivity);
+  },
+});
