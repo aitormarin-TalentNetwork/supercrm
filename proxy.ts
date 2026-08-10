@@ -8,7 +8,9 @@ import {
 import { fetchQuery } from "convex/nextjs";
 import { api } from "./convex/_generated/api";
 
-const isPanelRoute = createRouteMatcher(["/panel(.*)"]);
+// AIT-23: /supervision es owner-only igual que /panel — se añade al mismo
+// matcher (renombrado de "isPanelRoute" porque ya cubre más de un sitio).
+const isOwnerOnlyRoute = createRouteMatcher(["/panel(.*)", "/supervision(.*)"]);
 // "/" incluida explícitamente: sin ella, una visita sin sesión a "/" no la
 // bloqueaba aquí (isProtectedRoute no la cubría), sino que app/page.tsx
 // redirigía primero a "/hoy" y solo AHÍ actuaba este proxy — un salto de
@@ -20,6 +22,7 @@ const isProtectedRoute = createRouteMatcher([
   "/hoy(.*)",
   "/oportunidades(.*)",
   "/pipeline(.*)",
+  "/supervision(.*)",
 ]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
@@ -29,7 +32,7 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     return nextjsMiddlewareRedirect(request, "/login");
   }
 
-  if (isPanelRoute(request) && isAuthed) {
+  if (isOwnerOnlyRoute(request) && isAuthed) {
     // Comprobación de rol real, consultada a Convex — no una cookie ni un
     // dato del cliente. Esto es capa de enrutado/UX: el control de acceso
     // real a los datos vive dentro de cada query/mutation vía
