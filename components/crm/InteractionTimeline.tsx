@@ -9,6 +9,7 @@ interface Interaction {
   type: InteractionType;
   note: string;
   occurredAt: number;
+  author: string;
 }
 
 const INTERACTION_META: Record<
@@ -57,7 +58,7 @@ export function InteractionTimeline({ interactions, emptyMessage }: InteractionT
               <div className="text-sm font-semibold">{meta.label}</div>
               <div className="mt-0.5 text-[13px] text-text-secondary">{h.note}</div>
               <div className="mt-1 font-mono text-xs text-text-muted">
-                {formatDateTime(h.occurredAt)}
+                {formatDateTime(h.occurredAt)} · {h.author}
               </div>
             </div>
           </div>

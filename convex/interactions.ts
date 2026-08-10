@@ -1,7 +1,28 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import { requireUser } from "./model/access";
 import { closePendingNextSteps, loadOpenOpportunityOrThrow } from "./opportunities";
+import type { Id } from "./_generated/dataModel";
+
+// AIT-20: nombre del autor de una interacción para el historial. Mismo
+// chequeo de tienda cruzada que el resto de relaciones expuestas en
+// listados (cliente en opportunities.listOpen, comercial en
+// dashboard.getWorkloadByOwner...): en uso normal authorId siempre es
+// quien registró la interacción (interactions.create fija authorId =
+// usuario autenticado, ya validado contra esta misma tienda en ese
+// momento), pero el schema no obliga a que siga siéndolo — se comprueba
+// en vez de asumirlo. "Usuario" es el resto de casos sin nombre resoluble
+// (borrado, tienda distinta, o sin `name` ni `email`).
+async function resolveAuthorName(
+  ctx: QueryCtx,
+  authorId: Id<"users">,
+  storeId: Id<"stores">,
+): Promise<string> {
+  const author = await ctx.db.get(authorId);
+  if (author === null || author.storeId !== storeId) return "Usuario";
+  return author.name?.trim() || author.email || "Usuario";
+}
 
 // Historial de interacciones de un cliente para la Ficha de cliente
 // (AIT-11), a través de todas sus oportunidades. Mismo criterio de acceso
@@ -22,14 +43,16 @@ export const listByCustomer = query({
       .withIndex("by_customer", (q) => q.eq("customerId", customerId))
       .collect();
 
-    return interactions
-      .sort((a, b) => b.occurredAt - a.occurredAt)
-      .map((i) => ({
+    const sorted = interactions.sort((a, b) => b.occurredAt - a.occurredAt);
+    return Promise.all(
+      sorted.map(async (i) => ({
         id: i._id,
         type: i.type,
         note: i.note,
         occurredAt: i.occurredAt,
-      }));
+        author: await resolveAuthorName(ctx, i.authorId, user.storeId),
+      })),
+    );
   },
 });
 
@@ -52,14 +75,16 @@ export const listByOpportunity = query({
       .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
       .collect();
 
-    return interactions
-      .sort((a, b) => b.occurredAt - a.occurredAt)
-      .map((i) => ({
+    const sorted = interactions.sort((a, b) => b.occurredAt - a.occurredAt);
+    return Promise.all(
+      sorted.map(async (i) => ({
         id: i._id,
         type: i.type,
         note: i.note,
         occurredAt: i.occurredAt,
-      }));
+        author: await resolveAuthorName(ctx, i.authorId, user.storeId),
+      })),
+    );
   },
 });
 
