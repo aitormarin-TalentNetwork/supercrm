@@ -97,12 +97,15 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
-    const opportunity = await loadOpenOpportunityOrThrow(
-      ctx,
-      user,
-      args.opportunityId,
-    );
 
+    // Antes de validar nada de la oportunidad (ronda de auditoría 2,
+    // mayor #1): si esta clave ya se procesó, el trabajo ya está hecho —
+    // no importa si la oportunidad ha cambiado de estado DESPUÉS de aquel
+    // envío original (p.ej. otra sesión la cerró mientras la respuesta se
+    // perdía de camino al cliente). Comprobarlo después de
+    // loadOpenOpportunityOrThrow haría que un reintento de un envío ya
+    // completado fallara con "La oportunidad ya está cerrada" — un falso
+    // fallo de una operación que en realidad ya tuvo éxito.
     const existingRequests = await ctx.db
       .query("interactionRequests")
       .withIndex("by_client_request_id", (q) =>
@@ -110,6 +113,12 @@ export const create = mutation({
       )
       .collect();
     if (existingRequests.some((r) => r.userId === user._id)) return;
+
+    const opportunity = await loadOpenOpportunityOrThrow(
+      ctx,
+      user,
+      args.opportunityId,
+    );
 
     const nextStepAction = args.nextStepAction.trim();
     if (nextStepAction.length === 0) {
