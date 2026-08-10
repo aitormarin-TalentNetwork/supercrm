@@ -67,6 +67,27 @@ export function startOfNextBusinessDay(
   return zonedMidnight(year, month, day + 1, timeZone);
 }
 
+// Nº de días de negocio (calendario, no de 24h) entre dos instantes.
+// AIT-18 (sugerencia de auditoría): NO se puede calcular como
+// `(startOfBusinessDay(to) - startOfBusinessDay(from)) / 86_400_000` —
+// startOfBusinessDay devuelve el epoch real de la medianoche local, y en
+// el cambio de horario de Madrid un "día" dura 23h o 25h reales, no 24h
+// exactas; esa división podría redondear al día equivocado justo tras el
+// cambio. Aquí se comparan las partes de fecha (año/mes/día) construidas
+// con Date.UTC, que no tiene DST — la resta siempre es un múltiplo exacto
+// de 86_400_000 sin importar qué pase con el huso horario real.
+export function businessDaysBetween(
+  fromMs: number,
+  toMs: number,
+  timeZone: string = BUSINESS_TIME_ZONE,
+): number {
+  const from = getZonedDateParts(fromMs, timeZone);
+  const to = getZonedDateParts(toMs, timeZone);
+  const fromAsUtc = Date.UTC(from.year, from.month - 1, from.day);
+  const toAsUtc = Date.UTC(to.year, to.month - 1, to.day);
+  return Math.round((toAsUtc - fromAsUtc) / 86_400_000);
+}
+
 // Hora del día (0-23) en la zona de negocio. Para UI que depende de "qué
 // hora es ahora" (p.ej. el saludo de la pantalla "Hoy") en vez de la fecha
 // límite de un paso — no reutiliza startOfBusinessDay porque aquí no
