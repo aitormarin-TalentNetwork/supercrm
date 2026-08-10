@@ -13,7 +13,12 @@ import { Badge } from "@/components/ui/Badge";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { formatCurrency } from "@/lib/format";
-import { BUSINESS_TIME_ZONE, getBusinessHour, startOfBusinessDay } from "@/lib/businessTime";
+import {
+  BUSINESS_TIME_ZONE,
+  businessDaysBetween,
+  getBusinessHour,
+  startOfBusinessDay,
+} from "@/lib/businessTime";
 
 type NextStepItem = {
   nextStepId: Id<"nextSteps">;
@@ -40,6 +45,10 @@ function formatDueDate(ms: number): string {
   if (diffDays === 1) return `Ayer ${time}`;
   if (diffDays > 1) return `Hace ${diffDays} días`;
   return new Date(ms).toLocaleDateString("es-ES", { timeZone: BUSINESS_TIME_ZONE });
+}
+
+function daysSince(ms: number): number {
+  return businessDaysBetween(ms, Date.now());
 }
 
 
@@ -172,9 +181,11 @@ export default function HoyPage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(api.users.getCurrentUserInfo);
   const items = useQuery(api.nextSteps.listForToday);
+  const notifications = useQuery(api.nextSteps.getNotifications);
   const { signOut } = useAuthActions();
   const router = useRouter();
   const [altaRapidaOpen, setAltaRapidaOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     if (role === "owner") router.replace("/panel");
@@ -186,6 +197,9 @@ export default function HoyPage() {
 
   const vencidos = items?.filter((item) => item.isOverdue) ?? [];
   const hoy = items?.filter((item) => !item.isOverdue) ?? [];
+  const dueSteps = notifications?.dueSteps ?? [];
+  const atRiskOpportunities = notifications?.atRiskOpportunities ?? [];
+  const notifCount = dueSteps.length + atRiskOpportunities.length;
   const hour = getBusinessHour(new Date().getTime());
   const greeting = hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
   const today = new Date().toLocaleDateString("es-ES", {
@@ -204,19 +218,109 @@ export default function HoyPage() {
           </h1>
           <p className="mt-0.5 text-[13px] capitalize text-text-muted">{today}</p>
         </div>
-        <button
-          type="button"
-          disabled
-          title="Notificaciones — disponible próximamente (AIT-18)"
-          className="relative inline-flex h-10 w-10 flex-none items-center justify-center rounded-md border border-border bg-surface text-text-secondary disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Bell size={18} />
-          {vencidos.length > 0 && (
-            <span className="absolute -right-1 -top-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-pill border-2 border-surface bg-error px-1 text-[11px] font-bold text-white">
-              {vencidos.length}
-            </span>
+        <div className="relative flex-none">
+          <button
+            type="button"
+            aria-label="Notificaciones"
+            aria-expanded={notifOpen}
+            onClick={() => setNotifOpen((open) => !open)}
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
+          >
+            <Bell size={18} />
+            {notifCount > 0 && (
+              <span className="absolute -right-1 -top-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-pill border-2 border-surface bg-error px-1 text-[11px] font-bold text-white">
+                {notifCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <>
+              {/* Cierra al hacer clic fuera — pantalla completa transparente
+                  detrás del panel, por delante del resto de la página. */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setNotifOpen(false)}
+              />
+              <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[70vh] w-[340px] max-w-[calc(100vw-32px)] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg">
+                <div className="sticky top-0 border-b border-border bg-surface px-4 py-3">
+                  <span className="text-sm font-bold text-text">Notificaciones</span>
+                </div>
+
+                {notifications === undefined && (
+                  <p className="px-4 py-6 text-center text-sm text-text-secondary">
+                    Cargando…
+                  </p>
+                )}
+
+                {notifications !== undefined && notifCount === 0 && (
+                  <p className="px-4 py-6 text-center text-sm text-text-secondary">
+                    Sin avisos pendientes.
+                  </p>
+                )}
+
+                {dueSteps.length > 0 && (
+                  <div className="px-4 py-3">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                      Pasos de hoy
+                    </span>
+                    <div className="mt-2 flex flex-col gap-2.5">
+                      {dueSteps.map((step) => (
+                        <Link
+                          key={step.nextStepId}
+                          href={`/oportunidades/${step.opportunityId}`}
+                          onClick={() => setNotifOpen(false)}
+                          className="block rounded-md p-2 -mx-2 hover:bg-neutral-100"
+                        >
+                          <div className="truncate text-sm font-semibold text-text">
+                            {step.customerName}
+                          </div>
+                          <div className="mt-0.5 truncate text-xs text-text-secondary">
+                            {step.action}
+                          </div>
+                          <div
+                            className={`mt-1 font-mono text-xs font-semibold ${
+                              step.isOverdue ? "text-error" : "text-text-muted"
+                            }`}
+                          >
+                            {formatDueDate(step.dueDate)}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {atRiskOpportunities.length > 0 && (
+                  <div className="border-t border-border px-4 py-3">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                      Oportunidades en riesgo
+                    </span>
+                    <div className="mt-2 flex flex-col gap-2.5">
+                      {atRiskOpportunities.map((item) => (
+                        <Link
+                          key={item.opportunityId}
+                          href={`/oportunidades/${item.opportunityId}`}
+                          onClick={() => setNotifOpen(false)}
+                          className="block rounded-md p-2 -mx-2 hover:bg-neutral-100"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sm font-semibold text-text">
+                              {item.customerName}
+                            </span>
+                            <Badge variant="error" dot>
+                              {daysSince(item.lastActivityAt)} días sin actividad
+                            </Badge>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           )}
-        </button>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-5 py-5 pb-28">

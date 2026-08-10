@@ -10,10 +10,13 @@
 
 import type * as auth from "../auth.js";
 import type * as customers from "../customers.js";
+import type * as dashboard from "../dashboard.js";
 import type * as http from "../http.js";
 import type * as interactions from "../interactions.js";
 import type * as model_access from "../model/access.js";
+import type * as nextSteps from "../nextSteps.js";
 import type * as opportunities from "../opportunities.js";
+import type * as quotes from "../quotes.js";
 import type * as stores from "../stores.js";
 import type * as users from "../users.js";
 
@@ -26,10 +29,13 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   customers: typeof customers;
+  dashboard: typeof dashboard;
   http: typeof http;
   interactions: typeof interactions;
   "model/access": typeof model_access;
+  nextSteps: typeof nextSteps;
   opportunities: typeof opportunities;
+  quotes: typeof quotes;
   stores: typeof stores;
   users: typeof users;
 }>;
