@@ -4,6 +4,7 @@ import type { MutationCtx } from "./_generated/server";
 import { requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
 import { startOfBusinessDay } from "../lib/businessTime";
+import { isAtRisk } from "../lib/risk";
 
 // Primer próximo paso según el canal de origen (PRD: Alta rápida → "genera
 // la oportunidad y su primer próximo paso automático"). Mismos canales que
@@ -203,6 +204,10 @@ export const getSummary = query({
       closedAt: opportunity.closedAt ?? null,
       finalAmount: opportunity.finalAmount ?? null,
       lostReason: opportunity.lostReason ?? null,
+      // Riesgo (docs/02-modelo-de-datos.md §3), calculado aquí igual que
+      // en listOpen (Pipeline) y nextSteps.ts (Hoy) — AIT-17, no se
+      // guarda, no se calcula en la UI.
+      atRisk: isAtRisk(opportunity.lastActivityAt, Date.now()),
       // Solo el próximo paso accionable, pending o postponed (regla 6:
       // toda oportunidad abierta tiene siempre uno). En una cerrada será
       // null — closePendingNextSteps ya los marcó "done" al cerrar.
@@ -373,10 +378,6 @@ export const markLost = mutation({
   },
 });
 
-// docs/02-modelo-de-datos.md §3: el riesgo no se guarda, se calcula al
-// leer. 7 días es el valor de partida que fija el documento.
-const RISK_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
-
 // AIT-12: listado para el Pipeline (embudo por etapas). Mismo criterio de
 // acceso que el resto de este archivo — storeId siempre, y ownerId además
 // si el usuario es sales — aplicado en memoria porque el índice
@@ -435,7 +436,7 @@ export const listOpen = query({
           customerName: customer.name,
           estimatedAmount: opportunity.estimatedAmount ?? null,
           nextStepAction: nextStep?.action ?? null,
-          atRisk: now - opportunity.lastActivityAt > RISK_THRESHOLD_MS,
+          atRisk: isAtRisk(opportunity.lastActivityAt, now),
         };
       }),
     );

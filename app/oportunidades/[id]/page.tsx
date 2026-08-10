@@ -4,6 +4,7 @@ import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowLeftRight,
   CheckCircle2,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
@@ -137,7 +139,17 @@ export default function OportunidadPage({
                 {summary.customerPhone}
               </div>
             </div>
-            <OpportunityStageBadge stage={summary.stage} status={summary.status} />
+            <div className="flex flex-none flex-col items-end gap-2">
+              <OpportunityStageBadge stage={summary.stage} status={summary.status} />
+              {isOpen && summary.atRisk && (
+                <Badge variant="warning">
+                  <span className="inline-flex items-center gap-1">
+                    <AlertTriangle size={11} />
+                    En riesgo
+                  </span>
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="mt-[18px] grid grid-cols-1 gap-x-[18px] gap-y-3.5 border-t border-border pt-[18px] sm:grid-cols-2">
