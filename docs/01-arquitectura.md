@@ -140,10 +140,24 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 
 **Estado:** 🟢 Cerrada.
 
+### ADR-002 · Hosting/despliegue — 2026-08-08
+
+**Contexto:** el plan inicial (§7 antigua) era decidir el hosting en la Fase 6 · Cierre, con Vercel como opción natural para Next.js. En la práctica, Aitor ya tenía Railway configurado y funcionando (cuenta personal, conectado por GitHub al repo `aitormarin-TalentNetwork/supercrm`) antes de llegar a esa fase, para poder ver la app en vivo mientras se desarrolla con varias terminales de Claude Code en paralelo.
+
+**Decisión:** Railway, cuenta personal de Aitor (`aitormarin@gmail.com`, workspace "My Projects", proyecto **`reasonable-creativity`**, servicio `supercrm`). **Auto-deploy en cada push a `main`** vía la integración de GitHub — no hace falta ningún paso manual de despliegue: mergear y hacer `git push` ya publica. URL actual: `https://supercrm-production-4518.up.railway.app`. Las variables de entorno del frontend (`NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD`) ya están puestas en el servicio y apuntan al deployment de Convex real (`third-goldfinch-805`).
+
+**Alternativa descartada:** Vercel — no se llegó a evaluar; Railway ya estaba desplegando con éxito cuando se revisó esta decisión, y no hay ningún requisito del MVP que lo justifique.
+
+**Consecuencias:**
+- ⚠️ **Cuenta en Trial limitado** (a fecha de esta decisión: 30 días o $5.00, lo que se agote antes). Cuando expire, el servicio deja de estar disponible hasta pasar a un plan de pago. Revisar antes de que caduque, no descubrirlo por una caída en medio de una demo.
+- Existe un **segundo proyecto Railway huérfano** ("Mi CRM basic", cuenta `aitor.marin@talent-network.org`, dominio `supercrm-production.up.railway.app`) sin ningún deployment real — resto de una prueba anterior con la app estática vieja. No se usa ni se toca; si genera confusión, se puede borrar más adelante.
+- El CLI de Railway en local (`railway` en esta máquina) está autenticado con la cuenta equivocada (`aitor.marin@talent-network.org`, el proyecto huérfano) — no hace falta arreglarlo para que el pipeline funcione (el auto-deploy no depende del CLI), solo importa si en algún momento se necesita gestionar el proyecto real (`reasonable-creativity`) por CLI en vez de por el dashboard web.
+
+**Estado:** 🟢 Cerrada.
+
 ## 7. Decisiones abiertas
 
 | # | Decisión | Estado |
 |---|---|---|
-| 1 | Dónde se despliega (Vercel?) | ⚪ Fase 6 |
-| 2 | Notificaciones push del PRD (Fase 3) — en web responsive solo hay in-app + email | ⚪ A decidir en Fase 3 |
-| 3 | Portar el design system a componentes Tailwind reales | 🟡 En curso (AIT-9) |
+| 1 | Notificaciones push del PRD (Fase 3) — en web responsive solo hay in-app + email | ⚪ A decidir en Fase 3 |
+| 2 | Portar el design system a componentes Tailwind reales | 🟡 En curso (AIT-9) |

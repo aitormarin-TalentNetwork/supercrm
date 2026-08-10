@@ -44,4 +44,7 @@ yarn-error.log*
 next-env.d.ts
 
 # volcados de código para rondas de auditoría externa, no son código de la app
-/codigo para auditar/
+/Sorfware Factory/codigo para auditar/
+
+# copias de trabajo aisladas por terminal (git worktree), una por tarea en curso
+/Sorfware Factory/_worktrees/
