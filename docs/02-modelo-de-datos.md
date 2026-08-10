@@ -131,6 +131,15 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 
 Idempotencia de `opportunities.createQuick`: un reintento de red con la misma `clientRequestId` (Convex confirmó la mutation pero la respuesta no llegó al cliente) debe devolver la oportunidad ya creada, no duplicar cliente + oportunidad + próximo paso. Se apoya en la misma garantía de aislamiento serializable de Convex que `claimBootstrapSlot` (`convex/users.ts`): dos llamadas concurrentes con la misma clave nunca pasan las dos el chequeo de "no existe todavía".
 
+### `interactionRequests` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `clientRequestId` | string | Generada por el cliente, una por apertura del modal de Registrar interacción |
+| `userId` | id(`users`) | Quién la generó |
+| `interactionId` | id(`interactions`) | La interacción que produjo esa petición |
+
+Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunityRequests`. Un reintento de red con la misma `clientRequestId` no debe duplicar ni la entrada del historial ni el próximo paso que la interacción regenera.
+
 ---
 
 ## 3. Datos que NO se guardan (se calculan)
@@ -258,6 +267,12 @@ export default defineSchema({
     clientRequestId: v.string(),
     userId: v.id("users"),
     opportunityId: v.id("opportunities"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  interactionRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    interactionId: v.id("interactions"),
   }).index("by_client_request_id", ["clientRequestId"]),
 });
 ```

@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { ArrowLeft, Mail, MessageSquare, Phone, Plus, Store, UserCheck } from "lucide-react";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
+import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency } from "@/lib/format";
 
 export default function FichaClientePage({
@@ -22,6 +23,15 @@ export default function FichaClientePage({
   const customerId = id as Id<"customers">;
   const ficha = useQuery(api.customers.getFicha, { customerId });
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
+  // La oportunidad del modal se fija al abrirlo (no se recalcula en cada
+  // render): si se derivara en cada render de `activeOpportunity` (más
+  // abajo), y esa oportunidad se cerrara desde otra pestaña/sesión
+  // mientras el modal sigue abierto, la siguiente oportunidad abierta
+  // pasaría a ser la "activa" y el envío acabaría registrando la
+  // interacción en una oportunidad distinta a la que el usuario veía en
+  // pantalla, sin ningún aviso (ronda de auditoría 1, mayor #2).
+  const [interactionOpportunityId, setInteractionOpportunityId] =
+    useState<Id<"opportunities"> | null>(null);
 
   if (ficha === undefined || interactions === undefined) {
     return (
@@ -40,6 +50,13 @@ export default function FichaClientePage({
   }
 
   const { customer, opportunities } = ficha;
+  // La más reciente con `status === "open"` (la lista ya viene ordenada por
+  // lastActivityAt desc desde customers.getFicha): el cliente puede tener
+  // varias oportunidades, pero el modal solo cuelga la interacción de una.
+  // Si no hay ninguna abierta, el botón queda deshabilitado más abajo — no
+  // tiene sentido registrar una interacción sin oportunidad a la que
+  // enganchar el próximo paso (regla 6, docs/02-modelo-de-datos.md §1).
+  const activeOpportunity = opportunities.find((o) => o.status === "open") ?? null;
 
   return (
     <main className="flex flex-1 flex-col bg-bg font-sans text-text">
@@ -103,14 +120,23 @@ export default function FichaClientePage({
             <Button
               variant="secondary"
               leftIcon={<MessageSquare size={16} />}
-              disabled
-              title="Disponible próximamente"
+              disabled={activeOpportunity === null}
+              title={
+                activeOpportunity === null
+                  ? "Este cliente no tiene ninguna oportunidad abierta."
+                  : undefined
+              }
+              onClick={() => {
+                if (activeOpportunity) {
+                  setInteractionOpportunityId(activeOpportunity.id);
+                }
+              }}
             >
               Registrar interacción
             </Button>
           </div>
           <p className="mt-2.5 text-xs text-text-muted">
-            Muy pronto podrás crear oportunidades y registrar interacciones desde aquí.
+            Muy pronto podrás crear oportunidades desde aquí.
           </p>
         </section>
 
@@ -166,6 +192,14 @@ export default function FichaClientePage({
           </section>
         </div>
       </div>
+
+      {interactionOpportunityId && (
+        <RegistrarInteraccionModal
+          open={interactionOpportunityId !== null}
+          onClose={() => setInteractionOpportunityId(null)}
+          opportunityId={interactionOpportunityId}
+        />
+      )}
     </main>
   );
 }
