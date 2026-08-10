@@ -2,6 +2,7 @@ import type { Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { query } from "./_generated/server";
 import { requireOwner } from "./model/access";
+import { startOfBusinessDay } from "../lib/businessTime";
 
 // Mismo umbral que docs/02-modelo-de-datos.md §3 y convex/opportunities.ts
 // (listOpen, AIT-12): 7 días sin actividad. Duplicado a propósito — esta
@@ -134,5 +135,161 @@ export const getWorkloadByOwner = query({
     );
 
     return workload.sort((a, b) => b.totalAmount - a.totalAmount);
+  },
+});
+
+// ---------------------------------------------------------------------
+// AIT-23: Supervisión — actividad del equipo (Marta ve a TODOS los
+// comerciales de su tienda, nunca filtrado por el usuario actual, al
+// revés que el resto de queries de la app).
+// ---------------------------------------------------------------------
+
+// No hay índice por storeId en `users` (solo "email" y "phone") — collect
+// + filter en memoria, mismo patrón que getOpenOpportunitiesForStore de
+// más arriba en este archivo. Un equipo de tienda es pequeño en el MVP.
+// Solo "sales": Marta supervisa a su equipo, no se cuenta a sí misma como
+// comercial en esta pantalla.
+async function getSalesUsersForStore(ctx: QueryCtx, storeId: Id<"stores">) {
+  const allUsers = await ctx.db.query("users").collect();
+  return allUsers.filter((u) => u.storeId === storeId && u.role === "sales");
+}
+
+// "En el periodo" (brief de AIT-23): no se pedía un selector de periodo en
+// el criterio de aceptación ("muestra actividad, atrasos y carga de
+// trabajo por comercial"), así que se fija un periodo por defecto en vez
+// de construir un selector — decisión documentada para el auditor. 30 días
+// es una ventana razonable de "actividad reciente" para una supervisión de
+// equipo; se puede convertir en argumento de la query el día que se pida
+// un selector real (fuera de esta tarea).
+const ACTIVITY_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Interacciones registradas por comercial en los últimos 30 días.
+// Agrupadas por quién las registró (authorId), no por el propietario de
+// la oportunidad — son cosas distintas aunque en el MVP casi siempre
+// coincidan. No hay índice por fecha en `interactions` — collect + filter,
+// igual que el resto de este archivo.
+export const getInteractionCountsByOwner = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireOwner(ctx);
+    const salesUsers = await getSalesUsersForStore(ctx, user.storeId);
+    const salesUserIds = new Set(salesUsers.map((u) => u._id));
+
+    const since = Date.now() - ACTIVITY_PERIOD_MS;
+    const allInteractions = await ctx.db.query("interactions").collect();
+
+    const counts = new Map<Id<"users">, number>();
+    for (const interaction of allInteractions) {
+      if (interaction.occurredAt < since) continue;
+      if (!salesUserIds.has(interaction.authorId)) continue;
+      counts.set(
+        interaction.authorId,
+        (counts.get(interaction.authorId) ?? 0) + 1,
+      );
+    }
+
+    return salesUsers.map((u) => ({
+      ownerId: u._id,
+      ownerName: u.name ?? null,
+      count: counts.get(u._id) ?? 0,
+    }));
+  },
+});
+
+// Seguimientos atrasados por comercial: mismo criterio que "isOverdue" en
+// nextSteps.ts:listForToday (pending + postponed con dueDate ya pasado),
+// pero recorriendo a TODOS los comerciales de la tienda en vez de solo al
+// usuario que hace la consulta — es la adaptación que pedía el brief.
+export const getOverdueCountsByOwner = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireOwner(ctx);
+    const salesUsers = await getSalesUsersForStore(ctx, user.storeId);
+
+    const startOfToday = startOfBusinessDay(Date.now());
+
+    return Promise.all(
+      salesUsers.map(async (salesUser) => {
+        const [pending, postponed] = await Promise.all([
+          ctx.db
+            .query("nextSteps")
+            .withIndex("by_assignee_status", (q) =>
+              q.eq("assigneeId", salesUser._id).eq("status", "pending"),
+            )
+            .collect(),
+          ctx.db
+            .query("nextSteps")
+            .withIndex("by_assignee_status", (q) =>
+              q.eq("assigneeId", salesUser._id).eq("status", "postponed"),
+            )
+            .collect(),
+        ]);
+        const overdueCount = [...pending, ...postponed].filter(
+          (step) => step.dueDate < startOfToday,
+        ).length;
+        return {
+          ownerId: salesUser._id,
+          ownerName: salesUser.name ?? null,
+          count: overdueCount,
+        };
+      }),
+    );
+  },
+});
+
+// Oportunidades abiertas con el nombre del comercial, para el drill-down y
+// el filtro por comercial de Supervisión. Variante de
+// opportunities.listOpen (AIT-12) hecha aparte a propósito: aquí NO hay
+// restricción por ownerId (Marta ve las de todo el equipo, por diseño de
+// esta pantalla) y aquí SÍ hace falta el nombre del comercial, que
+// listOpen no devuelve. Duplicar esta consulta pequeña evita tocar
+// convex/opportunities.ts, que otra terminal (T3, AIT-19) está editando
+// en paralelo ahora mismo — declarado explícitamente al auditor, tal como
+// pedía el brief.
+// Incluye "isOverdue" por oportunidad (no solo por comercial): a
+// diferencia de getOverdueCountsByOwner (que solo cuenta comerciales
+// "sales", para la tabla "por comercial" que pedía el brief), esto cubre
+// TODAS las oportunidades abiertas de la tienda, incluidas las que
+// pudiera tener la propia Marta — verificado en real que existen (2
+// oportunidades y 2 seguimientos atrasados suyos en este deployment de
+// desarrollo). Los KPIs de cabecera de Supervisión usan este total
+// completo en vez de sumar solo la tabla de comerciales, para que no haya
+// dos cifras distintas de "abiertas"/"atrasadas" en la misma pantalla.
+export const listOpenOpportunitiesForSupervision = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireOwner(ctx);
+    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+    const startOfToday = startOfBusinessDay(Date.now());
+
+    return Promise.all(
+      open.map(async (opportunity) => {
+        const [customer, owner, nextStep] = await Promise.all([
+          ctx.db.get(opportunity.customerId),
+          ctx.db.get(opportunity.ownerId),
+          ctx.db
+            .query("nextSteps")
+            .withIndex("by_opportunity", (q) =>
+              q.eq("opportunityId", opportunity._id),
+            )
+            .filter((q) =>
+              q.or(
+                q.eq(q.field("status"), "pending"),
+                q.eq(q.field("status"), "postponed"),
+              ),
+            )
+            .first(),
+        ]);
+        return {
+          id: opportunity._id,
+          customerName: customer?.name ?? "—",
+          stage: opportunity.stage,
+          estimatedAmount: opportunity.estimatedAmount ?? null,
+          ownerId: opportunity.ownerId,
+          ownerName: owner?.name ?? null,
+          isOverdue: nextStep !== null && nextStep.dueDate < startOfToday,
+        };
+      }),
+    );
   },
 });
