@@ -80,10 +80,18 @@ export function Dialog({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="w-full overflow-hidden rounded-xl bg-surface shadow-lg outline-none"
+        // flex-col + max-h (menos el p-4 del fondo) + scroll solo en el
+        // cuerpo: en un viewport bajo, un formulario largo (p.ej. Registrar
+        // interacción) dejaba el pie con Cancelar/Guardar fuera de la
+        // pantalla y sin ningún scroll para alcanzarlo — bloqueaba guardar
+        // con el puntero en un viewport válido (ronda de auditoría 1 de
+        // AIT-25 ronda 2, mayor #1). El pie se queda siempre visible;
+        // solo el cuerpo (título/descripción/contenido) hace scroll si no
+        // cabe entero.
+        className="flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-xl bg-surface shadow-lg outline-none"
         style={{ maxWidth: width }}
       >
-        <div className="p-6">
+        <div className="overflow-y-auto p-6">
           {title && (
             <h2 id={titleId} className="m-0 text-xl font-bold text-text">
               {title}
@@ -102,7 +110,7 @@ export function Dialog({
           )}
         </div>
         {footer && (
-          <div className="flex justify-end gap-3 border-t border-border bg-neutral-50 px-6 py-4">
+          <div className="flex flex-none justify-end gap-3 border-t border-border bg-neutral-50 px-6 py-4">
             {footer}
           </div>
         )}
