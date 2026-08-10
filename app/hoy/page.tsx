@@ -141,7 +141,7 @@ function NextStepCard({ item }: { item: NextStepItem }) {
       <div className="mt-3 flex flex-wrap gap-2">
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           leftIcon={<Check size={14} />}
           onClick={handleDone}
           disabled={acting}
@@ -151,7 +151,7 @@ function NextStepCard({ item }: { item: NextStepItem }) {
         </Button>
         <Button
           variant="ghost"
-          size="sm"
+          size="md"
           onClick={handlePostpone}
           disabled={acting}
           className="relative z-10"
@@ -160,7 +160,7 @@ function NextStepCard({ item }: { item: NextStepItem }) {
         </Button>
         <Button
           variant="ghost"
-          size="sm"
+          size="md"
           onClick={() => setInteractionModalOpen(true)}
           className="relative z-10"
         >
@@ -230,7 +230,7 @@ export default function HoyPage() {
             aria-label="Notificaciones"
             aria-expanded={notifOpen}
             onClick={() => setNotifOpen((open) => !open)}
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
           >
             <Bell size={18} />
             {notifCount > 0 && (
@@ -401,7 +401,7 @@ export default function HoyPage() {
       </div>
 
       <div className="flex justify-center border-t border-border bg-surface px-5 py-3">
-        <Button variant="secondary" size="sm" onClick={() => signOut()}>
+        <Button variant="secondary" size="md" onClick={() => signOut()}>
           Cerrar sesión
         </Button>
       </div>
