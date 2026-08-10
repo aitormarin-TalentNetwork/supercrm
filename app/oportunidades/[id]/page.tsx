@@ -2,6 +2,7 @@
 
 import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import {
   AlertTriangle,
@@ -49,6 +50,7 @@ export default function OportunidadPage({
 }) {
   const { id } = use(params);
   const opportunityId = id as Id<"opportunities">;
+  const router = useRouter();
   const summary = useQuery(api.opportunities.getSummary, { opportunityId });
   const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
   const [modal, setModal] = useState<"stage" | "won" | "lost" | null>(null);
@@ -73,16 +75,32 @@ export default function OportunidadPage({
   const isOpen = summary.status === "open";
   const isOverdue = summary.nextStep?.overdue ?? false;
 
+  // Detalle es el nodo central (docs/01-arquitectura.md §3): se llega desde
+  // Hoy, Pipeline, Ficha de cliente, Panel y Supervisión — "Volver" no
+  // puede apuntar siempre a /hoy (ronda de auditoría 1 de AIT-25,
+  // sugerencia #1). router.back() vuelve a la pantalla de origen real; si
+  // no hay historial propio (enlace directo, pestaña nueva), "/" ya
+  // resuelve el destino por rol (owner → /panel, sales → /hoy) sin
+  // duplicar esa lógica aquí.
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
+
   return (
     <main className="flex flex-1 flex-col bg-bg font-sans text-text">
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
-        <Link
-          href="/hoy"
+        <button
+          type="button"
+          onClick={handleBack}
           aria-label="Volver"
           className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
         >
           <ArrowLeft size={18} />
-        </Link>
+        </button>
         <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
           Oportunidad
         </div>
