@@ -105,8 +105,8 @@ export default function PipelinePage() {
               juego
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2.5">
-            <div className="hidden w-[220px] sm:block">
+          <div className="ml-auto flex w-full items-center gap-2.5 sm:w-auto">
+            <div className="flex-1 sm:w-[220px] sm:flex-none">
               <Input
                 size="sm"
                 leftIcon={<Search size={15} />}

@@ -131,9 +131,9 @@ export default function SupervisionPage() {
         </div>
 
         <section className="rounded-lg border border-border bg-surface shadow-[var(--shadow-e1)]">
-          <div className="flex items-center justify-between gap-3 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4">
             <h2 className="m-0 text-[15px] font-bold">Comparativa por comercial</h2>
-            <div className="w-[190px]">
+            <div className="w-full sm:w-[190px]">
               <Select
                 size="sm"
                 value={filtro}
@@ -162,13 +162,15 @@ export default function SupervisionPage() {
                   onClick={() =>
                     setFiltro((current) => (current === c.ownerId ? "todos" : c.ownerId))
                   }
-                  className={`flex items-center gap-3 border-t border-border px-4 py-3 text-left transition-colors hover:bg-neutral-100 ${
+                  className={`flex flex-col gap-2.5 border-t border-border px-4 py-3 text-left transition-colors hover:bg-neutral-100 sm:flex-row sm:items-center sm:gap-3 ${
                     filtro === c.ownerId ? "bg-primary-subtle" : ""
                   }`}
                 >
-                  <Avatar name={c.ownerName} size="sm" />
-                  <span className="w-32 flex-none truncate text-sm font-semibold">
-                    {c.ownerName}
+                  <span className="flex items-center gap-2.5 sm:w-32 sm:flex-none">
+                    <Avatar name={c.ownerName} size="sm" />
+                    <span className="min-w-0 truncate text-sm font-semibold">
+                      {c.ownerName}
+                    </span>
                   </span>
                   <span className="flex flex-1 items-center gap-2.5">
                     <span className="h-2 flex-1 overflow-hidden rounded-pill bg-neutral-100">
@@ -181,15 +183,16 @@ export default function SupervisionPage() {
                       {formatCurrency(c.openAmount)}
                     </span>
                   </span>
-                  <span className="w-16 flex-none text-center text-sm font-semibold">
-                    {c.openCount}
-                  </span>
-                  <span className="flex w-16 flex-none items-center justify-center gap-1 text-sm text-text-secondary">
-                    <MessageSquare size={13} className="text-neutral-400" />
-                    {c.interactionCount}
-                  </span>
-                  <span className="w-16 flex-none text-center">
+                  <span className="flex items-center justify-between gap-4 text-sm text-text-secondary sm:flex-none sm:justify-end">
+                    <span className="font-semibold text-text" title="Oportunidades abiertas">
+                      {c.openCount} abiertas
+                    </span>
+                    <span className="inline-flex items-center gap-1" title="Interacciones (30 días)">
+                      <MessageSquare size={13} className="text-neutral-400" />
+                      {c.interactionCount}
+                    </span>
                     <span
+                      title="Seguimientos atrasados"
                       className={`inline-flex min-w-[26px] justify-center rounded-pill px-2 py-0.5 text-xs font-bold ${
                         c.overdueCount > 0
                           ? "bg-error-subtle text-error"
@@ -227,27 +230,29 @@ export default function SupervisionPage() {
                 <Link
                   key={o.id}
                   href={`/oportunidades/${o.id}`}
-                  className="flex items-center gap-3 border-t border-border px-4 py-3 transition-colors hover:bg-neutral-100"
+                  className="flex flex-col gap-2 border-t border-border px-4 py-3 transition-colors hover:bg-neutral-100 sm:flex-row sm:items-center sm:gap-3"
                 >
-                  <Avatar name={o.customerName} size="xs" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">
-                      {o.customerName}
-                    </span>
-                    {o.isOverdue && (
-                      <span className="text-[11.5px] font-semibold text-error">
-                        Seguimiento atrasado
+                  <span className="flex min-w-0 items-center gap-2.5 sm:flex-1">
+                    <Avatar name={o.customerName} size="xs" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">
+                        {o.customerName}
                       </span>
-                    )}
+                      {o.isOverdue && (
+                        <span className="text-[11.5px] font-semibold text-error">
+                          Seguimiento atrasado
+                        </span>
+                      )}
+                    </span>
                   </span>
-                  <span className="w-32 flex-none">
+                  <span className="flex items-center justify-between gap-3 sm:flex-none sm:justify-end sm:gap-4">
                     <OpportunityStageBadge stage={o.stage} status="open" />
-                  </span>
-                  <span className="w-28 flex-none truncate text-[13px] text-text-secondary">
-                    {o.ownerName ?? "—"}
-                  </span>
-                  <span className="w-24 flex-none text-right font-mono text-[13px] font-semibold">
-                    {o.estimatedAmount !== null ? formatCurrency(o.estimatedAmount) : "—"}
+                    <span className="w-28 flex-none truncate text-[13px] text-text-secondary">
+                      {o.ownerName ?? "—"}
+                    </span>
+                    <span className="w-24 flex-none text-right font-mono text-[13px] font-semibold">
+                      {o.estimatedAmount !== null ? formatCurrency(o.estimatedAmount) : "—"}
+                    </span>
                   </span>
                 </Link>
               ))}
