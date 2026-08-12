@@ -372,3 +372,68 @@ export const listOpenOpportunitiesForSupervision = query({
     );
   },
 });
+
+// AIT-33: "pendiente de cobro" para Panel (Marta) — ventas ganadas cuyo
+// ciclo de cobro no ha llegado todavía a "cobrado". A diferencia del resto
+// de listados de este archivo (getOpenOpportunitiesForStore usa
+// by_status_stage, que empieza por `status`, y filtra storeId en memoria
+// porque esa tabla es pequeña en el MVP), esta consulta usa el índice
+// `by_store_status` (storeId primero) — corregido tras hallazgo de
+// auditoría (NO-GO ronda 2): una consulta reactiva de Panel no debe
+// escanear las oportunidades "won" de TODAS las tiendas antes de filtrar
+// las propias, ni por coste (crece con el negocio entero, no con el de la
+// tienda que pregunta) ni por aislamiento multi-tenant (leer de más,
+// aunque no se exponga al cliente, sigue siendo una lectura innecesaria
+// de datos de otras tiendas). Ordenado por fecha de cierre ascendente:
+// las ventas cerradas hace más tiempo y aún sin cobrar son las más
+// urgentes. Sin paginación: se valoró, pero ninguna otra lista de este
+// archivo pagina todavía (mismo criterio que getAtRiskList) — se deja
+// para cuando el volumen real de un negocio lo pida, no antes.
+export const listPendingBilling = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireOwner(ctx);
+    const ownWon = await ctx.db
+      .query("opportunities")
+      .withIndex("by_store_status", (q) =>
+        q.eq("storeId", user.storeId).eq("status", "won"),
+      )
+      .collect();
+    const pending = ownWon.filter(
+      (opportunity) => (opportunity.billingStatus ?? "listo_para_facturar") !== "cobrado",
+    );
+
+    const enriched = await Promise.all(
+      pending.map(async (opportunity) => {
+        // Mismo chequeo cruzado que listOpenOpportunitiesForSupervision:
+        // no basta con que la oportunidad ya esté filtrada por storeId.
+        const customer = await ctx.db.get(opportunity.customerId);
+        if (customer === null || customer.storeId !== user.storeId) {
+          return null;
+        }
+        // Mismo chequeo cruzado que getWorkloadByOwner/getAtRiskList más
+        // arriba en este archivo (sugerencia de auditoría, ronda 3): el
+        // nombre del comercial se resuelve por separado del filtro de
+        // storeId de la oportunidad — si ownerId apuntara a un usuario de
+        // otra tienda, no se filtra su nombre.
+        const owner = await ctx.db.get(opportunity.ownerId);
+        const ownerName =
+          owner !== null && owner.storeId === user.storeId
+            ? (owner.name ?? null)
+            : null;
+        return {
+          opportunityId: opportunity._id,
+          customerName: customer.name,
+          ownerName,
+          finalAmount: opportunity.finalAmount ?? null,
+          closedAt: opportunity.closedAt ?? 0,
+          billingStatus: opportunity.billingStatus ?? "listo_para_facturar",
+        };
+      }),
+    );
+
+    return enriched
+      .filter((item) => item !== null)
+      .sort((a, b) => a.closedAt - b.closedAt);
+  },
+});

@@ -36,6 +36,16 @@ const MAX_AMOUNT = 100_000_000;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// AIT-33: ciclo de cobro, solo hacia adelante (nunca "cobrado" ->
+// "facturado"). `null` en "cobrado" marca el final de la cadena — no hay
+// paso siguiente que ofrecer en la UI ni que aceptar en la mutation.
+type BillingStatus = "listo_para_facturar" | "facturado" | "cobrado";
+const NEXT_BILLING_STATUS: Record<BillingStatus, BillingStatus | null> = {
+  listo_para_facturar: "facturado",
+  facturado: "cobrado",
+  cobrado: null,
+};
+
 // Sin restricción de rol a propósito: tanto owner como sales pueden crear
 // oportunidades. No es un descuido — Alta rápida se abre también desde
 // Pipeline (Design/pantallas/Pipeline.dc.html), que usan ambos roles, y no
@@ -215,6 +225,13 @@ export const getSummary = query({
       closedAt: opportunity.closedAt ?? null,
       finalAmount: opportunity.finalAmount ?? null,
       lostReason: opportunity.lostReason ?? null,
+      // Solo aplica a ganadas; null en el resto (no "aplicable pero sin
+      // dato"). Fallback a "listo_para_facturar" para ganadas anteriores a
+      // AIT-33 que no tienen el campo — sin necesidad de migrar datos.
+      billingStatus:
+        opportunity.status === "won"
+          ? opportunity.billingStatus ?? "listo_para_facturar"
+          : null,
       // Riesgo (docs/02-modelo-de-datos.md §3), calculado aquí igual que
       // en listOpen (Pipeline) y nextSteps.ts (Hoy) — AIT-17, no se
       // guarda, no se calcula en la UI.
@@ -261,6 +278,28 @@ export async function loadOpenOpportunityOrThrow(
   }
   if (opportunity.status !== "open") {
     throw new Error("La oportunidad ya está cerrada.");
+  }
+  return opportunity;
+}
+
+// AIT-33: mismo criterio de acceso que loadOpenOpportunityOrThrow, pero
+// para el ciclo de cobro — que solo tiene sentido sobre una oportunidad ya
+// GANADA, no sobre una abierta o perdida.
+export async function loadWonOpportunityOrThrow(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  opportunityId: Id<"opportunities">,
+): Promise<Doc<"opportunities">> {
+  const opportunity = await ctx.db.get(opportunityId);
+  if (opportunity === null) throw new Error("Oportunidad no encontrada.");
+  if (opportunity.storeId !== user.storeId) {
+    throw new Error("Oportunidad no encontrada.");
+  }
+  if (user.role !== "owner" && opportunity.ownerId !== user._id) {
+    throw new Error("Oportunidad no encontrada.");
+  }
+  if (opportunity.status !== "won") {
+    throw new Error("El ciclo de cobro solo aplica a oportunidades ganadas.");
   }
   return opportunity;
 }
@@ -384,8 +423,39 @@ export const markWon = mutation({
       closedAt: now,
       finalAmount: roundedFinalAmount,
       lastActivityAt: now,
+      // AIT-33: toda venta ganada arranca su ciclo de cobro en el primer
+      // estado — no es opcional ni depende de que alguien lo active.
+      billingStatus: "listo_para_facturar",
     });
     await closePendingNextSteps(ctx, opportunityId);
+  },
+});
+
+// AIT-33: avanza el ciclo de cobro un paso (nunca hacia atrás, nunca más
+// de un paso a la vez — igual que el criterio de aceptación pide). Sin
+// integración real con un programa de facturación externo: no hay
+// proveedor decidido todavía, así que "Marcar facturado" hoy solo cambia
+// este estado interno. Es el punto de extensión declarado para cuando se
+// decida un proveedor (llamarlo desde aquí, o desde una action de Convex
+// que envuelva esta mutation) — no un TODO silencioso, se documenta aquí
+// y en el frontend (app/oportunidades/[id]/page.tsx:BillingStatusSection)
+// para que quede visible en ambos lados.
+export const advanceBillingStatus = mutation({
+  args: { opportunityId: v.id("opportunities") },
+  handler: async (ctx, { opportunityId }) => {
+    const user = await requireUser(ctx);
+    const opportunity = await loadWonOpportunityOrThrow(
+      ctx,
+      user,
+      opportunityId,
+    );
+
+    const current = opportunity.billingStatus ?? "listo_para_facturar";
+    const next = NEXT_BILLING_STATUS[current];
+    if (next === null) {
+      throw new Error("Esta venta ya está cobrada.");
+    }
+    await ctx.db.patch(opportunityId, { billingStatus: next });
   },
 });
 
