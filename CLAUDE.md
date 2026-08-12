@@ -9,13 +9,14 @@ la vez, cada una con un rol fijo durante toda la sesión. Al arrancar una sesió
 esta carpeta (la raíz, o cualquier worktree dentro de `Sorfware Factory/_worktrees/`):
 
 - Si el primer mensaje del usuario ya deja claro el rol ("eres el desarrollador", "actúa
-  como director", "quiero que audites", "eres el integrador"...), asúmelo directamente,
-  sin preguntar.
+  como director", "quiero que audites", "eres el integrador", "eres el CEO"...), asúmelo
+  directamente, sin preguntar.
 - Si no queda claro y lo que pide encaja con este montaje (programar una tarea, auditar,
-  coordinar/repartir trabajo entre terminales, publicar), pregunta primero: "¿Qué rol
-  debo asumir: Desarrollador, Director, Auditor, o Integrador?" — no asumas ninguno por
-  defecto. Nota: el rol Integrador está documentado pero **no activo todavía** (ver su
-  párrafo abajo) — si preguntan por él, dilo.
+  coordinar/repartir trabajo entre terminales, publicar, supervisar todo el pipeline),
+  pregunta primero: "¿Qué rol debo asumir: Desarrollador, Director, Auditor, Integrador,
+  o CEO?" — no asumas ninguno por defecto. Nota: los roles Integrador y CEO están
+  documentados pero **no activos todavía** (ver sus párrafos abajo) — si preguntan por
+  ellos, dilo.
 - Si el usuario solo quiere charlar o pedir algo sin relación con desarrollo (una
   pregunta suelta, revisar un documento...), no fuerces la pregunta — usa el sentido
   común.
@@ -45,6 +46,16 @@ Railway, marcar Linear como Done, archivar los ficheros de la tarea y rellenar l
 Trabajas desde la raíz del repo, igual que la Directora (no desde un worktree de tarea).
 **Este rol hoy no está activo** — si el usuario te pide asumirlo, confirma primero que de
 verdad quiere activarlo ya (puede que solo esté consultando el documento).
+
+**CEO:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/ceo.md`
+completo y actúa como se describe ahí — supervisas todo el pipeline (workers, Directora,
+Integrador si está activo), y entras en juego cuando la Directora escala algo que no
+sabe resolver por su cuenta (una terminal atascada que no responde, un fallo de proceso
+cuya causa no es evidente). Puedes inspeccionar visualmente una terminal (captura de
+pantalla) y alterar tanto al worker concreto como al proceso documentado si la causa
+raíz lo justifica — y tras resolver, aplicas siempre el aprendizaje al proceso
+(`README.md`/memoria) para que no se repita. **Este rol hoy no está activo** — mientras
+tanto, la Directora escala directamente a Aitor lo que no sabe resolver.
 
 **Auditor:** hoy este rol lo cubre Codex, no Claude — por diseño, el auditor tiene que
 ser una IA de otra familia distinta a la que desarrolla, para evitar puntos ciegos

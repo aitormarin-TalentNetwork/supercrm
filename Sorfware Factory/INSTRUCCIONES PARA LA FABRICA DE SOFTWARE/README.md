@@ -21,6 +21,7 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Archivo histórico** | `Sorfware Factory/codigo para auditar/Subido a GitHub/` (en `.gitignore`) | Cuando una tarea se mergea, se archivan aquí sus 3 ficheros (el TXT de tarea + los dos exports de auditoría) antes de renombrar/reescribir el TXT de esa terminal para la siguiente tarea. |
 | **Prompt del auditor** | `Sorfware Factory/auditor_prompt.txt` (manual) **y** `AGENTS.md` de la raíz, sección `<!-- BEGIN:auditor-role -->` (automático) | Mismo texto en los dos sitios. `AGENTS.md` es lo que Codex carga solo al arrancar en esta carpeta o en cualquier worktree (confirmado empíricamente: `codex exec "..."` responde `GO`/`NO-GO` sin que se le pegue nada) — así que **abrir `codex` en la carpeta del worktree ya activa el rol de auditor, sin pegar `auditor_prompt.txt` a mano**. Si se edita uno de los dos textos, editar el otro para que no diverjan. Desde 2026-08-12, la propia Directora dispara estas auditorías por su cuenta (`codex exec` vía Bash, ver §2) en cuanto una terminal le avisa de que exportó — ya no hace falta que Aitor abra `codex` a mano ni le pegue nada, salvo que se prefiera hacerlo manualmente alguna vez. |
 | **Rol Integrador** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/integrador.md` | Documentado desde 2026-08-12, **no activo todavía**. Cuando se active, recoge de la Directora las tareas con GO y hace ella misma el merge/push/verificación de Railway/Linear Done/archivo — la Directora deja de publicar directamente y su trabajo en una tarea termina en "aviso al Integrador". Ver ese documento para el detalle completo. |
+| **Rol CEO** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/ceo.md` | Documentado desde 2026-08-12, **no activo todavía**. Supervisa todo el pipeline (workers, Directora, Integrador); la Directora le escala lo que no sabe resolver por su cuenta (terminal atascada que no responde, fallo de proceso no evidente). Puede inspeccionar visualmente una terminal (`screencapture`) y alterar tanto al worker como al proceso documentado — y siempre aplica lo aprendido al proceso después. Mientras no esté activo, la Directora escala directamente a Aitor. |
 | **Mensajería directa entre terminales** | `SendMessage` / `ListAgents` (herramientas de Claude Code, no de este repo) | Desde 2026-08-12: la Directora y las terminales desarrolladoras se hablan directamente por aquí (asignar tarea, avisar de export listo, devolver veredicto, corregir) — Aitor ya no tiene que hacer de mensajero pegando texto entre terminales, salvo que quiera intervenir. Confirmar primero qué nombre de sesión (`ListAgents`) corresponde a qué terminal (T1/T2/T3) — no asumirlo solo por el nombre, que puede venir de una tarea antigua. |
 | **Linear** | Equipo "VibeCoding Academy" (AIT), proyecto "SuperCRM — MVP", MCP `linear-aitor` | Fuente de verdad de qué está Done / In Progress / Backlog, y el orden de fases (no adelantarse). |
 | **Convex** | Deployment `third-goldfinch-805` (dashboard en `README.md` de la raíz) | Backend compartido por TODAS las terminales — un único deployment en la nube, ver riesgo en §3. |
@@ -57,8 +58,11 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 Los pasos 1-5 de arriba ya no necesitan que Aitor esté pegando mensajes entre terminales
 — la directora asigna, coordina el bucle de auditoría, arbitra el turno de Convex, y
 publica, todo por su cuenta. Pero "automático" no quiere decir "sin supervisión nunca":
-la directora **para y le pregunta a Aitor** en estos casos, aunque nada de lo demás
-requiera su confirmación:
+**si la directora encuentra un problema que sabe resolver, lo resuelve ella misma; si no
+sabe cómo, escala** — al rol CEO si ya está activo (ver `ceo.md`: puede inspeccionar
+visualmente una terminal atascada y alterar el proceso si hace falta), o directamente a
+Aitor mientras ese rol no lo esté. Casos típicos de escalado, aunque nada de lo demás
+requiera confirmación:
 
 - **Decisión de alcance o de producto ambigua** que no está en el PRD, en Linear, ni en
   `docs/` — no se inventa alcance (regla de siempre de `CLAUDE.md`). Ejemplo real:
