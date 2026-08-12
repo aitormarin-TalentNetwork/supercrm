@@ -24,7 +24,7 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Rol CEO** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/ceo.md` | Documentado desde 2026-08-12, **no activo todavía**. Supervisa todo el pipeline (workers, Directora, Integrador); la Directora le escala lo que no sabe resolver por su cuenta (terminal atascada que no responde, fallo de proceso no evidente). Puede inspeccionar visualmente una terminal (`screencapture`) y alterar tanto al worker como al proceso documentado — y siempre aplica lo aprendido al proceso después. Mientras no esté activo, la Directora escala directamente a Aitor. |
 | **Mensajería directa entre terminales** | `SendMessage` / `ListAgents` (herramientas de Claude Code, no de este repo) | Desde 2026-08-12: la Directora y las terminales desarrolladoras se hablan directamente por aquí (asignar tarea, avisar de export listo, devolver veredicto, corregir) — Aitor ya no tiene que hacer de mensajero pegando texto entre terminales, salvo que quiera intervenir. Confirmar primero qué nombre de sesión (`ListAgents`) corresponde a qué terminal (T1/T2/T3) — no asumirlo solo por el nombre, que puede venir de una tarea antigua. |
 | **Linear** | Equipo "VibeCoding Academy" (AIT), proyecto "SuperCRM — MVP", MCP `linear-aitor` | Fuente de verdad de qué está Done / In Progress / Backlog, y el orden de fases (no adelantarse). |
-| **Convex** | Deployment `third-goldfinch-805` (dashboard en `README.md` de la raíz) | Backend compartido por TODAS las terminales — un único deployment en la nube, ver riesgo en §3. |
+| **Convex** | Deployment compartido `third-goldfinch-805` (dashboard en `README.md` de la raíz) + un deployment propio por terminal (objetivo, migración pendiente — ver §3bis) | Hoy: backend compartido por TODAS las terminales, ver riesgo en §3. Objetivo: cada terminal desarrolla contra su propio deployment aislado; `third-goldfinch-805` pasa a ser solo el punto de merge/publicación. |
 | **GitHub** | `github.com/aitormarin-TalentNetwork/supercrm` (remoto `origin`) | Repo real. La sesión directora mergea a `main` y hace `git push` aquí. |
 | **Railway** | Cuenta personal `aitormarin@gmail.com`, proyecto `reasonable-creativity`, servicio `supercrm` → `https://supercrm-production-4518.up.railway.app` | Auto-despliega en cada push a `main`. Ver ADR-002 en `docs/01-arquitectura.md`. **Cuenta en trial limitado (30 días o $5, a fecha 2026-08-08) — revisar que no haya caducado.** |
 
@@ -59,10 +59,24 @@ Los pasos 1-5 de arriba ya no necesitan que Aitor esté pegando mensajes entre t
 — la directora asigna, coordina el bucle de auditoría, arbitra el turno de Convex, y
 publica, todo por su cuenta. Pero "automático" no quiere decir "sin supervisión nunca":
 **si la directora encuentra un problema que sabe resolver, lo resuelve ella misma; si no
-sabe cómo, escala** — al rol CEO si ya está activo (ver `ceo.md`: puede inspeccionar
-visualmente una terminal atascada y alterar el proceso si hace falta), o directamente a
-Aitor mientras ese rol no lo esté. Casos típicos de escalado, aunque nada de lo demás
-requiera confirmación:
+sabe cómo, escala** — al rol CEO si ya está activo (ver `ceo.md`), o directamente a
+Aitor mientras ese rol no lo esté.
+
+**Antes de escalar una terminal por "no responde" o "parece atascada": comprobarlo de
+verdad, no asumirlo** (pedido explícito de Aitor, 2026-08-12). Orden de comprobación,
+de más a menos informativo:
+1. Transcript real de su sesión (`~/.claude/projects/<carpeta-codificada>/<session>.jsonl`,
+   ver la memoria de orquestación de terminales) — dice literalmente qué está haciendo.
+2. Título de su ventana/pestaña de Terminal.app, sin permisos especiales:
+   `osascript -e 'tell application "Terminal" to get name of every window'` — el símbolo
+   `✳`/spinner al principio del título de una pestaña de Claude Code significa que sigue
+   pensando/procesando; su ausencia sugiere que espera input.
+3. Solo si ninguno de los dos aclara nada: mensaje directo preguntando qué pasa.
+Escalar directamente sin haber probado esto es tratar un silencio como un fallo sin
+comprobarlo — casi siempre hay una explicación visible con estos dos métodos antes de
+pedir ayuda.
+
+Casos típicos de escalado además de eso, aunque nada de lo demás requiera confirmación:
 
 - **Decisión de alcance o de producto ambigua** que no está en el PRD, en Linear, ni en
   `docs/` — no se inventa alcance (regla de siempre de `CLAUDE.md`). Ejemplo real:
@@ -94,18 +108,106 @@ veredictos llegaron, qué queda pendiente), no por permiso, sino por transparenc
 - **Mantener la cola (`codigo para auditar/cola/`) con 2-3 tareas listas, siempre — no reactivo, no "cuando se vacíe".** Es un paso fijo tras CADA push a `main` (ver §2, paso 4), sin esperar a que Aitor lo pida. Solo entra en la cola una tarea que YA pasó el mismo análisis de dependencias/solapes de siempre — la cola no es un backlog en bruto, es "lo siguiente listo para coger, en el orden que toca". Si algo deja de ser seguro (main se movió, otra terminal empezó algo que ahora choca), sacarlo o reordenarlo antes de que alguien lo reclame. Si de verdad no hay 2-3 candidatas 100% limpias, está bien quedarse con menos (o cero) — pero solo tras comprobarlo de verdad, nunca por no haberlo revisado.
 - **La sesión directora administra el orden de publicación entre terminales — no es "quien avisa primero, publica primero".** Parte de la revisión final antes de cada merge (§2, paso 4) es decidir si esa publicación concreta debe esperar a otra cosa (otra terminal a punto de publicar algo que la afecte, una condición especial del brief, etc.) antes de seguir adelante.
 - **No paralelizar tareas que toquen el mismo archivo.** Van juntas, secuenciales, en la misma rama/terminal (ejemplo real: AIT-14 y AIT-15 comparten `convex/opportunities.ts` → se dieron a la misma terminal).
-- **La directora arbitra el turno único de Convex entre todas las terminales, sin
-  preguntarle a Aitor cada vez** (desde 2026-08-12). Cuando una terminal pide lanzar
-  `npx convex dev`/`codegen`, la directora comprueba si otra terminal lo está usando en
-  ese momento (`ListAgents` para ver estado, mensaje directo para confirmar si hace
-  falta) y da o niega el paso ella misma. Incidente real ya visto más de una vez: una
-  terminal despliega desde una rama que no tiene la tabla/campo nuevo de otra terminal en
-  curso, y esta última "desaparece" del deployment compartido hasta que su dueña
-  redespliega — si pasa, coordinar directamente con esa terminal para que redespliegue,
-  no hace falta escalar a Aitor salvo que no se resuelva.
-- **Un deploy puede fallar por datos reales, no solo por código.** Si una rama en marcha (sin mergear) ya desplegó su propio schema y creó datos con la forma nueva (p. ej. AIT-29 con `quotes.lines` en vez de `quotes.amount`), desplegar `main` (con el schema viejo) puede ser **rechazado por Convex** al validar esos documentos existentes contra el schema antiguo — no es un problema de código, es que el dato real ya no encaja. Incidente real (2026-08-12). Antes de asumir que "ya se puede publicar", comprobar si hay otra rama con schema live incompatible. Si pasa: esperar a que esa rama mergee (la solución limpia), o borrar el dato de prueba a mano desde el dashboard de Convex si es claramente descartable (nunca dato real de negocio) — la directora no tiene sesión en el dashboard por defecto, así que esto normalmente requiere que Aitor lo haga él mismo.
-- **Convex es un único deployment compartido.** `npx convex dev` sincroniza TODA la carpeta `convex/` en cada guardado — incluye `convex/_generated/*`, que se regenera a partir de lo que haya en disco de TODAS las terminales activas, aunque cada una solo edite sus propios archivos "de negocio". Cada brief en `T<n>.txt` debe recordar avisar antes de lanzar `npx convex dev`, para no pisar el deployment de otra terminal a medio trabajar.
-- **Además del turno: si `main` avanzó mientras una terminal seguía trabajando, esa terminal tiene que traerse `main` (`git merge main` dentro de su worktree) antes de su siguiente `npx convex dev`.** Pasó de verdad (2026-08-09): T2 corrió `convex dev` con una rama desactualizada tras el merge de AIT-14/15 y borró del deployment compartido `changeStage`/`markWon`/`markLost` — seguían a salvo en `main`, pero desaparecieron de lo desplegado hasta hacer `git merge main` y redesplegar. No basta con "que no lo corran dos a la vez"; también hay que estar al día con lo último mergeado.
+- **Mientras una terminal no esté migrada a deployment propio (ver §3bis), sigue
+  aplicando el turno único arbitrado por la Directora — sin preguntarle a Aitor cada
+  vez** (desde 2026-08-12). Cuando esa terminal pide lanzar `npx convex dev`/`codegen`,
+  la directora comprueba si otra terminal sin migrar lo está usando en ese momento
+  (`ListAgents` para ver estado, mensaje directo para confirmar si hace falta) y da o
+  niega el paso ella misma. Incidente real ya visto más de una vez: una terminal
+  despliega desde una rama que no tiene la tabla/campo nuevo de otra terminal en curso, y
+  esta última "desaparece" del deployment compartido hasta que su dueña redespliega — si
+  pasa, coordinar directamente con esa terminal para que redespliegue, no hace falta
+  escalar a Aitor salvo que no se resuelva. Una vez todas las terminales estén migradas
+  (§3bis), este bullet queda obsoleto: ya no hay turno que arbitrar para el desarrollo
+  día a día.
+- **Un deploy puede fallar por datos reales, no solo por código.** Esto sigue aplicando
+  siempre, migradas o no, porque es sobre el deployment compartido en el momento del
+  merge: si una rama en marcha (sin mergear) ya desplegó su propio schema y creó datos
+  con la forma nueva (p. ej. AIT-29 con `quotes.lines` en vez de `quotes.amount`),
+  desplegar `main` (con el schema viejo) puede ser **rechazado por Convex** al validar
+  esos documentos existentes contra el schema antiguo — no es un problema de código, es
+  que el dato real ya no encaja. Incidente real (2026-08-12). Antes de asumir que "ya se
+  puede publicar", comprobar si hay otra rama con schema live incompatible. Si pasa:
+  esperar a que esa rama mergee (la solución limpia), o borrar el dato de prueba a mano
+  desde el dashboard de Convex si es claramente descartable (nunca dato real de negocio)
+  — la directora no tiene sesión en el dashboard por defecto, así que esto normalmente
+  requiere que Aitor lo haga él mismo.
+- **Mientras una terminal no esté migrada, sigue siendo cierto que Convex es, para ella,
+  un único deployment compartido.** `npx convex dev` sincroniza TODA la carpeta `convex/`
+  en cada guardado — incluye `convex/_generated/*`, que se regenera a partir de lo que
+  haya en disco de TODAS las terminales sin migrar activas, aunque cada una solo edite
+  sus propios archivos "de negocio". Cada brief en `T<n>.txt` debe recordar avisar antes
+  de lanzar `npx convex dev` si esa terminal sigue en el compartido, para no pisar el
+  deployment de otra terminal a medio trabajar.
+- **Además del turno (terminales sin migrar): si `main` avanzó mientras una terminal
+  seguía trabajando, esa terminal tiene que traerse `main` (`git merge main` dentro de su
+  worktree) antes de su siguiente `npx convex dev`.** Pasó de verdad (2026-08-09): T2
+  corrió `convex dev` con una rama desactualizada tras el merge de AIT-14/15 y borró del
+  deployment compartido `changeStage`/`markWon`/`markLost` — seguían a salvo en `main`,
+  pero desaparecieron de lo desplegado hasta hacer `git merge main` y redesplegar. No
+  basta con "que no lo corran dos a la vez"; también hay que estar al día con lo último
+  mergeado. Este es exactamente el incidente que motivó el rediseño de §3bis.
+
+## 3bis. Rediseño del turno de Convex: deployments aislados por terminal (decidido 2026-08-12, MIGRACIÓN PENDIENTE)
+
+⚠️ **Diseño objetivo documentado, no aplicado todavía.** Ninguna terminal tiene hoy su
+propio deployment — las tres siguen en el compartido `third-goldfinch-805`, así que los
+bullets de §3 sobre turno arbitrado siguen aplicando a las tres. Este apartado existe
+para que, cuando se ejecute la migración, cualquier sesión sepa exactamente qué hacer sin
+improvisar — y para que, mientras tanto, cada terminal pueda saber en qué régimen está
+mirando un solo dato (`CONVEX_DEPLOYMENT` en su `.env.local`).
+
+**Causa raíz que esto resuelve:** con un único deployment compartido y `npx convex dev`
+en modo watch, cualquier terminal que itera su feature en el navegador empuja TODO su
+`convex/` local a ese deployment — incluido lo que su copia de `main` todavía no tiene de
+las otras terminales en curso. Arbitrar turnos (§3) gestiona el síntoma; no evita que,
+dentro de su turno, el propio `convex dev` de una terminal sobrescriba funciones ajenas
+que su rama no conoce todavía — ya pasó de verdad (T2, 2026-08-09, ver bullet anterior).
+
+**Diseño objetivo:** cada terminal (T1/T2/T3) tiene su **propio Convex dev deployment**,
+aislado de las demás, apuntado desde el `.env.local` de su propio worktree
+(`CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`). Con esto:
+
+- Cada terminal lanza `npx convex dev` cuando quiera, sin pedir turno a nadie — ya no
+  puede pisar lo de otra terminal, porque no comparten deployment.
+- El deployment compartido (`third-goldfinch-805`, el que lee Railway/la app real) pasa a
+  tocarlo **solo** la Directora (o el Integrador, cuando esté activo) en el momento del
+  merge — ya es un punto de un solo actor, no necesita arbitraje.
+- **Coste asumido:** se pierde el aviso temprano de choques de schema entre ramas en
+  curso (el incidente de "main no se puede desplegar porque otra rama ya metió datos
+  incompatibles", 2026-08-12, ver bullet de "un deploy puede fallar por datos reales" en
+  §3) — con deployments aislados, ese choque solo se detecta en el merge, no antes. No es
+  una mitigación nueva: ya es responsabilidad de la revisión final de §2 paso 4, que no
+  cambia.
+
+**Cómo saber si una terminal ya está migrada:** mirar `CONVEX_DEPLOYMENT` en su
+`.env.local`. Si sigue siendo `third-goldfinch-805`, esa terminal NO está migrada
+todavía y le sigue aplicando el turno arbitrado de §3. Si es otro nombre, ya tiene
+deployment propio y puede ignorar esa regla.
+
+**Checklist de migración, por terminal (PENDIENTE de ejecutar — no asumir que ya está
+hecho sin comprobar `CONVEX_DEPLOYMENT`):**
+1. Crear un proyecto Convex nuevo para esa terminal (dashboard, o `npx convex dev` dentro
+   de su worktree eligiendo "crear proyecto nuevo" en vez de reusar
+   `third-goldfinch-805`).
+2. Copiar al nuevo deployment (dashboard de Convex → Settings → Environment Variables)
+   `SEED_OWNER_PASSWORD` y `SEED_SALES_PASSWORD` con los mismos valores que tiene
+   `third-goldfinch-805`, para que el login de demo (`/login`) siga funcionando —
+   confirmado que no hay script de seed propio, la app depende de estas variables de
+   entorno de Convex (ver `convex/auth.ts` y el comentario en `.env.local`).
+3. Actualizar el `.env.local` de ese worktree con las tres variables nuevas
+   (`CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`).
+4. Verificar en el navegador que el login de demo y una pantalla básica (p. ej. "Hoy")
+   cargan bien contra el deployment nuevo antes de dar la migración de esa terminal por
+   hecha.
+5. **No migrar una terminal que tenga trabajo en curso sin avisar primero** — hacerlo
+   entre tareas (justo tras publicar una y antes de empezar la siguiente), nunca a medio
+   desarrollo.
+
+Hasta que las 3 terminales estén migradas, conviven ambos regímenes: unas ya con
+deployment propio (turno libre), otras todavía en el compartido (turno arbitrado, §3).
+La Directora es quien sabe en qué estado está cada una — si no está segura, comprobar
+`CONVEX_DEPLOYMENT` en el `.env.local` de esa terminal antes de asumirlo.
 - **No adelantar fases de Linear** para rellenar huecos de una terminal libre. Si no hay tarea independiente de verdad, esa terminal se queda idle (se anota por qué en su `T<n>_en-espera.txt`).
 - **Los merges/push a main los ejecuta la directora sin esperar confirmación previa de Aitor** (desde 2026-08-12, ver §2bis) — pero le reporta un resumen de cada publicación después, y **para y pregunta antes** de publicar si algo de la revisión final (§2, paso 4) no cuadra, o si el caso encaja en alguno de los disparadores de escalado de §2bis.
 - **Algoritmo para elegir la siguiente tarea de una terminal libre**, en este orden:
@@ -141,6 +243,10 @@ git worktree add "Sorfware Factory/_worktrees/T2" <rama-actual-de-T2>
 # 3. Copiar el .env.local (no está en git) a cada worktree nuevo
 cp ".env.local" "Sorfware Factory/_worktrees/T1/.env.local"
 cp ".env.local" "Sorfware Factory/_worktrees/T2/.env.local"
+# ⚠️ Válido solo mientras esa terminal no esté migrada a deployment propio (§3bis).
+# Si ya lo estaba antes del corte, copiar el .env.local de la raíz la desmigra sin
+# querer — comprobar primero si tenía su propio CONVEX_DEPLOYMENT y, si es así,
+# restaurar ESE .env.local (no el de la raíz).
 
 # 4. Instalar dependencias en cada worktree
 npm install --prefix "Sorfware Factory/_worktrees/T1"

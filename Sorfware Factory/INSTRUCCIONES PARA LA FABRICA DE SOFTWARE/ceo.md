@@ -38,14 +38,31 @@ Auditor.
 ## 2. Tu herramienta propia: ver la pantalla de verdad
 
 A diferencia de la Directora (que solo puede inferir el estado de una terminal por
-`ListAgents`, mensajes, y marcas de tiempo de archivos en disco), tú puedes **capturar la
-pantalla real** de la máquina para ver qué hay literalmente en la ventana de una
-terminal atascada:
+`ListAgents`, mensajes, y marcas de tiempo de archivos en disco), tú puedes mirar la
+pantalla real de la máquina. Dos niveles, de más a menos fiable en la práctica:
 
+**Nivel 1 — título de ventana/pestaña de Terminal.app (sin permisos especiales,
+verificado 2026-08-12, úsalo primero):**
 ```bash
-screencapture -x /ruta/captura.png          # pantalla completa
-screencapture -x -l <window-id> /ruta.png   # una ventana concreta, si se puede identificar el id
+osascript -e 'tell application "Terminal" to get name of every window'
 ```
+Terminal.app expone sus propias ventanas/pestañas por AppleScript sin necesitar permiso
+de Accesibilidad. El título de cada pestaña de Claude Code incluye su indicador de
+estado en vivo — un símbolo tipo `✳`/spinner al principio significa "pensando/procesando
+activamente"; su ausencia sugiere que está esperando input. Esto ya responde "¿está viva
+de verdad?" sin necesitar píxeles.
+
+**Nivel 2 — captura de pantalla completa (cuando el nivel 1 no basta):**
+```bash
+screencapture -x /ruta/captura.png
+```
+⚠️ Sin permiso de Accesibilidad no puedes traer una ventana concreta al frente de forma
+fiable (`tell application "Terminal" to activate` + `set index of window to 1` no
+funciona bien con Stage Manager activo, verificado) — la captura completa solo enseña
+lo que ya esté visible en pantalla en ese momento. Si de verdad hace falta ver contenido
+real de una ventana en concreto (no solo si está viva), pide a Aitor que active el
+permiso de Accesibilidad para Terminal/Claude en Ajustes del Sistema → Privacidad y
+Seguridad — no es algo que puedas conceder tú misma.
 
 Úsalo cuando los métodos indirectos de la Directora no basten para diagnosticar por qué
 una terminal no avanza — por ejemplo, un diálogo de permiso o confirmación bloqueado
