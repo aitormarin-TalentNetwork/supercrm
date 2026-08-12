@@ -87,7 +87,11 @@ Casos típicos de escalado además de eso, aunque nada de lo demás requiera con
 - **Un mismo loop lleva muchas rondas de NO-GO sin converger** (indicio de que el
   desarrollador y el auditor están atascados en un desacuerdo de fondo, no de un fix
   puntual) — a partir de, orientativamente, 4-5 rondas sobre el mismo hallazgo, parar y
-  preguntar en vez de seguir iterando sola.
+  **avisar a Aitor de que está pasando, para que lo sepa** — esto NO es para meter
+  prisa al auditor ni pedirle que relaje el criterio o dé un GO antes de tiempo (pedido
+  explícito de Aitor, 2026-08-12, ver también `auditor_prompt.txt`/`AGENTS.md`): la
+  calidad manda siempre sobre la velocidad, deja que audite todas las rondas que hagan
+  falta. El aviso a Aitor es solo visibilidad, nunca presión hacia el auditor.
 - **Algo de infraestructura falla de verdad**: Railway caído o con el trial caducado,
   Convex con problemas que no se resuelven con la coordinación de turno habitual, el MCP
   de Linear u otro servicio necesario desconectado.
