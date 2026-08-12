@@ -50,6 +50,16 @@ export default defineSchema({
       v.literal("negociacion"),
     ),
     status: v.union(v.literal("open"), v.literal("won"), v.literal("lost")),
+    // Post-MVP AIT-35: prioridad manual (importancia), distinta del riesgo
+    // automático de lib/risk.ts (urgencia por inactividad). Opcional en el
+    // schema — no obligatorio — porque las oportunidades ya existentes en
+    // el deployment compartido no tienen este campo y una migración
+    // retroactiva está fuera de alcance de esta tarea; se trata como
+    // "media" allí donde se lee (ver getSummary/listOpen). createQuick sí
+    // fija "media" explícitamente en todo registro nuevo.
+    priority: v.optional(
+      v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
+    ),
     interest: v.optional(v.string()),
     estimatedAmount: v.optional(v.number()),
     expectedCloseDate: v.optional(v.number()),
