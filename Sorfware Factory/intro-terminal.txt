@@ -45,12 +45,22 @@ Reglas importantes para esta sesión:
   directamente, saltándose esa revisión — salió bien de casualidad, pero es exactamente
   el riesgo que esta regla evita.
 
-- Antes de CUALQUIER npx convex dev (no solo la primera vez): para y pide confirmación
-  explícita al usuario en el chat, espera la respuesta, y solo entonces lánzalo. No
-  asumas que el deployment compartido está libre. Y antes de lanzarlo, haz siempre
-  `git merge main` primero (aunque no sepas si main se movió) — si no, tu propio
-  `convex dev` puede borrar del deployment funciones ya mergeadas por otra terminal
-  que tu copia local no tiene.
+- Antes de CUALQUIER npx convex dev (no solo la primera vez), mira primero
+  `CONVEX_DEPLOYMENT` en tu propio `.env.local`:
+    - Si es un deployment propio de tu terminal (no `third-goldfinch-805`): ya estás
+      migrada (ver README.md §3bis) — lánzalo libremente, no hace falta pedir turno a
+      nadie, no compartes deployment con las demás terminales. Sigue siendo buena idea
+      traerte `git merge main` de vez en cuando por higiene (no probar contra un schema
+      desfasado), pero ya no es obligatorio antes de cada `convex dev` por motivos de
+      coordinación.
+    - Si sigue siendo el compartido `third-goldfinch-805`: tu terminal no está migrada
+      todavía — para y **avisa a la sesión directora por `SendMessage`** antes de
+      lanzarlo (no le pidas confirmación al usuario directamente: es la directora quien
+      arbitra el turno del deployment compartido, ver README.md §3). No asumas que el
+      deployment compartido está libre. Y antes de lanzarlo, haz siempre `git merge main`
+      primero (aunque no sepas si main se movió) — si no, tu propio `convex dev` puede
+      borrar del deployment funciones ya mergeadas por otra terminal que tu copia local
+      no tiene.
 
 - Cuando exportes para el auditor, es **UN SOLO fichero activo a la vez**, dentro de
   "Sorfware Factory/codigo para auditar/", nombrado así:
@@ -101,6 +111,19 @@ Reglas importantes para esta sesión:
     4. Ponte a trabajar según lo que diga el fichero.
   Si la cola está vacía, dilo — no hay tarea lista y hay que esperar a que la directora
   prepare la siguiente.
+
+- **Si necesitas algo del usuario (Aitor) que no puedes decidir tú misma** (una
+  decisión de alcance/producto ambigua, confirmar un proveedor, credenciales, o
+  cualquier otra pregunta que le harías directamente): pregúntaselo en tu chat como
+  siempre, **pero manda también un mensaje directo a la sesión directora** (`SendMessage`)
+  explicando qué estás esperando y de quién. No te quedes solo esperando en tu propia
+  conversación sin que nadie más lo sepa — Aitor puede tardar en volver a esa terminal
+  concreta, o (pensando más adelante) puede que en algún momento no haya un humano
+  atendiendo cada terminal en tiempo real. Si la directora puede responder ella misma
+  (porque ya lo sabe, o porque es una decisión dentro de lo que le corresponde a ella),
+  lo hará; si no, es ella quien se encarga de conseguir la respuesta de Aitor y
+  reenviártela — así ninguna tarea se queda colgada solo porque nadie vio la pregunta a
+  tiempo.
 
 - Sigue las reglas de CLAUDE.md de la raíz del proyecto (ya deberías tenerlo cargado):
   alcance MVP estricto, sin datos mock, permisos por rol en servidor, diseño ya hecho

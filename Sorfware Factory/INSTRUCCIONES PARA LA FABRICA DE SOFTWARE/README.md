@@ -76,6 +76,21 @@ Escalar directamente sin haber probado esto es tratar un silencio como un fallo 
 comprobarlo — casi siempre hay una explicación visible con estos dos métodos antes de
 pedir ayuda.
 
+**Las terminales avisan directamente cuando necesitan algo del usuario (pedido explícito
+de Aitor, 2026-08-12) — no solo se quedan esperando en su propia conversación.** Desde
+`intro-terminal.txt`: en cuanto un desarrollador necesita una decisión de Aitor que no
+puede tomar él mismo (alcance ambiguo, proveedor, credenciales...), le pregunta en su
+chat como siempre PERO también manda un `SendMessage` a la directora contándolo. Al
+recibirlo, la directora:
+- Si la respuesta ya la sabe (está en Linear/`docs`/una decisión previa de Aitor, o cae
+  dentro de lo que a la propia directora le corresponde decidir), **contesta ella misma**
+  y no hace falta molestar a Aitor por algo ya resuelto.
+- Si no, hace de intermediaria: se lo traslada a Aitor (o lo dejó como pendiente
+  reportado, ver más abajo) y en cuanto tenga la respuesta se la reenvía a la terminal.
+Esto evita que una tarea se quede colgada solo porque Aitor no vio a tiempo la pregunta
+en esa terminal en concreto — pensado también de cara a cuando no haya un humano
+atendiendo cada terminal en tiempo real.
+
 Casos típicos de escalado además de eso, aunque nada de lo demás requiera confirmación:
 
 - **Decisión de alcance o de producto ambigua** que no está en el PRD, en Linear, ni en
