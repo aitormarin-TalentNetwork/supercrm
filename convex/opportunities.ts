@@ -61,6 +61,12 @@ export const createQuick = mutation({
     ),
     interest: v.optional(v.string()),
     estimatedAmount: v.optional(v.number()),
+    // AIT-35 (Post-MVP): si no se manda, se fija "media" — mismo default
+    // que aplica getSummary/listOpen al leer una oportunidad antigua sin
+    // este campo.
+    priority: v.optional(
+      v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
+    ),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
@@ -127,6 +133,7 @@ export const createQuick = mutation({
       customerId,
       stage: "contacto",
       status: "open",
+      priority: args.priority ?? "media",
       interest: args.interest?.trim() || undefined,
       estimatedAmount,
       lastActivityAt: now,
@@ -198,6 +205,10 @@ export const getSummary = query({
       estimatedAmount: opportunity.estimatedAmount ?? null,
       stage: opportunity.stage,
       status: opportunity.status,
+      // AIT-35 (Post-MVP): "media" para las oportunidades creadas antes de
+      // este campo (no tienen priority guardado) — mismo criterio que
+      // listOpen más abajo.
+      priority: opportunity.priority ?? "media",
       expectedCloseDate: opportunity.expectedCloseDate ?? null,
       ownerName: owner?.name ?? null,
       storeName: store?.name ?? null,
@@ -318,6 +329,32 @@ export const changeStage = mutation({
       status: "pending",
       assigneeId: opportunity.ownerId,
     });
+  },
+});
+
+// AIT-35 (Post-MVP): prioridad manual, editable por el comercial dueño y
+// por el owner (Marta) — mismo patrón de autorización que changeStage.
+// A diferencia de changeStage, no toca lastActivityAt ni el próximo paso:
+// es solo una etiqueta de importancia, no un movimiento real de la
+// oportunidad (no debe disparar ni riesgo ni regeneración de seguimiento).
+export const changePriority = mutation({
+  args: {
+    opportunityId: v.id("opportunities"),
+    priority: v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
+  },
+  handler: async (ctx, { opportunityId, priority }) => {
+    const user = await requireUser(ctx);
+    const opportunity = await loadOpenOpportunityOrThrow(
+      ctx,
+      user,
+      opportunityId,
+    );
+
+    if ((opportunity.priority ?? "media") === priority) {
+      throw new Error("La oportunidad ya tiene esa prioridad.");
+    }
+
+    await ctx.db.patch(opportunityId, { priority });
   },
 });
 

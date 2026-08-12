@@ -19,6 +19,15 @@ interface AltaRapidaModalProps {
 const CANALES = ["Llamada", "WhatsApp", "Recomendación", "Web", "Visita"] as const;
 type Canal = (typeof CANALES)[number];
 
+// AIT-35 (Post-MVP): "Media" primero porque es el valor por defecto que
+// también fija el servidor si no se manda priority (convex/opportunities.ts).
+const PRIORIDADES = [
+  { value: "media", label: "Media" },
+  { value: "alta", label: "Alta" },
+  { value: "baja", label: "Baja" },
+] as const;
+type Prioridad = (typeof PRIORIDADES)[number]["value"];
+
 export function AltaRapidaModal({ open, onClose }: AltaRapidaModalProps) {
   const router = useRouter();
   const userInfo = useQuery(api.users.getCurrentUserInfo, open ? {} : "skip");
@@ -28,6 +37,7 @@ export function AltaRapidaModal({ open, onClose }: AltaRapidaModalProps) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [source, setSource] = useState<Canal>(CANALES[0]);
+  const [priority, setPriority] = useState<Prioridad>("media");
   const [interest, setInterest] = useState("");
   const [amount, setAmount] = useState("");
   const [nameError, setNameError] = useState("");
@@ -54,6 +64,7 @@ export function AltaRapidaModal({ open, onClose }: AltaRapidaModalProps) {
     setPhone("");
     setEmail("");
     setSource(CANALES[0]);
+    setPriority("media");
     setInterest("");
     setAmount("");
     setNameError("");
@@ -113,6 +124,7 @@ export function AltaRapidaModal({ open, onClose }: AltaRapidaModalProps) {
         phone: phone.trim(),
         email: email.trim() || undefined,
         source,
+        priority,
         interest: interest.trim() || undefined,
         estimatedAmount: parsedAmount ?? undefined,
       });
@@ -223,6 +235,18 @@ export function AltaRapidaModal({ open, onClose }: AltaRapidaModalProps) {
             />
           </div>
         </div>
+
+        <Select
+          label="Prioridad"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as Prioridad)}
+        >
+          {PRIORIDADES.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </Select>
 
         <Input
           label="Producto / interés (opcional)"

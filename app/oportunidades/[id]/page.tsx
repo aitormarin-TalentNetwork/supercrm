@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Clock,
   Euro,
+  Flag,
   MessageSquare,
   Phone,
   PartyPopper,
@@ -25,6 +26,7 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
+import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
@@ -33,6 +35,13 @@ const STAGES = [
   { value: "contacto", label: "Contacto" },
   { value: "presupuesto", label: "Presupuesto" },
   { value: "negociacion", label: "Negociación" },
+] as const;
+
+// AIT-35 (Post-MVP): "Media" primero, es el valor por defecto.
+const PRIORITIES = [
+  { value: "media", label: "Media" },
+  { value: "alta", label: "Alta" },
+  { value: "baja", label: "Baja" },
 ] as const;
 
 const LOST_REASONS = [
@@ -53,7 +62,9 @@ export default function OportunidadPage({
   const router = useRouter();
   const summary = useQuery(api.opportunities.getSummary, { opportunityId });
   const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
-  const [modal, setModal] = useState<"stage" | "won" | "lost" | null>(null);
+  const [modal, setModal] = useState<"stage" | "priority" | "won" | "lost" | null>(
+    null,
+  );
   const [interactionModalOpen, setInteractionModalOpen] = useState(false);
 
   if (summary === undefined || interactions === undefined) {
@@ -159,6 +170,7 @@ export default function OportunidadPage({
             </div>
             <div className="flex flex-none flex-col items-end gap-2">
               <OpportunityStageBadge stage={summary.stage} status={summary.status} />
+              <PriorityBadge priority={summary.priority} />
               {isOpen && summary.atRisk && (
                 <Badge variant="warning">
                   <span className="inline-flex items-center gap-1">
@@ -210,6 +222,13 @@ export default function OportunidadPage({
                   onClick={() => setModal("stage")}
                 >
                   Cambiar etapa
+                </Button>
+                <Button
+                  variant="secondary"
+                  leftIcon={<Flag size={16} />}
+                  onClick={() => setModal("priority")}
+                >
+                  Cambiar prioridad
                 </Button>
                 <span className="flex-1" />
                 <Button
@@ -301,6 +320,12 @@ export default function OportunidadPage({
         onClose={() => setModal(null)}
         opportunityId={opportunityId}
         currentStage={summary.stage}
+      />
+      <ChangePriorityDialog
+        open={modal === "priority"}
+        onClose={() => setModal(null)}
+        opportunityId={opportunityId}
+        currentPriority={summary.priority}
       />
       <MarkWonDialog
         open={modal === "won"}
@@ -400,6 +425,104 @@ function ChangeStageDialog({
           {STAGES.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
+            </option>
+          ))}
+        </Select>
+      </form>
+    </Dialog>
+  );
+}
+
+// AIT-35 (Post-MVP): mismo patrón que ChangeStageDialog, pero para la
+// prioridad manual. Distinta mutation (changePriority) y sin efectos
+// colaterales sobre etapa/próximo paso — ver el comentario en
+// convex/opportunities.ts:changePriority.
+function ChangePriorityDialog({
+  open,
+  onClose,
+  opportunityId,
+  currentPriority,
+}: {
+  open: boolean;
+  onClose: () => void;
+  opportunityId: Id<"opportunities">;
+  currentPriority: "alta" | "media" | "baja";
+}) {
+  const changePriority = useMutation(api.opportunities.changePriority);
+  const [priority, setPriority] = useState(currentPriority);
+  // Resincroniza al ABRIR (no solo cuando cambia currentPriority): si el
+  // usuario elige un valor y Cancela, el diálogo debe olvidarlo la próxima
+  // vez que se abra — mismo patrón que MarkWonDialog más abajo (prevOpen),
+  // no el de ChangeStageDialog, que no lo necesita porque nunca ha tenido
+  // este bug (ronda de auditoría 1 de AIT-35, mayor #1).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setPriority(currentPriority);
+  }
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading || priority === currentPriority) return;
+    setLoading(true);
+    setError("");
+    try {
+      await changePriority({ opportunityId, priority });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo cambiando prioridad:", err);
+      }
+      setError("No se ha podido cambiar la prioridad. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button
+        type="submit"
+        form="change-priority-form"
+        disabled={loading || priority === currentPriority}
+      >
+        {loading ? "Guardando…" : "Guardar prioridad"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Cambiar prioridad"
+      description="Importancia manual de la oportunidad — no cambia su etapa ni su próximo paso."
+      width={420}
+      footer={footer}
+    >
+      <form id="change-priority-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        {error && (
+          <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+        )}
+        <Select
+          label="Prioridad"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as typeof priority)}
+        >
+          {PRIORITIES.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
             </option>
           ))}
         </Select>
