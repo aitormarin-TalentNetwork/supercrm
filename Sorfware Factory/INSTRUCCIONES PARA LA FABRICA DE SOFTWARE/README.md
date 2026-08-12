@@ -19,7 +19,9 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Export de auditoría** | `Sorfware Factory/codigo para auditar/T<n>_AIT-<id>_<slug>_loop<N>-para-auditor.txt` (en `.gitignore`) | **UN SOLO fichero activo** por tarea (decidido 2026-08-09: dos ficheros separados —código y evidencias— confundían). Dentro, en secuencia: cabecera, código completo con cada archivo delimitado, y evidencias al final. `<N>` = número de ronda desarrollo↔auditoría (empieza en 1, sube tras cada NO-GO) — al pasar de ronda se borra el fichero del loop anterior y se crea el nuevo, nunca conviven dos loops de la misma tarea a la vez. Instrucción ya incluida en `intro-terminal.txt`. |
 | **Cola de tareas** | `Sorfware Factory/codigo para auditar/cola/SIGUIENTE-<seq>_AIT-<id>_<slug>.txt` (en `.gitignore`) | Tareas ya vetadas por la directora (sin conflicto con lo que esté en marcha), en orden de recogida, pero SIN asignar a una terminal concreta todavía. Cuando el usuario le dice a una terminal libre "coge tu siguiente tarea", ella misma coge la de número más bajo y la reclama renombrándola a su propio `T<n>_...`. Así el usuario no tiene que decir "esto es para T1, esto para T2" — cualquier terminal libre coge lo siguiente que haya. |
 | **Archivo histórico** | `Sorfware Factory/codigo para auditar/Subido a GitHub/` (en `.gitignore`) | Cuando una tarea se mergea, se archivan aquí sus 3 ficheros (el TXT de tarea + los dos exports de auditoría) antes de renombrar/reescribir el TXT de esa terminal para la siguiente tarea. |
-| **Prompt del auditor** | `Sorfware Factory/auditor_prompt.txt` (manual) **y** `AGENTS.md` de la raíz, sección `<!-- BEGIN:auditor-role -->` (automático) | Mismo texto en los dos sitios. `AGENTS.md` es lo que Codex carga solo al arrancar en esta carpeta o en cualquier worktree (confirmado empíricamente: `codex exec "..."` responde `GO` sin que se le pegue nada) — así que **abrir `codex` en la carpeta del worktree ya activa el rol de auditor, sin pegar `auditor_prompt.txt` a mano**. Si se edita uno de los dos textos, editar el otro para que no diverjan. |
+| **Prompt del auditor** | `Sorfware Factory/auditor_prompt.txt` (manual) **y** `AGENTS.md` de la raíz, sección `<!-- BEGIN:auditor-role -->` (automático) | Mismo texto en los dos sitios. `AGENTS.md` es lo que Codex carga solo al arrancar en esta carpeta o en cualquier worktree (confirmado empíricamente: `codex exec "..."` responde `GO`/`NO-GO` sin que se le pegue nada) — así que **abrir `codex` en la carpeta del worktree ya activa el rol de auditor, sin pegar `auditor_prompt.txt` a mano**. Si se edita uno de los dos textos, editar el otro para que no diverjan. Desde 2026-08-12, la propia Directora dispara estas auditorías por su cuenta (`codex exec` vía Bash, ver §2) en cuanto una terminal le avisa de que exportó — ya no hace falta que Aitor abra `codex` a mano ni le pegue nada, salvo que se prefiera hacerlo manualmente alguna vez. |
+| **Rol Integrador** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/integrador.md` | Documentado desde 2026-08-12, **no activo todavía**. Cuando se active, recoge de la Directora las tareas con GO y hace ella misma el merge/push/verificación de Railway/Linear Done/archivo — la Directora deja de publicar directamente y su trabajo en una tarea termina en "aviso al Integrador". Ver ese documento para el detalle completo. |
+| **Mensajería directa entre terminales** | `SendMessage` / `ListAgents` (herramientas de Claude Code, no de este repo) | Desde 2026-08-12: la Directora y las terminales desarrolladoras se hablan directamente por aquí (asignar tarea, avisar de export listo, devolver veredicto, corregir) — Aitor ya no tiene que hacer de mensajero pegando texto entre terminales, salvo que quiera intervenir. Confirmar primero qué nombre de sesión (`ListAgents`) corresponde a qué terminal (T1/T2/T3) — no asumirlo solo por el nombre, que puede venir de una tarea antigua. |
 | **Linear** | Equipo "VibeCoding Academy" (AIT), proyecto "SuperCRM — MVP", MCP `linear-aitor` | Fuente de verdad de qué está Done / In Progress / Backlog, y el orden de fases (no adelantarse). |
 | **Convex** | Deployment `third-goldfinch-805` (dashboard en `README.md` de la raíz) | Backend compartido por TODAS las terminales — un único deployment en la nube, ver riesgo en §3. |
 | **GitHub** | `github.com/aitormarin-TalentNetwork/supercrm` (remoto `origin`) | Repo real. La sesión directora mergea a `main` y hace `git push` aquí. |
@@ -31,10 +33,10 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 
 ## 2. El flujo de trabajo, de punta a punta
 
-1. La sesión directora mira Linear + el estado real del código, decide qué tarea es segura para la próxima terminal libre (sin conflicto de archivos con lo que ya está en marcha — ver §3), y renombra el TXT de esa terminal a `T<n>_AIT-<id>_<slug>.txt` con el brief completo dentro (si estaba en espera, tenía el nombre `T<n>_en-espera.txt`).
-2. Aitor copia el contenido de ese fichero y lo pega en la terminal de Claude Code correspondiente (primero `intro-terminal.txt`, luego el brief), que trabaja dentro de `Sorfware Factory/_worktrees/T<n>-.../`.
-3. Esa Claude Code desarrolla y exporta TODO en un único fichero para el auditor, `T<n>_AIT-<id>_<slug>_loop1-para-auditor.txt` (instrucción ya en `intro-terminal.txt`). Aitor le dice al auditor de esa terminal que audite — lo encuentra solo, mismo estándar de nombres. Bucle desarrollo ↔ auditoría hasta que los dos dan el OK — si hay correcciones, se borra el fichero del loop anterior y se crea `..._loop2-para-auditor.txt`, y así sucesivamente; nunca conviven dos loops a la vez.
-4. Aitor avisa a la sesión directora. **Antes de publicar, la directora hace una revisión final** (no se salta nunca, aunque el auditor ya haya dado el OK):
+1. La sesión directora mira Linear + el estado real del código, decide qué tarea es segura para la próxima terminal libre (sin conflicto de archivos con lo que ya está en marcha — ver §3 para el algoritmo de selección completo), y renombra el TXT de esa terminal a `T<n>_AIT-<id>_<slug>.txt` con el brief completo dentro (si estaba en espera, tenía el nombre `T<n>_en-espera.txt`).
+2. **Desde 2026-08-12, la directora manda el brief directamente a esa terminal por `SendMessage`** (herramienta de Claude Code para hablar entre sesiones — ver `ListAgents`) en vez de que Aitor lo copie y pegue a mano. Sigue funcionando igual si alguna vez se prefiere el copy/paste manual. Esa Claude Code trabaja dentro de `Sorfware Factory/_worktrees/T<n>-.../`.
+3. Esa Claude Code desarrolla y exporta TODO en un único fichero para el auditor, `T<n>_AIT-<id>_<slug>_loop1-para-auditor.txt` (instrucción ya en `intro-terminal.txt`), y **avisa a la directora directamente por `SendMessage`** en cuanto lo tiene — ya no hace falta esperar a que Aitor lo relaye ni que abra `codex` a mano. La directora lanza el auditor ella misma (`codex exec "Audita el fichero '<ruta>' siguiendo tu rol de auditor ya cargado desde AGENTS.md..."` vía Bash, desde la raíz del repo) y le devuelve el veredicto a la terminal por el mismo canal. Bucle desarrollo ↔ auditoría hasta que los dos dan el OK, **sin que Aitor tenga que intervenir en cada ronda**: si hay correcciones, la terminal corrige, borra el fichero del loop anterior, crea `..._loop2-para-auditor.txt`, y avisa otra vez a la directora — así sucesivamente; nunca conviven dos loops a la vez. Ojo: si el fichero cambia de loop mientras la auditoría está en curso, apuntar siempre al nombre de fichero vigente en ese momento (Codex se niega correctamente a auditar un loop viejo o a sustituirlo por uno distinto sin que se le diga).
+4. La terminal avisa a la directora del GO. **Antes de publicar, la directora (o el rol Integrador, si Aitor ya lo ha activado — ver `integrador.md`) hace una revisión final** (no se salta nunca, aunque el auditor ya haya dado el OK):
    - releer Linear por si algo cambió desde que la tarea arrancó (otro issue cerrado, alcance ajustado);
    - comprobar si `main` se ha movido desde que la rama se creó (`git log origin/main..main` / `main..origin/main`) — si sí, valorar si afecta a esta tarea antes de mergear;
    - comprobar el estado de las otras terminales activas, por si algo que no se solapaba al repartir la tarea ahora sí lo hace;
@@ -49,6 +51,36 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
    - **paso fijo, siempre, no solo cuando la cola esté vacía:** revisa `codigo para auditar/cola/` y la rellena hasta tener 2-3 tareas listas (mismo análisis de dependencias/solapes de siempre, contra el `main` recién actualizado). No es algo que Aitor tenga que pedir cada vez — es parte de la propia publicación, el último paso, no uno aparte.
 5. Se repite. **El orden en que las tareas de las distintas terminales se publican lo decide y administra la sesión directora** (no es "quien avisa primero, publica primero" automáticamente) — parte de la revisión final del paso 4 es justo eso: decidir si esta publicación concreta debe esperar a otra cosa antes.
 
+## 2bis. Automatización end-to-end (desde 2026-08-12) y cuándo SÍ hay que parar y preguntarle a Aitor
+
+Los pasos 1-5 de arriba ya no necesitan que Aitor esté pegando mensajes entre terminales
+— la directora asigna, coordina el bucle de auditoría, arbitra el turno de Convex, y
+publica, todo por su cuenta. Pero "automático" no quiere decir "sin supervisión nunca":
+la directora **para y le pregunta a Aitor** en estos casos, aunque nada de lo demás
+requiera su confirmación:
+
+- **Decisión de alcance o de producto ambigua** que no está en el PRD, en Linear, ni en
+  `docs/` — no se inventa alcance (regla de siempre de `CLAUDE.md`). Ejemplo real:
+  AIT-32 necesita saber qué proveedor de WhatsApp/email/telefonía usar antes de construir
+  nada — eso lo decide Aitor, no la directora ni el desarrollador.
+- **Credenciales o cuentas externas que la directora no tiene** (claves de API, accesos
+  de terceros).
+- **Un mismo loop lleva muchas rondas de NO-GO sin converger** (indicio de que el
+  desarrollador y el auditor están atascados en un desacuerdo de fondo, no de un fix
+  puntual) — a partir de, orientativamente, 4-5 rondas sobre el mismo hallazgo, parar y
+  preguntar en vez de seguir iterando sola.
+- **Algo de infraestructura falla de verdad**: Railway caído o con el trial caducado,
+  Convex con problemas que no se resuelven con la coordinación de turno habitual, el MCP
+  de Linear u otro servicio necesario desconectado.
+- Cualquier cosa que ya obligaba a preguntar antes de esta automatización y sigue
+  siendo igual de sensible: publicar/mergear a `main` lo puede hacer la directora sola
+  ahora, pero si algo en la revisión final (§2, paso 4) no cuadra, no se publica sin
+  avisar.
+
+Fuera de estos casos, la directora seguía adelante sin esperar confirmación de Aitor en
+cada paso — y sigue reportándole un resumen de lo que ha hecho (qué se publicó, qué
+veredictos llegaron, qué queda pendiente), no por permiso, sino por transparencia.
+
 ---
 
 ## 3. Reglas que la sesión directora tiene que respetar
@@ -57,10 +89,25 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 - **Mantener la cola (`codigo para auditar/cola/`) con 2-3 tareas listas, siempre — no reactivo, no "cuando se vacíe".** Es un paso fijo tras CADA push a `main` (ver §2, paso 4), sin esperar a que Aitor lo pida. Solo entra en la cola una tarea que YA pasó el mismo análisis de dependencias/solapes de siempre — la cola no es un backlog en bruto, es "lo siguiente listo para coger, en el orden que toca". Si algo deja de ser seguro (main se movió, otra terminal empezó algo que ahora choca), sacarlo o reordenarlo antes de que alguien lo reclame. Si de verdad no hay 2-3 candidatas 100% limpias, está bien quedarse con menos (o cero) — pero solo tras comprobarlo de verdad, nunca por no haberlo revisado.
 - **La sesión directora administra el orden de publicación entre terminales — no es "quien avisa primero, publica primero".** Parte de la revisión final antes de cada merge (§2, paso 4) es decidir si esa publicación concreta debe esperar a otra cosa (otra terminal a punto de publicar algo que la afecte, una condición especial del brief, etc.) antes de seguir adelante.
 - **No paralelizar tareas que toquen el mismo archivo.** Van juntas, secuenciales, en la misma rama/terminal (ejemplo real: AIT-14 y AIT-15 comparten `convex/opportunities.ts` → se dieron a la misma terminal).
+- **La directora arbitra el turno único de Convex entre todas las terminales, sin
+  preguntarle a Aitor cada vez** (desde 2026-08-12). Cuando una terminal pide lanzar
+  `npx convex dev`/`codegen`, la directora comprueba si otra terminal lo está usando en
+  ese momento (`ListAgents` para ver estado, mensaje directo para confirmar si hace
+  falta) y da o niega el paso ella misma. Incidente real ya visto más de una vez: una
+  terminal despliega desde una rama que no tiene la tabla/campo nuevo de otra terminal en
+  curso, y esta última "desaparece" del deployment compartido hasta que su dueña
+  redespliega — si pasa, coordinar directamente con esa terminal para que redespliegue,
+  no hace falta escalar a Aitor salvo que no se resuelva.
 - **Convex es un único deployment compartido.** `npx convex dev` sincroniza TODA la carpeta `convex/` en cada guardado — incluye `convex/_generated/*`, que se regenera a partir de lo que haya en disco de TODAS las terminales activas, aunque cada una solo edite sus propios archivos "de negocio". Cada brief en `T<n>.txt` debe recordar avisar antes de lanzar `npx convex dev`, para no pisar el deployment de otra terminal a medio trabajar.
 - **Además del turno: si `main` avanzó mientras una terminal seguía trabajando, esa terminal tiene que traerse `main` (`git merge main` dentro de su worktree) antes de su siguiente `npx convex dev`.** Pasó de verdad (2026-08-09): T2 corrió `convex dev` con una rama desactualizada tras el merge de AIT-14/15 y borró del deployment compartido `changeStage`/`markWon`/`markLost` — seguían a salvo en `main`, pero desaparecieron de lo desplegado hasta hacer `git merge main` y redesplegar. No basta con "que no lo corran dos a la vez"; también hay que estar al día con lo último mergeado.
 - **No adelantar fases de Linear** para rellenar huecos de una terminal libre. Si no hay tarea independiente de verdad, esa terminal se queda idle (se anota por qué en su `T<n>_en-espera.txt`).
-- **Los merges/push a main los avisa la directora antes de ejecutarlos** (el push ya es el propio acto de publicar, así que es el momento de confirmar con Aitor, no después).
+- **Los merges/push a main los ejecuta la directora sin esperar confirmación previa de Aitor** (desde 2026-08-12, ver §2bis) — pero le reporta un resumen de cada publicación después, y **para y pregunta antes** de publicar si algo de la revisión final (§2, paso 4) no cuadra, o si el caso encaja en alguno de los disparadores de escalado de §2bis.
+- **Algoritmo para elegir la siguiente tarea de una terminal libre**, en este orden:
+  1. ¿Hay algo en `codigo para auditar/cola/` con nombre `SIGUIENTE-N_...` (no `BLOQUEADA_...`)? Coge el número más bajo.
+  2. Si la cola está vacía o solo tiene bloqueadas: mira Linear, proyecto `SuperCRM — MVP`, issues sin empezar de la fase actual (nunca de una fase futura — regla de no adelantarse).
+  3. Si el MVP no tiene nada libre de verdad (todo Done, Cancelado, o ya reclamado): ver si hay algo bloqueado que ya se desbloqueó (una `BLOQUEADA_...` cuya condición ya se cumplió — pasarla a `SIGUIENTE-`).
+  4. Si tampoco: y solo si Aitor ya autorizó explícitamente tirar de Post-MVP (excepción de alcance, no asumir sin pedirlo — ver `CLAUDE.md`), coger de `SuperCRM — Post-MVP` respetando las dependencias declaradas entre esos issues (empezar por las que no dependen de ninguna otra).
+  5. En cualquiera de los casos: antes de asignar, comprobar que no hay conflicto de archivos con lo que las demás terminales tienen en marcha ahora mismo (no con lo que ya publicaron). Si lo hay, esa tarea espera — no se reparte "aceptando el riesgo" salvo que Aitor lo confirme explícitamente para ese caso concreto (ver política de "esperar por defecto" ya documentada más abajo en este mismo §3).
 - **Actualizar `docs/` en el mismo cambio** si se toma o se cambia una decisión técnica (arquitectura, despliegue, etc. — ver `docs/01-arquitectura.md`, incluye ADR-001 auth y ADR-002 hosting/Railway).
 - **Cada worktree tiene su propia copia de los ficheros de la raíz** (`AGENTS.md`, `CLAUDE.md`, `docs/`, `.gitignore`...) — son archivos trackeados por git, pero cada worktree los tiene en su propio disco, independientes entre sí. Un cambio hecho solo en la raíz (rama `main`) **no aparece solo en los worktrees** de las ramas de tarea. Si se edita algo de esto en la raíz y hace falta que las terminales activas lo vean ya (como pasó con la sección de auditor en `AGENTS.md`), hay que copiarlo a mano a cada worktree activo.
 

@@ -11,18 +11,26 @@ Reglas importantes para esta sesión:
     1. Desarrollas.
     2. Exportas TODO para el auditor en UN ÚNICO fichero (formato más abajo) — nunca
        varios ficheros sueltos, para que no haya nada que se pueda perder o confundir.
-       **Avisa también por voz** (comando exacto más abajo): "listo para auditar".
-    3. Esperas el veredicto del auditor.
-    4. Si es NO-GO: corriges lo señalado y vuelves al paso 2. No sigas adelante con
-       nada más mientras el veredicto sea NO-GO.
-    5. Si es GO: **avisa también por voz** (comando exacto más abajo): "GO recibido,
-       listo para publicar". PARAS AQUÍ. Avisas al usuario de que tienes el GO y esperas. No hagas
-       nada más por tu cuenta — ni push, ni merge, ni marcar la issue de Linear como
-       Done, ni ningún otro paso "de cara a publicar" (aunque te parezca el siguiente
-       paso lógico). Publicar/mergear lo decide y lo ejecuta la sesión directora, nunca
-       tú, y puede que ni siquiera sea inmediato (a veces hay que esperar a que otra
-       terminal o una fase entera cierre antes — si tu brief dice algo así, esa
-       condición manda incluso teniendo el GO).
+       **Avisa por voz** (comando exacto más abajo): "listo para auditar", **y además
+       manda un mensaje directo a la sesión directora** (herramienta `SendMessage` —
+       mira en `ListAgents` si no sabes con qué nombre de sesión identificarla, o pide
+       confirmación si dudas) diciendo que exportaste y en qué fichero. Desde
+       2026-08-12 la directora lanza ella misma al auditor en cuanto se lo dices — no
+       hace falta esperar a que Aitor abra `codex` a mano.
+    3. Esperas el veredicto — te lo devuelve la directora por el mismo canal directo (o,
+       si acaso, Aitor si prefiere seguir de intermediario esa vez).
+    4. Si es NO-GO: corriges lo señalado y vuelves al paso 2 — incluido avisar otra vez
+       a la directora, sin esperar a que nadie te lo pida. No sigas adelante con nada
+       más mientras el veredicto sea NO-GO. Repite el ciclo las veces que haga falta.
+    5. Si es GO: **avisa por voz** (comando exacto más abajo): "GO recibido, listo para
+       publicar", **y manda también el aviso por mensaje directo a la directora**.
+       PARAS AQUÍ. No hagas nada más por tu cuenta — ni push, ni merge, ni marcar la
+       issue de Linear como Done, ni ningún otro paso "de cara a publicar" (aunque te
+       parezca el siguiente paso lógico). Publicar/mergear lo decide y lo ejecuta la
+       sesión directora (o el rol Integrador, si ya está activo — es transparente para
+       ti, sigues avisando a la directora igual), nunca tú, y puede que ni siquiera sea
+       inmediato (a veces hay que esperar a que otra terminal o una fase entera cierre
+       antes — si tu brief dice algo así, esa condición manda incluso teniendo el GO).
   Tener el GO del auditor es una condición NECESARIA para publicar, pero nunca
   SUFICIENTE por sí sola — el permiso final para publicar siempre viene de fuera de esta
   sesión.
@@ -77,8 +85,11 @@ Reglas importantes para esta sesión:
   publicar". Si el comando falla (voz no instalada, `afplay`/`say` no disponibles),
   no es bloqueante — sigue con el aviso de texto normal, no lo intentes arreglar.
 
-- **Cómo coger tu siguiente tarea cuando el usuario te lo pida** ("coge tu siguiente
-  tarea", "sigue con lo siguiente", etc.):
+- **Cómo coger tu siguiente tarea**: puede llegarte de dos formas — (a) el usuario te lo
+  pide directamente ("coge tu siguiente tarea", "sigue con lo siguiente"), o (b) la
+  propia directora te manda ya el brief siguiente por mensaje directo sin que el usuario
+  tenga que decírtelo (desde 2026-08-12). En el caso (b), simplemente ponte a trabajar
+  con lo que te llegue. En el caso (a):
     1. Mira dentro de "Sorfware Factory/codigo para auditar/cola/" — ahí la directora
        deja tareas ya preparadas y con un orden, con nombres tipo
        "SIGUIENTE-1_AIT-<id>_<slug>.txt", "SIGUIENTE-2_...", etc.

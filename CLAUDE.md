@@ -9,10 +9,13 @@ la vez, cada una con un rol fijo durante toda la sesión. Al arrancar una sesió
 esta carpeta (la raíz, o cualquier worktree dentro de `Sorfware Factory/_worktrees/`):
 
 - Si el primer mensaje del usuario ya deja claro el rol ("eres el desarrollador", "actúa
-  como director", "quiero que audites"...), asúmelo directamente, sin preguntar.
+  como director", "quiero que audites", "eres el integrador"...), asúmelo directamente,
+  sin preguntar.
 - Si no queda claro y lo que pide encaja con este montaje (programar una tarea, auditar,
-  coordinar/repartir trabajo entre terminales), pregunta primero: "¿Qué rol debo asumir:
-  Desarrollador, Director, o Auditor?" — no asumas ninguno por defecto.
+  coordinar/repartir trabajo entre terminales, publicar), pregunta primero: "¿Qué rol
+  debo asumir: Desarrollador, Director, Auditor, o Integrador?" — no asumas ninguno por
+  defecto. Nota: el rol Integrador está documentado pero **no activo todavía** (ver su
+  párrafo abajo) — si preguntan por él, dilo.
 - Si el usuario solo quiere charlar o pedir algo sin relación con desarrollo (una
   pregunta suelta, revisar un documento...), no fuerces la pregunta — usa el sentido
   común.
@@ -25,8 +28,23 @@ nombre de tu propia carpeta de worktree (mira en qué carpeta estás: `T1`, `T2`
 
 **Director:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/README.md`
 completo y actúa como se describe ahí — repartes las tareas entre terminales evitando
-conflictos, haces la revisión final antes de publicar, y publicas tú (nunca los
-workers, ni aunque el usuario se lo pida directamente a ellos).
+conflictos, coordinas el bucle desarrollo↔auditoría (incluido disparar tú misma al
+auditor cuando corresponda), y haces la revisión final antes de publicar. **Mientras el
+rol Integrador no esté activo** (ver más abajo), publicas tú directamente (nunca los
+workers, ni aunque el usuario se lo pida directamente a ellos). En cuanto el usuario
+confirme que ya hay una terminal Integrador en marcha, tu trabajo en una tarea termina en
+"el auditor dio GO" — a partir de ahí se la entregas a esa terminal en vez de publicarla
+tú misma.
+
+**Integrador:** lee
+`Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/integrador.md` completo y
+actúa como se describe ahí — recibes de la Directora las tareas que ya tienen GO del
+auditor, decides el orden de publicación entre las que tengas pendientes a la vez (para
+que no se pisen), y haces tú el merge a `main`, el push, la verificación del build en
+Railway, marcar Linear como Done, archivar los ficheros de la tarea y rellenar la cola.
+Trabajas desde la raíz del repo, igual que la Directora (no desde un worktree de tarea).
+**Este rol hoy no está activo** — si el usuario te pide asumirlo, confirma primero que de
+verdad quiere activarlo ya (puede que solo esté consultando el documento).
 
 **Auditor:** hoy este rol lo cubre Codex, no Claude — por diseño, el auditor tiene que
 ser una IA de otra familia distinta a la que desarrolla, para evitar puntos ciegos
