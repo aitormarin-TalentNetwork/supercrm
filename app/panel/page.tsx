@@ -14,7 +14,8 @@ import {
 import { api } from "@/convex/_generated/api";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
-import { formatCurrency } from "@/lib/format";
+import { BillingStatusBadge } from "@/components/crm/BillingStatusBadge";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 // 3 etapas + status, no las 6 de la paleta del design system — igual que
 // en Pipeline (AIT-12): ganada/perdida son status, no etapa.
@@ -54,6 +55,10 @@ export default function PanelPage() {
     api.dashboard.getAtRiskList,
     canQuery ? {} : "skip",
   );
+  const pendingBilling = useQuery(
+    api.dashboard.listPendingBilling,
+    canQuery ? {} : "skip",
+  );
 
   useEffect(() => {
     if (role === "sales") router.replace("/hoy");
@@ -76,7 +81,8 @@ export default function PanelPage() {
     forecast === undefined ||
     atRiskCount === undefined ||
     funnel === undefined ||
-    atRiskList === undefined;
+    atRiskList === undefined ||
+    pendingBilling === undefined;
 
   if (loading) {
     return (
@@ -264,6 +270,60 @@ export default function PanelPage() {
                     <span className="min-w-0 truncate text-[13px] text-text-secondary">
                       {item.ownerName ?? "—"}
                     </span>
+                  </span>
+                </Link>
+              ))}
+            </>
+          )}
+        </section>
+
+        {/* PENDIENTES DE COBRO — AIT-33: ventas ganadas cuyo ciclo de
+            cobro no ha llegado a "cobrado" todavía. Sección propia en
+            Panel (no en Supervisión): es visibilidad financiera del
+            negocio (como Valor del pipeline/Forecast, arriba), no
+            rendimiento del equipo — que es lo que ya cubre Supervisión. */}
+        <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-[var(--shadow-e1)]">
+          <div className="flex items-center justify-between px-5 pb-3.5 pt-[18px]">
+            <div className="flex items-center gap-2">
+              <h2 className="m-0 text-base font-bold">Pendientes de cobro</h2>
+              <span className="rounded-pill bg-neutral-100 px-2.5 py-0.5 text-[11px] font-bold text-text-secondary">
+                {pendingBilling.length}
+              </span>
+            </div>
+          </div>
+
+          {pendingBilling.length === 0 ? (
+            <p className="px-5 pb-5 text-sm text-text-secondary">
+              Ninguna venta ganada pendiente de cobro.
+            </p>
+          ) : (
+            <>
+              <div className="flex items-center px-5 pb-2 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                <span className="min-w-0 flex-[2]">Cliente</span>
+                <span className="flex-1 text-right">Importe</span>
+                <span className="flex-[1.3] text-center">Cerrada</span>
+                <span className="flex-[1.4] text-right">Estado</span>
+              </div>
+              {pendingBilling.map((item) => (
+                <Link
+                  key={item.opportunityId}
+                  href={`/oportunidades/${item.opportunityId}`}
+                  className="flex items-center border-t border-border px-5 py-3 transition-colors hover:bg-neutral-100"
+                >
+                  <span className="flex min-w-0 flex-[2] items-center gap-2.5">
+                    <Avatar name={item.customerName} size="xs" />
+                    <span className="min-w-0 truncate text-sm font-semibold">
+                      {item.customerName}
+                    </span>
+                  </span>
+                  <span className="flex-1 text-right font-mono text-[13.5px] font-semibold">
+                    {item.finalAmount !== null ? formatCurrency(item.finalAmount) : "—"}
+                  </span>
+                  <span className="flex-[1.3] text-center font-mono text-xs text-text-muted">
+                    {item.closedAt ? formatDate(item.closedAt) : "—"}
+                  </span>
+                  <span className="flex flex-[1.4] justify-end">
+                    <BillingStatusBadge status={item.billingStatus} />
                   </span>
                 </Link>
               ))}

@@ -69,10 +69,36 @@ export default defineSchema({
     lastActivityAt: v.number(),
     ownerId: v.id("users"),
     storeId: v.id("stores"),
+    // AIT-33 (Post-MVP): ciclo de cobro de una venta ganada, marcado
+    // manual — la factura legal se emite fuera del CRM, esto solo hace
+    // seguimiento de estado. Campo en `opportunities`, no tabla aparte:
+    // es 1:1 con la oportunidad (una venta, un ciclo de cobro), sin
+    // historial ni datos propios más allá del estado — una tabla nueva
+    // añadiría un join sin aportar nada que este campo no cubra ya.
+    // Opcional porque solo aplica a oportunidades ganadas (undefined en
+    // abiertas/perdidas, y también en ganadas anteriores a esta tarea —
+    // ver el fallback a "listo_para_facturar" en las queries/mutations
+    // que lo leen, sin necesidad de migrar datos existentes).
+    billingStatus: v.optional(
+      v.union(
+        v.literal("listo_para_facturar"),
+        v.literal("facturado"),
+        v.literal("cobrado"),
+      ),
+    ),
   })
     .index("by_owner", ["ownerId"])
     .index("by_customer", ["customerId"])
-    .index("by_status_stage", ["status", "stage"]),
+    .index("by_status_stage", ["status", "stage"])
+    // AIT-33 (hallazgo de auditoría, NO-GO ronda 2): `by_status_stage`
+    // empieza por `status`, así que una consulta que solo fija `status`
+    // (como listPendingBilling) trae TODAS las oportunidades de esa
+    // condición de TODAS las tiendas antes de filtrar por storeId en
+    // memoria — coste que crece con el negocio entero, no con el de la
+    // tienda que pregunta, y una lectura más amplia de la necesaria en
+    // una query multi-tenant. Este índice, con storeId primero, permite
+    // consultar directamente solo lo de la tienda del usuario.
+    .index("by_store_status", ["storeId", "status"]),
 
   quotes: defineTable({
     opportunityId: v.id("opportunities"),

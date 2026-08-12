@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Phone,
   PartyPopper,
+  Receipt,
   XCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { PriorityBadge } from "@/components/crm/PriorityBadge";
+import { BillingStatusBadge, type BillingStatus } from "@/components/crm/BillingStatusBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
@@ -290,6 +292,13 @@ export default function OportunidadPage({
           )}
         </section>
 
+        {summary.billingStatus !== null && (
+          <BillingStatusSection
+            opportunityId={opportunityId}
+            billingStatus={summary.billingStatus}
+          />
+        )}
+
         <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
           <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
             Presupuesto
@@ -350,6 +359,71 @@ function HeaderField({ label, children }: { label: string; children: React.React
       </div>
       <div className="text-sm font-medium">{children}</div>
     </div>
+  );
+}
+
+const NEXT_ACTION_LABEL: Record<BillingStatus, string | null> = {
+  listo_para_facturar: "Marcar facturado",
+  facturado: "Marcar cobrado",
+  cobrado: null,
+};
+
+// AIT-33: sección persistente (no un diálogo) — el ciclo de cobro avanza
+// con un único clic de confirmación, sin datos adicionales que pedir en
+// cada paso (a diferencia de Ganada/Perdida, que sí piden importe/motivo).
+// "Marcar facturado" es el punto de extensión declarado para una futura
+// integración con un programa de facturación externo (sin proveedor
+// decidido todavía, ver brief de AIT-33): hoy el botón solo cambia este
+// estado interno; el día que se decida un proveedor, la llamada real a esa
+// integración se dispara desde aquí o desde una action de Convex que
+// envuelva advanceBillingStatus, sin cambiar la UI.
+function BillingStatusSection({
+  opportunityId,
+  billingStatus,
+}: {
+  opportunityId: Id<"opportunities">;
+  billingStatus: BillingStatus;
+}) {
+  const advance = useMutation(api.opportunities.advanceBillingStatus);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleAdvance() {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await advance({ opportunityId });
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo avanzando el estado de cobro:", err);
+      }
+      setError("No se ha podido actualizar el estado de cobro. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const nextActionLabel = NEXT_ACTION_LABEL[billingStatus];
+
+  return (
+    <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
+      <div className="flex items-center justify-between gap-2.5">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+          <Receipt size={13} />
+          Estado de cobro
+        </span>
+        <BillingStatusBadge status={billingStatus} />
+      </div>
+      {nextActionLabel && (
+        <div className="mt-3">
+          <Button variant="secondary" size="sm" onClick={handleAdvance} disabled={loading}>
+            {loading ? "Guardando…" : nextActionLabel}
+          </Button>
+        </div>
+      )}
+      {error && <p className="mt-2 text-xs font-medium text-error">{error}</p>}
+    </section>
   );
 }
 
