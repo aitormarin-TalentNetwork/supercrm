@@ -19,7 +19,11 @@ const APPEARANCE: Record<Priority, { label: string; bg: string; fg: string }> = 
 };
 
 export function PriorityBadge({ priority }: { priority: Priority }) {
-  const appearance = APPEARANCE[priority];
+  // Defensivo: el servidor ya rellena "media" para oportunidades antiguas
+  // sin priority guardado (getSummary/listOpen), pero este componente no
+  // debe asumirlo — un despliegue en curso o un valor inesperado no puede
+  // tumbar la página entera de Detalle de oportunidad.
+  const appearance = APPEARANCE[priority] ?? APPEARANCE.media;
   return (
     <span
       className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-[3px] font-sans text-xs font-semibold leading-[1.4]"
