@@ -16,7 +16,10 @@ import {
   MessageSquare,
   Phone,
   PartyPopper,
+  Pencil,
+  Plus,
   Receipt,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -32,6 +35,7 @@ import { BillingStatusBadge, type BillingStatus } from "@/components/crm/Billing
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
+import { computeQuoteTotals, roundTaxRate } from "@/lib/quoteMath";
 
 const STAGES = [
   { value: "contacto", label: "Contacto" },
@@ -299,14 +303,7 @@ export default function OportunidadPage({
           />
         )}
 
-        <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-            Presupuesto
-          </span>
-          <p className="mt-2.5 text-sm text-text-secondary">
-            Todavía no se ha creado ningún presupuesto para esta oportunidad.
-          </p>
-        </section>
+        <QuoteSection opportunityId={opportunityId} isOpen={isOpen} />
 
         <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
           <span className="mb-4 block text-[11px] font-bold uppercase tracking-wide text-text-muted">
@@ -427,6 +424,428 @@ function BillingStatusSection({
   );
 }
 
+function formatTaxRatePercent(taxRate: number): string {
+  const percent = roundTaxRate(taxRate) * 100;
+  return String(Number(percent.toFixed(4))).replace(".", ",");
+}
+
+// Presupuesto por líneas (AIT-29, Post-MVP ronda 1 — sustituye el bloque
+// simple de AIT-21). Sección propia en vez de otro modal más en la lista
+// de botones de arriba: a diferencia de Cambiar etapa/Ganada/Perdida (una
+// acción puntual), el presupuesto tiene un estado que se ve de un vistazo
+// aquí mismo (líneas, total, si está enviado/aceptado/rechazado), igual
+// que la sección de "Próximo paso" — el editor solo se abre para
+// crear/modificar.
+function QuoteSection({
+  opportunityId,
+  isOpen,
+}: {
+  opportunityId: Id<"opportunities">;
+  isOpen: boolean;
+}) {
+  const quote = useQuery(api.quotes.getForOpportunity, { opportunityId });
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  return (
+    <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
+      <div className="flex items-center justify-between gap-2.5">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+          <Receipt size={13} />
+          Presupuesto
+        </span>
+        {quote && (
+          <span className="rounded-pill bg-primary-subtle px-2.5 py-[3px] text-xs font-semibold text-primary">
+            {QUOTE_STATUS_LABEL[quote.status]}
+          </span>
+        )}
+      </div>
+
+      {quote === undefined && (
+        <p className="mt-2.5 text-sm text-text-secondary">Cargando…</p>
+      )}
+
+      {quote === null && (
+        <>
+          <p className="mt-2.5 text-sm text-text-secondary">
+            Todavía no se ha creado ningún presupuesto para esta oportunidad.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+            leftIcon={<Plus size={14} />}
+            disabled={!isOpen}
+            title={isOpen ? undefined : "La oportunidad está cerrada."}
+            onClick={() => setEditorOpen(true)}
+          >
+            Crear presupuesto
+          </Button>
+        </>
+      )}
+
+      {quote && (
+        <>
+          <div className="mt-3 flex flex-col gap-1.5">
+            {quote.lines.map((line, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0 flex-1 truncate text-text-secondary">
+                  {line.quantity} × {line.productName}
+                </span>
+                <span className="flex-none font-mono text-text">
+                  {formatCurrency(line.quantity * line.unitPrice)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-col gap-1 border-t border-border pt-3 text-sm">
+            <div className="flex items-center justify-between text-text-secondary">
+              <span>Subtotal</span>
+              <span className="font-mono">{formatCurrency(quote.subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between text-text-secondary">
+              <span>IVA ({formatTaxRatePercent(quote.taxRate)}%)</span>
+              <span className="font-mono">{formatCurrency(quote.tax)}</span>
+            </div>
+            <div className="flex items-center justify-between text-base font-semibold text-text">
+              <span>Total</span>
+              <span className="font-mono">{formatCurrency(quote.total)}</span>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+            leftIcon={<Pencil size={14} />}
+            disabled={!isOpen}
+            title={isOpen ? undefined : "La oportunidad está cerrada."}
+            onClick={() => setEditorOpen(true)}
+          >
+            Editar presupuesto
+          </Button>
+        </>
+      )}
+
+      <QuoteDialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        opportunityId={opportunityId}
+        existingQuote={quote ?? null}
+      />
+    </section>
+  );
+}
+
+type QuoteLineDraft = { productId: string; quantity: string };
+
+function QuoteDialog({
+  open,
+  onClose,
+  opportunityId,
+  existingQuote,
+}: {
+  open: boolean;
+  onClose: () => void;
+  opportunityId: Id<"opportunities">;
+  existingQuote: {
+    lines: { productId: Id<"products">; productName: string; quantity: number; unitPrice: number }[];
+    taxRate: number;
+    status: "sent" | "accepted" | "rejected";
+  } | null;
+}) {
+  const products = useQuery(api.products.list, open ? {} : "skip");
+  const upsert = useMutation(api.quotes.upsertForOpportunity);
+
+  const [lines, setLines] = useState<QuoteLineDraft[]>([]);
+  const [taxRatePercent, setTaxRatePercent] = useState("21");
+  const [status, setStatus] = useState<"sent" | "accepted" | "rejected">("sent");
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  // Rellena el editor con el presupuesto existente (o uno vacío) en cada
+  // apertura — mismo patrón que AltaRapidaModal/RegistrarInteraccionModal
+  // para "reaccionar" a que `open` pasó a true sin un efecto aparte.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      if (existingQuote) {
+        setLines(
+          existingQuote.lines.map((l) => ({
+            productId: l.productId,
+            quantity: String(l.quantity),
+          })),
+        );
+        setTaxRatePercent(formatTaxRatePercent(existingQuote.taxRate));
+        setStatus(existingQuote.status);
+      } else {
+        setLines([]);
+        setTaxRatePercent("21");
+        setStatus("sent");
+      }
+      setFormError("");
+    }
+  }
+
+  function handleClose() {
+    if (loading) return;
+    onClose();
+  }
+
+  function addLine() {
+    const firstProduct = products?.[0];
+    if (!firstProduct) return;
+    setLines((prev) => [...prev, { productId: firstProduct.id, quantity: "1" }]);
+  }
+
+  function updateLine(index: number, patch: Partial<QuoteLineDraft>) {
+    setLines((prev) => prev.map((line, i) => (i === index ? { ...line, ...patch } : line)));
+  }
+
+  function removeLine(index: number) {
+    setLines((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  const productById = new Map((products ?? []).map((p) => [p.id, p]));
+  // Foto del presupuesto ya guardado, por producto — para una línea cuyo
+  // producto se ha borrado del catálogo entre tanto (ronda de auditoría 2,
+  // mayor único): el desplegable ya no lo ofrece, pero la línea sigue en
+  // el formulario y hay que poder seguir viéndola/guardándola (aunque solo
+  // sea para cambiar el estado del presupuesto) sin que la previsualización
+  // la trate como si costara 0€ ni que el envío la rechace.
+  const existingLineByProduct = new Map(
+    (existingQuote?.lines ?? []).map((l) => [l.productId, l]),
+  );
+  const resolvedLines = lines.map((line) => {
+    const product = productById.get(line.productId as Id<"products">);
+    const removedProduct = product
+      ? undefined
+      : existingLineByProduct.get(line.productId as Id<"products">);
+    const price = product?.price ?? removedProduct?.unitPrice ?? 0;
+    const name = product?.name ?? removedProduct?.productName;
+    const quantity = Number(line.quantity.replace(",", "."));
+    return {
+      name,
+      price,
+      removed: removedProduct !== undefined,
+      quantity: Number.isFinite(quantity) ? quantity : 0,
+      lineTotal: name && Number.isFinite(quantity) ? price * quantity : 0,
+    };
+  });
+  // roundTaxRate aquí también (no solo al formatear/precargar): el
+  // servidor redondea el taxRate recibido al mismo contrato de precisión
+  // antes de calcular sus totales (ronda de auditoría 4), así que sin
+  // este redondeo la previsualización podía mostrar un total calculado
+  // sobre un IVA con más decimales de los que realmente se van a
+  // persistir.
+  const rawTaxRate = (Number(taxRatePercent.replace(",", ".")) || 0) / 100;
+  const taxRate = roundTaxRate(rawTaxRate);
+  // Aviso no bloqueante (sugerencia del auditor, ronda 5): el campo
+  // admite más precisión de la que el servidor conserva — si lo tecleado
+  // tiene más decimales de los que cabe en el contrato, se avisa de qué
+  // valor es el que realmente se va a guardar, en vez de dejar que el
+  // usuario lo descubra solo mirando el total. Comparación con margen
+  // (no `!==` directo): dividir entre 100 y volver a redondear introduce
+  // ruido de coma flotante del orden de 1e-16 incluso para un valor YA
+  // canónico (p.ej. "21,56" → 0.21559999999999999 vs
+  // roundTaxRate(...) = 0.21560000000000001) — sin margen, el aviso
+  // aparecía siempre, para cualquier IVA, aunque no hubiera pérdida real.
+  // Cualquier pérdida de precisión genuina mueve el valor al menos medio
+  // paso de redondeo (~0.00005), muy por encima de ese ruido.
+  const taxRateHint =
+    Math.abs(rawTaxRate - taxRate) > 1e-9
+      ? `Se guardará como ${formatTaxRatePercent(taxRate)}%`
+      : undefined;
+  // Misma función que el servidor (lib/quoteMath.ts), no una cuenta propia:
+  // sumar en punto flotante sin redondear aquí podía mostrar un total
+  // distinto del que persiste convex/quotes.ts con cantidades decimales
+  // (ronda de auditoría 1, mayor #2) — ahora es literalmente imposible que
+  // diverjan, es la misma fórmula.
+  const { subtotal, tax, total } = computeQuoteTotals(
+    resolvedLines.map((l) => ({ quantity: l.quantity, unitPrice: l.price })),
+    taxRate,
+  );
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading) return;
+
+    if (lines.length === 0) {
+      setFormError("Añade al menos una línea al presupuesto.");
+      return;
+    }
+    const parsedLines: { productId: Id<"products">; quantity: number }[] = [];
+    for (const line of lines) {
+      const quantity = Number(line.quantity.replace(",", "."));
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        setFormError("Revisa las cantidades: alguna no es válida.");
+        return;
+      }
+      parsedLines.push({ productId: line.productId as Id<"products">, quantity });
+    }
+    const parsedTaxRate = Number(taxRatePercent.replace(",", ".")) / 100;
+    if (!Number.isFinite(parsedTaxRate) || parsedTaxRate < 0 || parsedTaxRate > 1) {
+      setFormError("El IVA debe estar entre 0% y 100%.");
+      return;
+    }
+
+    setFormError("");
+    setLoading(true);
+    try {
+      await upsert({ opportunityId, lines: parsedLines, taxRate: parsedTaxRate, status });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo guardando el presupuesto:", err);
+      }
+      setFormError("No se ha podido guardar el presupuesto. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button type="submit" form="quote-form" disabled={loading}>
+        {loading ? "Guardando…" : "Guardar presupuesto"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Presupuesto"
+      description="Añade productos del catálogo y ajusta cantidades. El total se calcula solo."
+      width={520}
+      footer={footer}
+    >
+      <form id="quote-form" onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        {formError && (
+          <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{formError}</div>
+        )}
+
+        {products !== undefined && products.length === 0 && lines.length === 0 && (
+          <p className="rounded-md bg-neutral-50 p-3 text-sm text-text-secondary">
+            El catálogo todavía no tiene productos — pide a Marta que añada alguno en
+            &ldquo;Catálogo&rdquo; desde el Panel.
+          </p>
+        )}
+
+        {products && (products.length > 0 || lines.length > 0) && (
+          <div className="flex flex-col gap-2.5">
+            {lines.map((line, index) => {
+              // Producto borrado del catálogo después de usarse en este
+              // presupuesto (ronda de auditoría 2, mayor único): el
+              // desplegable ya no lo lista, así que se añade como opción
+              // aparte deshabilitada solo para que la línea siga siendo
+              // visible/guardable con su foto original — no se puede
+              // volver a elegir a propósito.
+              const removedLine = !productById.has(line.productId as Id<"products">)
+                ? existingLineByProduct.get(line.productId as Id<"products">)
+                : undefined;
+              return (
+              <div key={index} className="flex items-end gap-2">
+                <div className="min-w-0 flex-1">
+                  <Select
+                    label={index === 0 ? "Producto" : undefined}
+                    value={line.productId}
+                    onChange={(e) => updateLine(index, { productId: e.target.value })}
+                  >
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — {formatCurrency(p.price)}
+                      </option>
+                    ))}
+                    {removedLine && (
+                      <option value={line.productId} disabled>
+                        {removedLine.productName} — {formatCurrency(removedLine.unitPrice)}{" "}
+                        (eliminado del catálogo)
+                      </option>
+                    )}
+                  </Select>
+                </div>
+                <div className="w-20 flex-none">
+                  <Input
+                    label={index === 0 ? "Cant." : undefined}
+                    value={line.quantity}
+                    onChange={(e) => updateLine(index, { quantity: e.target.value })}
+                  />
+                </div>
+                <button
+                  type="button"
+                  aria-label="Quitar línea"
+                  onClick={() => removeLine(index)}
+                  className={`inline-flex h-11 w-9 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-error-subtle hover:text-error ${
+                    index === 0 ? "mt-[26px]" : ""
+                  }`}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
+              );
+            })}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              leftIcon={<Plus size={14} />}
+              onClick={addLine}
+              className="self-start"
+            >
+              Añadir línea
+            </Button>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <div className="w-28">
+            <Input
+              label="IVA (%)"
+              value={taxRatePercent}
+              onChange={(e) => setTaxRatePercent(e.target.value)}
+              hint={taxRateHint}
+            />
+          </div>
+          <div className="min-w-[160px] flex-1">
+            <Select
+              label="Estado"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as typeof status)}
+            >
+              {(["sent", "accepted", "rejected"] as const).map((s) => (
+                <option key={s} value={s}>
+                  {QUOTE_STATUS_LABEL[s]}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+
+        {lines.length > 0 && (
+          <div className="flex flex-col gap-1 rounded-md bg-neutral-50 p-3 text-sm">
+            <div className="flex items-center justify-between text-text-secondary">
+              <span>Subtotal</span>
+              <span className="font-mono">{formatCurrency(subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between text-text-secondary">
+              <span>IVA</span>
+              <span className="font-mono">{formatCurrency(tax)}</span>
+            </div>
+            <div className="flex items-center justify-between text-base font-semibold text-text">
+              <span>Total</span>
+              <span className="font-mono">{formatCurrency(total)}</span>
+            </div>
+          </div>
+        )}
+      </form>
+    </Dialog>
+  );
+}
+
 function ChangeStageDialog({
   open,
   onClose,
@@ -507,10 +926,6 @@ function ChangeStageDialog({
   );
 }
 
-// AIT-35 (Post-MVP): mismo patrón que ChangeStageDialog, pero para la
-// prioridad manual. Distinta mutation (changePriority) y sin efectos
-// colaterales sobre etapa/próximo paso — ver el comentario en
-// convex/opportunities.ts:changePriority.
 function ChangePriorityDialog({
   open,
   onClose,

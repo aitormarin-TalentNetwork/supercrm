@@ -100,9 +100,27 @@ export default defineSchema({
     // consultar directamente solo lo de la tienda del usuario.
     .index("by_store_status", ["storeId", "status"]),
 
+  // AIT-29 (Post-MVP, ronda 1 — catálogo + cálculo): sustituye el `amount`
+  // plano de AIT-21 por una colección de líneas. `productName`/`unitPrice`
+  // son una FOTO del catálogo en el momento de añadir la línea, no una
+  // referencia viva — si el precio de un producto cambia en el catálogo
+  // después, los presupuestos ya creados no deben moverse solos. Sigue
+  // habiendo como mucho UN presupuesto por oportunidad (upsert, igual que
+  // AIT-21) — varias versiones queda para una ronda 2 aparte, junto al PDF.
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
-    amount: v.number(),
+    lines: v.array(
+      v.object({
+        productId: v.id("products"),
+        productName: v.string(),
+        quantity: v.number(),
+        unitPrice: v.number(),
+      }),
+    ),
+    taxRate: v.number(),
+    subtotal: v.number(),
+    tax: v.number(),
+    total: v.number(),
     status: v.union(
       v.literal("sent"),
       v.literal("accepted"),
@@ -110,6 +128,14 @@ export default defineSchema({
     ),
     sentAt: v.number(),
   }).index("by_opportunity", ["opportunityId"]),
+
+  // Catálogo de productos (AIT-29, Post-MVP). Lo administra Marta
+  // (owner); Carlos solo lo lee para construir presupuestos.
+  products: defineTable({
+    name: v.string(),
+    price: v.number(),
+    storeId: v.id("stores"),
+  }).index("by_store", ["storeId"]),
 
   interactions: defineTable({
     opportunityId: v.id("opportunities"),

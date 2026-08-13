@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   ArrowRight,
   CalendarDays,
+  Package,
   Store,
   TrendingUp,
 } from "lucide-react";
@@ -108,11 +109,18 @@ export default function PanelPage() {
           <Store size={13} className="text-neutral-400" />
           {store?.name ?? "…"}
         </span>
-        <Link href="/supervision" className="ml-auto">
-          <Button variant="secondary" size="sm" rightIcon={<ArrowRight size={14} />}>
-            Supervisión
-          </Button>
-        </Link>
+        <div className="ml-auto flex items-center gap-2">
+          <Link href="/catalogo">
+            <Button variant="secondary" size="sm" leftIcon={<Package size={14} />}>
+              Catálogo
+            </Button>
+          </Link>
+          <Link href="/supervision">
+            <Button variant="secondary" size="sm" rightIcon={<ArrowRight size={14} />}>
+              Supervisión
+            </Button>
+          </Link>
+        </div>
       </header>
 
       <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-4 pb-16 pt-[18px]">

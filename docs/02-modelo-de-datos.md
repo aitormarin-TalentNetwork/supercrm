@@ -15,7 +15,7 @@ El PRD las nombra así:
 | Usuario | `users` | Quién usa el sistema y qué puede ver (`owner` = Marta, `sales` = Carlos). |
 | Cliente | `customers` | La persona o empresa a la que vendemos. |
 | Oportunidad | `opportunities` | Una posible venta y su recorrido por las etapas. **Es el centro de todo.** |
-| Presupuesto | `quotes` | La oferta económica de una oportunidad (en el MVP: importe + estado, **sin PDF**). |
+| Presupuesto | `quotes` | La oferta económica de una oportunidad. En el MVP era importe suelto + estado, sin PDF; AIT-29 (Post-MVP) lo evolucionó a líneas de producto con cálculo en servidor — ver §2. |
 | Interacción | `interactions` | Cada contacto que se tiene con el cliente (llamada, WhatsApp, email, visita). |
 | Próximo paso | `nextSteps` | La siguiente acción a hacer y cuándo. **Es la razón de ser del producto.** |
 
@@ -96,12 +96,27 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 > El PRD §7 lo fija: *"Columnas por etapa: Contacto → Presupuesto → Negociación/Cierre (con resultado Ganada/Perdida)"*. Y `Design/pantallas/Pipeline.dc.html` implementa exactamente eso (`const OPEN = ['contactado','propuesta','negociacion']`, más Ganada y Perdida como resultado). **Diseño y PRD ya coinciden: 3 etapas + status.** Añadir una etapa más sería alcance que el PRD no pide.
 
 ### `quotes`
+**Post-MVP (AIT-29):** ya no es un importe suelto — es una colección de líneas, con subtotal/impuestos/total calculados en el servidor.
+
 | Campo | Tipo | Notas |
 |---|---|---|
-| `opportunityId` | id(`opportunities`) | |
-| `amount` | number | |
-| `status` | `"sent"` \| `"accepted"` \| `"rejected"` | Los 3 del PRD §8. La paleta del design system trae además `borrador` y `vencido`: son tokens sobrantes, no estados del MVP |
+| `opportunityId` | id(`opportunities`) | Como mucho un presupuesto por oportunidad (upsert) — igual que en el MVP. Varias versiones por oportunidad queda para una ronda 2 de AIT-29 |
+| `lines` | array de `{productId, productName, quantity, unitPrice}` | `productName`/`unitPrice` son una FOTO del catálogo al añadir la línea, no una referencia viva — si el precio de un producto cambia después en `products`, los presupuestos ya creados no se mueven solos |
+| `taxRate` | number | Ej. `0.21` para 21% de IVA |
+| `subtotal` | number | `Σ (quantity × unitPrice)` de las líneas — calculado en servidor, nunca confiado del cliente |
+| `tax` | number | `subtotal × taxRate` |
+| `total` | number | `subtotal + tax` |
+| `status` | `"sent"` \| `"accepted"` \| `"rejected"` | Los 3 del PRD §8 (heredados del MVP). La paleta del design system trae además `borrador` y `vencido`: son tokens sobrantes, no estados usados |
 | `sentAt` | number | |
+
+### `products` (Post-MVP, AIT-29 — no es una de las 7 entidades del MVP)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `name` | string | |
+| `price` | number | Precio de catálogo actual — la línea de un presupuesto ya creado guarda su propia foto, no lee este campo en vivo |
+| `storeId` | id(`stores`) | |
+
+Lo administra Marta (`requireOwner`); Carlos solo lo lee para construir presupuestos — mismo patrón de reparto de permisos que el resto del proyecto (ver `docs/01-arquitectura.md` §4), aplicado aquí por primera vez a una entidad que no es "mis clientes/oportunidades" sino un recurso compartido de toda la tienda.
 
 ### `interactions`
 | Campo | Tipo | Notas |
@@ -224,7 +239,18 @@ export default defineSchema({
 
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
-    amount: v.number(),
+    lines: v.array(
+      v.object({
+        productId: v.id("products"),
+        productName: v.string(),
+        quantity: v.number(),
+        unitPrice: v.number(),
+      }),
+    ),
+    taxRate: v.number(),
+    subtotal: v.number(),
+    tax: v.number(),
+    total: v.number(),
     status: v.union(
       v.literal("sent"),
       v.literal("accepted"),
@@ -232,6 +258,12 @@ export default defineSchema({
     ),
     sentAt: v.number(),
   }).index("by_opportunity", ["opportunityId"]),
+
+  products: defineTable({
+    name: v.string(),
+    price: v.number(),
+    storeId: v.id("stores"),
+  }).index("by_store", ["storeId"]),
 
   interactions: defineTable({
     opportunityId: v.id("opportunities"),
