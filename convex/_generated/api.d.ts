@@ -18,6 +18,7 @@ import type * as nextSteps from "../nextSteps.js";
 import type * as opportunities from "../opportunities.js";
 import type * as products from "../products.js";
 import type * as quotes from "../quotes.js";
+import type * as repurchaseReminders from "../repurchaseReminders.js";
 import type * as stores from "../stores.js";
 import type * as users from "../users.js";
 
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   opportunities: typeof opportunities;
   products: typeof products;
   quotes: typeof quotes;
+  repurchaseReminders: typeof repurchaseReminders;
   stores: typeof stores;
   users: typeof users;
 }>;

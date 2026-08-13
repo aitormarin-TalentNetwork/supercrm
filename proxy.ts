@@ -24,6 +24,11 @@ const isProtectedRoute = createRouteMatcher([
   "/pipeline(.*)",
   "/supervision(.*)",
   "/catalogo(.*)",
+  // AIT-30 (hallazgo de auditoría, NO-GO ronda 1): sin esto, un usuario
+  // anónimo podía cargar /reactivar directamente — la query de Convex
+  // rechaza la petición ("No autenticado"), pero eso no sustituye el
+  // contrato de enrutado que ya cumplen el resto de pantallas privadas.
+  "/reactivar(.*)",
 ]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {

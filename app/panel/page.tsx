@@ -115,6 +115,11 @@ export default function PanelPage() {
               Catálogo
             </Button>
           </Link>
+          <Link href="/reactivar">
+            <Button variant="secondary" size="sm" rightIcon={<ArrowRight size={14} />}>
+              Reactivar
+            </Button>
+          </Link>
           <Link href="/supervision">
             <Button variant="secondary" size="sm" rightIcon={<ArrowRight size={14} />}>
               Supervisión

@@ -3,8 +3,19 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
-import { startOfBusinessDay } from "../lib/businessTime";
+import { addBusinessMonths, startOfBusinessDay } from "../lib/businessTime";
 import { isAtRisk } from "../lib/risk";
+
+// AIT-30: sin catálogo de productos ni ciclo de recompra por interés
+// (`opportunities.interest` es texto libre opcional, no una referencia a
+// un catálogo estructurado — ver AIT-29 en curso, que sí introduce un
+// catálogo pero para presupuestos, no para esto), un único default global
+// razonable en vez de una tabla de ciclos por producto que el PRD no pide
+// todavía. 6 meses: ciclo de recompra genérico para un negocio de venta al
+// detalle sin dato real que lo afine. Si en el futuro se necesita variar
+// por producto, este valor pasa a ser el fallback de esa tabla, no se
+// descarta.
+const DEFAULT_REPURCHASE_MONTHS = 6;
 
 // Primer próximo paso según el canal de origen (PRD: Alta rápida → "genera
 // la oportunidad y su primer próximo paso automático"). Mismos canales que
@@ -406,7 +417,11 @@ export const markWon = mutation({
   },
   handler: async (ctx, { opportunityId, finalAmount }) => {
     const user = await requireUser(ctx);
-    await loadOpenOpportunityOrThrow(ctx, user, opportunityId);
+    const opportunity = await loadOpenOpportunityOrThrow(
+      ctx,
+      user,
+      opportunityId,
+    );
 
     if (
       !Number.isFinite(finalAmount) ||
@@ -428,6 +443,17 @@ export const markWon = mutation({
       billingStatus: "listo_para_facturar",
     });
     await closePendingNextSteps(ctx, opportunityId);
+
+    // AIT-30: toda venta ganada programa su propio recordatorio de
+    // recompra — no es opcional ni condicionado a datos extra del cierre.
+    await ctx.db.insert("repurchaseReminders", {
+      customerId: opportunity.customerId,
+      opportunityId,
+      ownerId: opportunity.ownerId,
+      storeId: opportunity.storeId,
+      dueDate: addBusinessMonths(now, DEFAULT_REPURCHASE_MONTHS),
+      status: "pending",
+    });
   },
 });
 

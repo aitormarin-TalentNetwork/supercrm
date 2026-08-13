@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Bell, Plus, Check, Clock, AlertTriangle } from "lucide-react";
+import { Bell, Plus, Check, Clock, AlertTriangle, Repeat } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
@@ -258,7 +258,15 @@ export default function HoyPage() {
           </h1>
           <p className="mt-0.5 text-[13px] capitalize text-text-muted">{today}</p>
         </div>
-        <div className="relative flex-none">
+        <div className="flex flex-none items-center gap-2">
+          <Link
+            href="/reactivar"
+            aria-label="Clientes a reactivar"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
+          >
+            <Repeat size={18} />
+          </Link>
+          <div className="relative">
           <button
             type="button"
             aria-label="Notificaciones"
@@ -360,6 +368,7 @@ export default function HoyPage() {
               </div>
             </>
           )}
+          </div>
         </div>
       </header>
 

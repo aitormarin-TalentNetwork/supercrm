@@ -88,6 +88,38 @@ export function businessDaysBetween(
   return Math.round((toAsUtc - fromAsUtc) / 86_400_000);
 }
 
+// Nº de días del mes `month` (1-based, admite valores fuera de 1-12 —
+// se normaliza igual que `zonedMidnight`) de `year`. El día 0 de un mes
+// es, por definición de `Date.UTC`, el último día del mes anterior — con
+// `month` tal cual (sin restar 1) apunta al mes siguiente al que interesa,
+// así que su día 0 es el último día del mes correcto.
+function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+// AIT-30: fecha de un recordatorio a meses vista (recompra), no a días
+// como startOfNextBusinessDay. Se calcula sobre las partes de fecha
+// zonadas (igual que businessDaysBetween) y no sobre aritmética de ms,
+// porque un mes no tiene una duración fija en ms — usar
+// `instantMs + N * 30 * 86_400_000` desviaría la fecha real mes a mes.
+// `zonedMidnight` ya normaliza el desbordamiento de `month` (como hace
+// `startOfNextBusinessDay` con `day`), así que enero + 13 meses cae en
+// febrero del año siguiente sin caso especial.
+// Desbordamiento de `day` (hallazgo de auditoría, NO-GO ronda 3): el día
+// se acota al último día válido del mes de destino en vez de dejar que
+// `Date.UTC` lo desborde al mes siguiente — 31 de agosto + 6 meses debe
+// caer en 28/29 de febrero, no en el 2-3 de marzo.
+export function addBusinessMonths(
+  instantMs: number,
+  months: number,
+  timeZone: string = BUSINESS_TIME_ZONE,
+): number {
+  const { year, month, day } = getZonedDateParts(instantMs, timeZone);
+  const targetMonth = month + months;
+  const clampedDay = Math.min(day, daysInMonth(year, targetMonth));
+  return zonedMidnight(year, targetMonth, clampedDay, timeZone);
+}
+
 // Hora del día (0-23) en la zona de negocio. Para UI que depende de "qué
 // hora es ahora" (p.ej. el saludo de la pantalla "Hoy") en vez de la fecha
 // límite de un paso — no reutiliza startOfBusinessDay porque aquí no

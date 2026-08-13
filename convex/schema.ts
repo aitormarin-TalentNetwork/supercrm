@@ -189,4 +189,32 @@ export default defineSchema({
     userId: v.id("users"),
     interactionId: v.id("interactions"),
   }).index("by_client_request_id", ["clientRequestId"]),
+
+  // AIT-30 (Post-MVP): recordatorio de recompra tras una venta ganada.
+  // Tabla propia, no `nextSteps` — conceptualmente distinto (fidelización
+  // futura de un cliente ya cerrado, no seguimiento de una venta abierta
+  // en curso) y con un ciclo de vida a meses vista, no a días. ownerId y
+  // storeId se copian de la oportunidad al crearlo (no se derivan cada vez
+  // por join) para poder filtrar por comercial/tienda igual que el resto
+  // de listados del proyecto.
+  repurchaseReminders: defineTable({
+    customerId: v.id("customers"),
+    opportunityId: v.id("opportunities"),
+    ownerId: v.id("users"),
+    storeId: v.id("stores"),
+    dueDate: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("done"),
+      v.literal("dismissed"),
+    ),
+  })
+    .index("by_status", ["status"])
+    .index("by_customer", ["customerId"])
+    // AIT-30 (hallazgo de auditoría, NO-GO ronda 3): `by_status` empieza
+    // por `status`, así que listToReactivate traía TODOS los recordatorios
+    // pendientes de TODAS las tiendas antes de filtrar por storeId en
+    // memoria — mismo problema que tuvo listPendingBilling en AIT-33,
+    // mismo arreglo: índice con storeId primero.
+    .index("by_store_status", ["storeId", "status"]),
 });
