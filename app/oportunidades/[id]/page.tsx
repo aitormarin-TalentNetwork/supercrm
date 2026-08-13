@@ -424,6 +424,12 @@ function BillingStatusSection({
   );
 }
 
+const QUOTE_STATUS_LABEL: Record<"sent" | "accepted" | "rejected", string> = {
+  sent: "Enviado",
+  accepted: "Aceptado",
+  rejected: "Rechazado",
+};
+
 function formatTaxRatePercent(taxRate: number): string {
   const percent = roundTaxRate(taxRate) * 100;
   return String(Number(percent.toFixed(4))).replace(".", ",");
