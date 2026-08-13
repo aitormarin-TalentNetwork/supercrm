@@ -16,7 +16,11 @@ export default defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-    role: v.union(v.literal("owner"), v.literal("sales")),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("storeManager"),
+      v.literal("sales"),
+    ),
     storeId: v.id("stores"),
   })
     .index("email", ["email"])

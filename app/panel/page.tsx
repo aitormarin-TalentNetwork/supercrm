@@ -30,14 +30,18 @@ export default function PanelPage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const router = useRouter();
 
-  // Guardia de UX (no de acceso real — eso lo hacen proxy.ts y requireOwner
-  // en cada query de convex/dashboard.ts y de stores.getStoreInfo). "skip"
-  // mientras no sabemos el rol evita pedir datos financieros a Convex antes
-  // de confirmar que el usuario es owner — y evita una carrera real vista
-  // en pruebas: sin este guard, getStoreInfo podía dispararse en el
-  // instante justo de un cambio de sesión (signIn en curso) y fallar contra
-  // el token todavía-no-reemplazado del usuario anterior.
-  const canQuery = role === "owner";
+  // Guardia de UX (no de acceso real — eso lo hacen proxy.ts y
+  // requireStoreAccess en cada query de convex/dashboard.ts y de
+  // stores.getStoreInfo). "skip" mientras no sabemos el rol evita pedir
+  // datos financieros a Convex antes de confirmar que el usuario tiene
+  // acceso — y evita una carrera real vista en pruebas: sin este guard,
+  // getStoreInfo podía dispararse en el instante justo de un cambio de
+  // sesión (signIn en curso) y fallar contra el token todavía-no-reemplazado
+  // del usuario anterior. AIT-31: storeManager ve su tienda igual que
+  // owner ve la suya — ambos pasan el guard, cada uno acotado a la suya
+  // por requireStoreAccess (owner no pide ninguna tienda ajena aquí
+  // todavía: eso es la comparativa entre tiendas, pendiente aparte).
+  const canQuery = role === "owner" || role === "storeManager";
   const store = useQuery(api.stores.getStoreInfo, canQuery ? {} : "skip");
   const pipelineValue = useQuery(
     api.dashboard.getPipelineValue,

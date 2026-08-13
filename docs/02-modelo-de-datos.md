@@ -313,6 +313,119 @@ export default defineSchema({
 
 ---
 
+## 4b. Multi-tienda (AIT-31, Post-MVP — EN CURSO, backend parcial)
+
+**Estado:** 🟡 Opción B confirmada con la sesión directora, tarea
+repartida entre dos terminales (T3 en esta rama, T1 en una rama aparte
+desde `main` — la directora integra ambas antes del export único a
+auditor). Lo de T3 (esta rama) ya está: rol `storeManager`
+(`convex/schema.ts`), helper `requireStoreAccess`
+(`convex/model/access.ts`), las 10 queries de `convex/dashboard.ts`
+migradas, contrato mínimo de frontend (`convex/stores.ts:listStores`,
+`getStoreInfo` migrada, gates de rol en `proxy.ts` +
+`app/panel/page.tsx` + `app/supervision/page.tsx`), y mutations
+`create`/`update` de tienda en `convex/stores.ts`. Pendiente de T1 (otra
+rama): generalizar `bootstrapInitialAccounts` y armonizar
+`nextSteps.ts` (puntos 4 y 6 de abajo). Falta también la UI del selector
+de tienda / comparativa entre tiendas en el Panel — asignada a T1 por
+separado, sobre el contrato ya cerrado.
+
+### El problema
+
+El MVP asume una sola tienda: `users.storeId` es 1:1 (cada usuario
+pertenece a exactamente una) y `requireOwner` (`convex/model/access.ts`)
+es literalmente "role === owner", sin más. Con varias tiendas reales, el
+control de acceso pasa de ser casi decorativo a ser el aislamiento real
+entre tiendas (inventario completo de las ~35 queries/mutations
+afectadas, hecho antes de escribir esto: prácticamente todo
+`convex/*.ts` compara `doc.storeId !== user.storeId`).
+
+AIT-31 pide un nuevo rol intermedio, **`storeManager`**, con este reparto
+de visibilidad:
+
+| Rol | Ve |
+|---|---|
+| `sales` | Solo lo suyo (`ownerId === user._id`), dentro de su tienda |
+| `storeManager` | Toda su tienda (equivalente a lo que hoy hace `owner` en el MVP, pero acotado a una tienda) |
+| `owner` | Todas las tiendas del negocio |
+
+Eso significa que **`owner` deja de encajar en el modelo "1 usuario = 1
+storeId"** — hace falta decidir cómo se representa a alguien que ve más
+de una tienda a la vez (necesario para "comparativa entre tiendas" en el
+Panel).
+
+### Dos opciones
+
+**Opción A — owner sin tienda propia.** `users.storeId` pasa a opcional;
+para un `owner` se ignora por completo (ve cualquier `storeId`). Riesgo:
+cualquiera de las ~35 funciones que compara `doc.storeId === user.storeId`
+tiene que revisarse para no comparar accidentalmente contra `undefined`
+(fallo silencioso: o bloquea todo, o —peor— si alguna comparación usa
+`!==` mal invertida, podría abrir de más).
+
+**Opción B — owner con tienda "de referencia" + argumento explícito
+(RECOMENDADA).** `users.storeId` sigue obligatorio para todos, incluido
+`owner` (la tienda donde iniciaron sesión / la asignada al crear la
+cuenta). Las queries que hoy usan implícitamente `user.storeId` pasan a
+aceptar un argumento opcional `storeId`:
+- Si `role === "owner"`: se respeta el argumento (o se agrega sobre
+  todas las tiendas si se omite / se pide explícitamente "todas").
+- Si `role === "storeManager"` o `"sales"`: el argumento se IGNORA
+  siempre, se usa `user.storeId` — así ninguno de los dos puede colarse
+  a otra tienda mandando el argumento que le dé la gana.
+
+Se prefiere B: no cambia la obligatoriedad de un campo ya usado en 4
+tablas (`users`, `customers`, `opportunities`, `products`), y el
+aislamiento de `storeManager`/`sales` no depende de que cada función
+recuerde comprobar `undefined` correctamente — depende solo de ignorar
+un argumento, un patrón mucho más difícil de hacer mal por descuido.
+
+### Qué falta decidir/hacer una vez se confirme la opción
+
+1. 🟢 Hecho — `"storeManager"` añadido a `users.role` en
+   `convex/schema.ts` (el bloqueo por AIT-30 tocando el mismo archivo ya
+   se resolvió: AIT-30 mergeó a `main` antes de este cambio).
+2. 🟢 Hecho — nuevo helper `requireStoreAccess(ctx, requestedStoreId?)`
+   en `convex/model/access.ts`, devuelve `{ user, storeId }` ya resuelto
+   según la tabla de arriba (falla cerrado a `user.storeId` salvo que
+   quien pregunte sea `owner` y mande `requestedStoreId`).
+3. 🟢 Hecho — las 10 queries de `convex/dashboard.ts` usan ahora
+   `requireStoreAccess` en vez de `requireOwner`, y aceptan el argumento
+   opcional `storeId` (compatible con las llamadas actuales del
+   frontend, que pasan `{}`). Nota: `convex/stores.ts:getStoreInfo` y las
+   3 mutations de `convex/products.ts` siguen en `requireOwner` sin
+   tocar — no estaban en el alcance de este paso, quedan para cuando se
+   aborden los puntos 4-5.
+4. 🟡 En curso (T1, rama aparte desde `main`) —
+   `convex/users.ts:bootstrapInitialAccounts` está hardcodeado a UNA
+   tienda y dos cuentas fijas — es el punto de entrada que hay que
+   generalizar (o sustituir por un flujo de alta de tienda) para poder
+   crear tiendas adicionales.
+5. 🟢 Hecho (T3) — `convex/stores.ts`: `create` y `update` (mutations,
+   solo `owner`), mismo patrón de validación que
+   `convex/products.ts` (`create`/`update`/`remove`). No incluye borrar
+   tienda: no se ha pedido y reasignar clientes/oportunidades/usuarios de
+   una tienda eliminada es una decisión aparte, no forzada aquí.
+6. 🟡 En curso (T1, rama aparte desde `main`) — precisión importante
+   (aclarada tras una duda real de T1 al implementar, ver mensaje a la
+   directora): esto NO es "migrar a `requireStoreAccess`" — ese helper
+   es solo para las queries "de tienda entera" (Panel/Supervisión) y
+   rechaza a `sales` a propósito; `listForToday`/`markDone`/`postpone`
+   son personales (Carlos su "Hoy") y siguen con `requireUser` +
+   `assigneeId === user._id`, sin tocar eso.
+   - **`listForToday`**: sí falta armonizar — dereferencia
+     `opportunityId`/`customerId` sin comprobar `storeId`, mismo hueco
+     que `getNotifications` (mismo archivo) ya corrigió como hallazgo de
+     auditoría (líneas 158-168 hoy). Copiar ese patrón: añadir
+     `|| opportunity.storeId !== user.storeId` y
+     `|| customer.storeId !== user.storeId` a los `if` existentes.
+   - **`markDone`/`postpone`**: nada que tocar — no dereferencian
+     opportunity/customer, solo comprueban `step.assigneeId !== user._id`,
+     ya más estricto que un chequeo de storeId. Añadirlo ahí sería
+     redundante.
+
+---
+
 ## 5. Reglas de negocio (van en las mutations, no en la UI)
 
 1. **Crear oportunidad** → crea automáticamente su primer `nextStep` (PRD: Alta rápida → "genera la oportunidad y su primer próximo paso automático").

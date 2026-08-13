@@ -13,12 +13,14 @@ import { Select } from "@/components/ui/Select";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { formatCurrency } from "@/lib/format";
 
-// Guard de rol de UX (evita que Carlos vea el shell de Marta) — no es el
-// control de acceso real, que vive en proxy.ts + requireOwner dentro de
-// cada query de convex/dashboard.ts. Mismo patrón que app/panel/page.tsx.
+// Guard de rol de UX (evita que un "sales" vea el shell de supervisión) —
+// no es el control de acceso real, que vive en proxy.ts + requireStoreAccess
+// dentro de cada query de convex/dashboard.ts. Mismo patrón que
+// app/panel/page.tsx. AIT-31: storeManager pasa este guard igual que
+// owner — cada uno ve su propia tienda, resuelto por requireStoreAccess.
 export default function SupervisionPage() {
   const role = useQuery(api.users.getCurrentUserRole);
-  const store = useQuery(api.stores.getStoreInfo);
+  const store = useQuery(api.stores.getStoreInfo, {});
   const router = useRouter();
 
   const workload = useQuery(api.dashboard.getWorkloadByOwner, {});

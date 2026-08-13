@@ -42,10 +42,13 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     // Comprobación de rol real, consultada a Convex — no una cookie ni un
     // dato del cliente. Esto es capa de enrutado/UX: el control de acceso
     // real a los datos vive dentro de cada query/mutation vía
-    // requireUser/requireOwner (convex/model/access.ts), nunca aquí.
+    // requireUser/requireStoreAccess (convex/model/access.ts), nunca aquí.
     const token = await convexAuth.getToken();
     const role = await fetchQuery(api.users.getCurrentUserRole, {}, { token });
-    if (role !== "owner") {
+    // AIT-31 (multi-tienda): storeManager ve su tienda igual que owner ve
+    // todas — mismas rutas, el aislamiento por tienda ya lo resuelve
+    // requireStoreAccess en cada query.
+    if (role !== "owner" && role !== "storeManager") {
       return nextjsMiddlewareRedirect(request, "/hoy");
     }
   }

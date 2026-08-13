@@ -1,8 +1,14 @@
+import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { query } from "./_generated/server";
-import { requireOwner } from "./model/access";
+import { requireStoreAccess } from "./model/access";
 import { startOfBusinessDay } from "../lib/businessTime";
+
+// AIT-31 (multi-tienda): argumento común a todas las queries de este
+// archivo. Solo lo respeta requireStoreAccess si quien pregunta es
+// `owner`; para `storeManager` se ignora siempre (ver convex/model/access.ts).
+const storeAccessArgs = { storeId: v.optional(v.id("stores")) };
 
 // Mismo umbral que docs/02-modelo-de-datos.md §3 y convex/opportunities.ts
 // (listOpen, AIT-12): 7 días sin actividad. Duplicado a propósito — esta
@@ -11,11 +17,12 @@ import { startOfBusinessDay } from "../lib/businessTime";
 // sitios.
 const RISK_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Estos KPIs son financieros/de negocio (PRD: solo la dueña los ve) — todas
-// las queries de este archivo usan requireOwner, no requireUser. Ninguno
-// guarda nada: se recalculan en cada consulta a partir de `opportunities`
-// (docs/02-modelo-de-datos.md §3), así que nunca se desactualizan al
-// cambiar etapas o importes.
+// Estos KPIs son financieros/de negocio (PRD: solo la dueña los ve, AIT-31
+// (multi-tienda, post-MVP) añade a `storeManager` para su propia tienda) —
+// todas las queries de este archivo usan requireStoreAccess, no requireUser.
+// Ninguno guarda nada: se recalculan en cada consulta a partir de
+// `opportunities` (docs/02-modelo-de-datos.md §3), así que nunca se
+// desactualizan al cambiar etapas o importes.
 async function getOpenOpportunitiesForStore(
   ctx: QueryCtx,
   storeId: Id<"stores">,
@@ -29,10 +36,10 @@ async function getOpenOpportunitiesForStore(
 
 // Valor del pipeline: suma de estimatedAmount de las oportunidades abiertas.
 export const getPipelineValue = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
     return open.reduce((sum, o) => sum + (o.estimatedAmount ?? 0), 0);
   },
 });
@@ -52,10 +59,10 @@ export const getPipelineValue = query({
 // "2026-10". Con getUTC* el cálculo es el mismo epoch → el mismo periodo
 // sin importar dónde se ejecute.
 export const getForecast = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
 
     const amountByPeriod = new Map<string, number>();
     for (const opportunity of open) {
@@ -77,10 +84,10 @@ export const getForecast = query({
 // Nº de oportunidades en riesgo (docs/02-modelo-de-datos.md §3: hoy -
 // lastActivityAt > 7 días).
 export const getAtRiskCount = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
     const now = Date.now();
     return open.filter(
       (opportunity) => now - opportunity.lastActivityAt > RISK_THRESHOLD_MS,
@@ -93,10 +100,10 @@ export const getAtRiskCount = query({
 // más valor en juego primero, el orden que más le interesa a Marta al
 // abrir Supervisión).
 export const getWorkloadByOwner = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
 
     const statsByOwner = new Map<
       Id<"users">,
@@ -122,7 +129,7 @@ export const getWorkloadByOwner = query({
         // cruzada o corrupta) a un usuario de otra tienda, no se filtra su
         // nombre. En uso normal nunca ocurre.
         const ownerName =
-          owner !== null && owner.storeId === user.storeId
+          owner !== null && owner.storeId === storeId
             ? (owner.name ?? null)
             : null;
         return {
@@ -146,10 +153,10 @@ export const getWorkloadByOwner = query({
 const STAGES = ["contacto", "presupuesto", "negociacion"] as const;
 
 export const getFunnelByStage = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
 
     return STAGES.map((stage) => {
       const inStage = open.filter((opportunity) => opportunity.stage === stage);
@@ -172,10 +179,10 @@ export const getFunnelByStage = query({
 // necesariamente repite el cálculo porque ninguna de las dos exporta un
 // resultado intermedio reutilizable entre queries de Convex.
 export const getAtRiskList = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
     const now = Date.now();
     const atRisk = open.filter(
       (opportunity) => now - opportunity.lastActivityAt > RISK_THRESHOLD_MS,
@@ -192,11 +199,11 @@ export const getAtRiskList = query({
         // inventa un nombre); sin comercial de la misma tienda, el nombre
         // queda null pero la fila se mantiene (mismo criterio que
         // getWorkloadByOwner).
-        if (customer === null || customer.storeId !== user.storeId) {
+        if (customer === null || customer.storeId !== storeId) {
           return null;
         }
         const ownerName =
-          owner !== null && owner.storeId === user.storeId
+          owner !== null && owner.storeId === storeId
             ? (owner.name ?? null)
             : null;
         return {
@@ -248,10 +255,10 @@ const ACTIVITY_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
 // coincidan. No hay índice por fecha en `interactions` — collect + filter,
 // igual que el resto de este archivo.
 export const getInteractionCountsByOwner = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const salesUsers = await getSalesUsersForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const salesUsers = await getSalesUsersForStore(ctx, storeId);
     const salesUserIds = new Set(salesUsers.map((u) => u._id));
 
     const since = Date.now() - ACTIVITY_PERIOD_MS;
@@ -280,10 +287,10 @@ export const getInteractionCountsByOwner = query({
 // pero recorriendo a TODOS los comerciales de la tienda en vez de solo al
 // usuario que hace la consulta — es la adaptación que pedía el brief.
 export const getOverdueCountsByOwner = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const salesUsers = await getSalesUsersForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const salesUsers = await getSalesUsersForStore(ctx, storeId);
 
     const startOfToday = startOfBusinessDay(Date.now());
 
@@ -335,10 +342,10 @@ export const getOverdueCountsByOwner = query({
 // completo en vez de sumar solo la tabla de comerciales, para que no haya
 // dos cifras distintas de "abiertas"/"atrasadas" en la misma pantalla.
 export const listOpenOpportunitiesForSupervision = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
-    const open = await getOpenOpportunitiesForStore(ctx, user.storeId);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
+    const open = await getOpenOpportunitiesForStore(ctx, storeId);
     const startOfToday = startOfBusinessDay(Date.now());
 
     return Promise.all(
@@ -390,13 +397,13 @@ export const listOpenOpportunitiesForSupervision = query({
 // archivo pagina todavía (mismo criterio que getAtRiskList) — se deja
 // para cuando el volumen real de un negocio lo pida, no antes.
 export const listPendingBilling = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await requireOwner(ctx);
+  args: storeAccessArgs,
+  handler: async (ctx, args) => {
+    const { storeId } = await requireStoreAccess(ctx, args.storeId);
     const ownWon = await ctx.db
       .query("opportunities")
       .withIndex("by_store_status", (q) =>
-        q.eq("storeId", user.storeId).eq("status", "won"),
+        q.eq("storeId", storeId).eq("status", "won"),
       )
       .collect();
     const pending = ownWon.filter(
@@ -408,7 +415,7 @@ export const listPendingBilling = query({
         // Mismo chequeo cruzado que listOpenOpportunitiesForSupervision:
         // no basta con que la oportunidad ya esté filtrada por storeId.
         const customer = await ctx.db.get(opportunity.customerId);
-        if (customer === null || customer.storeId !== user.storeId) {
+        if (customer === null || customer.storeId !== storeId) {
           return null;
         }
         // Mismo chequeo cruzado que getWorkloadByOwner/getAtRiskList más
@@ -418,7 +425,7 @@ export const listPendingBilling = query({
         // otra tienda, no se filtra su nombre.
         const owner = await ctx.db.get(opportunity.ownerId);
         const ownerName =
-          owner !== null && owner.storeId === user.storeId
+          owner !== null && owner.storeId === storeId
             ? (owner.name ?? null)
             : null;
         return {
