@@ -59,14 +59,41 @@ export default defineSchema({
     lastActivityAt: v.number(),
     ownerId: v.id("users"),
     storeId: v.id("stores"),
+    // Declarado aquí solo por compatibilidad con el deployment compartido
+    // (Post-MVP, AIT-35 "prioridad en oportunidades" — otra terminal en
+    // marcha en paralelo ya está escribiendo este campo en real). AIT-29
+    // no lee ni escribe priority en ningún sitio — opcional a propósito
+    // para no forzarlo en documentos que todavía no lo tienen, ni
+    // duplicar la lógica/UI de AIT-35, que no es de esta tarea.
+    priority: v.optional(
+      v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
+    ),
   })
     .index("by_owner", ["ownerId"])
     .index("by_customer", ["customerId"])
     .index("by_status_stage", ["status", "stage"]),
 
+  // AIT-29 (Post-MVP, ronda 1 — catálogo + cálculo): sustituye el `amount`
+  // plano de AIT-21 por una colección de líneas. `productName`/`unitPrice`
+  // son una FOTO del catálogo en el momento de añadir la línea, no una
+  // referencia viva — si el precio de un producto cambia en el catálogo
+  // después, los presupuestos ya creados no deben moverse solos. Sigue
+  // habiendo como mucho UN presupuesto por oportunidad (upsert, igual que
+  // AIT-21) — varias versiones queda para una ronda 2 aparte, junto al PDF.
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
-    amount: v.number(),
+    lines: v.array(
+      v.object({
+        productId: v.id("products"),
+        productName: v.string(),
+        quantity: v.number(),
+        unitPrice: v.number(),
+      }),
+    ),
+    taxRate: v.number(),
+    subtotal: v.number(),
+    tax: v.number(),
+    total: v.number(),
     status: v.union(
       v.literal("sent"),
       v.literal("accepted"),
@@ -74,6 +101,14 @@ export default defineSchema({
     ),
     sentAt: v.number(),
   }).index("by_opportunity", ["opportunityId"]),
+
+  // Catálogo de productos (AIT-29, Post-MVP). Lo administra Marta
+  // (owner); Carlos solo lo lee para construir presupuestos.
+  products: defineTable({
+    name: v.string(),
+    price: v.number(),
+    storeId: v.id("stores"),
+  }).index("by_store", ["storeId"]),
 
   interactions: defineTable({
     opportunityId: v.id("opportunities"),
