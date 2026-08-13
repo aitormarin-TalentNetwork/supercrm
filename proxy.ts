@@ -23,6 +23,7 @@ const isProtectedRoute = createRouteMatcher([
   "/oportunidades(.*)",
   "/pipeline(.*)",
   "/supervision(.*)",
+  "/catalogo(.*)",
 ]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
