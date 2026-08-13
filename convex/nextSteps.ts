@@ -65,6 +65,9 @@ export const listForToday = query({
           estimatedAmount: opportunity.estimatedAmount ?? null,
           isOverdue: step.dueDate < startOfToday,
           isAtRisk: isAtRisk(opportunity.lastActivityAt, now),
+          // AIT-36: mismo fallback "media" que getSummary/listOpen, para las
+          // oportunidades creadas antes de AIT-35.
+          priority: opportunity.priority ?? "media",
         };
       }),
     );

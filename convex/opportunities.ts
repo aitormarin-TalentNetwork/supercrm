@@ -544,6 +544,9 @@ export const listOpen = query({
           estimatedAmount: opportunity.estimatedAmount ?? null,
           nextStepAction: nextStep?.action ?? null,
           atRisk: isAtRisk(opportunity.lastActivityAt, now),
+          // AIT-36: mismo fallback "media" que getSummary, para las
+          // oportunidades creadas antes de AIT-35.
+          priority: opportunity.priority ?? "media",
         };
       }),
     );

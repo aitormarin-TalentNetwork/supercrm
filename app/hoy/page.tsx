@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +10,9 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Select } from "@/components/ui/Select";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
+import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency } from "@/lib/format";
@@ -20,6 +22,13 @@ import {
   getBusinessHour,
   startOfBusinessDay,
 } from "@/lib/businessTime";
+
+type Priority = "alta" | "media" | "baja";
+type SortOption = "vencimiento" | "prioridad";
+
+// AIT-36: alta primero — mismo orden que ya usa el Select de "Ordenar"
+// (menor peso = más arriba).
+const PRIORITY_WEIGHT: Record<Priority, number> = { alta: 0, media: 1, baja: 2 };
 
 type NextStepItem = {
   nextStepId: Id<"nextSteps">;
@@ -31,6 +40,7 @@ type NextStepItem = {
   estimatedAmount: number | null;
   isOverdue: boolean;
   isAtRisk: boolean;
+  priority: Priority;
 };
 
 function formatDueDate(ms: number): string {
@@ -122,6 +132,7 @@ function NextStepCard({ item }: { item: NextStepItem }) {
           <p className="mt-0.5 text-sm text-text-secondary">{item.action}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <OpportunityStageBadge stage={item.stage} status="open" />
+            <PriorityBadge priority={item.priority} />
             <span
               className={`inline-flex items-center gap-1 font-mono text-xs font-semibold ${
                 item.isOverdue ? "text-error" : "text-text-muted"
@@ -192,17 +203,40 @@ export default function HoyPage() {
   const router = useRouter();
   const [altaRapidaOpen, setAltaRapidaOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [priorityFilter, setPriorityFilter] = useState<Priority | "todas">("todas");
+  const [sortBy, setSortBy] = useState<SortOption>("vencimiento");
 
   useEffect(() => {
     if (role === "owner") router.replace("/panel");
   }, [role, router]);
 
+  // Filtro y orden por prioridad (AIT-36) aplicados ANTES de separar en
+  // Vencidos/Hoy: cada sección conserva su propio criterio de orden
+  // (vencimiento por defecto, o prioridad con el vencimiento como
+  // desempate) en vez de reordenar solo una de las dos.
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    const filtered =
+      priorityFilter === "todas"
+        ? items
+        : items.filter((item) => item.priority === priorityFilter);
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "prioridad") {
+        const diff = PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority];
+        if (diff !== 0) return diff;
+      }
+      return a.dueDate - b.dueDate;
+    });
+  }, [items, priorityFilter, sortBy]);
+
   if (role === "owner") {
     return null;
   }
 
-  const vencidos = items?.filter((item) => item.isOverdue) ?? [];
-  const hoy = items?.filter((item) => !item.isOverdue) ?? [];
+  const hasAnyItems = (items?.length ?? 0) > 0;
+  const vencidos = filteredItems.filter((item) => item.isOverdue);
+  const hoy = filteredItems.filter((item) => !item.isOverdue);
+  const hasFilteredItems = vencidos.length > 0 || hoy.length > 0;
   const dueSteps = notifications?.dueSteps ?? [];
   const atRiskOpportunities = notifications?.atRiskOpportunities ?? [];
   const notifCount = dueSteps.length + atRiskOpportunities.length;
@@ -329,10 +363,41 @@ export default function HoyPage() {
         </div>
       </header>
 
+      {hasAnyItems && (
+        <div className="flex flex-wrap items-center gap-2.5 border-b border-border bg-surface px-5 py-3">
+          <div className="w-full sm:w-[190px]">
+            <Select
+              size="sm"
+              aria-label="Filtrar por prioridad"
+              value={priorityFilter}
+              onChange={(e) =>
+                setPriorityFilter(e.target.value as Priority | "todas")
+              }
+            >
+              <option value="todas">Todas las prioridades</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </Select>
+          </div>
+          <div className="w-full sm:w-[190px]">
+            <Select
+              size="sm"
+              aria-label="Ordenar"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+            >
+              <option value="vencimiento">Vencimiento</option>
+              <option value="prioridad">Prioridad (alta primero)</option>
+            </Select>
+          </div>
+        </div>
+      )}
+
       <main className="flex-1 overflow-y-auto px-5 py-5 pb-28">
         {items === undefined && <p className="text-text-secondary">Cargando…</p>}
 
-        {items !== undefined && vencidos.length === 0 && hoy.length === 0 && (
+        {items !== undefined && !hasAnyItems && (
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <Check size={32} className="text-success" />
             <div>
@@ -346,6 +411,12 @@ export default function HoyPage() {
               Nueva oportunidad
             </Button>
           </div>
+        )}
+
+        {hasAnyItems && !hasFilteredItems && (
+          <p className="py-16 text-center text-sm text-text-secondary">
+            Ningún seguimiento con esa prioridad. Prueba con otro filtro.
+          </p>
         )}
 
         {vencidos.length > 0 && (

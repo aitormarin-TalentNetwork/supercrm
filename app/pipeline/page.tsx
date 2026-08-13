@@ -11,10 +11,15 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
+import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { formatCurrency } from "@/lib/format";
 
 type Stage = "contacto" | "presupuesto" | "negociacion";
-type SortOption = "importe-desc" | "importe-asc" | "cliente";
+type Priority = "alta" | "media" | "baja";
+type SortOption = "importe-desc" | "importe-asc" | "cliente" | "prioridad";
+
+// AIT-36: alta primero — mismo peso que app/hoy/page.tsx.
+const PRIORITY_WEIGHT: Record<Priority, number> = { alta: 0, media: 1, baja: 2 };
 
 // 3 etapas + status, no las 6 de la paleta del design system — ver
 // docs/02-modelo-de-datos.md §2 (ganada/perdida son status, no etapa).
@@ -31,6 +36,7 @@ export default function PipelinePage() {
 
   const [search, setSearch] = useState("");
   const [onlyAtRisk, setOnlyAtRisk] = useState(false);
+  const [priorityFilter, setPriorityFilter] = useState<Priority | "todas">("todas");
   const [sort, setSort] = useState<SortOption>("importe-desc");
   const [altaOpen, setAltaOpen] = useState(false);
   const [dragId, setDragId] = useState<Id<"opportunities"> | null>(null);
@@ -44,16 +50,20 @@ export default function PipelinePage() {
       .filter(
         (o) =>
           (!q || o.customerName.toLowerCase().includes(q)) &&
-          (!onlyAtRisk || o.atRisk),
+          (!onlyAtRisk || o.atRisk) &&
+          (priorityFilter === "todas" || o.priority === priorityFilter),
       )
       .sort((a, b) => {
         if (sort === "cliente") {
           return a.customerName.localeCompare(b.customerName, "es");
         }
+        if (sort === "prioridad") {
+          return PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority];
+        }
         const diff = (a.estimatedAmount ?? 0) - (b.estimatedAmount ?? 0);
         return sort === "importe-asc" ? diff : -diff;
       });
-  }, [opportunities, search, onlyAtRisk, sort]);
+  }, [opportunities, search, onlyAtRisk, priorityFilter, sort]);
 
   const columns = STAGES.map(({ stage, title }) => {
     const cards = visible.filter((o) => o.stage === stage);
@@ -135,6 +145,21 @@ export default function PipelinePage() {
           <div className="w-[190px]">
             <Select
               size="sm"
+              aria-label="Filtrar por prioridad"
+              value={priorityFilter}
+              onChange={(e) =>
+                setPriorityFilter(e.target.value as Priority | "todas")
+              }
+            >
+              <option value="todas">Todas las prioridades</option>
+              <option value="alta">Alta</option>
+              <option value="media">Media</option>
+              <option value="baja">Baja</option>
+            </Select>
+          </div>
+          <div className="w-[190px]">
+            <Select
+              size="sm"
               aria-label="Ordenar"
               value={sort}
               onChange={(e) => setSort(e.target.value as SortOption)}
@@ -142,6 +167,7 @@ export default function PipelinePage() {
               <option value="importe-desc">Importe (mayor)</option>
               <option value="importe-asc">Importe (menor)</option>
               <option value="cliente">Cliente (A–Z)</option>
+              <option value="prioridad">Prioridad (alta primero)</option>
             </Select>
           </div>
         </div>
@@ -231,16 +257,17 @@ export default function PipelinePage() {
                         </span>
                       </div>
                     )}
-                    {item.atRisk && (
-                      <div className="mt-2.5">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      <PriorityBadge priority={item.priority} />
+                      {item.atRisk && (
                         <Badge variant="warning">
                           <span className="inline-flex items-center gap-1">
                             <AlertTriangle size={11} />
                             En riesgo
                           </span>
                         </Badge>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 ))}
                 {col.cards.length === 0 && (
