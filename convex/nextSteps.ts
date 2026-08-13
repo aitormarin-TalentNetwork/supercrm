@@ -50,10 +50,20 @@ export const listForToday = query({
         // El paso apunta a una oportunidad cerrada o inexistente: no
         // debería pasar (closePendingNextSteps la cierra al cerrar la
         // oportunidad), pero si pasara, no se muestra en vez de reventar.
-        if (opportunity === null || opportunity.status !== "open") return null;
+        // storeId cruzado (AIT-31, armonizado con getNotifications más
+        // abajo en este mismo archivo): el filtro por assigneeId ya acota
+        // el paso al usuario, pero no garantiza que la oportunidad (ni su
+        // cliente) sean de su misma tienda — el schema no lo fuerza.
+        if (
+          opportunity === null ||
+          opportunity.status !== "open" ||
+          opportunity.storeId !== user.storeId
+        ) {
+          return null;
+        }
 
         const customer = await ctx.db.get(opportunity.customerId);
-        if (customer === null) return null;
+        if (customer === null || customer.storeId !== user.storeId) return null;
 
         return {
           nextStepId: step._id,
