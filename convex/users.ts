@@ -8,6 +8,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { requireUser } from "./model/access";
+import type { Id } from "./_generated/dataModel";
 
 export const ensureDefaultStore = internalMutation({
   args: { name: v.string() },
@@ -36,6 +37,28 @@ export const ensureDefaultStore = internalMutation({
     if (existing) await ctx.db.patch(existing._id, { storeId });
     else await ctx.db.insert("appConfig", { key: "default_store", storeId });
     return storeId;
+  },
+});
+
+// AIT-31 (multi-tienda): tienda genérica adicional, para cuando
+// bootstrapInitialAccounts crea más de una. No reutiliza ensureDefaultStore
+// — esa sigue ligada al singleton `appConfig.key = "default_store"`, que
+// solo tiene sentido para "la" tienda por defecto original (no hay
+// "default_store_2"). `stores` no tiene índice por `name` (tabla pequeña,
+// unos pocos tenants) — mismo patrón que otras tablas pequeñas del
+// proyecto (p.ej. nextSteps.ts:getSalesUsersForStore), collect + filtro en
+// vez de un índice dedicado. Idempotente por nombre exacto, igual que
+// ensureDefaultStore, para que bootstrapInitialAccounts se pueda
+// re-ejecutar sin duplicar tiendas.
+export const ensureStore = internalMutation({
+  args: { name: v.string() },
+  handler: async (ctx, { name }) => {
+    const existing = await ctx.db
+      .query("stores")
+      .filter((q) => q.eq(q.field("name"), name))
+      .first();
+    if (existing) return existing._id;
+    return await ctx.db.insert("stores", { name });
   },
 });
 
@@ -82,20 +105,42 @@ export const releaseBootstrapSlot = internalMutation({
   },
 });
 
+// AIT-31 (multi-tienda): generalizada para poder crear más de una tienda y
+// más de las 2 cuentas originales — antes asumía una única tienda por
+// defecto ("Tienda principal", marta owner + carlos sales) sin forma de
+// pedir otra. `stores` es opcional a propósito: sin argumentos (o `{}`),
+// el comportamiento es EXACTAMENTE el de siempre — no rompe el flujo ya
+// documentado en docs/03-setup.md (`npx convex run
+// users:bootstrapInitialAccounts '{}'`) ni los despliegues que ya
+// dependen de él. Con `stores`, crea cada tienda (vía ensureStore, no
+// ensureDefaultStore — esa sigue ligada al singleton de la tienda por
+// defecto) y sus cuentas, con el nuevo rol `storeManager` disponible.
+// Cada contraseña se lee de una variable de entorno indicada por nombre
+// (`passwordEnvVar`), nunca en claro en el argumento — mismo criterio que
+// las 2 cuentas originales con SEED_OWNER_PASSWORD/SEED_SALES_PASSWORD.
 export const bootstrapInitialAccounts = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    const ownerPassword = process.env.SEED_OWNER_PASSWORD;
-    const salesPassword = process.env.SEED_SALES_PASSWORD;
-    if (!ownerPassword || !salesPassword) {
-      throw new Error(
-        "Faltan SEED_OWNER_PASSWORD / SEED_SALES_PASSWORD en el deployment de Convex.",
-      );
-    }
-    const storeId = await ctx.runMutation(internal.users.ensureDefaultStore, {
-      name: "Tienda principal",
-    });
-
+  args: {
+    stores: v.optional(
+      v.array(
+        v.object({
+          storeName: v.string(),
+          accounts: v.array(
+            v.object({
+              email: v.string(),
+              name: v.string(),
+              role: v.union(
+                v.literal("owner"),
+                v.literal("storeManager"),
+                v.literal("sales"),
+              ),
+              passwordEnvVar: v.string(),
+            }),
+          ),
+        }),
+      ),
+    ),
+  },
+  handler: async (ctx, args) => {
     // Idempotencia comprobada a mano en 2 pasos: 1) si el usuario ya existe
     // en la tabla `users`, no se toca (re-ejecución secuencial tras un
     // bootstrap anterior completado). 2) si no existe, se reclama un slot
@@ -105,7 +150,8 @@ export const bootstrapInitialAccounts = internalAction({
     async function provisionAccount(
       email: string,
       secret: string,
-      profile: { name: string; role: "owner" | "sales" },
+      profile: { name: string; role: "owner" | "storeManager" | "sales" },
+      storeId: Id<"stores">,
     ) {
       if (await ctx.runQuery(internal.users.getUserByEmail, { email })) {
         console.warn(`bootstrapInitialAccounts: ${email} ya existe; no se crea de nuevo.`);
@@ -152,15 +198,52 @@ export const bootstrapInitialAccounts = internalAction({
       }
     }
 
-    // Direcciones exactamente como en Design/pantallas/Login.dc.html.
-    await provisionAccount("marta@supercrm.es", ownerPassword, {
-      name: "Marta",
-      role: "owner",
-    });
-    await provisionAccount("carlos@supercrm.es", salesPassword, {
-      name: "Carlos",
-      role: "sales",
-    });
+    if (args.stores === undefined) {
+      const ownerPassword = process.env.SEED_OWNER_PASSWORD;
+      const salesPassword = process.env.SEED_SALES_PASSWORD;
+      if (!ownerPassword || !salesPassword) {
+        throw new Error(
+          "Faltan SEED_OWNER_PASSWORD / SEED_SALES_PASSWORD en el deployment de Convex.",
+        );
+      }
+      const storeId = await ctx.runMutation(internal.users.ensureDefaultStore, {
+        name: "Tienda principal",
+      });
+      // Direcciones exactamente como en Design/pantallas/Login.dc.html.
+      await provisionAccount(
+        "marta@supercrm.es",
+        ownerPassword,
+        { name: "Marta", role: "owner" },
+        storeId,
+      );
+      await provisionAccount(
+        "carlos@supercrm.es",
+        salesPassword,
+        { name: "Carlos", role: "sales" },
+        storeId,
+      );
+      return;
+    }
+
+    for (const storeDef of args.stores) {
+      const storeId = await ctx.runMutation(internal.users.ensureStore, {
+        name: storeDef.storeName,
+      });
+      for (const account of storeDef.accounts) {
+        const secret = process.env[account.passwordEnvVar];
+        if (!secret) {
+          throw new Error(
+            `Falta la variable de entorno "${account.passwordEnvVar}" en el deployment de Convex (cuenta ${account.email}).`,
+          );
+        }
+        await provisionAccount(
+          account.email,
+          secret,
+          { name: account.name, role: account.role },
+          storeId,
+        );
+      }
+    }
   },
 });
 
