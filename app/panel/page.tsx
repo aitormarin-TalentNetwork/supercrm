@@ -7,7 +7,7 @@ import Link from "next/link";
 import { AlertTriangle, CalendarDays, Store, TrendingUp } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Avatar } from "@/components/ui/Avatar";
-import { AppSidebar } from "@/components/nav/AppSidebar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { BillingStatusBadge } from "@/components/crm/BillingStatusBadge";
 import { formatCurrency, formatDate } from "@/lib/format";
 
@@ -99,11 +99,10 @@ export default function PanelPage() {
   const maxFunnelAmount = Math.max(1, ...funnel.map((f) => f.totalAmount));
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg font-sans text-text lg:flex-row">
-      <AppSidebar />
-
+    <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+          <NavToggleButton />
           <h1 className="m-0 text-[15px] font-bold">Panel</h1>
           <span className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary">
             <Store size={13} className="text-neutral-400" />

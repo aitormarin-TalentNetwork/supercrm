@@ -16,7 +16,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
-import { AppSidebar } from "@/components/nav/AppSidebar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { formatCurrency } from "@/lib/format";
 
@@ -110,12 +110,11 @@ export default function SupervisionPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg font-sans text-text lg:flex-row">
-      <AppSidebar />
-
+    <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex-none border-b border-border bg-surface px-5 py-3.5">
           <div className="flex flex-wrap items-center gap-3.5">
+            <NavToggleButton />
             <div className="min-w-0">
               <h1 className="m-0 text-[19px] font-bold tracking-tight">
                 Supervisión del equipo
