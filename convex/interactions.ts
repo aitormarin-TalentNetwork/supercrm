@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
-import { requireUser } from "./model/access";
+import { isStoreWideRole, requireUser } from "./model/access";
 import { closePendingNextSteps, loadOpenOpportunityOrThrow } from "./opportunities";
 import type { Id } from "./_generated/dataModel";
 
@@ -36,7 +36,7 @@ export const listByCustomer = query({
     const customer = await ctx.db.get(customerId);
     if (customer === null) return null;
     if (customer.storeId !== user.storeId) return null;
-    if (user.role !== "owner" && customer.ownerId !== user._id) return null;
+    if (!isStoreWideRole(user) && customer.ownerId !== user._id) return null;
 
     const interactions = await ctx.db
       .query("interactions")
@@ -68,7 +68,7 @@ export const listByOpportunity = query({
     const opportunity = await ctx.db.get(opportunityId);
     if (opportunity === null) return null;
     if (opportunity.storeId !== user.storeId) return null;
-    if (user.role !== "owner" && opportunity.ownerId !== user._id) return null;
+    if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) return null;
 
     const interactions = await ctx.db
       .query("interactions")

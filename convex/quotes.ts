@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { requireUser } from "./model/access";
+import { isStoreWideRole, requireUser } from "./model/access";
 import { loadOpenOpportunityOrThrow } from "./opportunities";
 import type { Doc, Id } from "./_generated/dataModel";
 import { computeQuoteTotals, roundTaxRate } from "../lib/quoteMath";
@@ -31,7 +31,7 @@ async function loadOpportunityOrNull(
   const opportunity = await ctx.db.get(opportunityId);
   if (opportunity === null) return null;
   if (opportunity.storeId !== user.storeId) return null;
-  if (user.role !== "owner" && opportunity.ownerId !== user._id) return null;
+  if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) return null;
   return opportunity;
 }
 

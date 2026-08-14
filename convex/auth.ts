@@ -36,7 +36,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       const { email, name, role, storeId } = profile as {
         email: string;
         name: string;
-        role: "owner" | "sales";
+        role: "owner" | "storeManager" | "sales";
         storeId: Id<"stores">;
       };
       if (typeof email !== "string" || email.trim().length === 0) {
@@ -45,8 +45,15 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       if (typeof name !== "string" || name.trim().length === 0) {
         throw new Error("No se puede crear un usuario sin un name válido.");
       }
-      if (role !== "owner" && role !== "sales") {
-        throw new Error(`Role inválido: "${role}". Debe ser "owner" o "sales".`);
+      // AIT-31 (multi-tienda, hallazgo propio al probar en vivo): faltaba
+      // "storeManager" aquí — sin este cambio, bootstrapInitialAccounts
+      // (convex/users.ts) no podía crear ninguna cuenta de ese rol pese a
+      // que su propio schema de argumentos ya lo admitía; fallaba en este
+      // callback con "Role inválido".
+      if (role !== "owner" && role !== "storeManager" && role !== "sales") {
+        throw new Error(
+          `Role inválido: "${role}". Debe ser "owner", "storeManager" o "sales".`,
+        );
       }
       if (!storeId || (await ctx.db.get(storeId)) === null) {
         throw new Error(`storeId "${storeId}" no corresponde a ninguna tienda existente.`);

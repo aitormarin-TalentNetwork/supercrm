@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx, MutationCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { requireUser } from "./model/access";
+import { isStoreWideRole, requireUser } from "./model/access";
 import { addBusinessMonths, startOfBusinessDay } from "../lib/businessTime";
 
 // Mismo criterio de acceso que loadOpenOpportunityOrThrow
@@ -20,7 +20,7 @@ async function loadOwnReminderOrThrow(
   if (reminder.storeId !== user.storeId) {
     throw new Error("Recordatorio no encontrado.");
   }
-  if (user.role !== "owner" && reminder.ownerId !== user._id) {
+  if (!isStoreWideRole(user) && reminder.ownerId !== user._id) {
     throw new Error("Recordatorio no encontrado.");
   }
   return reminder;
@@ -50,7 +50,7 @@ export const listToReactivate = query({
       .collect();
 
     const visible = ownPending.filter((reminder) => {
-      if (user.role !== "owner" && reminder.ownerId !== user._id) {
+      if (!isStoreWideRole(user) && reminder.ownerId !== user._id) {
         return false;
       }
       return true;

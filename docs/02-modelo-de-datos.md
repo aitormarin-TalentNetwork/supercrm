@@ -313,24 +313,49 @@ export default defineSchema({
 
 ---
 
-## 4b. Multi-tienda (AIT-31, Post-MVP — EN CURSO, backend parcial)
+## 4b. Multi-tienda (AIT-31, Post-MVP — backend completo, loop 2)
 
-**Estado:** 🟢 Backend completo y mergeado (T3 + T1, integrado por la
-directora en `aitormarin/ait-31-multi-tienda-completo`, verificado en
-vivo con `npx convex dev --once` + `npm run dev`). Rol `storeManager`
-(`convex/schema.ts`), helper `requireStoreAccess`
-(`convex/model/access.ts`), las 10 queries de `convex/dashboard.ts`
-migradas, contrato mínimo de frontend (`convex/stores.ts:listStores`,
-`getStoreInfo` migrada, gates de rol en `proxy.ts` +
-`app/panel/page.tsx` + `app/supervision/page.tsx`), mutations
-`create`/`update` de tienda en `convex/stores.ts` (T3);
-`bootstrapInitialAccounts` generalizada y `listForToday` armonizada con
-chequeo cruzado de `storeId` (T1). Falta la UI del selector de tienda /
-comparativa entre tiendas en el Panel — pendiente, sobre el contrato ya
-cerrado (no bloquea este loop de auditoría, es la parte de frontend
-puro asignada a T1 por separado). Tampoco hay todavía ninguna cuenta de
-prueba con rol `storeManager` para probar ese camino en vivo — ver
-evidencias del export.
+**Estado:** 🟢 Backend completo, con las correcciones del NO-GO de la
+ronda 1 de auditoría ya aplicadas y verificadas en vivo con una cuenta
+`storeManager` real (creada para la prueba, ver evidencias del export).
+Cuatro hallazgos de esa ronda, los cuatro corregidos:
+
+1. **`requireOwner` sin `storeManager` en los checks de registro
+   individual** (Pipeline y prácticamente todo `convex/*.ts`): existía
+   un patrón repetido `user.role !== "owner" && doc.ownerId !== user._id`
+   ("owner ve todo, cualquier otro rol solo lo suyo") en
+   `opportunities.ts` (4 sitios), `customers.ts`, `interactions.ts` (2),
+   `quotes.ts` y `repurchaseReminders.ts` (2) — 10 sitios en 5 archivos,
+   más allá del único que señaló el auditor (`opportunities.ts:531`,
+   `listOpen`). Con `storeManager` sin añadir ahí, quedaba tratado como
+   `sales` (solo lo suyo), contradiciendo el contrato del rol. Fix:
+   nuevo helper `isStoreWideRole(user)` en `convex/model/access.ts`
+   (`owner` o `storeManager`), sustituye la condición en los 10 sitios.
+   Además, un bug propio (no señalado por el auditor, encontrado al
+   intentar crear la cuenta de prueba): `convex/auth.ts:createOrUpdateUser`
+   todavía validaba `role !== "owner" && role !== "sales"` — sin
+   corregirlo, `bootstrapInitialAccounts` no podía crear NINGUNA cuenta
+   `storeManager`, pese a que su propio schema de argumentos ya lo
+   admitía.
+2. **`dashboard.ts` y `opportunities.ts:listOpen` leían con
+   `by_status_stage`/sin índice de tienda** (todas las tiendas) y
+   filtraban `storeId` después en memoria, en vez de `by_store_status`
+   (storeId primero) — mismo patrón que ya se había corregido para
+   `listPendingBilling` (AIT-33) y `repurchaseReminders.listToReactivate`
+   (AIT-30), pero no se había aplicado aquí. Corregido en ambos.
+3. **`listOpenOpportunitiesForSupervision`** resolvía
+   `customer.name`/`owner.name` sin comprobar que fueran de la misma
+   tienda — único sitio del archivo con ese hueco, cuando el resto
+   (`getAtRiskList`, `getWorkloadByOwner`, `listPendingBilling`) ya lo
+   hacía. Corregido con el mismo patrón.
+4. **Caminos sin probar** (declarados como hueco en el loop 1, ahora
+   cerrados): se creó una tienda y cuenta `storeManager` reales en el
+   deployment compartido y se verificó en vivo — ver evidencias del
+   export para el detalle completo (manager con `storeId` ajeno
+   ignorado, manager con el propio, manager viendo oportunidades de
+   OTRO comercial de su tienda, sales rechazado a nivel de query (no
+   solo de ruta), `stores.create` funcionando como owner y rechazado
+   como `storeManager`/`sales`).
 
 ### El problema
 

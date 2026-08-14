@@ -23,15 +23,23 @@ const RISK_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
 // Ninguno guarda nada: se recalculan en cada consulta a partir de
 // `opportunities` (docs/02-modelo-de-datos.md §3), así que nunca se
 // desactualizan al cambiar etapas o importes.
+//
+// AIT-31 (hallazgo de auditoría, NO-GO ronda 1): usaba `by_status_stage`
+// (sin storeId) y filtraba storeId después en memoria — con varias tiendas
+// reales, eso trae las oportunidades abiertas de TODO el negocio antes de
+// quedarse con las propias, mismo problema que ya se había corregido en
+// listPendingBilling/repurchaseReminders.listToReactivate. `by_store_status`
+// (storeId primero) ya existe en el schema — se usa aquí también.
 async function getOpenOpportunitiesForStore(
   ctx: QueryCtx,
   storeId: Id<"stores">,
 ) {
-  const open = await ctx.db
+  return await ctx.db
     .query("opportunities")
-    .withIndex("by_status_stage", (q) => q.eq("status", "open"))
+    .withIndex("by_store_status", (q) =>
+      q.eq("storeId", storeId).eq("status", "open"),
+    )
     .collect();
-  return open.filter((opportunity) => opportunity.storeId === storeId);
 }
 
 // Valor del pipeline: suma de estimatedAmount de las oportunidades abiertas.
@@ -366,13 +374,24 @@ export const listOpenOpportunitiesForSupervision = query({
             )
             .first(),
         ]);
+        // AIT-31 (hallazgo de auditoría, NO-GO ronda 1): faltaba el mismo
+        // chequeo cruzado de storeId que ya hacen getAtRiskList/
+        // getWorkloadByOwner/listPendingBilling más arriba en este archivo
+        // — sin él, si customer/owner apuntaran a otra tienda (relación
+        // cruzada o corrupta), su nombre se filtraba igualmente.
+        const customerName =
+          customer !== null && customer.storeId === storeId
+            ? customer.name
+            : "—";
+        const ownerName =
+          owner !== null && owner.storeId === storeId ? owner.name : null;
         return {
           id: opportunity._id,
-          customerName: customer?.name ?? "—",
+          customerName,
           stage: opportunity.stage,
           estimatedAmount: opportunity.estimatedAmount ?? null,
           ownerId: opportunity.ownerId,
-          ownerName: owner?.name ?? null,
+          ownerName,
           isOverdue: nextStep !== null && nextStep.dueDate < startOfToday,
         };
       }),

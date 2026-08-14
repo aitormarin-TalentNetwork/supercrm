@@ -1,12 +1,12 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
-import { requireUser } from "./model/access";
+import { isStoreWideRole, requireUser } from "./model/access";
 
 // Datos del cliente y sus oportunidades para la Ficha de cliente (AIT-11).
 // El historial de interacciones es una query aparte (convex/interactions.ts),
 // un archivo por entidad — ver docs/01-arquitectura.md. Mismo criterio de
-// acceso que opportunities.getSummary: misma tienda, y si es sales, solo
-// lo suyo.
+// acceso que opportunities.getSummary: misma tienda, y si no ve toda la
+// tienda (isStoreWideRole), solo lo suyo.
 export const getFicha = query({
   args: { customerId: v.id("customers") },
   handler: async (ctx, { customerId }) => {
@@ -14,7 +14,7 @@ export const getFicha = query({
     const customer = await ctx.db.get(customerId);
     if (customer === null) return null;
     if (customer.storeId !== user.storeId) return null;
-    if (user.role !== "owner" && customer.ownerId !== user._id) return null;
+    if (!isStoreWideRole(user) && customer.ownerId !== user._id) return null;
 
     const [owner, store, opportunities] = await Promise.all([
       ctx.db.get(customer.ownerId),

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
-import { requireUser } from "./model/access";
+import { isStoreWideRole, requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
 import { addBusinessMonths, startOfBusinessDay } from "../lib/businessTime";
 import { isAtRisk } from "../lib/risk";
@@ -192,7 +192,7 @@ export const getSummary = query({
     const opportunity = await ctx.db.get(opportunityId);
     if (opportunity === null) return null;
     if (opportunity.storeId !== user.storeId) return null;
-    if (user.role !== "owner" && opportunity.ownerId !== user._id) return null;
+    if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) return null;
 
     const customer = await ctx.db.get(opportunity.customerId);
     if (customer === null || customer.storeId !== user.storeId) return null;
@@ -284,7 +284,7 @@ export async function loadOpenOpportunityOrThrow(
   if (opportunity.storeId !== user.storeId) {
     throw new Error("Oportunidad no encontrada.");
   }
-  if (user.role !== "owner" && opportunity.ownerId !== user._id) {
+  if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) {
     throw new Error("Oportunidad no encontrada.");
   }
   if (opportunity.status !== "open") {
@@ -306,7 +306,7 @@ export async function loadWonOpportunityOrThrow(
   if (opportunity.storeId !== user.storeId) {
     throw new Error("Oportunidad no encontrada.");
   }
-  if (user.role !== "owner" && opportunity.ownerId !== user._id) {
+  if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) {
     throw new Error("Oportunidad no encontrada.");
   }
   if (opportunity.status !== "won") {
@@ -513,22 +513,29 @@ export const markLost = mutation({
 
 // AIT-12: listado para el Pipeline (embudo por etapas). Mismo criterio de
 // acceso que el resto de este archivo — storeId siempre, y ownerId además
-// si el usuario es sales — aplicado en memoria porque el índice
-// by_status_stage no incluye ownerId. Función nueva e independiente: no
-// reutiliza ni modifica getSummary.
+// si el usuario NO ve toda la tienda (isStoreWideRole). AIT-31 (hallazgo
+// de auditoría, NO-GO ronda 1): usaba `by_status_stage` sin storeId y
+// traía las oportunidades abiertas de TODAS las tiendas antes de filtrar
+// las propias en memoria — mismo problema ya corregido en
+// dashboard.ts/repurchaseReminders.ts, mismo arreglo: `by_store_status`
+// (storeId primero) acota la lectura a la tienda antes de traer nada. El
+// filtro por ownerId (solo si no es owner/storeManager) sigue en memoria
+// tras el índice — no hay un índice de 3 columnas para eso, mismo patrón
+// que el resto del proyecto.
 export const listOpen = query({
   args: {},
   handler: async (ctx) => {
     const user = await requireUser(ctx);
 
-    const openOpportunities = await ctx.db
+    const ownStoreOpen = await ctx.db
       .query("opportunities")
-      .withIndex("by_status_stage", (q) => q.eq("status", "open"))
+      .withIndex("by_store_status", (q) =>
+        q.eq("storeId", user.storeId).eq("status", "open"),
+      )
       .collect();
 
-    const visible = openOpportunities.filter((opportunity) => {
-      if (opportunity.storeId !== user.storeId) return false;
-      if (user.role !== "owner" && opportunity.ownerId !== user._id) {
+    const visible = ownStoreOpen.filter((opportunity) => {
+      if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) {
         return false;
       }
       return true;
