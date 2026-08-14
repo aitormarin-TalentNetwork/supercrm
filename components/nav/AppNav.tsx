@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
-import { X } from "lucide-react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { LogOut, X } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Avatar } from "@/components/ui/Avatar";
 import { useNav } from "./NavContext";
@@ -27,6 +28,7 @@ const FOCUSABLE_SELECTOR =
 export function AppNav() {
   const { open, close } = useNav();
   const pathname = usePathname();
+  const { signOut } = useAuthActions();
   const role = useQuery(api.users.getCurrentUserRole);
   // getCurrentUserInfo (a diferencia de getCurrentUserRole) usa
   // requireUser y lanza si no hay sesión — al estar este componente
@@ -171,6 +173,26 @@ export function AppNav() {
             );
           })}
         </nav>
+
+        {/* Notion "Correcciones para cerrar V1" (entrada 3, se nos había
+            pasado en el brief original de AIT-51): "Cerrar sesión" al pie
+            del panel, separado del resto (border-t), para no tener que
+            entrar a Ajustes solo para salir. Sustituye AL botón que ya
+            existía SOLO en Ajustes — ese se queda también (app/ajustes/
+            page.tsx), mismo signOut() de @convex-dev/auth/react. */}
+        <div className="mt-auto flex-none border-t border-border p-3">
+          <button
+            type="button"
+            onClick={() => {
+              close();
+              void signOut();
+            }}
+            className="flex min-h-[44px] w-full items-center gap-[11px] rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-neutral-100"
+          >
+            <LogOut size={18} className="flex-none" />
+            <span className="flex-1 text-left">Cerrar sesión</span>
+          </button>
+        </div>
       </aside>
     </>
   );
