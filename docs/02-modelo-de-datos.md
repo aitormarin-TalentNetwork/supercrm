@@ -315,20 +315,22 @@ export default defineSchema({
 
 ## 4b. Multi-tienda (AIT-31, Post-MVP — EN CURSO, backend parcial)
 
-**Estado:** 🟡 Opción B confirmada con la sesión directora, tarea
-repartida entre dos terminales (T3 en esta rama, T1 en una rama aparte
-desde `main` — la directora integra ambas antes del export único a
-auditor). Lo de T3 (esta rama) ya está: rol `storeManager`
+**Estado:** 🟢 Backend completo y mergeado (T3 + T1, integrado por la
+directora en `aitormarin/ait-31-multi-tienda-completo`, verificado en
+vivo con `npx convex dev --once` + `npm run dev`). Rol `storeManager`
 (`convex/schema.ts`), helper `requireStoreAccess`
 (`convex/model/access.ts`), las 10 queries de `convex/dashboard.ts`
 migradas, contrato mínimo de frontend (`convex/stores.ts:listStores`,
 `getStoreInfo` migrada, gates de rol en `proxy.ts` +
-`app/panel/page.tsx` + `app/supervision/page.tsx`), y mutations
-`create`/`update` de tienda en `convex/stores.ts`. Pendiente de T1 (otra
-rama): generalizar `bootstrapInitialAccounts` y armonizar
-`nextSteps.ts` (puntos 4 y 6 de abajo). Falta también la UI del selector
-de tienda / comparativa entre tiendas en el Panel — asignada a T1 por
-separado, sobre el contrato ya cerrado.
+`app/panel/page.tsx` + `app/supervision/page.tsx`), mutations
+`create`/`update` de tienda en `convex/stores.ts` (T3);
+`bootstrapInitialAccounts` generalizada y `listForToday` armonizada con
+chequeo cruzado de `storeId` (T1). Falta la UI del selector de tienda /
+comparativa entre tiendas en el Panel — pendiente, sobre el contrato ya
+cerrado (no bloquea este loop de auditoría, es la parte de frontend
+puro asignada a T1 por separado). Tampoco hay todavía ninguna cuenta de
+prueba con rol `storeManager` para probar ese camino en vivo — ver
+evidencias del export.
 
 ### El problema
 
@@ -396,33 +398,31 @@ un argumento, un patrón mucho más difícil de hacer mal por descuido.
    3 mutations de `convex/products.ts` siguen en `requireOwner` sin
    tocar — no estaban en el alcance de este paso, quedan para cuando se
    aborden los puntos 4-5.
-4. 🟡 En curso (T1, rama aparte desde `main`) —
-   `convex/users.ts:bootstrapInitialAccounts` está hardcodeado a UNA
-   tienda y dos cuentas fijas — es el punto de entrada que hay que
-   generalizar (o sustituir por un flujo de alta de tienda) para poder
-   crear tiendas adicionales.
+4. 🟢 Hecho (T1) — `convex/users.ts:bootstrapInitialAccounts`
+   generalizada: sigue funcionando igual sin argumentos (compatibilidad
+   con el flujo de siempre), y admite opcionalmente una lista de
+   `{storeName, accounts}` para crear tiendas y cuentas adicionales
+   (incluido `storeManager`), cada contraseña leída de una variable de
+   entorno por nombre.
 5. 🟢 Hecho (T3) — `convex/stores.ts`: `create` y `update` (mutations,
    solo `owner`), mismo patrón de validación que
    `convex/products.ts` (`create`/`update`/`remove`). No incluye borrar
    tienda: no se ha pedido y reasignar clientes/oportunidades/usuarios de
    una tienda eliminada es una decisión aparte, no forzada aquí.
-6. 🟡 En curso (T1, rama aparte desde `main`) — precisión importante
-   (aclarada tras una duda real de T1 al implementar, ver mensaje a la
-   directora): esto NO es "migrar a `requireStoreAccess`" — ese helper
-   es solo para las queries "de tienda entera" (Panel/Supervisión) y
-   rechaza a `sales` a propósito; `listForToday`/`markDone`/`postpone`
-   son personales (Carlos su "Hoy") y siguen con `requireUser` +
-   `assigneeId === user._id`, sin tocar eso.
-   - **`listForToday`**: sí falta armonizar — dereferencia
-     `opportunityId`/`customerId` sin comprobar `storeId`, mismo hueco
-     que `getNotifications` (mismo archivo) ya corrigió como hallazgo de
-     auditoría (líneas 158-168 hoy). Copiar ese patrón: añadir
-     `|| opportunity.storeId !== user.storeId` y
-     `|| customer.storeId !== user.storeId` a los `if` existentes.
-   - **`markDone`/`postpone`**: nada que tocar — no dereferencian
-     opportunity/customer, solo comprueban `step.assigneeId !== user._id`,
-     ya más estricto que un chequeo de storeId. Añadirlo ahí sería
-     redundante.
+6. 🟢 Hecho (T1) — precisión importante (aclarada tras una duda real de
+   T1 al implementar, ver mensaje a la directora): esto NO era "migrar a
+   `requireStoreAccess`" — ese helper es solo para las queries "de
+   tienda entera" (Panel/Supervisión) y rechaza a `sales` a propósito;
+   `listForToday`/`markDone`/`postpone` son personales (Carlos su "Hoy")
+   y siguen con `requireUser` + `assigneeId === user._id`, sin tocar
+   eso.
+   - **`listForToday`**: armonizada — ahora dereferencia
+     `opportunityId`/`customerId` comprobando `storeId`, mismo patrón
+     que `getNotifications` (mismo archivo) ya tenía.
+   - **`markDone`/`postpone`**: sin cambios, correctamente — no
+     dereferencian opportunity/customer, solo comprueban
+     `step.assigneeId !== user._id`, ya más estricto que un chequeo de
+     storeId.
 
 ---
 
