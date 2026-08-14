@@ -14,7 +14,7 @@ import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
-import { BottomTabBar } from "@/components/nav/BottomTabBar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { formatCurrency } from "@/lib/format";
 import {
   BUSINESS_TIME_ZONE,
@@ -249,8 +249,8 @@ export default function HoyPage() {
   // AIT-50 (NO-GO ronda 2, mayor): "role === undefined" (la query
   // todavía no ha resuelto, primer render) NO cumplía ninguna de las
   // dos ramas de abajo, así que se pintaba el shell completo de sales
-  // — BottomTabBar incluido — antes de que el useEffect de arriba
-  // redirigiera. Con app/page.tsx ya mandando a storeManager
+  // antes de que el useEffect de arriba redirigiera. Con app/page.tsx
+  // ya mandando a storeManager
   // directamente a /panel, este caso ya no debería darse en el camino
   // normal de entrada, pero se trata igual que el resto de guards de
   // rol del proyecto (p.ej. app/panel/page.tsx): no se pinta contenido
@@ -287,13 +287,16 @@ export default function HoyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
       <header className="flex items-start justify-between gap-3 border-b border-border bg-surface px-5 py-4">
-        <div className="min-w-0">
-          <h1 className="text-xl font-bold text-text">
-            {greeting}, {userInfo?.name ?? "…"}
-          </h1>
-          <p className="mt-0.5 text-[13px] capitalize text-text-muted">
-            {today}
-          </p>
+        <div className="flex min-w-0 items-start gap-3">
+          <NavToggleButton />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-text">
+              {greeting}, {userInfo?.name ?? "…"}
+            </h1>
+            <p className="mt-0.5 text-[13px] capitalize text-text-muted">
+              {today}
+            </p>
+          </div>
         </div>
         <div className="flex flex-none items-center gap-2">
           <div className="relative">
@@ -438,7 +441,7 @@ export default function HoyPage() {
         </div>
       )}
 
-      <main className="flex-1 overflow-y-auto px-5 py-5 pb-32">
+      <main className="flex-1 overflow-y-auto px-5 py-5 pb-24">
         {items === undefined && (
           <p className="text-text-secondary">Cargando…</p>
         )}
@@ -509,7 +512,7 @@ export default function HoyPage() {
         )}
       </main>
 
-      <div className="fixed bottom-[76px] right-6">
+      <div className="fixed bottom-6 right-6">
         <button
           type="button"
           aria-label="Alta rápida"
@@ -519,8 +522,6 @@ export default function HoyPage() {
           <Plus size={26} />
         </button>
       </div>
-
-      <BottomTabBar />
 
       <AltaRapidaModal
         open={altaRapidaOpen}

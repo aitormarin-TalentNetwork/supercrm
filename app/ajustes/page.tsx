@@ -5,8 +5,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { Mail, Store, User, UserCog } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/Button";
-import { AppSidebar } from "@/components/nav/AppSidebar";
-import { BottomTabBar } from "@/components/nav/BottomTabBar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
 
 // AIT-50: pantalla nueva, sin mockup de referencia — decisiones de UI
@@ -20,23 +19,17 @@ export default function AjustesPage() {
   const userInfo = useQuery(api.users.getCurrentUserInfo);
   const { signOut } = useAuthActions();
 
-  const isStoreWide = role === "owner" || role === "storeManager";
   const loading = role === undefined || userInfo === undefined;
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg font-sans text-text lg:flex-row">
-      {isStoreWide && <AppSidebar />}
-
+    <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+          <NavToggleButton />
           <h1 className="m-0 text-[15px] font-bold">Ajustes</h1>
         </header>
 
-        <div
-          className={`mx-auto flex w-full max-w-[480px] flex-1 flex-col gap-4 px-4 pt-[18px] ${
-            isStoreWide ? "pb-16" : "pb-28"
-          }`}
-        >
+        <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col gap-4 px-4 pb-16 pt-[18px]">
           {loading ? (
             <p className="text-text-secondary">Cargando…</p>
           ) : (
@@ -72,8 +65,6 @@ export default function AjustesPage() {
           )}
         </div>
       </main>
-
-      {!isStoreWide && role !== undefined && <BottomTabBar />}
     </div>
   );
 }

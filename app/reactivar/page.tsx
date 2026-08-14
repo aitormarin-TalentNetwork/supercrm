@@ -9,8 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { AppSidebar } from "@/components/nav/AppSidebar";
-import { BottomTabBar } from "@/components/nav/BottomTabBar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { BUSINESS_TIME_ZONE } from "@/lib/businessTime";
 
 // No se reutiliza lib/format.ts:formatDate: esa función formatea en la
@@ -156,7 +155,6 @@ export default function ReactivarPage() {
   const router = useRouter();
   const role = useQuery(api.users.getCurrentUserRole);
   const items = useQuery(api.repurchaseReminders.listToReactivate);
-  const isStoreWide = role === "owner" || role === "storeManager";
 
   function handleBack() {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -178,11 +176,10 @@ export default function ReactivarPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg font-sans text-text lg:flex-row">
-      {isStoreWide && <AppSidebar />}
-
+    <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 flex-none items-center gap-3 border-b border-border bg-surface px-4">
+          <NavToggleButton />
           <button
             type="button"
             onClick={handleBack}
@@ -201,9 +198,7 @@ export default function ReactivarPage() {
           </div>
         </header>
 
-        <div
-          className={`flex-1 overflow-y-auto px-4 py-5 ${isStoreWide ? "pb-10" : "pb-24"}`}
-        >
+        <div className="flex-1 overflow-y-auto px-4 py-5 pb-10">
           {items === undefined && (
             <p className="text-text-secondary">Cargando…</p>
           )}
@@ -260,8 +255,6 @@ export default function ReactivarPage() {
           )}
         </div>
       </main>
-
-      {!isStoreWide && <BottomTabBar />}
     </div>
   );
 }

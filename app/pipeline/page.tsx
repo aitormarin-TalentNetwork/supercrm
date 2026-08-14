@@ -12,8 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { PriorityBadge } from "@/components/crm/PriorityBadge";
-import { AppSidebar } from "@/components/nav/AppSidebar";
-import { BottomTabBar } from "@/components/nav/BottomTabBar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { formatCurrency } from "@/lib/format";
 
 type Stage = "contacto" | "presupuesto" | "negociacion";
@@ -40,7 +39,6 @@ export default function PipelinePage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const opportunities = useQuery(api.opportunities.listOpen, {});
   const changeStage = useMutation(api.opportunities.changeStage);
-  const isStoreWide = role === "owner" || role === "storeManager";
 
   const [search, setSearch] = useState("");
   const [onlyAtRisk, setOnlyAtRisk] = useState(false);
@@ -113,12 +111,11 @@ export default function PipelinePage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-bg font-sans text-text lg:flex-row">
-      {isStoreWide && <AppSidebar />}
-
+    <div className="flex h-screen flex-col bg-bg font-sans text-text">
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex-none border-b border-border bg-surface px-5 py-3.5">
           <div className="flex flex-wrap items-center gap-3.5">
+            <NavToggleButton />
             <div className="min-w-0">
               <h1 className="m-0 text-[19px] font-bold tracking-tight">
                 Pipeline
@@ -197,11 +194,7 @@ export default function PipelinePage() {
           )}
         </header>
 
-        <div
-          className={`flex flex-1 gap-4 overflow-x-auto overflow-y-hidden p-5 ${
-            isStoreWide ? "" : "pb-20"
-          }`}
-        >
+        <div className="flex flex-1 gap-4 overflow-x-auto overflow-y-hidden p-5">
           {columns.map((col) => (
             <div
               key={col.stage}
@@ -309,8 +302,6 @@ export default function PipelinePage() {
 
         <AltaRapidaModal open={altaOpen} onClose={() => setAltaOpen(false)} />
       </main>
-
-      {!isStoreWide && <BottomTabBar />}
     </div>
   );
 }

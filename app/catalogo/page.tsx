@@ -7,8 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { AppSidebar } from "@/components/nav/AppSidebar";
-import { BottomTabBar } from "@/components/nav/BottomTabBar";
+import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { formatCurrency, parseEuroAmount } from "@/lib/format";
 
 type Product = { id: Id<"products">; name: string; price: number };
@@ -30,7 +29,6 @@ type Product = { id: Id<"products">; name: string; price: number };
 export default function CatalogoPage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const products = useQuery(api.products.list);
-  const isStoreWide = role === "owner" || role === "storeManager";
   const canManageProducts = role === "owner";
 
   if (role === undefined) {
@@ -42,11 +40,10 @@ export default function CatalogoPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg font-sans text-text lg:flex-row">
-      {isStoreWide && <AppSidebar />}
-
+    <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+          <NavToggleButton />
           <div className="min-w-0">
             <h1 className="text-[15px] font-bold text-text">
               Catálogo de productos
@@ -57,11 +54,7 @@ export default function CatalogoPage() {
           </div>
         </header>
 
-        <div
-          className={`mx-auto flex w-full max-w-[720px] flex-col gap-4 px-4 pt-[18px] ${
-            isStoreWide ? "pb-16" : "pb-28"
-          }`}
-        >
+        <div className="mx-auto flex w-full max-w-[720px] flex-col gap-4 px-4 pb-16 pt-[18px]">
           {canManageProducts && <NewProductForm />}
 
           <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-[var(--shadow-e1)]">
@@ -93,8 +86,6 @@ export default function CatalogoPage() {
           </section>
         </div>
       </main>
-
-      {!isStoreWide && <BottomTabBar />}
     </div>
   );
 }
