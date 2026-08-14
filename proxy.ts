@@ -29,6 +29,9 @@ const isProtectedRoute = createRouteMatcher([
   // rechaza la petición ("No autenticado"), pero eso no sustituye el
   // contrato de enrutado que ya cumplen el resto de pantallas privadas.
   "/reactivar(.*)",
+  // AIT-50: pantalla de Ajustes, accesible a cualquier usuario autenticado
+  // (no es owner-only) — mismo criterio que /hoy o /pipeline.
+  "/ajustes(.*)",
 ]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {

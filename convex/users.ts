@@ -263,6 +263,9 @@ export const getCurrentUserInfo = query({
     const store = await ctx.db.get(user.storeId);
     return {
       name: user.name ?? "",
+      // AIT-50: pantalla Ajustes (solo lectura) — no había ningún
+      // consumidor de email hasta ahora, por eso no estaba en esta query.
+      email: user.email ?? "",
       storeName: store?.name ?? "",
     };
   },

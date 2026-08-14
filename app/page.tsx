@@ -8,5 +8,11 @@ import { api } from "@/convex/_generated/api";
 export default async function Home() {
   const token = await convexAuthNextjsToken();
   const role = await fetchQuery(api.users.getCurrentUserRole, {}, { token });
-  redirect(role === "owner" ? "/panel" : "/hoy");
+  // AIT-50 (NO-GO ronda 2, mayor): storeManager es un rol de gestión de
+  // tienda entera, igual que owner (isStoreWideRole en
+  // convex/model/access.ts) — debe entrar directamente a /panel, no dar
+  // un rodeo por /hoy (que además obligaba a app/hoy/page.tsx a manejar
+  // el estado transitorio "role todavía no resuelto" solo para este
+  // caso).
+  redirect(role === "owner" || role === "storeManager" ? "/panel" : "/hoy");
 }

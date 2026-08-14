@@ -9,6 +9,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { AppSidebar } from "@/components/nav/AppSidebar";
+import { BottomTabBar } from "@/components/nav/BottomTabBar";
 import { BUSINESS_TIME_ZONE } from "@/lib/businessTime";
 
 // No se reutiliza lib/format.ts:formatDate: esa función formatea en la
@@ -55,7 +57,9 @@ function ReminderCard({ item }: { item: ReminderItem }) {
     try {
       await markContacted({ reminderId: item.id });
     } catch {
-      setActionError("No se ha podido marcar como contactado. Inténtalo de nuevo.");
+      setActionError(
+        "No se ha podido marcar como contactado. Inténtalo de nuevo.",
+      );
     } finally {
       setActing(false);
     }
@@ -77,7 +81,9 @@ function ReminderCard({ item }: { item: ReminderItem }) {
   return (
     <div
       className={`relative rounded-lg border bg-surface p-4 shadow-sm transition-shadow hover:shadow-md ${
-        item.isOverdue ? "border-l-[3px] border-l-error border-border" : "border-border"
+        item.isOverdue
+          ? "border-l-[3px] border-l-error border-border"
+          : "border-border"
       }`}
     >
       <Link
@@ -127,7 +133,9 @@ function ReminderCard({ item }: { item: ReminderItem }) {
         </Button>
       </div>
       {actionError && (
-        <p className="relative z-10 mt-2 text-xs font-medium text-error">{actionError}</p>
+        <p className="relative z-10 mt-2 text-xs font-medium text-error">
+          {actionError}
+        </p>
       )}
     </div>
   );
@@ -146,7 +154,9 @@ function ReminderCard({ item }: { item: ReminderItem }) {
 // + botones de acción superpuestos), tal como pide el brief.
 export default function ReactivarPage() {
   const router = useRouter();
+  const role = useQuery(api.users.getCurrentUserRole);
   const items = useQuery(api.repurchaseReminders.listToReactivate);
+  const isStoreWide = role === "owner" || role === "storeManager";
 
   function handleBack() {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -159,81 +169,99 @@ export default function ReactivarPage() {
   const vencidos = items?.filter((item) => item.isOverdue) ?? [];
   const proximos = items?.filter((item) => !item.isOverdue) ?? [];
 
+  if (role === undefined) {
+    return (
+      <main className="flex flex-1 items-center justify-center bg-bg font-sans">
+        <p className="text-text-secondary">Cargando…</p>
+      </main>
+    );
+  }
+
   return (
-    <main className="flex min-h-screen flex-col bg-bg font-sans text-text">
-      <header className="flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
-        <button
-          type="button"
-          onClick={handleBack}
-          aria-label="Volver"
-          className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
-        >
-          <RefreshCw size={18} />
-        </button>
-        <div>
-          <h1 className="m-0 text-[17px] font-bold tracking-tight">
-            Clientes a reactivar
-          </h1>
-          <p className="text-[12px] text-text-muted">
-            Recordatorios de recompra tras una venta ganada
-          </p>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-bg font-sans text-text lg:flex-row">
+      {isStoreWide && <AppSidebar />}
 
-      <div className="flex-1 overflow-y-auto px-4 py-5 pb-10">
-        {items === undefined && <p className="text-text-secondary">Cargando…</p>}
-
-        {items !== undefined && items.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <Repeat size={32} className="text-text-muted" />
-            <div>
-              <p className="text-base font-semibold text-text">
-                Sin clientes pendientes de reactivar
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">
-                Cuando ganes una oportunidad, se programa aquí su recordatorio de
-                recompra.
-              </p>
-            </div>
+      <main className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 flex-none items-center gap-3 border-b border-border bg-surface px-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="Volver"
+            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+          >
+            <RefreshCw size={18} />
+          </button>
+          <div>
+            <h1 className="m-0 text-[17px] font-bold tracking-tight">
+              Clientes a reactivar
+            </h1>
+            <p className="text-[12px] text-text-muted">
+              Recordatorios de recompra tras una venta ganada
+            </p>
           </div>
-        )}
+        </header>
 
-        {vencidos.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-2.5 flex items-center gap-2">
-              <span className="text-[13px] font-bold uppercase tracking-wide text-error">
-                Vencidos
-              </span>
-              <span className="rounded-pill bg-error-subtle px-2.5 py-0.5 text-xs font-bold text-error">
-                {vencidos.length}
-              </span>
-            </div>
-            <div className="flex flex-col gap-3">
-              {vencidos.map((item) => (
-                <ReminderCard key={item.id} item={item} />
-              ))}
-            </div>
-          </section>
-        )}
+        <div
+          className={`flex-1 overflow-y-auto px-4 py-5 ${isStoreWide ? "pb-10" : "pb-24"}`}
+        >
+          {items === undefined && (
+            <p className="text-text-secondary">Cargando…</p>
+          )}
 
-        {proximos.length > 0 && (
-          <section>
-            <div className="mb-2.5 flex items-center gap-2">
-              <span className="text-[13px] font-bold uppercase tracking-wide text-text-secondary">
-                Próximos
-              </span>
-              <span className="rounded-pill bg-neutral-100 px-2.5 py-0.5 text-xs font-bold text-text-secondary">
-                {proximos.length}
-              </span>
+          {items !== undefined && items.length === 0 && (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <Repeat size={32} className="text-text-muted" />
+              <div>
+                <p className="text-base font-semibold text-text">
+                  Sin clientes pendientes de reactivar
+                </p>
+                <p className="mt-1 text-sm text-text-secondary">
+                  Cuando ganes una oportunidad, se programa aquí su recordatorio
+                  de recompra.
+                </p>
+              </div>
             </div>
-            <div className="flex flex-col gap-3">
-              {proximos.map((item) => (
-                <ReminderCard key={item.id} item={item} />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    </main>
+          )}
+
+          {vencidos.length > 0 && (
+            <section className="mb-6">
+              <div className="mb-2.5 flex items-center gap-2">
+                <span className="text-[13px] font-bold uppercase tracking-wide text-error">
+                  Vencidos
+                </span>
+                <span className="rounded-pill bg-error-subtle px-2.5 py-0.5 text-xs font-bold text-error">
+                  {vencidos.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {vencidos.map((item) => (
+                  <ReminderCard key={item.id} item={item} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {proximos.length > 0 && (
+            <section>
+              <div className="mb-2.5 flex items-center gap-2">
+                <span className="text-[13px] font-bold uppercase tracking-wide text-text-secondary">
+                  Próximos
+                </span>
+                <span className="rounded-pill bg-neutral-100 px-2.5 py-0.5 text-xs font-bold text-text-secondary">
+                  {proximos.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {proximos.map((item) => (
+                  <ReminderCard key={item.id} item={item} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </main>
+
+      {!isStoreWide && <BottomTabBar />}
+    </div>
   );
 }

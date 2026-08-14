@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { Bell, Plus, Check, Clock, AlertTriangle, Repeat } from "lucide-react";
+import { Bell, Plus, Check, Clock, AlertTriangle } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +14,7 @@ import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
+import { BottomTabBar } from "@/components/nav/BottomTabBar";
 import { formatCurrency } from "@/lib/format";
 import {
   BUSINESS_TIME_ZONE,
@@ -28,7 +28,11 @@ type SortOption = "vencimiento" | "prioridad";
 
 // AIT-36: alta primero — mismo orden que ya usa el Select de "Ordenar"
 // (menor peso = más arriba).
-const PRIORITY_WEIGHT: Record<Priority, number> = { alta: 0, media: 1, baja: 2 };
+const PRIORITY_WEIGHT: Record<Priority, number> = {
+  alta: 0,
+  media: 1,
+  baja: 2,
+};
 
 type NextStepItem = {
   nextStepId: Id<"nextSteps">;
@@ -55,13 +59,14 @@ function formatDueDate(ms: number): string {
   if (diffDays === 0) return `Hoy ${time}`;
   if (diffDays === 1) return `Ayer ${time}`;
   if (diffDays > 1) return `Hace ${diffDays} días`;
-  return new Date(ms).toLocaleDateString("es-ES", { timeZone: BUSINESS_TIME_ZONE });
+  return new Date(ms).toLocaleDateString("es-ES", {
+    timeZone: BUSINESS_TIME_ZONE,
+  });
 }
 
 function daysSince(ms: number): number {
   return businessDaysBetween(ms, Date.now());
 }
-
 
 function NextStepCard({ item }: { item: NextStepItem }) {
   const markDone = useMutation(api.nextSteps.markDone);
@@ -102,7 +107,9 @@ function NextStepCard({ item }: { item: NextStepItem }) {
   return (
     <div
       className={`relative rounded-lg border bg-surface p-4 shadow-sm transition-shadow hover:shadow-md ${
-        item.isOverdue ? "border-l-[3px] border-l-error border-border" : "border-border"
+        item.isOverdue
+          ? "border-l-[3px] border-l-error border-border"
+          : "border-border"
       }`}
     >
       {/* Área navegable de la tarjeta ("stretched link"): cubre toda la
@@ -179,7 +186,9 @@ function NextStepCard({ item }: { item: NextStepItem }) {
         </Button>
       </div>
       {actionError && (
-        <p className="relative z-10 mt-2 text-xs font-medium text-error">{actionError}</p>
+        <p className="relative z-10 mt-2 text-xs font-medium text-error">
+          {actionError}
+        </p>
       )}
       <RegistrarInteraccionModal
         open={interactionModalOpen}
@@ -199,15 +208,23 @@ export default function HoyPage() {
   const userInfo = useQuery(api.users.getCurrentUserInfo);
   const items = useQuery(api.nextSteps.listForToday);
   const notifications = useQuery(api.nextSteps.getNotifications);
-  const { signOut } = useAuthActions();
   const router = useRouter();
   const [altaRapidaOpen, setAltaRapidaOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [priorityFilter, setPriorityFilter] = useState<Priority | "todas">("todas");
+  const [priorityFilter, setPriorityFilter] = useState<Priority | "todas">(
+    "todas",
+  );
   const [sortBy, setSortBy] = useState<SortOption>("vencimiento");
 
   useEffect(() => {
-    if (role === "owner") router.replace("/panel");
+    // AIT-50 (NO-GO ronda 1, mayor #1): storeManager es un rol de
+    // gestión de tienda entera, igual que owner (ver isStoreWideRole en
+    // convex/model/access.ts) — Hoy es la agenda personal de un
+    // comercial individual, no encaja con ese rol. Se redirige a Panel
+    // igual que a owner, en vez de dejarlo "colarse" con el shell de
+    // navegación de sales solo porque el guard original solo miraba
+    // "owner" a secas.
+    if (role === "owner" || role === "storeManager") router.replace("/panel");
   }, [role, router]);
 
   // Filtro y orden por prioridad (AIT-36) aplicados ANTES de separar en
@@ -229,7 +246,24 @@ export default function HoyPage() {
     });
   }, [items, priorityFilter, sortBy]);
 
-  if (role === "owner") {
+  // AIT-50 (NO-GO ronda 2, mayor): "role === undefined" (la query
+  // todavía no ha resuelto, primer render) NO cumplía ninguna de las
+  // dos ramas de abajo, así que se pintaba el shell completo de sales
+  // — BottomTabBar incluido — antes de que el useEffect de arriba
+  // redirigiera. Con app/page.tsx ya mandando a storeManager
+  // directamente a /panel, este caso ya no debería darse en el camino
+  // normal de entrada, pero se trata igual que el resto de guards de
+  // rol del proyecto (p.ej. app/panel/page.tsx): no se pinta contenido
+  // mientras el rol no se conoce.
+  if (role === undefined) {
+    return (
+      <main className="flex flex-1 items-center justify-center bg-bg font-sans">
+        <p className="text-text-secondary">Cargando…</p>
+      </main>
+    );
+  }
+
+  if (role === "owner" || role === "storeManager") {
     return null;
   }
 
@@ -241,7 +275,8 @@ export default function HoyPage() {
   const atRiskOpportunities = notifications?.atRiskOpportunities ?? [];
   const notifCount = dueSteps.length + atRiskOpportunities.length;
   const hour = getBusinessHour(new Date().getTime());
-  const greeting = hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
+  const greeting =
+    hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
   const today = new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
@@ -256,118 +291,118 @@ export default function HoyPage() {
           <h1 className="text-xl font-bold text-text">
             {greeting}, {userInfo?.name ?? "…"}
           </h1>
-          <p className="mt-0.5 text-[13px] capitalize text-text-muted">{today}</p>
+          <p className="mt-0.5 text-[13px] capitalize text-text-muted">
+            {today}
+          </p>
         </div>
         <div className="flex flex-none items-center gap-2">
-          <Link
-            href="/reactivar"
-            aria-label="Clientes a reactivar"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
-          >
-            <Repeat size={18} />
-          </Link>
           <div className="relative">
-          <button
-            type="button"
-            aria-label="Notificaciones"
-            aria-expanded={notifOpen}
-            onClick={() => setNotifOpen((open) => !open)}
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
-          >
-            <Bell size={18} />
-            {notifCount > 0 && (
-              <span className="absolute -right-1 -top-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-pill border-2 border-surface bg-error px-1 text-[11px] font-bold text-white">
-                {notifCount}
-              </span>
-            )}
-          </button>
+            <button
+              type="button"
+              aria-label="Notificaciones"
+              aria-expanded={notifOpen}
+              onClick={() => setNotifOpen((open) => !open)}
+              className="relative inline-flex h-11 w-11 items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
+            >
+              <Bell size={18} />
+              {notifCount > 0 && (
+                <span className="absolute -right-1 -top-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-pill border-2 border-surface bg-error px-1 text-[11px] font-bold text-white">
+                  {notifCount}
+                </span>
+              )}
+            </button>
 
-          {notifOpen && (
-            <>
-              {/* Cierra al hacer clic fuera — pantalla completa transparente
+            {notifOpen && (
+              <>
+                {/* Cierra al hacer clic fuera — pantalla completa transparente
                   detrás del panel, por delante del resto de la página. */}
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setNotifOpen(false)}
-              />
-              <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[70vh] w-[340px] max-w-[calc(100vw-32px)] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg">
-                <div className="sticky top-0 border-b border-border bg-surface px-4 py-3">
-                  <span className="text-sm font-bold text-text">Notificaciones</span>
-                </div>
-
-                {notifications === undefined && (
-                  <p className="px-4 py-6 text-center text-sm text-text-secondary">
-                    Cargando…
-                  </p>
-                )}
-
-                {notifications !== undefined && notifCount === 0 && (
-                  <p className="px-4 py-6 text-center text-sm text-text-secondary">
-                    Sin avisos pendientes.
-                  </p>
-                )}
-
-                {dueSteps.length > 0 && (
-                  <div className="px-4 py-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                      Pasos de hoy
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setNotifOpen(false)}
+                />
+                <div className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[70vh] w-[340px] max-w-[calc(100vw-32px)] overflow-y-auto rounded-lg border border-border bg-surface shadow-lg">
+                  <div className="sticky top-0 border-b border-border bg-surface px-4 py-3">
+                    <span className="text-sm font-bold text-text">
+                      Notificaciones
                     </span>
-                    <div className="mt-2 flex flex-col gap-2.5">
-                      {dueSteps.map((step) => (
-                        <Link
-                          key={step.nextStepId}
-                          href={`/oportunidades/${step.opportunityId}`}
-                          onClick={() => setNotifOpen(false)}
-                          className="block rounded-md p-2 -mx-2 hover:bg-neutral-100"
-                        >
-                          <div className="truncate text-sm font-semibold text-text">
-                            {step.customerName}
-                          </div>
-                          <div className="mt-0.5 truncate text-xs text-text-secondary">
-                            {step.action}
-                          </div>
-                          <div
-                            className={`mt-1 font-mono text-xs font-semibold ${
-                              step.isOverdue ? "text-error" : "text-text-muted"
-                            }`}
+                  </div>
+
+                  {notifications === undefined && (
+                    <p className="px-4 py-6 text-center text-sm text-text-secondary">
+                      Cargando…
+                    </p>
+                  )}
+
+                  {notifications !== undefined && notifCount === 0 && (
+                    <p className="px-4 py-6 text-center text-sm text-text-secondary">
+                      Sin avisos pendientes.
+                    </p>
+                  )}
+
+                  {dueSteps.length > 0 && (
+                    <div className="px-4 py-3">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                        Pasos de hoy
+                      </span>
+                      <div className="mt-2 flex flex-col gap-2.5">
+                        {dueSteps.map((step) => (
+                          <Link
+                            key={step.nextStepId}
+                            href={`/oportunidades/${step.opportunityId}`}
+                            onClick={() => setNotifOpen(false)}
+                            className="block rounded-md p-2 -mx-2 hover:bg-neutral-100"
                           >
-                            {formatDueDate(step.dueDate)}
-                          </div>
-                        </Link>
-                      ))}
+                            <div className="truncate text-sm font-semibold text-text">
+                              {step.customerName}
+                            </div>
+                            <div className="mt-0.5 truncate text-xs text-text-secondary">
+                              {step.action}
+                            </div>
+                            <div
+                              className={`mt-1 font-mono text-xs font-semibold ${
+                                step.isOverdue
+                                  ? "text-error"
+                                  : "text-text-muted"
+                              }`}
+                            >
+                              {formatDueDate(step.dueDate)}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {atRiskOpportunities.length > 0 && (
-                  <div className="border-t border-border px-4 py-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                      Oportunidades en riesgo
-                    </span>
-                    <div className="mt-2 flex flex-col gap-2.5">
-                      {atRiskOpportunities.map((item) => (
-                        <Link
-                          key={item.opportunityId}
-                          href={`/oportunidades/${item.opportunityId}`}
-                          onClick={() => setNotifOpen(false)}
-                          className="block rounded-md p-2 -mx-2 hover:bg-neutral-100"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="truncate text-sm font-semibold text-text">
-                              {item.customerName}
-                            </span>
-                            <Badge variant="error" dot>
-                              {daysSince(item.lastActivityAt)} días sin actividad
-                            </Badge>
-                          </div>
-                        </Link>
-                      ))}
+                  {atRiskOpportunities.length > 0 && (
+                    <div className="border-t border-border px-4 py-3">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                        Oportunidades en riesgo
+                      </span>
+                      <div className="mt-2 flex flex-col gap-2.5">
+                        {atRiskOpportunities.map((item) => (
+                          <Link
+                            key={item.opportunityId}
+                            href={`/oportunidades/${item.opportunityId}`}
+                            onClick={() => setNotifOpen(false)}
+                            className="block rounded-md p-2 -mx-2 hover:bg-neutral-100"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="truncate text-sm font-semibold text-text">
+                                {item.customerName}
+                              </span>
+                              <Badge variant="error" dot>
+                                {daysSince(item.lastActivityAt)} días sin
+                                actividad
+                              </Badge>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -403,8 +438,10 @@ export default function HoyPage() {
         </div>
       )}
 
-      <main className="flex-1 overflow-y-auto px-5 py-5 pb-28">
-        {items === undefined && <p className="text-text-secondary">Cargando…</p>}
+      <main className="flex-1 overflow-y-auto px-5 py-5 pb-32">
+        {items === undefined && (
+          <p className="text-text-secondary">Cargando…</p>
+        )}
 
         {items !== undefined && !hasAnyItems && (
           <div className="flex flex-col items-center gap-4 py-16 text-center">
@@ -412,11 +449,14 @@ export default function HoyPage() {
             <div>
               <p className="text-base font-semibold text-text">¡Todo al día!</p>
               <p className="mt-1 text-sm text-text-secondary">
-                No te queda ningún seguimiento para hoy. Buen momento para captar una
-                nueva oportunidad.
+                No te queda ningún seguimiento para hoy. Buen momento para
+                captar una nueva oportunidad.
               </p>
             </div>
-            <Button leftIcon={<Plus size={16} />} onClick={() => setAltaRapidaOpen(true)}>
+            <Button
+              leftIcon={<Plus size={16} />}
+              onClick={() => setAltaRapidaOpen(true)}
+            >
               Nueva oportunidad
             </Button>
           </div>
@@ -469,7 +509,7 @@ export default function HoyPage() {
         )}
       </main>
 
-      <div className="fixed bottom-6 right-6">
+      <div className="fixed bottom-[76px] right-6">
         <button
           type="button"
           aria-label="Alta rápida"
@@ -480,13 +520,12 @@ export default function HoyPage() {
         </button>
       </div>
 
-      <div className="flex justify-center border-t border-border bg-surface px-5 py-3">
-        <Button variant="secondary" size="md" onClick={() => signOut()}>
-          Cerrar sesión
-        </Button>
-      </div>
+      <BottomTabBar />
 
-      <AltaRapidaModal open={altaRapidaOpen} onClose={() => setAltaRapidaOpen(false)} />
+      <AltaRapidaModal
+        open={altaRapidaOpen}
+        onClose={() => setAltaRapidaOpen(false)}
+      />
     </div>
   );
 }
