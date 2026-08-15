@@ -18,7 +18,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
             "Registro público deshabilitado. Los accesos los crea la dueña de tu empresa.",
           );
         }
-        if (typeof params.email !== "string" || params.email.trim().length === 0) {
+        if (
+          typeof params.email !== "string" ||
+          params.email.trim().length === 0
+        ) {
           throw new Error("Email inválido o ausente.");
         }
         return { email: params.email.trim().toLowerCase() };
@@ -26,8 +29,29 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     }),
   ],
   callbacks: {
+    // AIT-52 (Post-MVP, corrección tras hallazgo propio en verificación):
+    // este es el único punto que se ejecuta en TODO signIn (credenciales,
+    // reintentos incluidos) justo antes de persistir la sesión — a
+    // diferencia de createOrUpdateUser de abajo, que para el provider
+    // Password SOLO se llama cuando se crea la cuenta (createAccount),
+    // nunca en un signIn normal sobre una cuenta ya existente (confirmado
+    // leyendo node_modules/@convex-dev/auth/dist/providers/Password.js:
+    // su rama flow==="signIn" llama a retrieveAccount y devuelve el
+    // userId directamente, sin pasar por createOrUpdateUser). `active` es
+    // opcional en el schema (?? true) porque los usuarios ya existentes
+    // en el deployment compartido no lo tenían antes de esta tarea.
+    async beforeSessionCreation(ctx, { userId }) {
+      const user = await ctx.db.get(userId);
+      if (user !== null && user.active === false) {
+        throw new Error(
+          "Esta cuenta está desactivada. Contacta con la dueña de tu empresa.",
+        );
+      }
+    },
     async createOrUpdateUser(ctx, { existingUserId, profile }) {
-      if (existingUserId !== null) return existingUserId;
+      if (existingUserId !== null) {
+        return existingUserId;
+      }
 
       // Solo se alcanza mediante el bootstrap (createAccount en
       // convex/users.ts llama a este callback sin pasar por el profile()
@@ -56,13 +80,20 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         );
       }
       if (!storeId || (await ctx.db.get(storeId)) === null) {
-        throw new Error(`storeId "${storeId}" no corresponde a ninguna tienda existente.`);
+        throw new Error(
+          `storeId "${storeId}" no corresponde a ninguna tienda existente.`,
+        );
       }
       return await ctx.db.insert("users", {
         email: email.trim().toLowerCase(),
         name: name.trim(),
         role,
         storeId,
+        // AIT-52: explícito en todo alta nueva (bootstrap o
+        // users.createUser), igual que el resto de campos de este
+        // insert — el fallback "?? true" de más abajo es solo para las
+        // cuentas creadas antes de que este campo existiera.
+        active: true,
       });
     },
   },

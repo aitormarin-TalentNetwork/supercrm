@@ -22,6 +22,15 @@ export default defineSchema({
       v.literal("sales"),
     ),
     storeId: v.id("stores"),
+    // AIT-52 (Post-MVP): desactivar acceso sin borrar historial (sus
+    // oportunidades/interacciones quedan intactas, solo deja de poder
+    // entrar — comprobado en convex/auth.ts). Opcional en el schema (no
+    // obligatorio) porque los usuarios ya existentes en el deployment
+    // compartido no lo tienen — se tratan como activos allí donde se lee
+    // (`?? true`), igual que otros campos añadidos a esta tabla en
+    // rondas anteriores (p.ej. priority en opportunities, AIT-35).
+    // createUser sí lo fija explícitamente en todo alta nueva.
+    active: v.optional(v.boolean()),
   })
     .index("email", ["email"])
     .index("phone", ["phone"]),

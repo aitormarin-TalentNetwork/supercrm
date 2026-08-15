@@ -1,14 +1,27 @@
 import { v } from "convex/values";
-import { createAccount, getAuthUserId } from "@convex-dev/auth/server";
 import {
+  createAccount,
+  getAuthUserId,
+  invalidateSessions,
+} from "@convex-dev/auth/server";
+import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
+  mutation,
   query,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { requireUser } from "./model/access";
+import { requireOwner, requireUser } from "./model/access";
 import type { Id } from "./_generated/dataModel";
+
+// AIT-52 (Post-MVP): el provider Password de convex/auth.ts no impone hoy
+// ningún mínimo propio (comprobado en su código) — se fija aquí, en el
+// único punto donde Marta introduce una contraseña nueva a mano (las
+// cuentas de bootstrapInitialAccounts vienen de variables de entorno, sin
+// pasar por esta validación).
+const MIN_PASSWORD_LENGTH = 8;
 
 export const ensureDefaultStore = internalMutation({
   args: { name: v.string() },
@@ -154,7 +167,9 @@ export const bootstrapInitialAccounts = internalAction({
       storeId: Id<"stores">,
     ) {
       if (await ctx.runQuery(internal.users.getUserByEmail, { email })) {
-        console.warn(`bootstrapInitialAccounts: ${email} ya existe; no se crea de nuevo.`);
+        console.warn(
+          `bootstrapInitialAccounts: ${email} ya existe; no se crea de nuevo.`,
+        );
         return;
       }
       const claimed = await ctx.runMutation(internal.users.claimBootstrapSlot, {
@@ -184,7 +199,9 @@ export const bootstrapInitialAccounts = internalAction({
       // contra el deployment real en la ronda de auditoría 4). Sin este
       // chequeo, ese caso pasaría desapercibido y el claim se quedaría
       // reservado para siempre.
-      const created = await ctx.runQuery(internal.users.getUserByEmail, { email });
+      const created = await ctx.runQuery(internal.users.getUserByEmail, {
+        email,
+      });
       if (!created) {
         await ctx.runMutation(internal.users.releaseBootstrapSlot, {
           claimKey: `bootstrap_claim:${email}`,
@@ -252,7 +269,17 @@ export const getCurrentUserRole = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
-    return (await ctx.db.get(userId))?.role ?? null;
+    const user = await ctx.db.get(userId);
+    // AIT-52 (Post-MVP, hallazgo de auditoría NO-GO loop2): esta query no
+    // pasa por requireUser (proxy.ts la llama directamente para decidir
+    // acceso a rutas owner-only, antes de que exista ningún QueryCtx de
+    // una función normal) — sin este chequeo, un usuario desactivado
+    // conservaba su rol aquí y proxy.ts lo seguía dejando entrar en
+    // /panel y /supervision como si nada, aunque cualquier query de
+    // datos real le fuera a rechazar después. Mismo criterio que
+    // "usuario no encontrado": se trata como si no hubiera rol.
+    if (user === null || user.active === false) return null;
+    return user.role;
   },
 });
 
@@ -268,5 +295,209 @@ export const getCurrentUserInfo = query({
       email: user.email ?? "",
       storeName: store?.name ?? "",
     };
+  },
+});
+
+// AIT-52 (Post-MVP): lista para la sección "Usuarios" de Ajustes — solo
+// owner (ve el negocio entero, igual que stores.listStores). Incluye a
+// la propia Marta y a cualquier otra cuenta owner que pudiera existir en
+// el futuro: se filtra en la UI, no aquí, para que la lista sea la
+// fuente de verdad completa. `active` con el mismo fallback `?? true`
+// que el resto de lugares que lo leen (opcional en el schema).
+export const listUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireOwner(ctx);
+    const users = await ctx.db.query("users").collect();
+    const stores = await ctx.db.query("stores").collect();
+    const storeNameById = new Map(
+      stores.map((store) => [store._id, store.name]),
+    );
+    return users
+      .filter((user) => user.email !== undefined)
+      .map((user) => ({
+        id: user._id,
+        name: user.name ?? "",
+        email: user.email ?? "",
+        role: user.role,
+        storeId: user.storeId,
+        storeName: storeNameById.get(user.storeId) ?? "—",
+        active: user.active ?? true,
+      }));
+  },
+});
+
+// AIT-52 (Post-MVP): alta de usuario por Marta desde /ajustes — mismo
+// mecanismo que bootstrapInitialAccounts (createAccount +
+// convex/auth.ts:createOrUpdateUser crea la fila en `users`), pero
+// disparado en caliente por una persona en vez de un script. Es una
+// `action` pública (no mutation): createAccount ya se usaba así en
+// bootstrapInitialAccounts y necesita ese contexto — requireOwner no se
+// puede llamar directamente aquí (necesita QueryCtx/MutationCtx, no
+// ActionCtx), así que el chequeo de rol se hace vía runQuery contra
+// getCurrentUserRole, mismo patrón que ya usa esta acción para
+// getUserByEmail más abajo.
+export const createUser = action({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    password: v.string(),
+    // Nunca "owner" — no se puede crear otra dueña desde aquí (ni el
+    // propio schema de authTables lo distingue del resto: es una
+    // decisión de producto, impuesta en el union de args, no en el
+    // schema de la tabla).
+    role: v.union(v.literal("sales"), v.literal("storeManager")),
+    storeId: v.id("stores"),
+  },
+  handler: async (ctx, args) => {
+    const role = await ctx.runQuery(
+      internal.users.getCurrentUserRoleInternal,
+      {},
+    );
+    if (role !== "owner") {
+      throw new Error("Solo la dueña puede crear usuarios.");
+    }
+
+    const email = args.email.trim().toLowerCase();
+    if (!email) throw new Error("El email es obligatorio.");
+    const name = args.name.trim();
+    if (!name) throw new Error("El nombre es obligatorio.");
+    if (args.password.length < MIN_PASSWORD_LENGTH) {
+      throw new Error(
+        `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+      );
+    }
+
+    const existing = await ctx.runQuery(internal.users.getUserByEmail, {
+      email,
+    });
+    if (existing) {
+      throw new Error("Ya existe un usuario con ese email.");
+    }
+    const store = await ctx.runQuery(internal.users.getStoreInternal, {
+      storeId: args.storeId,
+    });
+    if (store === null) {
+      throw new Error("La tienda indicada no existe.");
+    }
+
+    await createAccount(ctx, {
+      provider: "password",
+      account: { id: email, secret: args.password },
+      profile: { email, name, role: args.role, storeId: args.storeId },
+    });
+  },
+});
+
+// Auxiliares internas para createUser (action, sin ctx.db propio).
+export const getCurrentUserRoleInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return null;
+    const user = await ctx.db.get(userId);
+    // AIT-52 (hallazgo de auditoría NO-GO loop2): mismo criterio que
+    // getCurrentUserRole — un owner nunca puede quedar `active: false`
+    // (setUserActive lo rechaza), así que hoy esto no es explotable vía
+    // createUser, pero se corrige igualmente como defensa en profundidad
+    // consistente en vez de dejar una variante interna con un criterio
+    // distinto al de la pública.
+    if (user === null || user.active === false) return null;
+    return user.role;
+  },
+});
+
+export const getStoreInternal = internalQuery({
+  args: { storeId: v.id("stores") },
+  handler: async (ctx, { storeId }) => {
+    return await ctx.db.get(storeId);
+  },
+});
+
+// AIT-52 (Post-MVP): editar nombre/rol/tienda de un usuario existente.
+// No permite editar a una cuenta owner (ni convertir a alguien EN owner,
+// ni tocar a la propia Marta desde aquí) — mismo criterio de "nunca
+// owner" que createUser.
+export const updateUser = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.string(),
+    role: v.union(v.literal("sales"), v.literal("storeManager")),
+    storeId: v.id("stores"),
+  },
+  handler: async (ctx, { userId, name, role, storeId }) => {
+    await requireOwner(ctx);
+    const target = await ctx.db.get(userId);
+    if (target === null) throw new Error("Usuario no encontrado.");
+    if (target.role === "owner") {
+      throw new Error("No se puede editar a la dueña desde aquí.");
+    }
+    const trimmedName = name.trim();
+    if (!trimmedName) throw new Error("El nombre es obligatorio.");
+    if ((await ctx.db.get(storeId)) === null) {
+      throw new Error("La tienda indicada no existe.");
+    }
+    await ctx.db.patch(userId, { name: trimmedName, role, storeId });
+  },
+});
+
+// AIT-52 (Post-MVP): desactivar/reactivar acceso sin borrar el
+// historial del usuario — el campo `active` es lo único que cambia,
+// oportunidades/interacciones/nextSteps ya creados por este usuario no
+// se tocan (siguen apuntando a su mismo ownerId/authorId/assigneeId de
+// siempre). El bloqueo real de acceso vive en varios sitios, no aquí
+// (esta action solo marca el estado y dispara la invalidación):
+// convex/auth.ts:beforeSessionCreation (bloquea logins nuevos),
+// convex/model/access.ts:requireUser + getCurrentUserRole/
+// getCurrentUserRoleInternal (cortan el acceso de una sesión ya abierta
+// en su siguiente llamada — hallazgo de auditoría NO-GO loop2:
+// requireUser en la práctica no era el único punto de control, esas dos
+// queries de rol tampoco comprobaban `active`).
+//
+// La invalidación de sesiones de abajo (`invalidateSessions`) borra la
+// fila de `authSessions` y su refresh token — impide que el cliente
+// obtenga un access token NUEVO una vez caduque el que ya tenía (por
+// defecto, hasta 1h), y fuerza un re-login real para volver a entrar.
+// OJO (comprobado en verificación en vivo, no asumido): NO revoca al
+// instante un access token JWT ya emitido y todavía vigente — es
+// stateless, Convex solo comprueba firma + `exp`, sin consultar
+// `authSessions` en cada llamada. Mientras ese JWT no caduque, sigue
+// siendo "válido" a nivel de autenticación; lo que impide que haga nada
+// útil son los chequeos explícitos de `active` de arriba, no esta
+// invalidación. Cerrar ese hueco residual del todo requeriría acortar
+// jwt.durationMs globalmente — decisión de producto más amplia, fuera
+// de alcance de esta tarea, documentada aquí para que quede explícita.
+//
+// Es `action` (no mutation, a diferencia del loop1) porque
+// `invalidateSessions` de @convex-dev/auth necesita ActionCtx — la
+// comprobación de rol y el patch en sí viven en `setUserActiveInternal`
+// de abajo, invocada vía runMutation (mismo patrón que ya usa
+// `createUser` para `createAccount`).
+export const setUserActive = action({
+  args: { userId: v.id("users"), active: v.boolean() },
+  handler: async (ctx, { userId, active }) => {
+    await ctx.runMutation(internal.users.setUserActiveInternal, {
+      userId,
+      active,
+    });
+    if (!active) {
+      await invalidateSessions(ctx, { userId });
+    }
+  },
+});
+
+export const setUserActiveInternal = internalMutation({
+  args: { userId: v.id("users"), active: v.boolean() },
+  handler: async (ctx, { userId, active }) => {
+    // requireOwner ya garantiza que quien llama es owner — como esta
+    // función bloquea target.role === "owner" justo debajo, nunca puede
+    // coincidir con quien llama (no hace falta comparar _id aparte).
+    await requireOwner(ctx);
+    const target = await ctx.db.get(userId);
+    if (target === null) throw new Error("Usuario no encontrado.");
+    if (target.role === "owner") {
+      throw new Error("No se puede desactivar a la dueña.");
+    }
+    await ctx.db.patch(userId, { active });
   },
 });
