@@ -7,6 +7,22 @@ export async function requireUser(ctx: QueryCtx | MutationCtx) {
   if (userId === null) throw new Error("No autenticado.");
   const user = await ctx.db.get(userId);
   if (user === null) throw new Error("Usuario no encontrado.");
+  // AIT-52 (Post-MVP, hallazgo de auditoría NO-GO loop1): comprobar
+  // `active` solo en el signIn (convex/auth.ts:beforeSessionCreation)
+  // bloqueaba logins nuevos, pero una sesión ya abierta antes de
+  // desactivar seguía autorizando queries/mutations hasta expirar. Este
+  // es el punto común por el que pasa toda función que requiere usuario
+  // autenticado (requireOwner y requireStoreAccess llaman a esta), así
+  // que desactivar corta el acceso en la siguiente llamada — y, para las
+  // queries reactivas ya abiertas, Convex vuelve a ejecutar esta función
+  // en cuanto cambia el documento `user` que lee (`ctx.db.get(userId)`),
+  // así que también las corta casi al instante, sin esperar a que
+  // expire el JWT.
+  if (user.active === false) {
+    throw new Error(
+      "Esta cuenta está desactivada. Contacta con la dueña de tu empresa.",
+    );
+  }
   return user;
 }
 
