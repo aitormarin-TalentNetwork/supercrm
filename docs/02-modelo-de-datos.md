@@ -80,11 +80,13 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `stage` | `"contacto"` \| `"presupuesto"` \| `"negociacion"` | Las 3 etapas del MVP (facturar y recompra son Post-MVP) |
 | `status` | `"open"` \| `"won"` \| `"lost"` | Abierta hasta que se cierra |
 | `interest` | string? | Producto/servicio o interés |
+| `priority` | `"alta"` \| `"media"` \| `"baja"`? | Post-MVP (AIT-35). Opcional a nivel de schema por compatibilidad con datos previos; nunca lo está en la práctica — `createQuick` fija `"media"` explícitamente en toda alta nueva, y se lee con fallback `?? "media"` donde no está fijado. Importancia manual, distinta del riesgo (automático) |
 | `estimatedAmount` | number? | Alimenta el pipeline y el forecast |
 | `expectedCloseDate` | number? | Timestamp. Alimenta el forecast |
 | `lostReason` | string? | **Obligatorio si `status = "lost"`** |
 | `closedAt` | number? | |
 | `finalAmount` | number? | Importe real al cerrar |
+| `billingStatus` | `"listo_para_facturar"` \| `"facturado"` \| `"cobrado"`? | Post-MVP (AIT-33). Solo aplica a oportunidades ganadas (`undefined` en abiertas/perdidas, y también en ganadas anteriores a esta tarea — fallback a `"listo_para_facturar"` en las queries/mutations que lo leen, sin migrar datos existentes) |
 | `lastActivityAt` | number | **Clave para el riesgo.** Se actualiza en CADA interacción y cambio de etapa |
 | `ownerId` | id(`users`) | Comercial |
 | `storeId` | id(`stores`) | |
@@ -136,6 +138,18 @@ Lo administra Marta (`requireOwner`); Carlos solo lo lee para construir presupue
 | `dueDate` | number | Cuándo |
 | `status` | `"pending"` \| `"done"` \| `"postponed"` | |
 | `assigneeId` | id(`users`) | |
+
+### `repurchaseReminders` (Post-MVP, AIT-30 — no es una de las 7 entidades del MVP)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `customerId` | id(`customers`) | |
+| `opportunityId` | id(`opportunities`) | La venta ganada que originó el recordatorio |
+| `ownerId` | id(`users`) | Copiado de la oportunidad al crearlo (no derivado por join en cada lectura) — mismo patrón que el resto de listados del proyecto, para poder filtrar por comercial/tienda |
+| `storeId` | id(`stores`) | Igual: copiado, no derivado |
+| `dueDate` | number | Cuándo toca reactivar al cliente |
+| `status` | `"pending"` \| `"done"` \| `"dismissed"` | |
+
+Lo administra Carlos desde "Clientes a reactivar" (`app/reactivar/`); Marta lo ve igual, sin restricción de rol adicional a la de tienda/comercial habitual. Índice `by_store_status` (con `storeId` primero) añadido en la ronda 3 de auditoría de AIT-30: `by_status` a secas traía recordatorios de todas las tiendas antes de filtrar en memoria — mismo problema, y mismo arreglo, que tuvo `listPendingBilling` en AIT-33.
 
 ### `opportunityRequests` (interna, no es una de las 7 entidades del PRD)
 | Campo | Tipo | Notas |

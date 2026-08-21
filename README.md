@@ -14,10 +14,12 @@ Esta carpeta es **el proyecto entero**: aquí vive la documentación, el diseño
 |---|---|
 | PRD (Notion) | 🟢 Cerrado — no se modifica |
 | Diseño (Fase 0) | 🟢 Hecho — 10 pantallas + design system |
-| Fase 1 · Fundamentos | 🟡 En curso — Next.js + Convex conectados, schema desplegado |
-| Fases 2–6 · Construcción | ⚪ Sin empezar |
+| **MVP (Fases 1–6)** | 🟢 **Hecho** — las 7 fases (AIT-5 a AIT-28) en Done. Desplegado en Railway. |
+| Post-MVP | 🟡 En curso — catálogo/presupuestos, recompra, multi-tienda (backend), facturación (ciclo manual), prioridad, navegación/ajustes y gestión de usuarios ya Done. Quedan en Backlog: registro automático WhatsApp/email/teléfono (AIT-32, aparcado a propósito), PDF de presupuesto (AIT-53), varias versiones de presupuesto (AIT-54), integración de facturación externa (AIT-55), comparativa entre tiendas en el Panel (AIT-56), notificaciones push reales (AIT-57) y listado de clientes (AIT-58). |
 
 Leyenda: 🟢 hecho · 🟡 en curso · ⚪ sin empezar · 🔴 atascada (solo si hay un problema).
+
+Fuente de verdad del estado real: Linear (equipo **VibeCoding Academy**, proyectos **SuperCRM — MVP** y **SuperCRM — Post-MVP**). Esta tabla es un resumen, no la referencia — puede ir un paso por detrás.
 
 ---
 
@@ -46,8 +48,8 @@ Y [`CLAUDE.md`](CLAUDE.md): las reglas que sigue la IA al trabajar en este repo.
 
 ## El MVP en una frase
 
-Que el negocio organice sus ventas y **no pierda ninguna por falta de seguimiento**, en **una sola tienda** y en **web responsive**.
+Que el negocio organice sus ventas y **no pierda ninguna por falta de seguimiento**, en **web responsive**. El MVP se construyó para **una sola tienda**; Post-MVP (AIT-31) ya añadió soporte multi-tienda en el backend.
 
 Dos usuarios: **Marta** (dueña — quiere visión y control) y **Carlos** (vendedor — quiere saber a quién llamar hoy).
 
-Las 7 fases del MVP están en Linear (Fase 0 · Diseño → Fase 6 · Cierre). El curso marca el ritmo: se avanza fase a fase, no antes.
+Las 7 fases del MVP están Done en Linear (Fase 0 · Diseño → Fase 6 · Cierre). El curso marcó el ritmo mientras se construía; hoy el desarrollo sigue en Post-MVP.

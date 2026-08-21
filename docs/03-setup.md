@@ -23,7 +23,7 @@ Las 7 tablas existen con sus índices y están **vacías**: los datos entran por
 
 - **Node.js 20+** (`node -v`).
 - Cuenta en **Convex** (gratis, se crea con GitHub/Google en el primer `npx convex dev`).
-- Cuenta en **Vercel** solo cuando toque desplegar (Fase 6).
+- Cuenta en **Railway** para desplegar (ver ADR-002 en [`01-arquitectura.md`](01-arquitectura.md) — auto-deploy en cada push a `main`, no hace falta paso manual).
 
 ---
 
