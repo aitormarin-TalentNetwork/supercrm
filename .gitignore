@@ -48,3 +48,10 @@ next-env.d.ts
 
 # copias de trabajo aisladas por terminal (git worktree), una por tarea en curso
 /Sorfware Factory/_worktrees/
+
+# cerrojo autoservicio del turno de Convex mientras el deployment siga compartido
+# (estado efímero de coordinación entre terminales, no config del proyecto)
+/Sorfware Factory/_turno-convex.lock
+
+# modo de publicación del Integrador (confirmar/autonomo) — estado efímero, no config
+/Sorfware Factory/_modo-publicacion.txt

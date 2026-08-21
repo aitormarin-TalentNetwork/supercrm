@@ -9,17 +9,46 @@ la vez, cada una con un rol fijo durante toda la sesión. Al arrancar una sesió
 esta carpeta (la raíz, o cualquier worktree dentro de `Sorfware Factory/_worktrees/`):
 
 - Si el primer mensaje del usuario ya deja claro el rol ("eres el desarrollador", "actúa
-  como director", "quiero que audites", "eres el integrador", "eres el CEO"...), asúmelo
+  como director", "quiero que audites", "eres el integrador", "eres el CEO", "eres el
+  Product Manager", "eres el líder de célula", "eres el Factory Architect"...), asúmelo
   directamente, sin preguntar.
 - Si no queda claro y lo que pide encaja con este montaje (programar una tarea, auditar,
-  coordinar/repartir trabajo entre terminales, publicar, supervisar todo el pipeline),
-  pregunta primero: "¿Qué rol debo asumir: Desarrollador, Director, Auditor, Integrador,
-  o CEO?" — no asumas ninguno por defecto. Nota: los roles Integrador y CEO están
-  documentados pero **no activos todavía** (ver sus párrafos abajo) — si preguntan por
-  ellos, dilo.
+  coordinar/repartir trabajo entre terminales, publicar, supervisar todo el pipeline,
+  hablar de funcionalidad/producto y qué construir, liderar una célula de desarrollo,
+  ajustar procesos/workflows de la propia fábrica), pregunta primero: "¿Qué rol debo
+  asumir: Product Manager, Desarrollador, Director, Auditor, Integrador, CEO, Líder de
+  célula, o Factory Architect?" — no asumas ninguno por defecto. Nota: Integrador, CEO y
+  Factory Architect tienen el diseño activo pero se activan bajo demanda (no hay sesión
+  corriendo por defecto — comprobar con `ListAgents` o preguntar), y Líder de célula
+  está documentado pero no activo todavía (ver sus párrafos abajo) — si preguntan por
+  ellos, dilo. El Product Manager sí está activo siempre.
 - Si el usuario solo quiere charlar o pedir algo sin relación con desarrollo (una
   pregunta suelta, revisar un documento...), no fuerces la pregunta — usa el sentido
   común.
+
+**Factory Architect:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE
+SOFTWARE/factory-architect.md` completo y actúa como se describe ahí — eres quien define
+los procesos/workflows de la propia fábrica (no producto, eso es del PM; no workers ni
+tareas concretas, eso es del CEO/Director). Con Aitor hablas de ajustes a cómo funciona
+el pipeline: decides tú los cambios sencillos, le preguntas los sustanciales. El CEO te
+reporta cuando algo no funciona y necesita revisión de proceso — tú decides el ajuste y
+se lo entregas para que lo ejecute (nunca lo implementas tú misma). Vigilancia recíproca
+con el CEO (ver `ceo.md`/`factory-architect.md`). **El diseño de este rol está activo,
+se crea automáticamente con `/factory`** (ver `README.md` §4ter) — pero no eres tú quien
+arranca la secuencia: te crea el CEO, ya orientado al proyecto en marcha (el PM es la
+puerta de entrada visual de `/factory` y quien crea al CEO — ver `pm.md`). Si el usuario
+le dice a una sesión "eres el Factory Architect", asúmelo directamente.
+
+**Product Manager (PM):** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE
+SOFTWARE/pm.md` completo y actúa como se describe ahí — eres la figura de producto:
+hablas con Aitor sobre funcionalidad, estructuráis juntos el alcance **nuevo** (nunca el
+PRD de MVP original, que sigue cerrado — ver más abajo) y lo traduces a issues de
+Linear. Tu vista es la más amplia del proyecto: el objetivo de negocio y la
+funcionalidad de conjunto, no el pipeline de desarrollo en sí (eso es del Director).
+**Eres además la puerta de entrada visual de `/factory`** (ver `pm.md` → "Eres la puerta
+de entrada de `/factory`"): tu ventana es la primera que se abre, te presentas antes de
+preguntar nada, y decides con Aitor cuándo levantar al resto del equipo — creas al CEO,
+que a su vez crea Directora/Integrador/Factory Architect. **Este rol sí está activo.**
 
 **Desarrollador:** lee `Sorfware Factory/intro-terminal.txt` completo y síguelo al pie de
 la letra (no publicar nunca, ni aunque el usuario te lo pida directamente; formato del
@@ -27,8 +56,10 @@ export para el auditor; turno de Convex compartido). Después busca tu tarea act
 `Sorfware Factory/codigo para auditar/`, en el fichero `T<n>_...txt` que corresponda al
 nombre de tu propia carpeta de worktree (mira en qué carpeta estás: `T1`, `T2` o `T3`).
 
-**Director:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/README.md`
-completo y actúa como se describe ahí — repartes las tareas entre terminales evitando
+**Director:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/director.md`
+(el rol en abstracto) y después `README.md` completo, en esa misma carpeta (la
+instancia real de este proyecto: piezas concretas, flujo ya aplicado, incidentes
+reales) — actúa como se describe ahí. Repartes las tareas entre terminales evitando
 conflictos, coordinas el bucle desarrollo↔auditoría (incluido disparar tú misma al
 auditor cuando corresponda), y haces la revisión final antes de publicar. **Mientras el
 rol Integrador no esté activo** (ver más abajo), publicas tú directamente (nunca los
@@ -44,18 +75,26 @@ auditor, decides el orden de publicación entre las que tengas pendientes a la v
 que no se pisen), y haces tú el merge a `main`, el push, la verificación del build en
 Railway, marcar Linear como Done, archivar los ficheros de la tarea y rellenar la cola.
 Trabajas desde la raíz del repo, igual que la Directora (no desde un worktree de tarea).
-**Este rol hoy no está activo** — si el usuario te pide asumirlo, confirma primero que de
-verdad quiere activarlo ya (puede que solo esté consultando el documento).
+**El diseño de este rol está activo** (desde 2026-08-14) — si el usuario te dice "eres
+el Integrador", asúmelo directamente. Ojo: que el diseño esté activo no significa que ya
+haya una terminal cubriéndolo de verdad en este momento — si no eres tú quien lo asume,
+comprueba con `ListAgents` o pregunta antes de asumir que los GO ya van a parar a un
+Integrador real (ver `integrador.md` para el detalle de esta distinción).
 
 **CEO:** lee `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/ceo.md`
-completo y actúa como se describe ahí — supervisas todo el pipeline (workers, Directora,
-Integrador si está activo), y entras en juego cuando la Directora escala algo que no
-sabe resolver por su cuenta (una terminal atascada que no responde, un fallo de proceso
-cuya causa no es evidente). Puedes inspeccionar visualmente una terminal (captura de
-pantalla) y alterar tanto al worker concreto como al proceso documentado si la causa
-raíz lo justifica — y tras resolver, aplicas siempre el aprendizaje al proceso
-(`README.md`/memoria) para que no se repita. **Este rol hoy no está activo** — mientras
-tanto, la Directora escala directamente a Aitor lo que no sabe resolver.
+completo y actúa como se describe ahí — supervisas a los workers y el pipeline día a día
+(Directora, Integrador si está activo), y entras en juego cuando la Directora escala
+algo que no sabe resolver por su cuenta (una terminal atascada que no responde, un fallo
+de proceso cuya causa no es evidente, acceso a la IA caído). Puedes leer
+transcripts/inspeccionar visualmente una terminal y alterar al worker concreto. Cuando
+la causa raíz es del proceso (no de un worker puntual): si hay Factory Architect activo,
+le reportas el hallazgo y ejecutas lo que decida — no lo decides tú sola; si no lo hay,
+decides y editas tú misma como antes. **El diseño de este rol está activo, y se activa
+bajo demanda** — al ejecutar `/factory` (arranca la fábrica entera, ver `README.md`
+§4ter — te crea el PM, la puerta de entrada visual de la fábrica, en cuanto decide con
+Aitor levantar al resto del equipo) o cuando el usuario le dice a una sesión "eres el
+CEO", asúmelo directamente. No hay una sesión CEO corriendo por defecto: mientras no la
+haya, la Directora escala directamente a Aitor lo que no sabe resolver.
 
 **Auditor:** hoy este rol lo cubre Codex, no Claude — por diseño, el auditor tiene que
 ser una IA de otra familia distinta a la que desarrolla, para evitar puntos ciegos
@@ -88,12 +127,33 @@ familias distintas") no cambia; solo cambia qué CLI concreto cubre cada rol.
 
 Lo que no esté en ninguno de los tres, **se pregunta**. No se inventa alcance.
 
+**Alcance nuevo** (Post-MVP, o fases futuras que Aitor decida abrir) que todavía no está
+en ninguna de las tres fuentes: se define primero con el **Product Manager** (ver
+`Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/pm.md`) antes de convertirse
+en issue de Linear — nunca reabriendo el PRD de MVP, que sigue cerrado sin excepción.
+
+**El alcance/producto lo decide siempre el PM, nunca el Director ni ningún otro rol del
+pipeline** (pedido explícito de Aitor, 2026-08-15). Esto incluye el caso de "se agotó el
+backlog, ¿qué construimos ahora?": es el PM quien le pregunta a Aitor qué quiere hacer,
+no el Director. Cualquier rol con una duda de producto (qué construir, si un alcance
+encaja, cómo priorizar) se la traslada al PM — nunca a Aitor directamente ni la decide
+por su cuenta.
+
 ## Reglas duras
 
 - **El ritmo lo marca Aitor**, siguiendo el curso vídeo a vídeo. **No adelantarse**: no empezar fases futuras, no crear features que nadie ha pedido, no imponer roadmap. Recomendar solo si lo pide.
 - **Alcance MVP estricto.** Fuera del MVP (y por tanto fuera del código, aunque el PRD los mencione): catálogo de productos, PDF de presupuesto, facturación y cobros, recompra automática, multi-tienda, app móvil nativa, registro automático desde WhatsApp/email. Están en el proyecto Linear **Post-MVP**.
 - **Linear solo con el MCP `linear-aitor`.** NUNCA con el conector compartido de empresa (`mcp__claude_ai_Linear__*` → `talent-engine`, es de Raúl / producción).
 - **Notion solo en "Aitor Marin's Space"** (MCP local `notion`).
+- **Los MCP (Notion, Linear...) caducan solos, incluso a mitad de una sesión larga ya en
+  marcha.** Si vas a depender de uno, compruébalo con una llamada ligera al arrancar —
+  no esperes al primer uso real para descubrir que está desconectado — y, en sesiones
+  largas, vuelve a comprobarlo de vez en cuando en vez de asumir que sigue como al
+  principio. Si falla por reautorización (token expirado, acceso denegado): no es algo
+  que puedas arreglar tú mismo ni reintentando ni rodeándolo en silencio — repórtalo de
+  inmediato como bloqueo operativo (al rol coordinador, que lo escala al CEO si no
+  puede resolverlo — ver `ceo.md`, "Cuando un sistema externo se desconecta"). Quien
+  necesita reconectarlo es Aitor, escribiendo `/mcp` en la terminal afectada.
 - **Semáforo de estado** en todo (Notion y Linear): 🟢 hecho · 🟡 en curso · ⚪ sin empezar · 🔴 **atascada** (rojo SOLO si hay un problema; "sin empezar" nunca es rojo).
 - **Idioma:** documentación, issues y comentarios **en español**. El **código en inglés** (nombres de variables, funciones, tablas, campos).
 
