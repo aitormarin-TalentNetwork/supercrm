@@ -156,6 +156,21 @@ por su cuenta.
   necesita reconectarlo es Aitor, escribiendo `/mcp` en la terminal afectada.
 - **Semáforo de estado** en todo (Notion y Linear): 🟢 hecho · 🟡 en curso · ⚪ sin empezar · 🔴 **atascada** (rojo SOLO si hay un problema; "sin empezar" nunca es rojo).
 - **Idioma:** documentación, issues y comentarios **en español**. El **código en inglés** (nombres de variables, funciones, tablas, campos).
+- **Nunca volcar secretos en claro en una salida visible o registrada** (logs, terminal
+  compartida, export para el auditor...). Comandos como `npx convex env list` imprimen
+  valores completos — usa el flag de ocultación que tenga la herramienta, o filtra la
+  salida (`grep -v`) antes de dejarla a la vista. Si ocurre por accidente, el secreto
+  expuesto se rota de inmediato, no se deja "total, ya se vio" (incidente real,
+  2026-08-21: `JWT_PRIVATE_KEY` y contraseñas semilla volcadas por un agente auditando el
+  deployment; rotadas al detectarlo).
+- **Antes de que este proyecto maneje datos reales de un negocio** (clientes/ventas/dinero
+  reales, no de prueba), pasa por el `checklist de salida a producción real`
+  (`Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/checklist-produccion-real.md`)
+  — lo dispara el PM al detectar que se acerca ese momento, lo ejecuta el Director/CEO.
+- **Cierra con commit lo que des por completado.** Un ADR, un ajuste a un documento de
+  rol/proceso de la fábrica, la resolución de una nota de scope — si lo das por hecho, se
+  commitea en ese mismo momento. No se deja en el working tree a la espera de que otra
+  sesión (o una auditoría) lo note por accidente.
 
 ## Stack
 
@@ -180,7 +195,8 @@ Al implementar una pantalla: abre su `.dc.html`, replica estructura y tokens, y 
 2. Lee la pantalla correspondiente en `Design/pantallas/` y la entidad en `docs/02-modelo-de-datos.md`.
 3. Implementa: schema/función Convex primero, luego la UI.
 4. Comprueba que funciona de verdad en el navegador (no solo que compila).
-5. Marca la issue 🟢 Done y, si cambió una decisión técnica, actualiza el doc de `docs/` correspondiente **en el mismo cambio**.
+5. Antes de marcar Done: si lo construido tiene menos alcance del que promete el título o los criterios de aceptación de la issue (recorte razonable, pero recorte al fin), crea en ese mismo momento la issue de continuación en Linear con lo que falta — no lo dejes solo en un comentario de código o en la memoria de quien lo construyó.
+6. Marca la issue 🟢 Done y, si cambió una decisión técnica, actualiza el doc de `docs/` correspondiente **en el mismo cambio**.
 
 ## Convenciones de código
 

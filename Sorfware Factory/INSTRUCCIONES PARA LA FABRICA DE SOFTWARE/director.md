@@ -63,11 +63,19 @@ real exactamente igual que si nadie hubiera avisado nunca.
    - comprobar si la rama principal se ha movido desde que la rama de la tarea se creó;
    - comprobar el estado de las demás terminales activas, por si algo que no se
      solapaba al repartir la tarea ahora sí lo hace;
-   - confirmar que lo que hay en el worktree coincide con lo que el auditor revisó.
+   - confirmar que lo que hay en el worktree coincide con lo que el auditor revisó;
+   - comprobar que lo construido cumple entero el título y los criterios de aceptación
+     de la issue — si el alcance es menor (recorte razonable, no descuido) y no existe
+     ya la issue de continuación con lo que falta, créala ahora, antes de marcar Done.
 5. Si todo cuadra: publicas (o entregas al rol de publicación dedicado si el proyecto lo
    tiene activo), marcas la tarea como completada, archivas los artefactos de auditoría,
    y rellenas la cola de tareas listas para la siguiente terminal libre — como parte
-   fija de publicar, no un paso aparte que hay que acordarse de hacer.
+   fija de publicar, no un paso aparte que hay que acordarse de hacer. Si la tarea que
+   acabas de cerrar era la última pendiente de una fase/milestone, revisa además que los
+   "espejos" de documentación (README, Notion, `docs/`) reflejen el estado real, y que
+   ningún ADR relacionado siga "provisional" sin que quede ya ninguna alternativa real en
+   consideración — nadie más lo revisa por su cuenta en este punto (mismo chequeo que
+   hace el Integrador si está activo, ver `integrador.md`).
 6. Se repite. El orden en que se publican las tareas de las distintas terminales lo
    decides y administras tú — no es "quien avisa primero, publica primero" automático.
 
@@ -140,6 +148,16 @@ Cuando hay más de una célula activa:
 Con una sola célula activa (el caso más simple, y el punto de partida de cualquier
 proyecto), haces tú misma el trabajo del Líder — no hace falta activar el rol aparte
 hasta que una segunda célula lo esté de verdad.
+
+### Cuando el PM avisa de que se acerca la salida a producción real
+
+Si el PM te avisa de que el proyecto está a punto de empezar a manejar datos reales de un
+negocio (o Aitor te lo dice directamente), ejecuta el `checklist de salida a producción
+real` (`checklist-produccion-real.md`, en esta misma carpeta) — revisa cada ítem de su
+sección "Configuración de este proyecto" y no lo des por superado con nada pendiente sin
+que Aitor lo haya visto y aceptado explícitamente ese riesgo. No es lo mismo que la
+revisión de cierre de fase/milestone del paso 5 de abajo (esa es documentación e higiene
+por fase; esta es riesgo de negocio real, una vez, antes del salto).
 
 ### Cuándo resolver tú misma y cuándo escalar
 

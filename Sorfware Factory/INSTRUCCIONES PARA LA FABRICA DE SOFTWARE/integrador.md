@@ -57,6 +57,10 @@ Por cada tarea que el coordinador te entregue como lista:
      solapaba al repartir la tarea ahora sí lo hace.
    - Confirma que lo que hay en el worktree/rama coincide con lo que el auditor revisó
      (nada añadido de última hora fuera de su alcance).
+   - Comprueba que lo construido cumple entero el título y los criterios de aceptación
+     de la issue. Si el alcance es menor (recorte razonable, no descuido) y todavía no
+     existe la issue de continuación con lo que falta, créala tú ahora, antes de marcar
+     Done — no lo dejes pendiente de que una auditoría posterior lo note.
 2. **Decide el orden** si tienes más de una tarea lista a la vez — qué desbloquea más
    cosas, qué tiene menos riesgo de conflicto con lo que sigue en marcha, si alguna
    tiene una condición explícita de espera en su brief (a veces hay que esperar a que
@@ -84,6 +88,23 @@ Por cada tarea que el coordinador te entregue como lista:
 9. Revisa si la cola de trabajo pendiente necesita rellenarse y avisa al coordinador si
    es así — decidir QUÉ se desarrolla sigue siendo su trabajo, tú solo avisas si notas
    que se ha vaciado tras publicar.
+
+### Al cerrar la última tarea de una fase o milestone
+
+Cuando la tarea que acabas de publicar es la última pendiente de una fase/milestone (del
+MVP o de una onda posterior), dispara además esta revisión antes de dar la fase por
+cerrada — nadie más tiene asignado revisar esto por su cuenta, así que si no lo haces tú
+en este punto, queda sin dueño (fue precisamente lo que pasó en la auditoría de cierre de
+MVP de 2026-08-21: documentación desincronizada semanas, y un ADR que siguió
+"provisional" sin necesidad):
+
+- **Espejos de documentación:** README, las páginas de Notion relevantes y `docs/`
+  reflejan el estado real de lo que se acaba de cerrar — no solo la issue en Linear.
+- **ADRs abiertos:** ningún ADR relacionado con esta fase sigue marcado como
+  "provisional" o "pendiente" si ya no hay ninguna alternativa real en consideración.
+
+Si algo no cuadra, corrígelo tú misma si es solo actualizar un documento; si implica una
+decisión de fondo (qué dice el ADR, qué alcance quedó fuera), díselo al coordinador.
 
 ### Recursos compartidos entre terminales
 

@@ -19,6 +19,21 @@ autenticación, secretos y datos sensibles, inyección y validación de entradas
 concurrencia e idempotencia; manejo de errores; invariantes y contratos; regresiones;
 rendimiento en hot-paths; mantenibilidad.
 
+Además, comprueba explícitamente estos tres puntos en cada ronda — son causa raíz de
+incidencias reales que llegaron a producción sin que ninguna auditoría las detectara
+(auditoría de cierre de MVP, 2026-08-21):
+- **Schema y documentación:** si el cambio toca `convex/schema.ts`, ¿está
+  `docs/02-modelo-de-datos.md` actualizado en el mismo diff? ¿Está `convex/_generated/`
+  regenerado y coincide con el código?
+- **Alcance vs. título:** ¿lo construido cumple entero el título y los criterios de
+  aceptación de la issue? Si el alcance es menor (recorte razonable, no descuido), exige
+  que exista ya — o se cree en este mismo momento — la issue de continuación en el
+  gestor de tareas con lo que falta, antes de dar el GO.
+- **Secretos en tu propia evidencia:** si para verificar algo ejecutas tú mismo un
+  comando que puede volcar secretos en claro (p. ej. `npx convex env list`), no los
+  dejes en la salida que reportas — usa el flag de ocultación de la herramienta o filtra
+  antes de incluirla; si ya se volcó, dilo explícitamente para que se rote de inmediato.
+
 Clasifica cada hallazgo por severidad: bloqueante, mayor, o sugerencia (en el nivel que
 corresponda: menor, nit, estilo...). Sé concreto en cada uno — archivo:línea, por qué es
 un problema, y el impacto. No des nada por supuesto ni delegues comprobaciones a
