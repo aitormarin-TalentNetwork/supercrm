@@ -140,18 +140,20 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 
 **Estado:** 🟢 Cerrada.
 
-### ADR-002 · Hosting/despliegue — 2026-08-08
+### ADR-002 · Hosting/despliegue — 2026-08-08 (migrado 2026-08-13)
 
 **Contexto:** el plan inicial (§7 antigua) era decidir el hosting en la Fase 6 · Cierre, con Vercel como opción natural para Next.js. En la práctica, Aitor ya tenía Railway configurado y funcionando (cuenta personal, conectado por GitHub al repo `aitormarin-TalentNetwork/supercrm`) antes de llegar a esa fase, para poder ver la app en vivo mientras se desarrolla con varias terminales de Claude Code en paralelo.
 
-**Decisión:** Railway, cuenta personal de Aitor (`aitormarin@gmail.com`, workspace "My Projects", proyecto **`reasonable-creativity`**, servicio `supercrm`). **Auto-deploy en cada push a `main`** vía la integración de GitHub — no hace falta ningún paso manual de despliegue: mergear y hacer `git push` ya publica. URL actual: `https://supercrm-production-4518.up.railway.app`. Las variables de entorno del frontend (`NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD`) ya están puestas en el servicio y apuntan al deployment de Convex real (`third-goldfinch-805`).
+**Decisión:** Railway, cuenta personal de Aitor (`aitormarin@gmail.com`, workspace "My Projects", proyecto **`fulfilling-vision`**, servicio `supercrm`). **Auto-deploy en cada push a `main`** vía la integración de GitHub — no hace falta ningún paso manual de despliegue: mergear y hacer `git push` ya publica. URL actual: `https://supercrm-production-bf48.up.railway.app`. Las variables de entorno del frontend (`NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD`) están puestas en el servicio y apuntan al deployment de Convex real (`third-goldfinch-805`).
 
 **Alternativa descartada:** Vercel — no se llegó a evaluar; Railway ya estaba desplegando con éxito cuando se revisó esta decisión, y no hay ningún requisito del MVP que lo justifique.
 
+**Migración 2026-08-13:** el proyecto original de esta decisión (`reasonable-creativity`, misma cuenta) agotó el trial limitado y quedó inaccesible sin pasar a plan de pago — exactamente el riesgo que ya avisaba la consecuencia de abajo. Aitor decidió no pagar por acceso a esa cuenta y creó una cuenta Railway nueva (mismo email, `aitormarin@gmail.com`, cuenta de Railway distinta), donde se recreó el proyecto desde cero: nuevo servicio conectado al mismo repo/rama, mismas 4 variables de entorno copiadas, redeploy disparado a mano una vez puestas las variables (los `NEXT_PUBLIC_*` de Next.js se incrustan en el build, no se leen en caliente — el primer deploy con las variables recién puestas seguía sirviendo el build anterior sin ellas y daba 500 en `/login`). Verificado en vivo tras el redeploy: `/login` 200, `/` y rutas protegidas (`/catalogo`, `/pipeline`) 307 a `/login` sin sesión. `reasonable-creativity` queda abandonado, no se usa ni se paga.
+
 **Consecuencias:**
-- ⚠️ **Cuenta en Trial limitado** (a fecha de esta decisión: 30 días o $5.00, lo que se agote antes). Cuando expire, el servicio deja de estar disponible hasta pasar a un plan de pago. Revisar antes de que caduque, no descubrirlo por una caída en medio de una demo.
-- Existe un **segundo proyecto Railway huérfano** ("Mi CRM basic", cuenta `aitor.marin@talent-network.org`, dominio `supercrm-production.up.railway.app`) sin ningún deployment real — resto de una prueba anterior con la app estática vieja. No se usa ni se toca; si genera confusión, se puede borrar más adelante.
-- El CLI de Railway en local (`railway` en esta máquina) está autenticado con la cuenta equivocada (`aitor.marin@talent-network.org`, el proyecto huérfano) — no hace falta arreglarlo para que el pipeline funcione (el auto-deploy no depende del CLI), solo importa si en algún momento se necesita gestionar el proyecto real (`reasonable-creativity`) por CLI en vez de por el dashboard web.
+- ⚠️ **Esta cuenta Railway nueva también puede estar en trial limitado** — revisar el plan/facturación antes de que caduque otra vez, no descubrirlo por una caída en medio de una demo (ya pasó una vez, ver migración de arriba).
+- Existen ahora **dos proyectos Railway huérfanos**, ninguno se usa ni se toca: "Mi CRM basic" (cuenta `aitor.marin@talent-network.org`, dominio `supercrm-production.up.railway.app`, sin deployment real) y `reasonable-creativity` (cuenta Railway vieja de `aitormarin@gmail.com`, trial agotado).
+- El CLI de Railway en esta máquina ya está autenticado con la cuenta correcta (`aitormarin@gmail.com`) y enlazado (`railway link`) al proyecto `fulfilling-vision` — a diferencia de la vez anterior, si hace falta gestionar el proyecto real por CLI ya funciona sin re-loguear.
 
 **Estado:** 🟢 Cerrada.
 
