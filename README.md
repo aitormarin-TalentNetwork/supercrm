@@ -34,7 +34,8 @@ Fuente de verdad del estado real: Linear (equipo **VibeCoding Academy**, proyect
 | **Diseño** | [`Design/`](Design/) | Design system, 10 pantallas en HTML y referencias de estilo. |
 | **Documentación técnica** | [`docs/`](docs/) | Arquitectura, modelo de datos y setup. |
 | **Código** | raíz de esta carpeta (`app/`, `convex/`, `components/`…) | La app Next.js. Cómo levantarla → [`docs/03-setup.md`](docs/03-setup.md). |
-| **Backend** | [Convex · proyecto `vibecrm`](https://dashboard.convex.dev/t/aitor-marin-6a254/vibecrm/third-goldfinch-805/data) | Tablas, datos y logs. Deployment de desarrollo: `third-goldfinch-805`. |
+| **Backend (dev/test)** | [Convex · proyecto `vibecrm`](https://dashboard.convex.dev/t/aitor-marin-6a254/vibecrm/third-goldfinch-805/data) | Tablas, datos y logs. Deployment de desarrollo/test compartido: `third-goldfinch-805`. |
+| **Backend (producción)** | [Convex · `stoic-impala-857`](https://dashboard.convex.dev/t/aitor-marin-6a254/vibecrm/stoic-impala-857/data) | Deployment de producción (AIT-59, ver ADR-004 en `docs/01-arquitectura.md`). |
 
 ## Documentación
 

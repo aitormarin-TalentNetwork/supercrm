@@ -156,8 +156,60 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 - ⚠️ **Esta cuenta Railway nueva también puede estar en trial limitado** — revisar el plan/facturación antes de que caduque otra vez, no descubrirlo por una caída en medio de una demo (ya pasó una vez, ver migración de arriba).
 - Existen ahora **dos proyectos Railway huérfanos**, ninguno se usa ni se toca: "Mi CRM basic" (cuenta `aitor.marin@talent-network.org`, dominio `supercrm-production.up.railway.app`, sin deployment real) y `reasonable-creativity` (cuenta Railway vieja de `aitormarin@gmail.com`, trial agotado).
 - El CLI de Railway en esta máquina ya está autenticado con la cuenta correcta (`aitormarin@gmail.com`) y enlazado (`railway link`) al proyecto `fulfilling-vision` — a diferencia de la vez anterior, si hace falta gestionar el proyecto real por CLI ya funciona sin re-loguear.
+- **AIT-59 (ver ADR-004 más abajo):** el "Build Command" de Railway pasará a ejecutar
+  `npx convex deploy` en cada build, apuntando a `stoic-impala-857` en vez de servir lo
+  último que una terminal empujara a mano contra el deployment compartido de
+  desarrollo/test — pendiente de la Tanda 2 de AIT-59, no aplicado todavía a fecha de
+  este commit.
 
 **Estado:** 🟢 Cerrada.
+
+### ADR-004 · Separar Convex de desarrollo/test del de producción — 2026-08-24 (AIT-59)
+
+**Contexto:** Railway (producción real) y el `npx convex dev` que usan las 3 terminales
+en local apuntaban **al mismo deployment de Convex** (`third-goldfinch-805`) — sin datos
+reales de negocio hoy, pero con la suite E2E de Playwright ya escribiendo datos de
+prueba directamente ahí, y sin ningún riesgo aceptable a medio plazo. Investigando el
+gap se encontró además que Convex ya había provisionado automáticamente, junto al de
+dev, un deployment de producción sin usar (`stoic-impala-857`) — no hacía falta crear
+ninguno nuevo.
+
+**Decisión:** `third-goldfinch-805` se queda como el deployment de desarrollo/test
+compartido de las 3 terminales, sin ningún cambio (mismo turno/cerrojo de `CLAUDE.md`,
+ver también §3bis del README de la fábrica sobre la migración, pendiente y distinta, a
+deployments de dev aislados por terminal). `stoic-impala-857` pasa a ser el deployment
+de producción real — configurado con `npx convex deploy` (nunca `convex dev`), patrón
+oficial de Convex para integrarse con Railway/Vercel.
+
+**Entrega en dos tandas** (AIT-59, ver Linear para el detalle): Tanda 1 — configurar
+`stoic-impala-857` (schema, funciones, claves de auth, cuentas semilla) y esta misma
+documentación. Tanda 2 — conectar Railway de verdad (cambiar su "Build Command" para que
+ejecute `npx convex deploy` en cada build, en vez de servir lo último que una terminal
+empujara a mano contra el deployment compartido).
+
+**⚠️ Estado a la fecha de este commit: `stoic-impala-857` está configurado (Tanda 1
+completa) pero Railway TODAVÍA NO apunta ahí — sigue sirviendo `third-goldfinch-805`
+hasta que la Tanda 2 (el cutover de Railway) se ejecute.** No dar por hecho que
+producción ya usa `stoic-impala-857` solo porque este ADR existe; comprobar el estado
+real de AIT-59 en Linear, o el ítem correspondiente en `checklist-produccion-real.md`
+(fábrica), antes de asumirlo.
+
+**Consecuencias:**
+- Ningún fichero de configuración nuevo en el repo — Railway Config as Code
+  (`railway.toml`) está deprecado para servicios que, como este, nunca lo adoptaron; el
+  "Build Command" se fija desde su dashboard (Settings → Build), sin versionar. Ver
+  `docs/03-setup.md` para el detalle operativo.
+- `NEXT_PUBLIC_CONVEX_URL` la inyectará `npx convex deploy --cmd --cmd-url-env-var-name`
+  en cada build de Railway, una vez la Tanda 2 se ejecute. **`NEXT_PUBLIC_CONVEX_SITE_URL`
+  no se inyecta igual** — sigue siendo una variable estática que hay que fijar a mano en
+  Railway (verificado contra la documentación oficial de Convex: `--cmd-url-env-var-name`
+  solo fija la variable nombrada explícitamente, ninguna otra) — no asumir que las dos
+  funcionan igual.
+- `CONVEX_DEPLOY_KEY` (el equivalente a una contraseña de servicio para que Railway
+  pueda desplegar sin sesión interactiva) se genera fresco justo antes de configurarlo en
+  Railway, no se guarda de antemano — más detalle en `docs/03-setup.md`.
+
+**Estado:** 🟡 En curso — Tanda 1 completa, Tanda 2 (cutover de Railway) pendiente.
 
 ## 7. Decisiones abiertas
 
