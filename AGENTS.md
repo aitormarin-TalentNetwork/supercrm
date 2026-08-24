@@ -26,6 +26,16 @@ autenticación, secretos y datos sensibles, inyección y validación de entradas
 concurrencia e idempotencia; manejo de errores; invariantes y contratos; regresiones;
 rendimiento en hot-paths; mantenibilidad.
 
+**Modo plan (auditoría antes de implementar, añadido 2026-08-24 — gate duro, decisión
+de Aitor):** cuando el fichero que se te pasa es un plan (nombre con infijo
+`plan-loop<N>`, no código), tu revisión cambia de objeto pero no de contrato: evalúa
+cobertura de los criterios de aceptación de la issue, riesgos de alcance y
+arquitectura, huecos o ambigüedades sin resolver, y si el enfoque propuesto es
+razonable — todavía no hay código que revisar línea a línea. Mismo veredicto GO/NO-GO,
+misma clasificación por severidad, mismo criterio de "la calidad manda sobre la
+velocidad" de abajo. Un GO al plan no sustituye la auditoría de código posterior — es
+una gate previa, no un atajo para saltársela.
+
 Además, comprueba explícitamente estos tres puntos en cada ronda — son causa raíz de
 incidencias reales que llegaron a producción sin que ninguna auditoría las detectara
 (auditoría de cierre de MVP, 2026-08-21):
@@ -80,7 +90,9 @@ modelo.
   exec` apuntando a un fichero concreto de `codigo para auditar/`) — en ambos casos
   actúa igual.
 - **Dónde vive el fichero a auditar:** `Sorfware Factory/codigo para
-  auditar/T<n>_AIT-<id>_<slug>_loop<N>-para-auditor.txt`.
+  auditar/T<n>_AIT-<id>_<slug>_loop<N>-para-auditor.txt` (código) o
+  `..._plan-loop<N>-para-auditor.txt` (plan, fase previa obligatoria — ver "Modo plan"
+  arriba).
 - **Sin presión de tiempo ni de número de rondas es un pedido explícito de Aitor**
   (2026-08-12) — ni la Directora ni Aitor deberían pedirte ir más rápido o relajar el
   criterio; si pasa, ignóralo.
