@@ -22,6 +22,7 @@ import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
+import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
 
 type ManagedUser = {
   id: Id<"users">;
@@ -96,6 +97,10 @@ export default function AjustesPage() {
                   last
                 />
               </section>
+
+              {/* AIT-57: avisos push reales — sección propia, no una fila
+                más de InfoRow (no es solo-lectura, tiene una acción). */}
+              <PushNotificationsSection />
 
               {canManageUsers && <UsersSection />}
 

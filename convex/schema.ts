@@ -106,6 +106,19 @@ export default defineSchema({
         v.literal("cobrado"),
       ),
     ),
+    // AIT-57 (Web Push): el `lastActivityAt` para el que ya se envió el
+    // push de "en riesgo" — NO el reloj de cuándo se envió (hallazgo de
+    // auditoría NO-GO ronda 1, "Mayor" #2: con `Date.now()` había una
+    // carrera real — una interacción nueva ENTRE la lectura del cron y
+    // este patch dejaba `lastRiskPushSentAt` por delante de la nueva
+    // `lastActivityAt` para siempre, suprimiendo cualquier aviso futuro
+    // aunque la oportunidad volviera a quedarse en riesgo más adelante).
+    // Al guardar el valor de `lastActivityAt` observado (no el actual),
+    // una interacción concurrente no puede "adelantarse" al marcado: el
+    // valor guardado sigue siendo menor que la `lastActivityAt` nueva, así
+    // que la próxima racha de riesgo vuelve a ser elegible. Opcional por
+    // el mismo motivo que `lastPushSentAt` en `nextSteps`.
+    lastRiskPushSentAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_customer", ["customerId"])
@@ -183,6 +196,16 @@ export default defineSchema({
       v.literal("postponed"),
     ),
     assigneeId: v.id("users"),
+    // AIT-57 (Web Push): la `dueDate` para la que ya se envió el push de
+    // "vencido" — NO el reloj de cuándo se envió (hallazgo de auditoría
+    // NO-GO ronda 1: usar `Date.now()` abría una carrera entre la lectura
+    // del cron y este patch). Al guardar el valor de `dueDate` observado,
+    // el marcado es inmune a qué le pase al documento entre medias:
+    // mientras la dueDate no cambie, sigue marcado; si se pospone (dueDate
+    // avanza), vuelve a ser elegible cuando venza de nuevo. Opcional: los
+    // pasos ya existentes no lo tienen, se tratan como "nunca avisado"
+    // (ver convex/pushInternal.ts:listOverdueSteps).
+    lastPushSentAt: v.optional(v.number()),
   })
     .index("by_assignee_status", ["assigneeId", "status"])
     .index("by_opportunity", ["opportunityId"]),
@@ -237,4 +260,23 @@ export default defineSchema({
     // memoria — mismo problema que tuvo listPendingBilling en AIT-33,
     // mismo arreglo: índice con storeId primero.
     .index("by_store_status", ["storeId", "status"]),
+
+  // AIT-57 (Post-MVP): suscripciones de Web Push — una fila por
+  // dispositivo/navegador suscrito (un usuario puede tener varias, una
+  // por dispositivo/navegador donde active los avisos). `endpoint` es la
+  // URL del servicio push del navegador para ESA suscripción concreta,
+  // única por diseño de la Push API — de ahí el índice `by_endpoint`
+  // (upsert al re-suscribirse, borrado al desactivar o al detectar una
+  // suscripción muerta). `p256dh`/`auth` son las claves de cifrado del
+  // payload que exige el estándar Web Push, tal cual las entrega
+  // `PushSubscription.toJSON().keys` en el navegador.
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
 });

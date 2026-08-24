@@ -185,6 +185,33 @@ NEXT_PUBLIC_DEMO_SALES_PASSWORD=<mismo valor que SEED_SALES_PASSWORD>
 
 **Si el proceso muere en seco a mitad (no una excepción, sino que se corta el propio comando/deployment):** la reserva interna (`appConfig` con `key="bootstrap_claim:<email>"`) puede quedar huérfana, porque solo se libera cuando el código llega a ejecutarse — un proceso muerto no ejecuta nada. Síntoma: relanzar el bootstrap avisa por consola de "otra ejecución concurrente ya está creando" esa cuenta, pero nunca la crea. Recuperación manual: abrir `npx convex dashboard` → tabla `appConfig` → borrar a mano el documento con `key="bootstrap_claim:<email>"` correspondiente → relanzar el bootstrap. No hay recuperación automática a propósito: es un riesgo aceptado para un script manual de una sola ejecución (ver auditoría de seguridad, ronda 5).
 
+## 7. Web Push (AIT-57, Post-MVP)
+
+Avisos push reales (pasos vencidos y oportunidades en riesgo, con la app cerrada) — ver `convex/webPush.ts` (envío), `convex/pushInternal.ts` (candidatos), `convex/pushSubscriptions.ts` (alta/baja desde el cliente) y `convex/crons.ts` (dispara el envío cada hora).
+
+```bash
+npm install web-push   # ya en package.json — solo si partes de cero
+npx web-push generate-vapid-keys --json
+```
+
+Del resultado:
+
+```bash
+npx convex env set VAPID_PUBLIC_KEY <publicKey>
+npx convex env set VAPID_PRIVATE_KEY <privateKey>
+npx convex env set VAPID_SUBJECT "mailto:<tu-email>"
+```
+
+Y en `.env.local` (frontend, la Push API la necesita para suscribirse — es la **pública**, sin secretos):
+
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=<la misma publicKey de arriba>
+```
+
+**Verificación:** `/ajustes` → "Notificaciones push" → Activar (el navegador pide permiso — solo lo puede conceder una persona real, no es automatizable). El envío real solo se puede probar en un dominio HTTPS real o `localhost` (la Push API lo exige); Railway ya sirve por HTTPS, así que en producción funciona sin nada más que configurar las 3 variables del deployment.
+
+⚠️ `VAPID_PRIVATE_KEY` nunca va en `.env.local` ni con el prefijo `NEXT_PUBLIC_` — es la clave con la que se firman los envíos, si llega al navegador cualquiera podría enviar avisos suplantando al servidor.
+
 ---
 
 ## Variables de entorno
@@ -198,6 +225,8 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD` | `.env.local` | Autorrelleno de "cuentas de prueba" en `/login`, solo fuera de producción (ver AIT-9). |
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
 | `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de las 2 cuentas iniciales — las lee `bootstrapInitialAccounts`. |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Deployment de Convex (`npx convex env`) | Firma y envío de Web Push (`convex/webPush.ts`). La privada nunca sale del deployment de Convex — ver §7. |
 
 ## Comandos del día a día
 

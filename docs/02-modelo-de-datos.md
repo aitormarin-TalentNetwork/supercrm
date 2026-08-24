@@ -92,6 +92,7 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `lastActivityAt` | number | **Clave para el riesgo.** Se actualiza en CADA interacción y cambio de etapa |
 | `ownerId` | id(`users`) | Comercial |
 | `storeId` | id(`stores`) | |
+| `lastRiskPushSentAt` | number? | Post-MVP (AIT-57, Web Push). El `lastActivityAt` para el que ya se envió el push de "en riesgo" — no un timestamp de envío (hallazgo de auditoría NO-GO ronda 1: guardar `Date.now()` en vez del valor observado abría una carrera que podía suprimir avisos futuros para siempre) |
 
 > **Por qué 3 etapas y no 6.** El design system trae una paleta de 6 colores de pipeline (`nuevo`, `contactado`, `propuesta`, `negociacion`, `ganado`, `perdido`) y es fácil confundirla con 6 etapas. No lo son:
 > - **`ganado` y `perdido` no son etapas, son `status`.** Van aparte porque de ellos cuelgan `lostReason`, `closedAt` y `finalAmount`.
@@ -140,6 +141,7 @@ Lo administra Marta (`requireOwner`); Carlos solo lo lee para construir presupue
 | `dueDate` | number | Cuándo |
 | `status` | `"pending"` \| `"done"` \| `"postponed"` | |
 | `assigneeId` | id(`users`) | |
+| `lastPushSentAt` | number? | Post-MVP (AIT-57, Web Push). La `dueDate` para la que ya se envió el push de "vencido" — no un timestamp de envío (mismo motivo que `lastRiskPushSentAt` en `opportunities`); posponer cambia `dueDate` y vuelve a hacerlo elegible cuando venza de nuevo |
 
 ### `repurchaseReminders` (Post-MVP, AIT-30 — no es una de las 7 entidades del MVP)
 | Campo | Tipo | Notas |
@@ -170,6 +172,17 @@ Idempotencia de `opportunities.createQuick`: un reintento de red con la misma `c
 | `interactionId` | id(`interactions`) | La interacción que produjo esa petición |
 
 Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunityRequests`. Un reintento de red con la misma `clientRequestId` no debe duplicar ni la entrada del historial ni el próximo paso que la interacción regenera.
+
+### `pushSubscriptions` (Post-MVP, AIT-57 — no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `userId` | id(`users`) | |
+| `endpoint` | string | URL del servicio push del navegador — única por suscripción, la usa Web Push como identidad de la fila |
+| `p256dh` | string | Clave de cifrado del payload, la exige el estándar Web Push |
+| `auth` | string | Igual |
+| `createdAt` | number | |
+
+Una fila por dispositivo/navegador suscrito (un usuario puede tener varias). La escriben `convex/pushSubscriptions.ts:subscribe/unsubscribe`, llamadas desde `/ajustes` → "Notificaciones push"; las lee `convex/webPush.ts` (disparado por `convex/crons.ts`, cada hora) para enviar avisos de pasos vencidos y oportunidades en riesgo con la app cerrada.
 
 ---
 
