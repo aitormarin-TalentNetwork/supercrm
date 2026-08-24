@@ -212,6 +212,50 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=<la misma publicKey de arriba>
 
 ⚠️ `VAPID_PRIVATE_KEY` nunca va en `.env.local` ni con el prefijo `NEXT_PUBLIC_` — es la clave con la que se firman los envíos, si llega al navegador cualquiera podría enviar avisos suplantando al servidor.
 
+## 8. Producción tiene su propio deployment de Convex (AIT-59)
+
+**Ver ADR-004 en [`01-arquitectura.md`](01-arquitectura.md) para el porqué.** Resumen
+operativo: `third-goldfinch-805` sigue siendo el deployment de desarrollo/test
+compartido de las 3 terminales (nada cambia ahí). Producción usa uno propio,
+`stoic-impala-857` — ya provisionado por Convex junto al de dev, no hubo que crear nada.
+
+**Cómo se despliega a producción:** nunca `npx convex dev` (eso es solo desarrollo).
+Railway ejecuta `npx convex deploy` en su propio build, cada vez que hay un push a
+`main` — no hace falta ningún paso manual una vez la Tanda 2 de AIT-59 esté activa
+(ver el estado real en el ADR-004 o en `checklist-produccion-real.md`, en `Sorfware
+Factory/`). Si hace falta desplegar a `stoic-impala-857` a mano (por ejemplo, para
+verificarlo antes de conectar Railway), `npx convex deploy` resuelve el destino solo al
+deployment de producción por defecto del proyecto — **no admite el flag `--prod`** (a
+diferencia de `env`/`run`/`@convex-dev/auth`, que sí lo admiten); comprueba el nombre del
+deployment que el propio comando imprime en su cabecera antes de aceptar el push.
+
+**`CONVEX_DEPLOY_KEY`:** el equivalente a una contraseña de servicio para que Railway (o
+cualquier CI) pueda desplegar sin sesión interactiva. **La clave persistente que usará
+Railway de verdad se genera al empezar la Tanda 2** (justo antes de pegarla en Railway,
+no antes) — no la entrega la Tanda 1, aunque el plan original la situaba ahí; ver ADR-004
+§Consecuencias para el porqué. Se genera por CLI, no por dashboard:
+
+```bash
+npx convex deployment token create <nombre> --deployment prod --save-env <fichero>
+```
+
+Con `--save-env` el valor se escribe directamente en un fichero, nunca se imprime en la
+terminal — es un secreto, mismo criterio que cualquier otro (`CLAUDE.md`). Genéralo
+fresco justo antes de configurarlo donde vaya a usarse (por ejemplo, en Railway) en vez
+de guardarlo de antemano — minimiza cuánto tiempo vive un secreto de producción fuera de
+donde se usa de verdad. `npx convex deployment token delete <nombre> --prod` lo revoca
+si deja de hacer falta.
+
+**Nota sobre `npx convex deploy` desde un worktree local:** si `.env.local` tiene
+`CONVEX_DEPLOYMENT` puesto (el caso normal de cualquier terminal de desarrollo), el
+propio comando pide confirmación interactiva antes de empujar a producción — no hay
+forma de saltarse ese prompt con variables de entorno adicionales (`CI=true`, exportar
+`CONVEX_DEPLOY_KEY`, etc. no lo evitan, comprobado en la práctica). La única forma de
+desplegar sin esa confirmación desde un worktree con `.env.local` de dev es usar
+`--env-file <fichero-con-solo-CONVEX_DEPLOY_KEY>`, que aísla el comando de la
+`CONVEX_DEPLOYMENT` local — es justo lo que hace Railway automáticamente, porque su
+entorno de build nunca tiene un `.env.local` con `CONVEX_DEPLOYMENT` de por medio.
+
 ---
 
 ## Variables de entorno
@@ -227,6 +271,7 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de las 2 cuentas iniciales — las lee `bootstrapInitialAccounts`. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Deployment de Convex (`npx convex env`) | Firma y envío de Web Push (`convex/webPush.ts`). La privada nunca sale del deployment de Convex — ver §7. |
+| `CONVEX_DEPLOY_KEY` | Railway (variable del servicio, **nunca** `.env.local`) | Contraseña de servicio para que `npx convex deploy` publique a `stoic-impala-857` sin sesión interactiva (AIT-59, ver §8 y ADR-004). Se genera fresco por CLI justo antes de usarse. |
 
 ## Comandos del día a día
 
