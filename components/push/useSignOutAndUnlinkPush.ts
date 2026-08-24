@@ -5,6 +5,46 @@ import { useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@/convex/_generated/api";
 
+// AIT-57 (hallazgo de auditoría NO-GO ronda 4, "Mayor" #2): sin límite de
+// tiempo, un service worker que nunca llega a activarse (VAPID ausente,
+// fallo previo, estado raro del navegador) deja `navigator.
+// serviceWorker.ready` sin resolver nunca — `signOut()` (lo que de verdad
+// importa) no se alcanzaría jamás, y quien pulsara "Cerrar sesión" se
+// quedaría logueado sin ningún error visible. Este margen acota el
+// intento de desvincular: pase lo que pase, `signOut()` se llama siempre
+// antes de que pasen estos 3s.
+const UNLINK_TIMEOUT_MS = 3000;
+
+async function unlinkLocalSubscription(
+  unsubscribe: (args: { endpoint: string }) => Promise<unknown>,
+) {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  if (!subscription) return;
+  try {
+    await unsubscribe({ endpoint: subscription.endpoint });
+  } catch {
+    // Sin red, por ejemplo — se intenta igual desuscribir a nivel de
+    // navegador justo debajo; el servicio push invalida el endpoint y el
+    // cron limpia la fila él solo en la siguiente pasada
+    // (convex/webPush.ts:sendToUser), aunque no sea al instante.
+  }
+  // AIT-57 (hallazgo de auditoría NO-GO ronda 4, "Mayor" #1):
+  // `subscription.unsubscribe()` devuelve `Promise<boolean>` — `false`
+  // significa que NO se desuscribió, sin lanzar ninguna excepción. Tratar
+  // "no lanzó" como "tuvo éxito" habría sido el mismo hueco que ya se
+  // corrigió para la mutation de arriba: se comprueba el booleano
+  // explícitamente y, si es `false`, se trata igual que un fallo (entra
+  // por el mismo camino que una excepción, ver el catch del llamador).
+  const unsubscribed = await subscription.unsubscribe();
+  if (!unsubscribed) {
+    throw new Error(
+      "La Push API no confirmó la desuscripción del navegador.",
+    );
+  }
+}
+
 // AIT-57 (hallazgo de auditoría NO-GO ronda 3, mismo "Mayor" #1): la
 // mutation `pushSubscriptions.unsubscribe` exige un usuario autenticado
 // (`requireUser`) — no se puede llamar DESPUÉS de `signOut()`, el token
@@ -25,26 +65,14 @@ export function useSignOutAndUnlinkPush() {
 
   return useCallback(async () => {
     try {
-      if ("serviceWorker" in navigator && "PushManager" in window) {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          try {
-            await unsubscribe({ endpoint: subscription.endpoint });
-          } catch {
-            // Sin red, por ejemplo — se desuscribe igual a nivel de
-            // navegador justo debajo; el servicio push invalida el
-            // endpoint y el cron limpia la fila él solo en la siguiente
-            // pasada (convex/webPush.ts:sendToUser), aunque no sea al
-            // instante.
-          }
-          await subscription.unsubscribe();
-        }
-      }
+      await Promise.race([
+        unlinkLocalSubscription(unsubscribe),
+        new Promise<void>((resolve) => setTimeout(resolve, UNLINK_TIMEOUT_MS)),
+      ]);
     } catch {
       // Silencioso a propósito: un fallo aquí (API de push no soportada,
-      // Service Worker no listo, etc.) nunca debe impedir el cierre de
-      // sesión real, que es lo importante.
+      // `unsubscribe()` del navegador devolvió `false`, etc.) nunca debe
+      // impedir el cierre de sesión real, que es lo importante.
     }
     await signOut();
   }, [signOut, unsubscribe]);

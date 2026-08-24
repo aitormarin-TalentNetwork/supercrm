@@ -73,7 +73,17 @@ export function PushSubscriptionSync() {
           const registration = await navigator.serviceWorker.ready;
           const subscription = await registration.pushManager.getSubscription();
           if (!subscription || cancelled) return;
-          await subscription.unsubscribe();
+          // AIT-57 (hallazgo de auditoría NO-GO ronda 4, "Mayor" #1):
+          // `unsubscribe()` devuelve `Promise<boolean>` — `false` no lanza
+          // excepción, así que sin comprobarlo aquí se trataría como
+          // éxito sin haberlo sido. Mismo criterio que
+          // useSignOutAndUnlinkPush.ts.
+          const unsubscribed = await subscription.unsubscribe();
+          if (!unsubscribed) {
+            throw new Error(
+              "La Push API no confirmó la desuscripción del navegador.",
+            );
+          }
         } catch {
           // Silencioso — vigía en segundo plano, ver comentario de arriba.
         }
