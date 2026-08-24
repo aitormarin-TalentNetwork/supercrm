@@ -12,7 +12,7 @@
 | Framework | **Next.js** (App Router) + TypeScript | Es lo que pide el curso. Un solo proyecto para UI y servidor. |
 | Estilos | **Tailwind CSS** | El design system ya está en tokens CSS → encaja directo. |
 | Backend + BBDD | **Convex** | Base de datos, lógica de servidor y **tiempo real** en el mismo sitio. Sin API REST propia, sin ORM, sin migraciones a mano. |
-| Autenticación | **Convex Auth** (`@convex-dev/auth`, proveedor `Password`) | El PRD solo pide email/contraseña con rol. **Decisión definitiva** — ver ADR-001 en §6. |
+| Autenticación | **Convex Auth** (`@convex-dev/auth`, proveedores `Password` + `Google` en paralelo) | AIT-60 (2026-08-24): Google se AÑADE junto al login por contraseña ya existente, no lo sustituye — decisión de producto que contradice a propósito el PRD cerrado. Ver ADR-001 y ADR-003 en §6. |
 | Despliegue | **Railway** (auto-deploy en cada push a `main`) | Ver ADR-002 en §6. |
 
 ### Qué significa "backend = Convex"
@@ -60,7 +60,7 @@ CRM curso Vibe Coding/
 ├── convex/                # Backend
 │   ├── schema.ts          # Las 7 tablas + tablas de auth → ver 02-modelo-de-datos.md
 │   ├── auth.config.ts     # Configuración de Convex Auth
-│   ├── auth.ts            # Proveedor Password, createOrUpdateUser
+│   ├── auth.ts            # Proveedores Password + Google (OAuth), createOrUpdateUser
 │   ├── http.ts            # Rutas HTTP que exige Convex Auth (no REST propio)
 │   ├── users.ts           # getCurrentUserRole + bootstrap de las 2 cuentas iniciales
 │   ├── stores.ts          # getStoreInfo (owner-only)
@@ -135,8 +135,8 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 **Alternativa descartada:** Clerk. Añade un servicio externo y una integración por webhook con Convex solo para mantener sincronizado el usuario — coste que no se justifica para un MVP de una sola tienda y dos usuarios.
 
 **Consecuencias:**
-- No hay recuperación de contraseña real ni verificación de email (el PRD no lo pide; "¿Olvidaste la contraseña?" en el login es solo informativo).
-- No hay registro público: los dos usuarios iniciales se crean con una `internalAction` (`convex/users.ts`), no con un formulario.
+- No hay recuperación de contraseña real ni verificación de email para las cuentas por contraseña (el PRD no lo pide; "¿Olvidaste la contraseña?" en el login es solo informativo). Desde ADR-003, las cuentas por Google sí tienen el email verificado por Google — pero el provider Password sigue vivo en paralelo, con la misma limitación de siempre para quien entra por ahí.
+- No hay registro público: los usuarios se crean con `convex/users.ts:createUser` (Ajustes, cuentas Google) o con `bootstrapInitialAccounts` (`internalMutation`, cuentas Google iniciales) — las cuentas por contraseña siguen su propio camino con `createAccount` (ver ADR-003), nunca un formulario de alta abierto.
 - **Decisión definitiva** (cerrada en la auditoría de 2026-08-20: el curso ya no va a pedir Clerk ni otra alternativa de auth). Queda igualmente documentado que, si algún día se quisiera cambiar, **no** sería un cambio acotado a un par de archivos — afecta a toda la superficie de autenticación: `convex/auth.ts`, `convex/auth.config.ts` (el dominio del JWT deja de ser el de Convex Auth), `convex/http.ts` (dejaría de tener sentido tal cual — son las rutas que exige `@convex-dev/auth`, no Clerk), `convex/users.ts` (el bootstrap de las 2 cuentas via `createAccount` es específico de Convex Auth; con Clerk las cuentas se gestionan desde su propio dashboard/API), `proxy.ts` (usa `convexAuthNextjsMiddleware`; se sustituiría por el middleware de Clerk), `app/ConvexClientProvider.tsx`/`app/layout.tsx`, y el propio formulario de `app/login/page.tsx` (hoy construido sobre `useAuthActions().signIn`, un hook específico de esta librería) — además de cambiar las dependencias (`@convex-dev/auth`/`@auth/core` → `@clerk/nextjs`). Lo único que probablemente sobreviviría es el concepto de datos (`role`/`storeId` en `users`), no necesariamente su forma exacta. Es una reescritura completa de la capa de auth, no un cambio acotado — pero eso no es una condición para reabrir la decisión, solo el coste que tendría hacerlo si algún día se decidiera cambiar.
 - La compatibilidad de `@convex-dev/auth` con la convención `proxy.ts` de Next.js 16 (que sustituye a `middleware.ts`) se verificó por inspección de código — usa únicamente APIs estables de `next/server`/`next/headers`, agnósticas al nombre del archivo — pero el README/changelog de la librería no menciona Next.js 16 explícitamente. Es una inferencia de bajo riesgo, no una confirmación del fabricante; se valida con un build de producción real antes de cerrar AIT-9.
 
@@ -158,6 +158,26 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 - El CLI de Railway en esta máquina ya está autenticado con la cuenta correcta (`aitormarin@gmail.com`) y enlazado (`railway link`) al proyecto `fulfilling-vision` — a diferencia de la vez anterior, si hace falta gestionar el proyecto real por CLI ya funciona sin re-loguear.
 
 **Estado:** 🟢 Cerrada.
+
+### ADR-003 · Google (OAuth) en paralelo a Password — 2026-08-24 (AIT-60)
+
+**Contexto:** decisión de producto confirmada con Aitor, **contradice a propósito** la sección "Acceso (login)" del PRD cerrado (§7/§8) — documentado en Notion "CRM — Mejoras del Sistema". No reabre ADR-001: Convex Auth sigue siendo la librería (sigue sin servicio de auth externo de terceros, sigue firmando sesiones con el mismo par `JWT_PRIVATE_KEY`/`JWKS`); lo que cambia es que ahora tiene **dos** providers activos a la vez.
+
+> Nota de proceso: el diseño original de esta tarea (ronda 1-2, NO-GO en ambas) planteaba Google como **sustituto** del provider Password — retirarlo, desactivar las cuentas semilla, migrar todo el login. El PM corrigió el alcance a mitad de la tarea (2026-08-24): Google se **añade en paralelo**, Password no se toca. Este documento describe el diseño final; el histórico de las dos rondas NO-GO queda en el propio proceso de auditoría, no aquí.
+
+**Decisión:** provider `Google` de `@auth/core/providers/google` (ya venía como dependencia transitiva de `@convex-dev/auth`, sin instalar nada nuevo) añadido al array `providers` de `convex/auth.ts` **junto a** `Password`, sin tocarlo. `convex/auth.ts:createOrUpdateUser` ahora distingue por `type`:
+- `"credentials"` (Password): mismo comportamiento de siempre — solo se alcanza si algo llama a `createAccount` directamente (rechaza registro público, valida `email`/`name`/`role`/`storeId`), defensa en profundidad que en la práctica no dispara hoy (nada del proyecto crea cuentas Password nuevas fuera del bootstrap original de AIT-8).
+- `"oauth"` (Google): **enlace contra lista blanca** — busca en `users` por el email que devuelve Google y, si existe una fila activa (dada de alta desde Ajustes o por el bootstrap), enlaza esa cuenta de Google a ella; si no existe, o si está `active: false`, rechaza sin crear ningún enlace. Google nunca da de alta a nadie por su cuenta, solo verifica quién es.
+
+Las cuentas semilla `marta@supercrm.es`/`carlos@supercrm.es` (Password) siguen exactamente igual que antes de esta tarea — **sin tocar, sin desactivar**. Las 2 cuentas reales del negocio, `admin@talent-network.org` (owner) y `aitor.marin@talent-network.org` (sales), se dan de alta desde Ajustes/bootstrap como cuentas **solo Google** (sin contraseña) y conviven con las anteriores.
+
+**Consecuencia técnica:** `convex/users.ts:createUser` (alta desde Ajustes) y `bootstrapInitialAccounts` son `mutation`/`internalMutation` — insertan directamente en `users`, sin `createAccount` ni `ActionCtx`, porque solo dan de alta cuentas Google-only. El camino de `createAccount` + provider Password (usado originalmente para marta/carlos en AIT-8) sigue existiendo en `convex/auth.ts` sin cambios, simplemente hoy nada nuevo lo invoca.
+
+**Limitación conocida:** Convex Auth redirige en silencio al terminar el flujo de OAuth, tanto si el login con Google tiene éxito como si `createOrUpdateUser` lo rechaza — no hay forma pública de distinguir el motivo exacto desde el cliente (comportamiento de la propia librería, no un bug: evita filtrar si un email concreto existe o no en el sistema). `app/login/page.tsx` compensa por descarte (si se volvió con `?oauth=1` tras pedir `redirectTo` explícito y, tras resolver el estado de auth, seguimos sin sesión, se asume rechazo y se muestra un aviso genérico) — funciona, pero es una heurística, no una señal exacta del servidor. Esta limitación es solo del camino Google; el formulario de contraseña sigue devolviendo su propio error inline como siempre.
+
+**Alternativa descartada (para la limitación de arriba):** interceptar la ruta HTTP `/api/auth/callback/google` a mano para añadir un `?error=` explícito. Exige reimplementar infraestructura interna de `@convex-dev/auth` (PKCE, state, verificación de firma) no pensada para sobrescribirse — desproporcionado para una mejora de UX de un mensaje de error.
+
+**Estado:** 🟢 Cerrada. Pendiente de verificación end-to-end real del camino Google (redirect a Google de verdad, no solo construcción de la URL de autorización) hasta que `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` estén dados de alta en el deployment de Convex — ver `docs/03-setup.md` §6bis. El camino Password no necesita esta verificación: no se ha tocado.
 
 ## 7. Decisiones abiertas
 

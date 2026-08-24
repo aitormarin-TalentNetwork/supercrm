@@ -3,8 +3,16 @@ import { convexAuth } from "@convex-dev/auth/server";
 // no default, aunque la JSDoc de la propia librería muestre un import por
 // defecto (comprobado al fallar el build con esbuild).
 import { Password } from "@convex-dev/auth/providers/Password";
-import { Id } from "./_generated/dataModel";
+import Google from "@auth/core/providers/google";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
+// AIT-60 (cambio de alcance del PM, 2026-08-24): Google se AÑADE EN
+// PARALELO al provider Password — no lo sustituye. Las cuentas semilla
+// (marta@supercrm.es/carlos@supercrm.es) siguen entrando por contraseña
+// exactamente igual que antes; admin@talent-network.org y
+// aitor.marin@talent-network.org se dan de alta desde Ajustes para entrar
+// por Google, conviviendo con las anteriores.
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     Password({
@@ -27,19 +35,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         return { email: params.email.trim().toLowerCase() };
       },
     }),
+    Google,
   ],
   callbacks: {
     // AIT-52 (Post-MVP, corrección tras hallazgo propio en verificación):
-    // este es el único punto que se ejecuta en TODO signIn (credenciales,
-    // reintentos incluidos) justo antes de persistir la sesión — a
-    // diferencia de createOrUpdateUser de abajo, que para el provider
-    // Password SOLO se llama cuando se crea la cuenta (createAccount),
-    // nunca en un signIn normal sobre una cuenta ya existente (confirmado
-    // leyendo node_modules/@convex-dev/auth/dist/providers/Password.js:
-    // su rama flow==="signIn" llama a retrieveAccount y devuelve el
-    // userId directamente, sin pasar por createOrUpdateUser). `active` es
-    // opcional en el schema (?? true) porque los usuarios ya existentes
-    // en el deployment compartido no lo tenían antes de esta tarea.
+    // este es el único punto que se ejecuta en TODO signIn, con
+    // independencia del provider, justo antes de persistir la sesión —
+    // bloquea una sesión ya abierta antes de desactivarla, y corta
+    // cualquier login nuevo de una cuenta desactivada.
     async beforeSessionCreation(ctx, { userId }) {
       const user = await ctx.db.get(userId);
       if (user !== null && user.active === false) {
@@ -48,53 +51,79 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         );
       }
     },
-    async createOrUpdateUser(ctx, { existingUserId, profile }) {
+    async createOrUpdateUser(ctx, { existingUserId, type, profile }) {
       if (existingUserId !== null) {
         return existingUserId;
       }
 
-      // Solo se alcanza mediante el bootstrap (createAccount en
-      // convex/users.ts llama a este callback sin pasar por el profile()
-      // del provider de arriba). Defensa en profundidad, no la política
-      // principal.
-      const { email, name, role, storeId } = profile as {
-        email: string;
-        name: string;
-        role: "owner" | "storeManager" | "sales";
-        storeId: Id<"stores">;
-      };
-      if (typeof email !== "string" || email.trim().length === 0) {
-        throw new Error("No se puede crear un usuario sin un email válido.");
+      // El tipo público de este callback recibe `ctx` genérico
+      // (GenericMutationCtx<AnyDataModel>), sin conocer nuestro schema —
+      // `.withIndex` no tipa sin este cast. En runtime es el MutationCtx
+      // real generado a partir de convex/schema.ts, como en cualquier
+      // otra función de este proyecto.
+      const db = (ctx as MutationCtx).db;
+
+      if (type === "credentials") {
+        // Solo se alcanza mediante createAccount llamado directamente
+        // (hoy nada del proyecto lo hace — el alta real, con o sin
+        // Google, pasa por inserción directa en `users` vía
+        // convex/users.ts:createUser/bootstrapInitialAccounts). Defensa
+        // en profundidad, mismo comportamiento que tenía este provider
+        // antes de AIT-60, no la política principal.
+        const { email, name, role, storeId } = profile as {
+          email: string;
+          name: string;
+          role: "owner" | "storeManager" | "sales";
+          storeId: Id<"stores">;
+        };
+        if (typeof email !== "string" || email.trim().length === 0) {
+          throw new Error("No se puede crear un usuario sin un email válido.");
+        }
+        if (typeof name !== "string" || name.trim().length === 0) {
+          throw new Error("No se puede crear un usuario sin un name válido.");
+        }
+        if (role !== "owner" && role !== "storeManager" && role !== "sales") {
+          throw new Error(
+            `Role inválido: "${role}". Debe ser "owner", "storeManager" o "sales".`,
+          );
+        }
+        if (!storeId || (await db.get(storeId)) === null) {
+          throw new Error(
+            `storeId "${storeId}" no corresponde a ninguna tienda existente.`,
+          );
+        }
+        return await db.insert("users", {
+          email: email.trim().toLowerCase(),
+          name: name.trim(),
+          role,
+          storeId,
+          active: true,
+        });
       }
-      if (typeof name !== "string" || name.trim().length === 0) {
-        throw new Error("No se puede crear un usuario sin un name válido.");
+
+      // Google (oauth): lista blanca, nunca alta automática. Solo enlaza
+      // si ya existe una fila en `users` con ese email (dada de alta
+      // desde Ajustes o por el bootstrap inicial) y está activa.
+      const email =
+        typeof profile.email === "string" ? profile.email.trim().toLowerCase() : "";
+      if (!email) {
+        throw new Error("Google no ha devuelto ningún email para esta cuenta.");
       }
-      // AIT-31 (multi-tienda, hallazgo propio al probar en vivo): faltaba
-      // "storeManager" aquí — sin este cambio, bootstrapInitialAccounts
-      // (convex/users.ts) no podía crear ninguna cuenta de ese rol pese a
-      // que su propio schema de argumentos ya lo admitía; fallaba en este
-      // callback con "Role inválido".
-      if (role !== "owner" && role !== "storeManager" && role !== "sales") {
+      const user = await db
+        .query("users")
+        .withIndex("email", (q) => q.eq("email", email))
+        .unique();
+      if (user === null) {
         throw new Error(
-          `Role inválido: "${role}". Debe ser "owner", "storeManager" o "sales".`,
+          `La cuenta de Google "${email}" no tiene acceso. Pide a la dueña de tu empresa que te dé de alta desde Ajustes.`,
         );
       }
-      if (!storeId || (await ctx.db.get(storeId)) === null) {
+      if (user.active === false) {
         throw new Error(
-          `storeId "${storeId}" no corresponde a ninguna tienda existente.`,
+          `La cuenta "${email}" está desactivada. Contacta con la dueña de tu empresa.`,
         );
       }
-      return await ctx.db.insert("users", {
-        email: email.trim().toLowerCase(),
-        name: name.trim(),
-        role,
-        storeId,
-        // AIT-52: explícito en todo alta nueva (bootstrap o
-        // users.createUser), igual que el resto de campos de este
-        // insert — el fallback "?? true" de más abajo es solo para las
-        // cuentas creadas antes de que este campo existiera.
-        active: true,
-      });
+      return user._id;
     },
   },
 });

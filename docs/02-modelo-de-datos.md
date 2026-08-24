@@ -61,7 +61,9 @@ Además de `users`, Convex Auth gestiona **6 tablas propias** (`authSessions`, `
 
 Existe para que "la tienda por defecto" tenga un identificador explícito (un documento con clave conocida) en vez de asumir "la primera fila de `stores`". La rellena una sola vez `convex/users.ts:ensureDefaultStore`; no se administra a mano — un alta manual duplicada rompería el `.unique()` que la consulta.
 
-**Por qué los 2 usuarios iniciales (Marta y Carlos) no son "datos mock":** son las credenciales reales con las que se entra a la aplicación. Como el PRD no contempla registro público ("los accesos los crea la dueña de tu empresa"), no hay formulario de alta — se crean una sola vez con `convex/users.ts:bootstrapInitialAccounts`, una acción interna invocable solo desde el CLI/dashboard de Convex, nunca desde el cliente.
+**Alta de usuarios — nunca registro público:** como el PRD no contempla registro público ("los accesos los crea la dueña de tu empresa"), no hay formulario de alta abierto. Dos caminos, según cómo entra cada cuenta (AIT-60, Google en paralelo a Password — ver ADR-003 en [`01-arquitectura.md`](01-arquitectura.md)):
+- **Password:** `convex/auth.ts` usa `createAccount` (provider `Password`) — así se crearon las 2 cuentas de prueba originales (AIT-8), `marta@supercrm.es`/`carlos@supercrm.es`, que siguen entrando por contraseña exactamente igual que siempre.
+- **Google:** la fila en `users` ES el alta — Google solo verifica identidad, nunca da de alta a nadie por su cuenta. Se crea desde Ajustes (`convex/users.ts:createUser`, solo owner) o con el bootstrap inicial (`convex/users.ts:bootstrapInitialAccounts`, `internalMutation` invocable solo desde el CLI/dashboard de Convex). Así entran `admin@talent-network.org` (owner) y `aitor.marin@talent-network.org` (sales), las 2 cuentas reales del negocio — conviven con Marta/Carlos, no las sustituyen.
 
 ### `customers`
 | Campo | Tipo | Notas |
@@ -92,6 +94,7 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `lastActivityAt` | number | **Clave para el riesgo.** Se actualiza en CADA interacción y cambio de etapa |
 | `ownerId` | id(`users`) | Comercial |
 | `storeId` | id(`stores`) | |
+| `lastRiskPushSentAt` | number? | Post-MVP (AIT-57, notificaciones push reales — en curso en T2 al momento de escribir esto). No es de AIT-60; declarado en `convex/schema.ts` solo porque T2 ya lo tenía desplegado en el deployment compartido antes de mergear a `main`. Actualízalo en la documentación de AIT-57 cuando mergee. |
 
 > **Por qué 3 etapas y no 6.** El design system trae una paleta de 6 colores de pipeline (`nuevo`, `contactado`, `propuesta`, `negociacion`, `ganado`, `perdido`) y es fácil confundirla con 6 etapas. No lo son:
 > - **`ganado` y `perdido` no son etapas, son `status`.** Van aparte porque de ellos cuelgan `lostReason`, `closedAt` y `finalAmount`.
@@ -140,6 +143,7 @@ Lo administra Marta (`requireOwner`); Carlos solo lo lee para construir presupue
 | `dueDate` | number | Cuándo |
 | `status` | `"pending"` \| `"done"` \| `"postponed"` | |
 | `assigneeId` | id(`users`) | |
+| `lastPushSentAt` | number? | Post-MVP (AIT-57, notificaciones push reales — en curso en T2 al momento de escribir esto). No es de AIT-60; mismo motivo que `opportunities.lastRiskPushSentAt` de arriba. |
 
 ### `repurchaseReminders` (Post-MVP, AIT-30 — no es una de las 7 entidades del MVP)
 | Campo | Tipo | Notas |

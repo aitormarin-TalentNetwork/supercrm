@@ -151,9 +151,9 @@ Y en `app/layout.tsx`, envolver `{children}` con `<ConvexClientProvider>`.
 
 **Prueba de humo:** crea el `schema.ts` de [`02-modelo-de-datos.md`](02-modelo-de-datos.md), añade una query trivial, píntala en una página y comprueba que se ve. Si eso funciona, la Fase 1 está en marcha.
 
-## 6. Configurar Convex Auth (AIT-8)
+## 6. Configurar Convex Auth (AIT-8, Google añadido en paralelo desde AIT-60)
 
-**⚠️ La trampa que cuesta más detectar de todas:** sin esto, el login **falla silenciosamente** — el proveedor `Password` valida bien las credenciales, pero al generar el token de sesión revienta con `Missing environment variable JWT_PRIVATE_KEY` y el cliente lo confunde con un simple "credenciales incorrectas". No hay pista visual de que sea un problema de configuración, no de contraseña.
+**⚠️ La trampa que cuesta más detectar de todas:** sin esto, el login **falla silenciosamente** — el proveedor `Password` valida bien las credenciales (o Convex Auth valida bien el intercambio con Google), pero al generar el token de sesión revienta con `Missing environment variable JWT_PRIVATE_KEY` y el cliente lo confunde con un simple "credenciales incorrectas". No hay pista visual de que sea un problema de configuración, no de contraseña.
 
 ```bash
 npm install @convex-dev/auth@0.0.94 @auth/core@0.41.3   # versión exacta, la librería está en beta
@@ -162,14 +162,13 @@ npx @convex-dev/auth
 
 El asistente de `npx @convex-dev/auth` hace, en el deployment de Convex (no en `.env.local`):
 - `SITE_URL` — necesario aunque no haya OAuth.
-- `JWT_PRIVATE_KEY` / `JWKS` — el par de claves con el que Convex Auth firma los tokens de sesión. **Sin esto, ningún login funciona nunca**, con independencia de si la contraseña es correcta.
+- `JWT_PRIVATE_KEY` / `JWKS` — el par de claves con el que Convex Auth firma los tokens de sesión. **Sin esto, ningún login funciona nunca**, con independencia del provider.
 
-Además, el bootstrap de las 2 cuentas iniciales (`convex/users.ts:bootstrapInitialAccounts`, ver ADR-001 en [`01-arquitectura.md`](01-arquitectura.md)) necesita estas dos, puestas a mano (no las genera el asistente):
+Las 2 cuentas de prueba originales (`marta@supercrm.es`/`carlos@supercrm.es`, AIT-8) ya viven en el deployment desde que se crearon una vez con `createAccount` + estas 2 variables (`convex/users.ts:bootstrapInitialAccounts` sin argumentos ya NO las recrea — desde AIT-60 crea las cuentas Google, ver §6bis; para levantar un deployment nuevo de cero necesitando también cuentas de contraseña haría falta un `createAccount` manual con el mismo patrón). En un deployment ya en marcha (el caso normal) no hace falta volver a ejecutar nada de esto — solo puestas a mano si arrancas de cero:
 
 ```bash
 npx convex env set SEED_OWNER_PASSWORD <contraseña-owner>
 npx convex env set SEED_SALES_PASSWORD <contraseña-sales>
-npx convex run users:bootstrapInitialAccounts '{}'   # una sola vez; re-ejecutarlo es seguro (idempotente)
 ```
 
 Y en `.env.local` (frontend, para el autorrelleno de "cuentas de prueba" en `/login` — solo se usa si `NODE_ENV !== "production"`):
@@ -179,11 +178,31 @@ NEXT_PUBLIC_DEMO_OWNER_PASSWORD=<mismo valor que SEED_OWNER_PASSWORD>
 NEXT_PUBLIC_DEMO_SALES_PASSWORD=<mismo valor que SEED_SALES_PASSWORD>
 ```
 
-**Verificación:** iniciar sesión en `/login` con `marta@supercrm.es` (owner) o `carlos@supercrm.es` (sales), contraseña la que hayas puesto en `SEED_*_PASSWORD`. Si falla con "Email o contraseña incorrectos" aun con la contraseña correcta, revisa los logs de `npx convex dev` — el mensaje real (`JWT_PRIVATE_KEY`, `InvalidSecret`, etc.) sale ahí, no en el navegador.
+**Verificación (Password):** iniciar sesión en `/login` con `marta@supercrm.es` (owner) o `carlos@supercrm.es` (sales), contraseña la que hayas puesto en `SEED_*_PASSWORD`. Si falla con "Email o contraseña incorrectos" aun con la contraseña correcta, revisa los logs de `npx convex dev` — el mensaje real (`JWT_PRIVATE_KEY`, `InvalidSecret`, etc.) sale ahí, no en el navegador.
 
-**Si `bootstrapInitialAccounts` falla a mitad:** el comando libera su reserva interna al fallar, así que relanzarlo es seguro (probado contra el deployment real: falla con un mensaje explícito y el reintento crea la cuenta correctamente). Si aun así la cuenta sigue sin poder iniciar sesión, abre `npx convex dashboard` y revisa a mano las tablas `authAccounts` y `users`.
+### 6bis. Credenciales de Google OAuth (AIT-60 — añadido EN PARALELO al de arriba)
 
-**Si el proceso muere en seco a mitad (no una excepción, sino que se corta el propio comando/deployment):** la reserva interna (`appConfig` con `key="bootstrap_claim:<email>"`) puede quedar huérfana, porque solo se libera cuando el código llega a ejecutarse — un proceso muerto no ejecuta nada. Síntoma: relanzar el bootstrap avisa por consola de "otra ejecución concurrente ya está creando" esa cuenta, pero nunca la crea. Recuperación manual: abrir `npx convex dashboard` → tabla `appConfig` → borrar a mano el documento con `key="bootstrap_claim:<email>"` correspondiente → relanzar el bootstrap. No hay recuperación automática a propósito: es un riesgo aceptado para un script manual de una sola ejecución (ver auditoría de seguridad, ronda 5).
+Desde AIT-60, además del login por contraseña, existe un botón "Continuar con Google" en `/login` — ninguno sustituye al otro. Hace falta un proyecto en [Google Cloud Console](https://console.cloud.google.com/apis/credentials) con credenciales OAuth 2.0 tipo "Aplicación web":
+
+- **URI de redirección autorizado:** `https://<CONVEX_SITE_URL>/api/auth/callback/google` (hoy, en dev: `https://third-goldfinch-805.convex.site/api/auth/callback/google` — `CONVEX_SITE_URL` es el dominio `.convex.site`, no el `.convex.cloud` de `NEXT_PUBLIC_CONVEX_URL`).
+- Da de alta el Client ID/Secret en el deployment de Convex (nombres exactos que espera `@auth/core`, no elegibles):
+
+```bash
+npx convex env set AUTH_GOOGLE_ID <client-id>
+npx convex env set AUTH_GOOGLE_SECRET <client-secret>
+```
+
+No hace falta nada en `.env.local`: el intercambio OAuth entero (redirect, callback, token) vive en el deployment de Convex, nunca en el navegador ni en el frontend.
+
+**Alta de cuentas Google — lista blanca, no registro público:** una cuenta de Google, por sí sola, nunca entra — `convex/auth.ts:createOrUpdateUser` rechaza cualquier email sin una fila previa en `users` (mensaje: *"La cuenta de Google … no tiene acceso"*). El alta real la hace la dueña desde Ajustes (`convex/users.ts:createUser`, sin contraseña — solo aplica a cuentas Google, ver ADR-003), o el bootstrap inicial de las 2 cuentas reales del negocio:
+
+```bash
+npx convex run users:bootstrapInitialAccounts '{}'   # una sola vez; re-ejecutarlo es seguro (idempotente)
+```
+
+Sin argumentos, crea (si no existen ya) `admin@talent-network.org` (owner) y `aitor.marin@talent-network.org` (sales) en "Tienda principal" — **conviven** con `marta@supercrm.es`/`carlos@supercrm.es`, no las sustituyen. Con `{stores: [...]}` acepta más tiendas/cuentas Google — ver la propia función en `convex/users.ts` para la forma exacta del argumento.
+
+**Verificación (Google):** entrar en `/login`, pulsar "Continuar con Google" y comprobar que el navegador llega de verdad a la pantalla de consentimiento de Google (no un error `invalid_client` — eso significa que `AUTH_GOOGLE_ID` no está puesto o no coincide con el proyecto de Google Cloud) y que, tras elegir una cuenta con acceso (`admin@talent-network.org` o `aitor.marin@talent-network.org`), vuelve autenticado a la app con el rol correcto. Con una cuenta de Google SIN alta previa en `users`, debe volver a `/login` sin sesión y sin alta automática — comprobar en los logs de `npx convex dev` que se ve el rechazo de `createOrUpdateUser`, ya que el navegador no muestra el motivo exacto (ver ADR-003, limitación conocida).
 
 ---
 
@@ -197,7 +216,8 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `NEXT_PUBLIC_CONVEX_URL` | `.env.local` | La URL que usa el navegador. `NEXT_PUBLIC_` = pública, no meter secretos con ese prefijo. |
 | `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD` | `.env.local` | Autorrelleno de "cuentas de prueba" en `/login`, solo fuera de producción (ver AIT-9). |
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
-| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de las 2 cuentas iniciales — las lee `bootstrapInitialAccounts`. |
+| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es` — usadas por el bootstrap original de AIT-8 para crearlas (ya hecho, viven en el deployment desde entonces). Desde AIT-60, `bootstrapInitialAccounts` sin argumentos ya NO recrea estas 2 cuentas (solo crea las de Google, ver más abajo) — para levantar el proyecto de cero necesitando también las cuentas de contraseña, hace falta un `createAccount` manual con estas contraseñas (mismo patrón que el bootstrap original, no automatizado hoy). |
+| `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
 
 ## Comandos del día a día
 

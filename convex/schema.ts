@@ -106,6 +106,13 @@ export default defineSchema({
         v.literal("cobrado"),
       ),
     ),
+    // AIT-57 (Post-MVP, en curso en T2): notificaciones push reales. No es
+    // de esta tarea (AIT-60) — declarado aquí solo para que este schema
+    // describa la realidad ya desplegada en el deployment compartido (T2
+    // ya lo tiene en producción de datos aunque su rama no esté mergeada
+    // a main todavía) y no choque al desplegar. Confirmado con T2 el tipo
+    // exacto: v.optional(v.number()), mismo patrón que lastActivityAt.
+    lastRiskPushSentAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_customer", ["customerId"])
@@ -183,6 +190,10 @@ export default defineSchema({
       v.literal("postponed"),
     ),
     assigneeId: v.id("users"),
+    // AIT-57 (Post-MVP, en curso en T2): mismo motivo que
+    // opportunities.lastRiskPushSentAt más arriba — no es de esta tarea,
+    // declarado solo para no chocar con datos ya desplegados por T2.
+    lastPushSentAt: v.optional(v.number()),
   })
     .index("by_assignee_status", ["assigneeId", "status"])
     .index("by_opportunity", ["opportunityId"]),
