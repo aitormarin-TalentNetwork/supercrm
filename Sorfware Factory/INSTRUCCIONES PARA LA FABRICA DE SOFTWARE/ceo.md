@@ -376,6 +376,13 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
   te vigila a ti recíprocamente, con comprobación ligera, no barrido completo.
 - **A quién le reportas hallazgos de proceso, en vez de decidir tú sola:** el Factory
   Architect — ver `factory-architect.md`.
+- **Al comprobar que la Directora sigue viva, comprueba también de paso que su `/loop`
+  del barrido periódico sigue armado** (añadido 2026-08-24 — el `/loop` es session-only:
+  desaparece si su ventana se cierra/reinicia, y expira solo a los 7 días aunque siga
+  viva, ver `director.md` "Barrido periódico proactivo"). No asumas que sigue corriendo
+  solo porque ella responde a tus mensajes con normalidad — pregúntaselo directamente si
+  no tienes otra forma de confirmarlo. Si no está armado (sesión recién recreada, o
+  expiró), pídeselo tú misma en vez de esperar a que ella se acuerde sola.
 - **Disparadores de escalado reactiva (ejemplos reales de este proyecto):**
   - Una terminal lleva mucho rato sin actividad real en disco y no responde a los
     mensajes directos de la Directora (caso real 2026-08-12: T3 llevaba 1h30 sin tocar

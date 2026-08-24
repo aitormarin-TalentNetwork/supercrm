@@ -255,6 +255,17 @@ mismo barrido comprueba también cualquier cerrojo de recurso compartido activo 
 tipo de problema que una terminal parada — nadie más tiene por qué notarlo si no lo
 necesita todavía.
 
+**Mecanismo técnico que arma este barrido (añadido 2026-08-24, verificado en vivo):**
+usa la skill `/loop` (intervalo fijo ~15-20 min, o modo dinámico auto-paced) para que el
+barrido se dispare solo — sin esto, una sesión reactiva se queda inerte en cuanto
+termina de responder al último mensaje, y nadie la despierta para que compruebe si
+alguien sigue esperando algo suyo (incidente real, 2026-08-24: la propia Directora se
+quedó así, con T1 esperando una respuesta suya que no llegaba). **Ojo con su letra
+pequeña:** el `/loop` que arma este barrido es de la propia sesión — si la ventana de la
+Directora se cierra o se reinicia, desaparece con ella (y expira solo a los 7 días
+aunque siga viva). No es un mecanismo permanente: hay que re-armarlo cada vez que la
+sesión se recrea (ver "Cómo reinstaurar el entorno" más abajo).
+
 **Ojo con que el propio barrido (o cualquier interrupción, incluida una del usuario) te
 haga abandonar sin más lo que tenías entre manos.** Antes de cambiar de foco por
 cualquier motivo, di en una frase qué tarea tenías en curso y en qué paso ibas; atiende
@@ -290,7 +301,10 @@ aislada (p. ej. un recurso compartido migrado a uno propio), no la sobrescribas 
 con la de la raíz. Instala dependencias donde falten. Después: relee el estado real del
 gestor de tareas (no te fíes de un fichero de brief desactualizado si la fuente de
 verdad dice otra cosa), confirma que no hay nada a medio publicar, y confirma que la
-infraestructura de despliegue sigue viva.
+infraestructura de despliegue sigue viva. **Re-arma también tu propio `/loop` del
+barrido periódico nada más recrear la sesión** — es session-only (ver "Barrido
+periódico proactivo" arriba), no sigue corriendo solo porque la sesión exista; no lo
+asumas.
 
 ---
 
