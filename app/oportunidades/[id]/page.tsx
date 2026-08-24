@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Download,
   Euro,
   Flag,
   MessageSquare,
@@ -36,6 +37,7 @@ import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
 import { computeQuoteTotals, roundTaxRate } from "@/lib/quoteMath";
+import { downloadQuotePdf } from "@/lib/quotePdf";
 
 const STAGES = [
   { value: "contacto", label: "Contacto" },
@@ -303,7 +305,14 @@ export default function OportunidadPage({
           />
         )}
 
-        <QuoteSection opportunityId={opportunityId} isOpen={isOpen} />
+        <QuoteSection
+          opportunityId={opportunityId}
+          isOpen={isOpen}
+          storeName={summary.storeName}
+          customerName={summary.customerName}
+          customerPhone={summary.customerPhone}
+          ownerName={summary.ownerName}
+        />
 
         <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
           <span className="mb-4 block text-[11px] font-bold uppercase tracking-wide text-text-muted">
@@ -445,12 +454,37 @@ function formatTaxRatePercent(taxRate: number): string {
 function QuoteSection({
   opportunityId,
   isOpen,
+  storeName,
+  customerName,
+  customerPhone,
+  ownerName,
 }: {
   opportunityId: Id<"opportunities">;
   isOpen: boolean;
+  storeName: string | null;
+  customerName: string;
+  customerPhone: string;
+  ownerName: string | null;
 }) {
   const quote = useQuery(api.quotes.getForOpportunity, { opportunityId });
   const [editorOpen, setEditorOpen] = useState(false);
+
+  function handleDownloadPdf() {
+    if (!quote) return;
+    downloadQuotePdf({
+      storeName: storeName ?? "SuperCRM",
+      customerName,
+      customerPhone,
+      ownerName,
+      status: quote.status,
+      sentAt: quote.sentAt,
+      lines: quote.lines,
+      taxRate: quote.taxRate,
+      subtotal: quote.subtotal,
+      tax: quote.tax,
+      total: quote.total,
+    });
+  }
 
   return (
     <section className="rounded-lg border border-border bg-surface p-[18px_20px] shadow-[var(--shadow-e1)]">
@@ -517,17 +551,26 @@ function QuoteSection({
               <span className="font-mono">{formatCurrency(quote.total)}</span>
             </div>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="mt-3"
-            leftIcon={<Pencil size={14} />}
-            disabled={!isOpen}
-            title={isOpen ? undefined : "La oportunidad está cerrada."}
-            onClick={() => setEditorOpen(true)}
-          >
-            Editar presupuesto
-          </Button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Pencil size={14} />}
+              disabled={!isOpen}
+              title={isOpen ? undefined : "La oportunidad está cerrada."}
+              onClick={() => setEditorOpen(true)}
+            >
+              Editar presupuesto
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Download size={14} />}
+              onClick={handleDownloadPdf}
+            >
+              Descargar PDF
+            </Button>
+          </div>
         </>
       )}
 
