@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useSyncPushSubscription } from "./useSyncPushSubscription";
 
@@ -15,20 +15,29 @@ const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 // entra y usa cualquier OTRA pantalla) dejaba la fila de
 // `pushSubscriptions` apuntando a A.
 //
-// AIT-57 (hallazgo de auditoría NO-GO ronda 3, mismo "Mayor" #1, ángulo
-// distinto): reasignar solo cuando aparece un usuario NUEVO no basta —
-// deja abierta la ventana entre el cierre de sesión de A y el siguiente
-// inicio de sesión (que puede no llegar nunca, o tardar, o fallar la
-// resincronización): mientras tanto la fila sigue apuntando a A y el
-// cron le sigue mandando SUS datos a un dispositivo ya sin nadie
-// logueado, o a quien sea que lo mire después sin haber vuelto a pasar
-// por la sincronización. Arreglo: en el propio cierre de sesión (role
-// pasa a null) se desvincula la suscripción DE INMEDIATO — no se espera
-// a que otra cuenta inicie sesión.
-//
 // Componente sin UI (`return null`), montado una sola vez en
 // app/layout.tsx junto a AppNav (mismo criterio: no depende de qué
-// pantalla está activa).
+// pantalla está activa) — vigila el usuario autenticado actual y, en
+// cuanto cambia a alguien distinto, reasigna la suscripción de este
+// dispositivo sin esperar a que se abra Ajustes.
+//
+// AIT-57 (hallazgo de auditoría NO-GO ronda 3, mismo "Mayor" #1, ángulo
+// distinto): la desvinculación en el propio cierre de sesión NO puede
+// vivir aquí, de forma reactiva tras detectar `role === null` — se probó
+// en real y falla siempre: `pushSubscriptions.unsubscribe` exige un
+// usuario autenticado (`requireUser`), y para cuando este efecto ve
+// `role === null` el token de sesión ya no es válido ("No autenticado.").
+// La desvinculación de verdad (borra la fila en Convex) vive en
+// `useSignOutAndUnlinkPush`, llamada ANTES de invocar el `signOut()` real
+// desde los dos sitios donde se cierra sesión — mientras todavía hay
+// sesión con la que borrar la fila. Lo que queda aquí es una red de
+// seguridad para el caso de llegar a "sin sesión" por otro camino (token
+// caducado, cuenta desactivada desde Ajustes de usuarios) sin haber
+// pasado por ese wrapper: al menos desuscribe a nivel de navegador, para
+// que este dispositivo deje de tener una suscripción activa apuntando a
+// nadie — el servicio push invalida el endpoint y el cron limpia la fila
+// de Convex él solo en la siguiente pasada
+// (convex/webPush.ts:sendToUser), aunque no sea instantáneo.
 export function PushSubscriptionSync() {
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(
@@ -36,7 +45,6 @@ export function PushSubscriptionSync() {
     role !== null && role !== undefined ? {} : "skip",
   );
   const syncSubscription = useSyncPushSubscription();
-  const unsubscribeMutation = useMutation(api.pushSubscriptions.unsubscribe);
   const email = userInfo?.email;
   // A qué usuario ya se sincronizó la suscripción de este dispositivo —
   // para no repetir el trabajo en cada revalidación reactiva de Convex,
@@ -60,36 +68,17 @@ export function PushSubscriptionSync() {
 
     if (role === null) {
       lastSyncedEmail.current = null;
-      // AIT-57 (NO-GO ronda 3): sin sesión — desvincula la suscripción de
-      // ESTE dispositivo de inmediato, no se deja "colgada" apuntando a
-      // quien cerró sesión. Se intenta primero borrar la fila en Convex
-      // (para que el cron deje de verla al instante); si esa llamada
-      // falla (sin red, por ejemplo), se desuscribe igualmente a nivel de
-      // navegador — el endpoint deja de ser válido para el servicio push,
-      // así que el próximo intento del cron recibe 404/410 y borra la
-      // fila él solo (convex/webPush.ts:sendToUser) — nunca se queda la
-      // asociación sensible activa en silencio, como mucho tarda una
-      // pasada del cron en autolimpiarse del todo.
-      async function unlink() {
+      async function unlinkLocally() {
         try {
           const registration = await navigator.serviceWorker.ready;
           const subscription = await registration.pushManager.getSubscription();
           if (!subscription || cancelled) return;
-          try {
-            await unsubscribeMutation({ endpoint: subscription.endpoint });
-          } catch {
-            // Ver comentario de arriba: el navegador se desuscribe de
-            // todas formas más abajo, así que esto no deja nada expuesto
-            // para siempre, solo hasta el siguiente cron como mucho.
-          }
-          if (!cancelled) await subscription.unsubscribe();
+          await subscription.unsubscribe();
         } catch {
-          // Silencioso a propósito: vigía en segundo plano, no un flujo
-          // con botón — /ajustes sigue siendo el sitio con feedback
-          // visible si alguien quiere confirmar el estado a mano.
+          // Silencioso — vigía en segundo plano, ver comentario de arriba.
         }
       }
-      void unlink();
+      void unlinkLocally();
       return () => {
         cancelled = true;
       };
@@ -113,7 +102,7 @@ export function PushSubscriptionSync() {
     return () => {
       cancelled = true;
     };
-  }, [role, email, syncSubscription, unsubscribeMutation]);
+  }, [role, email, syncSubscription]);
 
   return null;
 }

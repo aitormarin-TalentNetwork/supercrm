@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
 import {
   Mail,
   Pencil,
@@ -23,6 +22,7 @@ import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
 import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
+import { useSignOutAndUnlinkPush } from "@/components/push/useSignOutAndUnlinkPush";
 
 type ManagedUser = {
   id: Id<"users">;
@@ -52,7 +52,7 @@ type ManagedUser = {
 export default function AjustesPage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(api.users.getCurrentUserInfo);
-  const { signOut } = useAuthActions();
+  const signOut = useSignOutAndUnlinkPush();
 
   const loading = role === undefined || userInfo === undefined;
   const canManageUsers = role === "owner";
