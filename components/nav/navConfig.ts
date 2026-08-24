@@ -5,6 +5,7 @@ import {
   Settings,
   TrendingUp,
   UserCheck,
+  Users,
   CalendarDays,
   type LucideIcon,
 } from "lucide-react";
@@ -20,13 +21,12 @@ export type NavItem = {
 // evita que cada pantalla improvise sus propios enlaces sueltos, que era
 // el problema original (ver Notion "Correcciones para cerrar V1").
 //
-// "Clientes" queda fuera a propósito: el mockup de Panel.dc.html la
-// incluye en su navItems, pero esa pantalla (listado de clientes) nunca
-// se construyó — solo existe "Ficha de cliente" individual, sin ruta de
-// listado a la que enlazar. Añadirla habría sido un enlace roto.
+// "Clientes" (AIT-58) enlaza al listado — mismo orden que navItems de
+// Design/pantallas/Panel.dc.html: justo después de Pipeline.
 export const OWNER_NAV_ITEMS: NavItem[] = [
   { href: "/panel", label: "Panel", icon: LayoutDashboard },
   { href: "/pipeline", label: "Pipeline", icon: TrendingUp },
+  { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/supervision", label: "Supervisión", icon: UserCheck },
   { href: "/catalogo", label: "Catálogo", icon: Package },
   { href: "/reactivar", label: "Reactivar", icon: Repeat },
@@ -36,6 +36,7 @@ export const OWNER_NAV_ITEMS: NavItem[] = [
 export const SALES_NAV_ITEMS: NavItem[] = [
   { href: "/hoy", label: "Hoy", icon: CalendarDays },
   { href: "/pipeline", label: "Pipeline", icon: TrendingUp },
+  { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/catalogo", label: "Catálogo", icon: Package },
   { href: "/reactivar", label: "Reactivar", icon: Repeat },
   { href: "/ajustes", label: "Ajustes", icon: Settings },

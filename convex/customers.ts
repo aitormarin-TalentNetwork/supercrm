@@ -46,3 +46,43 @@ export const getFicha = query({
     };
   },
 });
+
+// Listado de clientes para la pantalla "Clientes" (AIT-58, Post-MVP —
+// gap encontrado en la auditoría de cierre del MVP: la ficha individual
+// existía pero no había forma de listar todos los clientes). Mismo
+// criterio de acceso que getFicha: la tienda entera si es un rol
+// store-wide, solo los propios si no.
+export const list = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireUser(ctx);
+    const customers = isStoreWideRole(user)
+      ? await ctx.db
+          .query("customers")
+          .withIndex("by_store", (q) => q.eq("storeId", user.storeId))
+          .collect()
+      : await ctx.db
+          .query("customers")
+          .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+          .collect();
+
+    const ownerIds = Array.from(new Set(customers.map((c) => c.ownerId)));
+    const owners = await Promise.all(ownerIds.map((id) => ctx.db.get(id)));
+    const ownerNameById = new Map(
+      owners
+        .filter((o): o is NonNullable<typeof o> => o !== null)
+        .map((o) => [o._id, o.name ?? null]),
+    );
+
+    return customers
+      .map((c) => ({
+        id: c._id,
+        name: c.name,
+        phone: c.phone,
+        email: c.email ?? null,
+        source: c.source,
+        ownerName: ownerNameById.get(c.ownerId) ?? null,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  },
+});
