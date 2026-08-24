@@ -23,6 +23,7 @@ import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as quotes from "../quotes.js";
 import type * as repurchaseReminders from "../repurchaseReminders.js";
 import type * as stores from "../stores.js";
+import type * as storesLogo from "../storesLogo.js";
 import type * as users from "../users.js";
 import type * as webPush from "../webPush.js";
 
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   quotes: typeof quotes;
   repurchaseReminders: typeof repurchaseReminders;
   stores: typeof stores;
+  storesLogo: typeof storesLogo;
   users: typeof users;
   webPush: typeof webPush;
 }>;
