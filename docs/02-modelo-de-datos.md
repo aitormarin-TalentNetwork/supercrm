@@ -182,7 +182,7 @@ Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunity
 | `auth` | string | Igual |
 | `createdAt` | number | |
 
-Una fila por dispositivo/navegador suscrito (un usuario puede tener varias). La escriben `convex/pushSubscriptions.ts:subscribe/unsubscribe`, llamadas desde `/ajustes` → "Notificaciones push"; las lee `convex/webPush.ts` (disparado por `convex/crons.ts`, cada hora) para enviar avisos de pasos vencidos y oportunidades en riesgo con la app cerrada.
+Una fila por dispositivo/navegador suscrito (un usuario puede tener varias). La escriben `convex/pushSubscriptions.ts:subscribe/unsubscribe`, llamadas desde dos sitios: `/ajustes` → "Notificaciones push" (activar/desactivar a mano) y `components/push/PushSubscriptionSync.tsx` (vigía sin UI, montada una sola vez en `app/layout.tsx` — reasigna la suscripción del dispositivo al usuario autenticado en cualquier cambio de sesión, y la desvincula en cuanto alguien cierra sesión, sin depender de qué pantalla esté abierta). Las lee `convex/webPush.ts` (disparado por `convex/crons.ts`, cada hora) para enviar avisos de pasos vencidos y oportunidades en riesgo con la app cerrada.
 
 ---
 
