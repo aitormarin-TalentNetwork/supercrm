@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "convex/react";
 import { Bell, BellOff, BellRing } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/Button";
 import { urlBase64ToUint8Array } from "@/lib/webPush";
+import { useSyncPushSubscription } from "./useSyncPushSubscription";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -20,40 +21,21 @@ type Status = "checking" | "unsupported" | "denied" | "off" | "on";
 // (convex/nextSteps.ts:getNotifications) ya es personal y genérica por
 // rol, esto es solo la versión "con la app cerrada" de lo mismo.
 export function PushNotificationsSection() {
-  const subscribe = useMutation(api.pushSubscriptions.subscribe);
   const unsubscribe = useMutation(api.pushSubscriptions.unsubscribe);
   const [status, setStatus] = useState<Status>("checking");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // AIT-57 (hallazgo de auditoría NO-GO ronda 1, "Mayor" #1): sube/reasigna
-  // la suscripción del navegador en Convex — SIEMPRE que se detecta una
-  // suscripción local, no solo la primera vez que se crea. Sin esto, dos
-  // casos reales quedaban rotos: (a) `pushManager.subscribe()` tiene éxito
-  // pero la mutation `subscribe` falla (red) — el navegador cree que está
-  // "Activadas" pero Convex nunca se entera, así que nunca llega ningún
-  // push; (b) dispositivo compartido: el usuario A activa, luego el
-  // usuario B inicia sesión en el mismo navegador — sin volver a llamar a
-  // `subscribe`, la fila de `pushSubscriptions` seguía apuntando a A, así
-  // que B veía "Activadas" pero los avisos que llegaran a ese dispositivo
-  // seguirían siendo los de A (fuga de datos entre usuarios). Al llamar a
-  // esto también en el `useEffect` de montaje (no solo en `handleEnable`),
-  // cualquier sesión nueva en un dispositivo con suscripción ya existente
-  // la reasigna al usuario actual antes de mostrar "Activadas".
-  const syncSubscription = useCallback(
-    async (subscription: PushSubscription) => {
-      const json = subscription.toJSON();
-      if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
-        throw new Error("Suscripción incompleta.");
-      }
-      await subscribe({
-        endpoint: json.endpoint,
-        p256dh: json.keys.p256dh,
-        auth: json.keys.auth,
-      });
-    },
-    [subscribe],
-  );
+  // AIT-57 (hallazgo de auditoría NO-GO ronda 1, "Mayor" #1 — corregido de
+  // fondo en la ronda 2 con components/push/PushSubscriptionSync.tsx,
+  // montada globalmente en app/layout.tsx: esa vigía cubre CUALQUIER
+  // cambio de sesión, no solo la visita a esta pantalla. Aquí se reutiliza
+  // el mismo hook para no duplicar la lógica, y se sigue llamando también
+  // al montar y al activar — cinturón y tirantes: si la vigía global
+  // todavía no ha terminado de sincronizar cuando el usuario abre
+  // Ajustes, esto no deja la UI mostrando "Activadas" sin haberlo
+  // confirmado de verdad.
+  const syncSubscription = useSyncPushSubscription();
 
   useEffect(() => {
     let cancelled = false;
