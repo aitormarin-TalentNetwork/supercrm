@@ -488,19 +488,54 @@ sean distinguibles a simple vista y consistentes entre sesiones.
 
 ### Receta: abrir una ventana nueva con rol, color y título
 
-Verificado 2026-08-15, no necesita ningún permiso de Accesibilidad. Se usa para
-**cada** ventana — los cinco roles centrales y las dos de cada worker:
+Verificado 2026-08-15; **corregido dos veces el 2026-08-24** (hallazgos del Factory
+Architect, ejecutados por el CEO):
+
+1. Claude Code reescribe el título de su propia ventana con un literal fijo (`<glifo de
+   estado> Claude Code`) en cada cambio idle↔busy, y no hay flag/config para
+   desactivarlo — así que fijar el título una sola vez, justo tras arrancar `claude`,
+   sobrevive solo hasta el primer cambio de estado. El color de fondo **no** se ve
+   afectado (Claude Code no lo toca), así que ese sí sigue fijándose una sola vez.
+2. `do script "<cmd>"` sin ventana de destino explícita **reutiliza la ventana
+   frontmost existente si está inactiva** (comportamiento documentado de Terminal.app,
+   no de Claude Code) en vez de abrir una ventana nueva de verdad — si ya había una
+   ventana suelta abierta e inactiva (de un intento anterior sin cerrar, por ejemplo),
+   la receta la reutilizaba en silencio: título previo sobreviviendo un momento antes de
+   que el nuevo lo pisara, y un `claude` huérfano de la ventana anterior quedando vivo
+   en paralelo sin que nadie lo notara. Se arregla creando la ventana explícitamente con
+   `make new window` en vez de dejar que `do script` decida.
+
+Se usa para **cada** ventana que arranca `claude` — los cinco roles centrales y la
+ventana Desarrollador de cada worker (la ventana Auditor nunca arranca `claude`, no
+necesita este tratamiento):
 ```bash
 osascript <<APPLESCRIPT
 tell application "Terminal"
     activate
-    set t to do script "cd '<ruta-worktree-o-raíz>' && claude"
+    set w to make new window
+    set t to do script "cd '<ruta-worktree-o-raíz>' && claude" in w
     delay 0.3
     set custom title of t to "<Título>"
     set background color of t to {R, G, B}
+    return id of w
 end tell
 APPLESCRIPT
 ```
+Captura el `id` de ventana que devuelve ese bloque (no vale volver a buscar por título
+después: es justo lo que se vuelve intermitente) y lanza a continuación, desatendido en
+segundo plano, un bucle que reafirma el título cada ~2s apuntando por ese `id`:
+```bash
+( while true; do
+    osascript -e "tell application \"Terminal\" to set custom title of tab 1 of (first window whose id is $WINID) to \"<Título>\"" >/dev/null 2>&1 || break
+    sleep 2
+  done & ) disown
+```
+Esto no elimina el parpadeo al glifo de estado, pero gana la carrera por frecuencia: el
+título muestra el rol casi todo el tiempo. Cualquier receta posterior que necesite
+localizar esa ventana (p. ej. la de `bounds` de abajo) debe hacerlo por este mismo `id`
+capturado, no por contenido de título — buscar por título sigue siendo poco fiable
+mientras el bucle no haya ganado su próxima ronda.
+
 Para roles de raíz (PM, Directora, Integrador — `CLAUDE.md` no los distingue solo por
 carpeta, a diferencia de un Desarrollador en su worktree): no hace falta pasar el rol
 como argumento de arranque — espera a que la sesión aparezca en `ListAgents` y mándale
