@@ -142,11 +142,6 @@ export default defineSchema({
   // AIT-21) — varias versiones queda para una ronda 2 aparte, junto al PDF.
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
-    // AIT-54 (T1, en curso — no es mío, añadido aquí solo para no chocar
-    // con datos ya escritos en el deployment compartido; se sincroniza
-    // solo cuando T1 mergee su rama con el schema real). Ausente = versión
-    // 1 implícita.
-    version: v.optional(v.number()),
     lines: v.array(
       v.object({
         productId: v.id("products"),
