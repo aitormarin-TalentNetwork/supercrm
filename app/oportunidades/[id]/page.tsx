@@ -309,6 +309,7 @@ export default function OportunidadPage({
           opportunityId={opportunityId}
           isOpen={isOpen}
           storeName={summary.storeName}
+          logoUrl={summary.logoUrl}
           customerName={summary.customerName}
           customerPhone={summary.customerPhone}
           ownerName={summary.ownerName}
@@ -444,6 +445,35 @@ function formatTaxRatePercent(taxRate: number): string {
   return String(Number(percent.toFixed(4))).replace(".", ",");
 }
 
+// Mismo criterio que app/ajustes/page.tsx:describeCreateUserError — nunca
+// se muestra el mensaje crudo del servidor (podría filtrar detalles
+// internos), solo se reconoce contra una lista cerrada de mensajes que
+// createVersion puede lanzar; si coincide se muestra (útil para distinguir
+// p. ej. el conflicto de versión, que además indica qué hacer), si no,
+// mensaje genérico. El conflicto de versión lleva el número de versión
+// interpolado por el servidor, así que se reconoce por patrón en vez de
+// como cadena exacta cerrada.
+const KNOWN_QUOTE_ERRORS = [
+  "El presupuesto necesita al menos una línea.",
+  "El tipo de impuesto no es válido.",
+  "Hay una cantidad no válida en las líneas del presupuesto.",
+  "Uno de los productos del presupuesto no existe.",
+  "El importe del presupuesto es demasiado alto.",
+  "Este presupuesto ya tiene demasiadas versiones guardadas.",
+];
+const STALE_VERSION_ERROR_RE =
+  /Alguien ha guardado una versión más reciente \(v\d+\) mientras editabas\. Recarga la página para verla antes de guardar\./;
+
+function describeQuoteError(err: unknown, fallback: string): string {
+  if (err instanceof Error) {
+    const known = KNOWN_QUOTE_ERRORS.find((msg) => err.message.includes(msg));
+    if (known) return known;
+    const staleMatch = err.message.match(STALE_VERSION_ERROR_RE);
+    if (staleMatch) return staleMatch[0];
+  }
+  return fallback;
+}
+
 // Presupuesto por líneas (AIT-29, Post-MVP ronda 1 — sustituye el bloque
 // simple de AIT-21). Sección propia en vez de otro modal más en la lista
 // de botones de arriba: a diferencia de Cambiar etapa/Ganada/Perdida (una
@@ -455,6 +485,7 @@ function QuoteSection({
   opportunityId,
   isOpen,
   storeName,
+  logoUrl,
   customerName,
   customerPhone,
   ownerName,
@@ -462,28 +493,53 @@ function QuoteSection({
   opportunityId: Id<"opportunities">;
   isOpen: boolean;
   storeName: string | null;
+  logoUrl: string | null;
   customerName: string;
   customerPhone: string;
   ownerName: string | null;
 }) {
-  const quote = useQuery(api.quotes.getForOpportunity, { opportunityId });
+  // Todas las versiones, la vigente primero (AIT-54) — versions[0] es la
+  // que se muestra/edita, el resto es historial de solo lectura.
+  const versions = useQuery(api.quotes.listForOpportunity, { opportunityId });
+  const current = versions ? versions[0] : versions; // undefined=cargando, null=sin presupuesto
+  const history = versions ? versions.slice(1) : [];
   const [editorOpen, setEditorOpen] = useState(false);
+  // AIT-61: descargar el PDF pasó a ser async (hace falta un fetch del
+  // logo antes de incrustarlo) — estado de carga por número de versión,
+  // no un único booleano, porque hay un botón por versión (vigente +
+  // historial) y pulsar uno no debe bloquear visualmente los demás.
+  const [downloadingVersion, setDownloadingVersion] = useState<number | null>(null);
 
-  function handleDownloadPdf() {
-    if (!quote) return;
-    downloadQuotePdf({
-      storeName: storeName ?? "SuperCRM",
-      customerName,
-      customerPhone,
-      ownerName,
-      status: quote.status,
-      sentAt: quote.sentAt,
-      lines: quote.lines,
-      taxRate: quote.taxRate,
-      subtotal: quote.subtotal,
-      tax: quote.tax,
-      total: quote.total,
-    });
+  async function handleDownloadPdf(version: {
+    version: number;
+    status: "sent" | "accepted" | "rejected";
+    sentAt: number;
+    lines: { productName: string; quantity: number; unitPrice: number }[];
+    taxRate: number;
+    subtotal: number;
+    tax: number;
+    total: number;
+  }) {
+    setDownloadingVersion(version.version);
+    try {
+      await downloadQuotePdf({
+        storeName: storeName ?? "SuperCRM",
+        logoUrl,
+        customerName,
+        customerPhone,
+        ownerName,
+        status: version.status,
+        sentAt: version.sentAt,
+        version: version.version,
+        lines: version.lines,
+        taxRate: version.taxRate,
+        subtotal: version.subtotal,
+        tax: version.tax,
+        total: version.total,
+      });
+    } finally {
+      setDownloadingVersion(null);
+    }
   }
 
   return (
@@ -493,18 +549,18 @@ function QuoteSection({
           <Receipt size={13} />
           Presupuesto
         </span>
-        {quote && (
+        {current && (
           <span className="rounded-pill bg-primary-subtle px-2.5 py-[3px] text-xs font-semibold text-primary">
-            {QUOTE_STATUS_LABEL[quote.status]}
+            v{current.version} · {QUOTE_STATUS_LABEL[current.status]}
           </span>
         )}
       </div>
 
-      {quote === undefined && (
+      {current === undefined && (
         <p className="mt-2.5 text-sm text-text-secondary">Cargando…</p>
       )}
 
-      {quote === null && (
+      {current === null && (
         <>
           <p className="mt-2.5 text-sm text-text-secondary">
             Todavía no se ha creado ningún presupuesto para esta oportunidad.
@@ -523,10 +579,10 @@ function QuoteSection({
         </>
       )}
 
-      {quote && (
+      {current && (
         <>
           <div className="mt-3 flex flex-col gap-1.5">
-            {quote.lines.map((line, i) => (
+            {current.lines.map((line, i) => (
               <div key={i} className="flex items-center justify-between gap-3 text-sm">
                 <span className="min-w-0 flex-1 truncate text-text-secondary">
                   {line.quantity} × {line.productName}
@@ -540,15 +596,15 @@ function QuoteSection({
           <div className="mt-3 flex flex-col gap-1 border-t border-border pt-3 text-sm">
             <div className="flex items-center justify-between text-text-secondary">
               <span>Subtotal</span>
-              <span className="font-mono">{formatCurrency(quote.subtotal)}</span>
+              <span className="font-mono">{formatCurrency(current.subtotal)}</span>
             </div>
             <div className="flex items-center justify-between text-text-secondary">
-              <span>IVA ({formatTaxRatePercent(quote.taxRate)}%)</span>
-              <span className="font-mono">{formatCurrency(quote.tax)}</span>
+              <span>IVA ({formatTaxRatePercent(current.taxRate)}%)</span>
+              <span className="font-mono">{formatCurrency(current.tax)}</span>
             </div>
             <div className="flex items-center justify-between text-base font-semibold text-text">
               <span>Total</span>
-              <span className="font-mono">{formatCurrency(quote.total)}</span>
+              <span className="font-mono">{formatCurrency(current.total)}</span>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -560,17 +616,55 @@ function QuoteSection({
               title={isOpen ? undefined : "La oportunidad está cerrada."}
               onClick={() => setEditorOpen(true)}
             >
-              Editar presupuesto
+              Nueva versión
             </Button>
             <Button
               variant="ghost"
               size="sm"
               leftIcon={<Download size={14} />}
-              onClick={handleDownloadPdf}
+              disabled={downloadingVersion === current.version}
+              onClick={() => handleDownloadPdf(current)}
             >
-              Descargar PDF
+              {downloadingVersion === current.version ? "Generando…" : "Descargar PDF"}
             </Button>
           </div>
+
+          {history.length > 0 && (
+            <div className="mt-4 border-t border-border pt-3">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                Versiones anteriores
+              </span>
+              <div className="mt-2 flex flex-col gap-1.5">
+                {history.map((version) => (
+                  <div
+                    key={version.quoteId}
+                    className="flex items-center justify-between gap-3 rounded-md bg-neutral-50 px-3 py-2 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-medium text-text">
+                        v{version.version} · {QUOTE_STATUS_LABEL[version.status]}
+                      </div>
+                      <div className="text-xs text-text-muted">{formatDate(version.sentAt)}</div>
+                    </div>
+                    <div className="flex flex-none items-center gap-3">
+                      <span className="font-mono text-text-secondary">
+                        {formatCurrency(version.total)}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<Download size={13} />}
+                        disabled={downloadingVersion === version.version}
+                        onClick={() => handleDownloadPdf(version)}
+                      >
+                        {downloadingVersion === version.version ? "Generando…" : "PDF"}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -578,7 +672,7 @@ function QuoteSection({
         open={editorOpen}
         onClose={() => setEditorOpen(false)}
         opportunityId={opportunityId}
-        existingQuote={quote ?? null}
+        existingQuote={current ?? null}
       />
     </section>
   );
@@ -596,19 +690,32 @@ function QuoteDialog({
   onClose: () => void;
   opportunityId: Id<"opportunities">;
   existingQuote: {
+    version: number;
     lines: { productId: Id<"products">; productName: string; quantity: number; unitPrice: number }[];
     taxRate: number;
     status: "sent" | "accepted" | "rejected";
   } | null;
 }) {
   const products = useQuery(api.products.list, open ? {} : "skip");
-  const upsert = useMutation(api.quotes.upsertForOpportunity);
+  const createVersion = useMutation(api.quotes.createVersion);
 
   const [lines, setLines] = useState<QuoteLineDraft[]>([]);
   const [taxRatePercent, setTaxRatePercent] = useState("21");
   const [status, setStatus] = useState<"sent" | "accepted" | "rejected">("sent");
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  // Clave de idempotencia: una por apertura del diálogo, no por click en
+  // Guardar — un reintento del MISMO envío (Convex ya confirmó pero la
+  // respuesta no llegó) reutiliza la misma clave, así el backend lo
+  // deduplica en vez de crear una versión duplicada (ronda de auditoría 1,
+  // mayor #2). Mismo patrón que AltaRapidaModal/RegistrarInteraccionModal.
+  const [clientRequestId, setClientRequestId] = useState(() => crypto.randomUUID());
+  // Versión sobre la que se basa esta edición — 0 si no había ningún
+  // presupuesto al abrir el diálogo. Se manda tal cual a createVersion
+  // para que el servidor pueda detectar si alguien más guardó una versión
+  // más nueva mientras este diálogo seguía abierto (ronda de auditoría 1,
+  // mayor #3).
+  const [baseVersion, setBaseVersion] = useState(0);
 
   // Rellena el editor con el presupuesto existente (o uno vacío) en cada
   // apertura — mismo patrón que AltaRapidaModal/RegistrarInteraccionModal
@@ -626,12 +733,15 @@ function QuoteDialog({
         );
         setTaxRatePercent(formatTaxRatePercent(existingQuote.taxRate));
         setStatus(existingQuote.status);
+        setBaseVersion(existingQuote.version);
       } else {
         setLines([]);
         setTaxRatePercent("21");
         setStatus("sent");
+        setBaseVersion(0);
       }
       setFormError("");
+      setClientRequestId(crypto.randomUUID());
     }
   }
 
@@ -740,13 +850,22 @@ function QuoteDialog({
     setFormError("");
     setLoading(true);
     try {
-      await upsert({ opportunityId, lines: parsedLines, taxRate: parsedTaxRate, status });
+      await createVersion({
+        clientRequestId,
+        opportunityId,
+        baseVersion,
+        lines: parsedLines,
+        taxRate: parsedTaxRate,
+        status,
+      });
       onClose();
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
         console.error("Fallo guardando el presupuesto:", err);
       }
-      setFormError("No se ha podido guardar el presupuesto. Inténtalo de nuevo.");
+      setFormError(
+        describeQuoteError(err, "No se ha podido guardar el presupuesto. Inténtalo de nuevo."),
+      );
     } finally {
       setLoading(false);
     }
@@ -758,7 +877,7 @@ function QuoteDialog({
         Cancelar
       </Button>
       <Button type="submit" form="quote-form" disabled={loading}>
-        {loading ? "Guardando…" : "Guardar presupuesto"}
+        {loading ? "Guardando…" : existingQuote ? "Guardar nueva versión" : "Guardar presupuesto"}
       </Button>
     </>
   );
@@ -768,7 +887,11 @@ function QuoteDialog({
       open={open}
       onClose={handleClose}
       title="Presupuesto"
-      description="Añade productos del catálogo y ajusta cantidades. El total se calcula solo."
+      description={
+        existingQuote
+          ? "Añade productos del catálogo y ajusta cantidades. Se guarda como una versión nueva — la anterior queda en el historial."
+          : "Añade productos del catálogo y ajusta cantidades. El total se calcula solo."
+      }
       width={520}
       footer={footer}
     >

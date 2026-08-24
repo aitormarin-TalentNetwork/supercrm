@@ -37,6 +37,11 @@ export default defineSchema({
 
   stores: defineTable({
     name: v.string(),
+    // AIT-61 (Post-MVP): logo real para el membrete del PDF de
+    // presupuesto (convex/storesLogo.ts::setLogo lo valida y asigna) —
+    // ausente = sin logo, el PDF cae al membrete tipográfico de siempre
+    // (lib/quotePdf.ts).
+    logoStorageId: v.optional(v.id("_storage")),
   }),
 
   // Invariante explícito de "la tienda por defecto": un documento con
@@ -106,12 +111,18 @@ export default defineSchema({
         v.literal("cobrado"),
       ),
     ),
-    // AIT-57 (Post-MVP, en curso en T2): notificaciones push reales. No es
-    // de esta tarea (AIT-60) — declarado aquí solo para que este schema
-    // describa la realidad ya desplegada en el deployment compartido (T2
-    // ya lo tiene en producción de datos aunque su rama no esté mergeada
-    // a main todavía) y no choque al desplegar. Confirmado con T2 el tipo
-    // exacto: v.optional(v.number()), mismo patrón que lastActivityAt.
+    // AIT-57 (Web Push): el `lastActivityAt` para el que ya se envió el
+    // push de "en riesgo" — NO el reloj de cuándo se envió (hallazgo de
+    // auditoría NO-GO ronda 1, "Mayor" #2: con `Date.now()` había una
+    // carrera real — una interacción nueva ENTRE la lectura del cron y
+    // este patch dejaba `lastRiskPushSentAt` por delante de la nueva
+    // `lastActivityAt` para siempre, suprimiendo cualquier aviso futuro
+    // aunque la oportunidad volviera a quedarse en riesgo más adelante).
+    // Al guardar el valor de `lastActivityAt` observado (no el actual),
+    // una interacción concurrente no puede "adelantarse" al marcado: el
+    // valor guardado sigue siendo menor que la `lastActivityAt` nueva, así
+    // que la próxima racha de riesgo vuelve a ser elegible. Opcional por
+    // el mismo motivo que `lastPushSentAt` en `nextSteps`.
     lastRiskPushSentAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
@@ -131,11 +142,19 @@ export default defineSchema({
   // plano de AIT-21 por una colección de líneas. `productName`/`unitPrice`
   // son una FOTO del catálogo en el momento de añadir la línea, no una
   // referencia viva — si el precio de un producto cambia en el catálogo
-  // después, los presupuestos ya creados no deben moverse solos. Sigue
-  // habiendo como mucho UN presupuesto por oportunidad (upsert, igual que
-  // AIT-21) — varias versiones queda para una ronda 2 aparte, junto al PDF.
+  // después, los presupuestos ya creados no deben moverse solos. AIT-54
+  // (ronda 2) sustituyó el upsert de una sola fila por varias versiones
+  // por oportunidad — ver el campo `version` justo debajo.
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
+    // Varias versiones por oportunidad (AIT-54): ausente = versión 1
+    // implícita — todo `quotes` creado antes de AIT-54 (cuando como mucho
+    // podía existir una fila por oportunidad) no tiene este campo, mismo
+    // patrón que `opportunities.priority`/`billingStatus` para datos
+    // anteriores a que el campo existiera. No hace falta migración: un
+    // campo opcional nuevo no rompe la validación de los documentos ya
+    // guardados.
+    version: v.optional(v.number()),
     lines: v.array(
       v.object({
         productId: v.id("products"),
@@ -190,9 +209,15 @@ export default defineSchema({
       v.literal("postponed"),
     ),
     assigneeId: v.id("users"),
-    // AIT-57 (Post-MVP, en curso en T2): mismo motivo que
-    // opportunities.lastRiskPushSentAt más arriba — no es de esta tarea,
-    // declarado solo para no chocar con datos ya desplegados por T2.
+    // AIT-57 (Web Push): la `dueDate` para la que ya se envió el push de
+    // "vencido" — NO el reloj de cuándo se envió (hallazgo de auditoría
+    // NO-GO ronda 1: usar `Date.now()` abría una carrera entre la lectura
+    // del cron y este patch). Al guardar el valor de `dueDate` observado,
+    // el marcado es inmune a qué le pase al documento entre medias:
+    // mientras la dueDate no cambie, sigue marcado; si se pospone (dueDate
+    // avanza), vuelve a ser elegible cuando venza de nuevo. Opcional: los
+    // pasos ya existentes no lo tienen, se tratan como "nunca avisado"
+    // (ver convex/pushInternal.ts:listOverdueSteps).
     lastPushSentAt: v.optional(v.number()),
   })
     .index("by_assignee_status", ["assigneeId", "status"])
@@ -219,6 +244,18 @@ export default defineSchema({
     clientRequestId: v.string(),
     userId: v.id("users"),
     interactionId: v.id("interactions"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  // Idempotencia de quotes.createVersion (AIT-54), mismo mecanismo que
+  // opportunityRequests/interactionRequests: una clave por apertura del
+  // diálogo de presupuesto, reutilizada en un reintento del MISMO envío —
+  // sin esto, un reintento de red (Convex ya confirmó pero la respuesta no
+  // llegó) creaba una versión duplicada con datos idénticos, porque
+  // createVersion siempre inserta (ronda de auditoría 1, mayor #2).
+  quoteRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    quoteId: v.id("quotes"),
   }).index("by_client_request_id", ["clientRequestId"]),
 
   // AIT-30 (Post-MVP): recordatorio de recompra tras una venta ganada.
@@ -248,4 +285,23 @@ export default defineSchema({
     // memoria — mismo problema que tuvo listPendingBilling en AIT-33,
     // mismo arreglo: índice con storeId primero.
     .index("by_store_status", ["storeId", "status"]),
+
+  // AIT-57 (Post-MVP): suscripciones de Web Push — una fila por
+  // dispositivo/navegador suscrito (un usuario puede tener varias, una
+  // por dispositivo/navegador donde active los avisos). `endpoint` es la
+  // URL del servicio push del navegador para ESA suscripción concreta,
+  // única por diseño de la Push API — de ahí el índice `by_endpoint`
+  // (upsert al re-suscribirse, borrado al desactivar o al detectar una
+  // suscripción muerta). `p256dh`/`auth` son las claves de cifrado del
+  // payload que exige el estándar Web Push, tal cual las entrega
+  // `PushSubscription.toJSON().keys` en el navegador.
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
 });

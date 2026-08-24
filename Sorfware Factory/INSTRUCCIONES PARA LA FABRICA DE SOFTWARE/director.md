@@ -206,8 +206,19 @@ activo, o a quien dirige el proyecto si no) cuando:
 - Algo de infraestructura falla de verdad.
 - Cualquier otra cosa que la revisión final del paso 4 deje sin cuadrar.
 
+En cualquiera de los casos anteriores, antes de terminar tu turno:
+`touch /tmp/claude-crm-notify-$(basename "$PWD")` — no lo dejes solo como un paso
+mental aparte, dispáralo en el momento mismo en que reconoces el disparador de la lista
+de arriba (añadido 2026-08-24, tras un incidente real: T3 se quedó esperando una
+decisión de Aitor sin disparar el aviso, porque el mecanismo solo estaba documentado
+aquí y en README.md, nunca en `intro-terminal.txt` — un Desarrollador nunca lo tuvo en
+su propio contexto).
+
 Fuera de eso, sigues adelante sin esperar confirmación en cada paso — pero reportas un
-resumen de lo que has hecho después, por transparencia, no por permiso.
+resumen de lo que has hecho después, por transparencia, no por permiso. P. ej., decidir
+cuánto margen dar a una terminal antes de intervenir, o cómo investigar un bloqueo
+concreto, son juicios operativos tuyos, no decisiones que necesiten el visto bueno de
+nadie más antes de actuar.
 
 **Al escalar un problema de cuenta/acceso de IA, identifica siempre QUÉ cuenta concreta
 está afectada** (pedido explícito de Aitor). "La IA está caída" sin más no basta: distintas
@@ -252,6 +263,17 @@ mismo barrido comprueba también cualquier cerrojo de recurso compartido activo 
 tipo de problema que una terminal parada — nadie más tiene por qué notarlo si no lo
 necesita todavía.
 
+**Mecanismo técnico que arma este barrido (añadido 2026-08-24, verificado en vivo):**
+usa la skill `/loop` (intervalo fijo ~15-20 min, o modo dinámico auto-paced) para que el
+barrido se dispare solo — sin esto, una sesión reactiva se queda inerte en cuanto
+termina de responder al último mensaje, y nadie la despierta para que compruebe si
+alguien sigue esperando algo suyo (incidente real, 2026-08-24: la propia Directora se
+quedó así, con T1 esperando una respuesta suya que no llegaba). **Ojo con su letra
+pequeña:** el `/loop` que arma este barrido es de la propia sesión — si la ventana de la
+Directora se cierra o se reinicia, desaparece con ella (y expira solo a los 7 días
+aunque siga viva). No es un mecanismo permanente: hay que re-armarlo cada vez que la
+sesión se recrea (ver "Cómo reinstaurar el entorno" más abajo).
+
 **Ojo con que el propio barrido (o cualquier interrupción, incluida una del usuario) te
 haga abandonar sin más lo que tenías entre manos.** Antes de cambiar de foco por
 cualquier motivo, di en una frase qué tarea tenías en curso y en qué paso ibas; atiende
@@ -287,7 +309,10 @@ aislada (p. ej. un recurso compartido migrado a uno propio), no la sobrescribas 
 con la de la raíz. Instala dependencias donde falten. Después: relee el estado real del
 gestor de tareas (no te fíes de un fichero de brief desactualizado si la fuente de
 verdad dice otra cosa), confirma que no hay nada a medio publicar, y confirma que la
-infraestructura de despliegue sigue viva.
+infraestructura de despliegue sigue viva. **Re-arma también tu propio `/loop` del
+barrido periódico nada más recrear la sesión** — es session-only (ver "Barrido
+periódico proactivo" arriba), no sigue corriendo solo porque la sesión exista; no lo
+asumas.
 
 ---
 

@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as crons from "../crons.js";
 import type * as customers from "../customers.js";
 import type * as dashboard from "../dashboard.js";
 import type * as http from "../http.js";
@@ -17,10 +18,14 @@ import type * as model_access from "../model/access.js";
 import type * as nextSteps from "../nextSteps.js";
 import type * as opportunities from "../opportunities.js";
 import type * as products from "../products.js";
+import type * as pushInternal from "../pushInternal.js";
+import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as quotes from "../quotes.js";
 import type * as repurchaseReminders from "../repurchaseReminders.js";
 import type * as stores from "../stores.js";
+import type * as storesLogo from "../storesLogo.js";
 import type * as users from "../users.js";
+import type * as webPush from "../webPush.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +35,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  crons: typeof crons;
   customers: typeof customers;
   dashboard: typeof dashboard;
   http: typeof http;
@@ -38,10 +44,14 @@ declare const fullApi: ApiFromModules<{
   nextSteps: typeof nextSteps;
   opportunities: typeof opportunities;
   products: typeof products;
+  pushInternal: typeof pushInternal;
+  pushSubscriptions: typeof pushSubscriptions;
   quotes: typeof quotes;
   repurchaseReminders: typeof repurchaseReminders;
   stores: typeof stores;
+  storesLogo: typeof storesLogo;
   users: typeof users;
+  webPush: typeof webPush;
 }>;
 
 /**

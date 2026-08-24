@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { requireOwner, requireStoreAccess } from "./model/access";
 
 export const getStoreInfo = query({
@@ -8,7 +8,69 @@ export const getStoreInfo = query({
     const { storeId } = await requireStoreAccess(ctx, args.storeId);
     const store = await ctx.db.get(storeId);
     if (store === null) throw new Error("Tienda no encontrada.");
-    return { name: store.name };
+    return {
+      // AIT-61: la UI de Ajustes necesita el storeId para llamar a
+      // generateLogoUploadUrl/setLogo/removeLogo con la tienda correcta.
+      storeId: store._id,
+      name: store.name,
+      logoUrl: store.logoStorageId
+        ? await ctx.storage.getUrl(store.logoStorageId)
+        : null,
+    };
+  },
+});
+
+// AIT-61: URL de subida de un solo uso para el logo — la validación real
+// del contenido (¿es de verdad una imagen PNG/JPEG?) ocurre después, en
+// la action `storesLogo.setLogo`, no aquí (esta mutation no tiene forma
+// de inspeccionar el archivo hasta que el POST a la URL ya lo ha dejado
+// en `ctx.storage`).
+export const generateLogoUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireOwner(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// AIT-61 (auditoría, plan ronda 4, M1 / ronda 5, M2): la action
+// `storesLogo.setLogo` ya validó rol, existencia de tienda y contenido
+// real del archivo (decodificándolo de verdad) antes de llamar aquí —
+// esta internal mutation solo aplica el cambio. Mantiene la lógica
+// idempotente de "no borrar el storageId nuevo si coincide con el
+// anterior" (ronda 1, M3) y repite el chequeo de tienda-no-encontrada
+// como respaldo ante una tienda borrada en la ventana entre ambas
+// llamadas, borrando el objeto recién subido en ese caso para no dejarlo
+// huérfano.
+export const applyLogo = internalMutation({
+  args: { storeId: v.id("stores"), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    const store = await ctx.db.get(args.storeId);
+    if (store === null) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error("Tienda no encontrada.");
+    }
+    const previousStorageId = store.logoStorageId;
+    await ctx.db.patch(args.storeId, { logoStorageId: args.storageId });
+    if (
+      previousStorageId !== undefined &&
+      previousStorageId !== args.storageId
+    ) {
+      await ctx.storage.delete(previousStorageId);
+    }
+  },
+});
+
+export const removeLogo = mutation({
+  args: { storeId: v.id("stores") },
+  handler: async (ctx, args) => {
+    await requireOwner(ctx);
+    const store = await ctx.db.get(args.storeId);
+    if (store === null) throw new Error("Tienda no encontrada.");
+    if (store.logoStorageId !== undefined) {
+      await ctx.storage.delete(store.logoStorageId);
+      await ctx.db.patch(args.storeId, { logoStorageId: undefined });
+    }
   },
 });
 

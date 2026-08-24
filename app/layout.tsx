@@ -4,6 +4,7 @@ import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { NavProvider } from "@/components/nav/NavContext";
 import { AppNav } from "@/components/nav/AppNav";
+import { PushSubscriptionSync } from "@/components/push/PushSubscriptionSync";
 
 export const metadata: Metadata = {
   title: "SuperCRM",
@@ -27,6 +28,12 @@ export default function RootLayout({
             <NavProvider>
               {children}
               <AppNav />
+              {/* AIT-57 (hallazgo de auditoría NO-GO ronda 2): igual que
+                  AppNav, montada una sola vez para toda la app — no puede
+                  depender de qué pantalla está activa, tiene que
+                  sincronizar la suscripción de push en cualquier cambio
+                  de sesión, no solo al visitar /ajustes. */}
+              <PushSubscriptionSync />
             </NavProvider>
           </ConvexClientProvider>
         </body>

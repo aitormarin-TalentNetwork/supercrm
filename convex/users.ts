@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import { getAuthUserId, invalidateSessions } from "@convex-dev/auth/server";
-import { action, internalMutation, mutation, query } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { requireOwner, requireUser } from "./model/access";
@@ -182,6 +188,28 @@ export const getCurrentUserRole = query({
     // "usuario no encontrado": se trata como si no hubiera rol.
     if (user === null || user.active === false) return null;
     return user.role;
+  },
+});
+
+// Auxiliares internas, para funciones que no tienen QueryCtx propio
+// (actions, u otras internalMutation/internalQuery de otros ficheros —
+// ver convex/storesLogo.ts). Mismo criterio que getCurrentUserRole: un
+// usuario desactivado se trata como si no tuviera rol.
+export const getCurrentUserRoleInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) return null;
+    const user = await ctx.db.get(userId);
+    if (user === null || user.active === false) return null;
+    return user.role;
+  },
+});
+
+export const getStoreInternal = internalQuery({
+  args: { storeId: v.id("stores") },
+  handler: async (ctx, { storeId }) => {
+    return await ctx.db.get(storeId);
   },
 });
 

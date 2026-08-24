@@ -15,7 +15,7 @@ El PRD las nombra así:
 | Usuario | `users` | Quién usa el sistema y qué puede ver (`owner` = Marta, `sales` = Carlos). |
 | Cliente | `customers` | La persona o empresa a la que vendemos. |
 | Oportunidad | `opportunities` | Una posible venta y su recorrido por las etapas. **Es el centro de todo.** |
-| Presupuesto | `quotes` | La oferta económica de una oportunidad. En el MVP era importe suelto + estado, sin PDF; AIT-29 (Post-MVP) lo evolucionó a líneas de producto con cálculo en servidor — ver §2. |
+| Presupuesto | `quotes` | La oferta económica de una oportunidad. En el MVP era importe suelto + estado, sin PDF; AIT-29 (Post-MVP) lo evolucionó a líneas de producto con cálculo en servidor, AIT-53 añadió el PDF y AIT-54 varias versiones históricas por oportunidad — ver §2. |
 | Interacción | `interactions` | Cada contacto que se tiene con el cliente (llamada, WhatsApp, email, visita). |
 | Próximo paso | `nextSteps` | La siguiente acción a hacer y cuándo. **Es la razón de ser del producto.** |
 
@@ -39,6 +39,7 @@ stores (1 en el MVP)
 | Campo | Tipo | Notas |
 |---|---|---|
 | `name` | string | |
+| `logoStorageId` | id(`_storage`)? | AIT-61 (Post-MVP): logo real para la cabecera del PDF del presupuesto — ausente = sin logo, cae al membrete tipográfico (nombre de la tienda). Se sube desde `/ajustes` (owner-only): `stores.generateLogoUploadUrl` (mutation) da la URL de subida, `storesLogo.setLogo` (action — necesita `ctx.storage.get()` para decodificar el archivo de verdad con `pngjs`/`jpeg-js`, solo disponible en actions) valida el contenido y lo asigna, `stores.removeLogo` (mutation) lo quita. `stores.getStoreInfo`/`opportunities.getSummary` resuelven la URL pública (`ctx.storage.getUrl`) para el frontend. |
 
 ### `users`
 | Campo | Tipo | Notas |
@@ -94,7 +95,7 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `lastActivityAt` | number | **Clave para el riesgo.** Se actualiza en CADA interacción y cambio de etapa |
 | `ownerId` | id(`users`) | Comercial |
 | `storeId` | id(`stores`) | |
-| `lastRiskPushSentAt` | number? | Post-MVP (AIT-57, notificaciones push reales — en curso en T2 al momento de escribir esto). No es de AIT-60; declarado en `convex/schema.ts` solo porque T2 ya lo tenía desplegado en el deployment compartido antes de mergear a `main`. Actualízalo en la documentación de AIT-57 cuando mergee. |
+| `lastRiskPushSentAt` | number? | Post-MVP (AIT-57, Web Push). El `lastActivityAt` para el que ya se envió el push de "en riesgo" — no un timestamp de envío (hallazgo de auditoría NO-GO ronda 1: guardar `Date.now()` en vez del valor observado abría una carrera que podía suprimir avisos futuros para siempre) |
 
 > **Por qué 3 etapas y no 6.** El design system trae una paleta de 6 colores de pipeline (`nuevo`, `contactado`, `propuesta`, `negociacion`, `ganado`, `perdido`) y es fácil confundirla con 6 etapas. No lo son:
 > - **`ganado` y `perdido` no son etapas, son `status`.** Van aparte porque de ellos cuelgan `lostReason`, `closedAt` y `finalAmount`.
@@ -103,18 +104,21 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 > El PRD §7 lo fija: *"Columnas por etapa: Contacto → Presupuesto → Negociación/Cierre (con resultado Ganada/Perdida)"*. Y `Design/pantallas/Pipeline.dc.html` implementa exactamente eso (`const OPEN = ['contactado','propuesta','negociacion']`, más Ganada y Perdida como resultado). **Diseño y PRD ya coinciden: 3 etapas + status.** Añadir una etapa más sería alcance que el PRD no pide.
 
 ### `quotes`
-**Post-MVP (AIT-29):** ya no es un importe suelto — es una colección de líneas, con subtotal/impuestos/total calculados en el servidor.
+**Post-MVP:** ya no es un importe suelto — es una colección de líneas, con subtotal/impuestos/total calculados en el servidor (AIT-29), generación de PDF en cliente (AIT-53) y varias versiones históricas por oportunidad (AIT-54).
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `opportunityId` | id(`opportunities`) | Como mucho un presupuesto por oportunidad (upsert) — igual que en el MVP. Varias versiones por oportunidad queda para una ronda 2 de AIT-29 |
+| `opportunityId` | id(`opportunities`) | **Varias filas por oportunidad** (0..n) — una por versión. Ya no hay upsert: cada guardado inserta una fila nueva, ninguna versión se pierde ni se modifica después de creada |
+| `version` | number, opcional | 1, 2, 3… por oportunidad. Ausente = versión 1 implícita (todo `quotes` creado antes de AIT-54, cuando como mucho podía existir una fila por oportunidad) |
 | `lines` | array de `{productId, productName, quantity, unitPrice}` | `productName`/`unitPrice` son una FOTO del catálogo al añadir la línea, no una referencia viva — si el precio de un producto cambia después en `products`, los presupuestos ya creados no se mueven solos |
 | `taxRate` | number | Ej. `0.21` para 21% de IVA |
 | `subtotal` | number | `Σ (quantity × unitPrice)` de las líneas — calculado en servidor, nunca confiado del cliente |
 | `tax` | number | `subtotal × taxRate` |
 | `total` | number | `subtotal + tax` |
-| `status` | `"sent"` \| `"accepted"` \| `"rejected"` | Los 3 del PRD §8 (heredados del MVP). La paleta del design system trae además `borrador` y `vencido`: son tokens sobrantes, no estados usados |
-| `sentAt` | number | |
+| `status` | `"sent"` \| `"accepted"` \| `"rejected"` | Los 3 del PRD §8 (heredados del MVP). Es una propiedad de CADA versión, no de la oportunidad — dos versiones pueden tener estados distintos. La paleta del design system trae además `borrador` y `vencido`: son tokens sobrantes, no estados usados |
+| `sentAt` | number | Cuándo se creó ESA versión concreta — cada fila tiene la suya, no se toca después de insertarse |
+
+**La versión vigente** es la de `version` más alto para esa oportunidad (desempate por `sentAt` más reciente, aunque en la práctica nunca hace falta desempatar: `version` nunca se repite dentro de la misma oportunidad) — la resuelve `convex/quotes.ts:listForOpportunity`, no hay ningún campo `isCurrent` explícito.
 
 ### `products` (Post-MVP, AIT-29 — no es una de las 7 entidades del MVP)
 | Campo | Tipo | Notas |
@@ -143,7 +147,7 @@ Lo administra Marta (`requireOwner`); Carlos solo lo lee para construir presupue
 | `dueDate` | number | Cuándo |
 | `status` | `"pending"` \| `"done"` \| `"postponed"` | |
 | `assigneeId` | id(`users`) | |
-| `lastPushSentAt` | number? | Post-MVP (AIT-57, notificaciones push reales — en curso en T2 al momento de escribir esto). No es de AIT-60; mismo motivo que `opportunities.lastRiskPushSentAt` de arriba. |
+| `lastPushSentAt` | number? | Post-MVP (AIT-57, Web Push). La `dueDate` para la que ya se envió el push de "vencido" — no un timestamp de envío (mismo motivo que `lastRiskPushSentAt` en `opportunities`); posponer cambia `dueDate` y vuelve a hacerlo elegible cuando venza de nuevo |
 
 ### `repurchaseReminders` (Post-MVP, AIT-30 — no es una de las 7 entidades del MVP)
 | Campo | Tipo | Notas |
@@ -174,6 +178,26 @@ Idempotencia de `opportunities.createQuick`: un reintento de red con la misma `c
 | `interactionId` | id(`interactions`) | La interacción que produjo esa petición |
 
 Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunityRequests`. Un reintento de red con la misma `clientRequestId` no debe duplicar ni la entrada del historial ni el próximo paso que la interacción regenera.
+
+### `quoteRequests` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `clientRequestId` | string | Generada por el cliente, una por apertura del diálogo de Presupuesto |
+| `userId` | id(`users`) | Quién la generó |
+| `quoteId` | id(`quotes`) | La versión de presupuesto que produjo esa petición |
+
+Idempotencia de `quotes.createVersion` (AIT-54): mismo mecanismo que `opportunityRequests`/`interactionRequests`. Sin esto, un reintento de red creaba una versión duplicada con datos idénticos, porque `createVersion` siempre inserta (nunca hace upsert).
+
+### `pushSubscriptions` (Post-MVP, AIT-57 — no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `userId` | id(`users`) | |
+| `endpoint` | string | URL del servicio push del navegador — única por suscripción, la usa Web Push como identidad de la fila |
+| `p256dh` | string | Clave de cifrado del payload, la exige el estándar Web Push |
+| `auth` | string | Igual |
+| `createdAt` | number | |
+
+Una fila por dispositivo/navegador suscrito (un usuario puede tener varias). La escriben `convex/pushSubscriptions.ts:subscribe/unsubscribe`, llamadas desde tres sitios: `/ajustes` → "Notificaciones push" (activar/desactivar a mano); `components/push/PushSubscriptionSync.tsx` (vigía sin UI, montada una sola vez en `app/layout.tsx` — reasigna la suscripción del dispositivo al usuario autenticado en cualquier cambio de sesión, sin depender de qué pantalla esté abierta); y `components/push/useSignOutAndUnlinkPush.ts` (envuelve `signOut()` en los dos sitios donde se cierra sesión — Ajustes y `AppNav.tsx` — para desvincular la suscripción ANTES de cerrar sesión de verdad, mientras todavía hay una sesión válida con la que borrar la fila; `PushSubscriptionSync` no puede hacer esto reactivamente porque para cuando detecta "sin sesión" el token ya no vale). Las lee `convex/webPush.ts` (disparado por `convex/crons.ts`, cada hora) para enviar avisos de pasos vencidos y oportunidades en riesgo con la app cerrada.
 
 ---
 
@@ -219,6 +243,7 @@ export default defineSchema({
 
   stores: defineTable({
     name: v.string(),
+    logoStorageId: v.optional(v.id("_storage")),
   }),
 
   appConfig: defineTable({
@@ -261,6 +286,7 @@ export default defineSchema({
 
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
+    version: v.optional(v.number()),
     lines: v.array(
       v.object({
         productId: v.id("products"),
@@ -327,6 +353,12 @@ export default defineSchema({
     clientRequestId: v.string(),
     userId: v.id("users"),
     interactionId: v.id("interactions"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  quoteRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    quoteId: v.id("quotes"),
   }).index("by_client_request_id", ["clientRequestId"]),
 });
 ```

@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
 import {
   Mail,
   Pencil,
@@ -21,6 +20,9 @@ import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
+import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
+import { useSignOutAndUnlinkPush } from "@/components/push/useSignOutAndUnlinkPush";
+import { StoreLogoSection } from "@/components/settings/StoreLogoSection";
 
 type ManagedUser = {
   id: Id<"users">;
@@ -50,7 +52,7 @@ type ManagedUser = {
 export default function AjustesPage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(api.users.getCurrentUserInfo);
-  const { signOut } = useAuthActions();
+  const signOut = useSignOutAndUnlinkPush();
 
   const loading = role === undefined || userInfo === undefined;
   const canManageUsers = role === "owner";
@@ -95,6 +97,13 @@ export default function AjustesPage() {
                   last
                 />
               </section>
+
+              {/* AIT-57: avisos push reales — sección propia, no una fila
+                más de InfoRow (no es solo-lectura, tiene una acción). */}
+              <PushNotificationsSection />
+
+              {/* AIT-61: solo owner, mismo criterio que UsersSection. */}
+              {canManageUsers && <StoreLogoSection />}
 
               {canManageUsers && <UsersSection />}
 

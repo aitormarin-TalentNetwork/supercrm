@@ -204,6 +204,95 @@ Sin argumentos, crea (si no existen ya) `admin@talent-network.org` (owner) y `ai
 
 **Verificación (Google):** entrar en `/login`, pulsar "Continuar con Google" y comprobar que el navegador llega de verdad a la pantalla de consentimiento de Google (no un error `invalid_client` — eso significa que `AUTH_GOOGLE_ID` no está puesto o no coincide con el proyecto de Google Cloud) y que, tras elegir una cuenta con acceso (`admin@talent-network.org` o `aitor.marin@talent-network.org`), vuelve autenticado a la app con el rol correcto. Con una cuenta de Google SIN alta previa en `users`, debe volver a `/login` sin sesión y sin alta automática — comprobar en los logs de `npx convex dev` que se ve el rechazo de `createOrUpdateUser`, ya que el navegador no muestra el motivo exacto (ver ADR-003, limitación conocida).
 
+## 7. Web Push (AIT-57, Post-MVP)
+
+Avisos push reales (pasos vencidos y oportunidades en riesgo, con la app cerrada) — ver `convex/webPush.ts` (envío), `convex/pushInternal.ts` (candidatos), `convex/pushSubscriptions.ts` (alta/baja desde el cliente) y `convex/crons.ts` (dispara el envío cada hora).
+
+```bash
+npm install web-push   # ya en package.json — solo si partes de cero
+npx web-push generate-vapid-keys --json
+```
+
+Del resultado:
+
+```bash
+npx convex env set VAPID_PUBLIC_KEY <publicKey>
+npx convex env set VAPID_PRIVATE_KEY <privateKey>
+npx convex env set VAPID_SUBJECT "mailto:<tu-email>"
+```
+
+Y en `.env.local` (frontend, la Push API la necesita para suscribirse — es la **pública**, sin secretos):
+
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=<la misma publicKey de arriba>
+```
+
+**Verificación:** `/ajustes` → "Notificaciones push" → Activar (el navegador pide permiso — solo lo puede conceder una persona real, no es automatizable). El envío real solo se puede probar en un dominio HTTPS real o `localhost` (la Push API lo exige); Railway ya sirve por HTTPS, así que en producción funciona sin nada más que configurar las 3 variables del deployment.
+
+⚠️ `VAPID_PRIVATE_KEY` nunca va en `.env.local` ni con el prefijo `NEXT_PUBLIC_` — es la clave con la que se firman los envíos, si llega al navegador cualquiera podría enviar avisos suplantando al servidor.
+
+## 8. Producción tiene su propio deployment de Convex (AIT-59)
+
+**Ver ADR-004 en [`01-arquitectura.md`](01-arquitectura.md) para el porqué.** Resumen
+operativo: `third-goldfinch-805` sigue siendo el deployment de desarrollo/test
+compartido de las 3 terminales (nada cambia ahí). Producción usa uno propio,
+`stoic-impala-857` — ya provisionado por Convex junto al de dev, no hubo que crear nada.
+
+**Cómo se despliega a producción:** nunca `npx convex dev` (eso es solo desarrollo).
+Railway ejecuta `npx convex deploy` en su propio build, cada vez que hay un push a
+`main` — no hace falta ningún paso manual (Tanda 2 de AIT-59 ya activa, ver ADR-004 y
+`checklist-produccion-real.md`, en `Sorfware Factory/`). El "Build Command" real,
+fijado en el dashboard de Railway (Settings → Build del servicio `supercrm` — no
+versionable, ver ADR-004):
+
+```
+npx convex deploy --cmd "npm run build" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL
+```
+
+**⚠️ Comillas dobles, no simples — hallazgo real de la implementación.** El patrón
+oficial de los docs de Convex usa comillas simples (`--cmd 'npm run build'`), pero el
+campo "Build Command" del dashboard de Railway NO respeta el agrupamiento de comillas
+simples al construir el comando — el build falló en la práctica (`npx convex deploy`
+solo recibió "npm" como valor de `--cmd`, sin "run build", y `npm` sin subcomando
+falla). Con comillas dobles, el mismo comando funciona correctamente. Si algún día hay
+que tocar este campo de nuevo, usar comillas dobles, y verificar el resultado con
+`railway logs --build <deployment-id>` antes de dar el cambio por bueno — no basta con
+que el build salga en verde en el dashboard.
+
+Si hace falta desplegar a `stoic-impala-857` a mano (por ejemplo, para verificarlo
+antes de un cambio), `npx convex deploy` resuelve el destino solo al deployment de
+producción por defecto del proyecto — **no admite el flag `--prod`** (a diferencia de
+`env`/`run`/`@convex-dev/auth`, que sí lo admiten); comprueba el nombre del deployment
+que el propio comando imprime en su cabecera antes de aceptar el push.
+
+**`CONVEX_DEPLOY_KEY`:** el equivalente a una contraseña de servicio para que Railway (o
+cualquier CI) pueda desplegar sin sesión interactiva. Ya está puesta en Railway (variable
+del servicio `supercrm`, generada al ejecutar la Tanda 2 de AIT-59, justo antes de
+pegarla ahí — no la entregó la Tanda 1 pese a que el plan original la situaba ahí; ver
+ADR-004 §Consecuencias para el porqué). Si hiciera falta regenerarla en el futuro (por
+ejemplo, tras rotarla), se genera por CLI, no por dashboard:
+
+```bash
+npx convex deployment token create <nombre> --deployment prod --save-env <fichero>
+```
+
+Con `--save-env` el valor se escribe directamente en un fichero, nunca se imprime en la
+terminal — es un secreto, mismo criterio que cualquier otro (`CLAUDE.md`). Genéralo
+fresco justo antes de configurarlo donde vaya a usarse (por ejemplo, en Railway) en vez
+de guardarlo de antemano — minimiza cuánto tiempo vive un secreto de producción fuera de
+donde se usa de verdad. `npx convex deployment token delete <nombre> --prod` lo revoca
+si deja de hacer falta.
+
+**Nota sobre `npx convex deploy` desde un worktree local:** si `.env.local` tiene
+`CONVEX_DEPLOYMENT` puesto (el caso normal de cualquier terminal de desarrollo), el
+propio comando pide confirmación interactiva antes de empujar a producción — no hay
+forma de saltarse ese prompt con variables de entorno adicionales (`CI=true`, exportar
+`CONVEX_DEPLOY_KEY`, etc. no lo evitan, comprobado en la práctica). La única forma de
+desplegar sin esa confirmación desde un worktree con `.env.local` de dev es usar
+`--env-file <fichero-con-solo-CONVEX_DEPLOY_KEY>`, que aísla el comando de la
+`CONVEX_DEPLOYMENT` local — es justo lo que hace Railway automáticamente, porque su
+entorno de build nunca tiene un `.env.local` con `CONVEX_DEPLOYMENT` de por medio.
+
 ---
 
 ## Variables de entorno
@@ -218,6 +307,9 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
 | `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es` — usadas por el bootstrap original de AIT-8 para crearlas (ya hecho, viven en el deployment desde entonces). Desde AIT-60, `bootstrapInitialAccounts` sin argumentos ya NO recrea estas 2 cuentas (solo crea las de Google, ver más abajo) — para levantar el proyecto de cero necesitando también las cuentas de contraseña, hace falta un `createAccount` manual con estas contraseñas (mismo patrón que el bootstrap original, no automatizado hoy). |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Deployment de Convex (`npx convex env`) | Firma y envío de Web Push (`convex/webPush.ts`). La privada nunca sale del deployment de Convex — ver §7. |
+| `CONVEX_DEPLOY_KEY` | Railway (variable del servicio, **nunca** `.env.local`) | Contraseña de servicio para que `npx convex deploy` publique a `stoic-impala-857` sin sesión interactiva (AIT-59, ver §8 y ADR-004). Se genera fresco por CLI justo antes de usarse. |
 
 ## Comandos del día a día
 

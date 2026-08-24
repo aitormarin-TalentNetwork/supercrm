@@ -233,6 +233,12 @@ export const getSummary = query({
       expectedCloseDate: opportunity.expectedCloseDate ?? null,
       ownerName: owner?.name ?? null,
       storeName: store?.name ?? null,
+      // AIT-61: logo real de la tienda para el PDF del presupuesto — null
+      // si no se ha subido ninguno (lib/quotePdf.ts cae al membrete de
+      // texto).
+      logoUrl: store?.logoStorageId
+        ? await ctx.storage.getUrl(store.logoStorageId)
+        : null,
       closedAt: opportunity.closedAt ?? null,
       finalAmount: opportunity.finalAmount ?? null,
       lostReason: opportunity.lostReason ?? null,

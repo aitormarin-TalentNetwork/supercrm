@@ -33,7 +33,7 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Rol Factory Architect** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/factory-architect.md` | Activo desde 2026-08-15, se crea con `/factory`. Es con quien Aitor habla para ajustar procesos/workflows de la fábrica — decide cambios sencillos de organización él mismo, pregunta a Aitor los sustanciales. Recibe del CEO los avisos de "esto no funciona, revisa el proceso" y le entrega la decisión ya tomada para que la ejecute — nunca implementa él mismo. Vigilancia recíproca con el CEO (ver `ceo.md`). |
 | **Mensajería directa entre terminales** | `SendMessage` / `ListAgents` (herramientas de Claude Code, no de este repo) | Desde 2026-08-12: la Directora y las terminales desarrolladoras se hablan directamente por aquí (asignar tarea, avisar de export listo, devolver veredicto, corregir) — Aitor ya no tiene que hacer de mensajero pegando texto entre terminales, salvo que quiera intervenir. Confirmar primero qué nombre de sesión (`ListAgents`) corresponde a qué terminal (T1/T2/T3) — no asumirlo solo por el nombre, que puede venir de una tarea antigua. |
 | **Linear** | Equipo "VibeCoding Academy" (AIT), proyecto "SuperCRM — MVP", MCP `linear-aitor` | Fuente de verdad de qué está Done / In Progress / Backlog, y el orden de fases (no adelantarse). |
-| **Convex** | Deployment compartido `third-goldfinch-805` (dashboard en `README.md` de la raíz) + un deployment propio por terminal (objetivo, migración pendiente — ver §3bis) | Hoy: backend compartido por TODAS las terminales, ver riesgo en §3. Objetivo: cada terminal desarrolla contra su propio deployment aislado; `third-goldfinch-805` pasa a ser solo el punto de merge/publicación. |
+| **Convex** | Deployment compartido `third-goldfinch-805` para desarrollo/test de las 3 terminales (dashboard en `README.md` de la raíz) + `stoic-impala-857` como deployment de producción (AIT-59 — ver §2 paso 4 más abajo y ADR-004 en `docs/01-arquitectura.md`; **activo desde 2026-08-24, Railway construye contra `stoic-impala-857` en cada push a `main`**) + un deployment de dev propio por terminal (objetivo de §3bis, migración distinta y todavía pendiente) | Hoy: `third-goldfinch-805` compartido por TODAS las terminales para dev/test, ver riesgo en §3. `stoic-impala-857` es el de producción, activado por AIT-59 (Tanda 1 y Tanda 2 completas). Objetivo de §3bis (aparte, no confundir): cada terminal desarrolla contra su propio deployment de dev aislado; `third-goldfinch-805` ya no tiene rol de publicación — el punto de publicación es el build de Railway contra `stoic-impala-857`, no un merge a `third-goldfinch-805`. |
 | **Cerrojo de turno de Convex** | `Sorfware Factory/_turno-convex.lock/` (directorio, reclamado con `mkdir` — atómico, sin ventana de carrera —, con `titular.txt` dentro; en `.gitignore`) | Rediseñado 2026-08-14, afinado 2026-08-15: mientras el deployment siga compartido, las terminales lo reclaman solas con `mkdir` y lo liberan con `rmdir`, en vez de pedírselo a la Directora — arbitrar cada petición no escalaba según crecía el número de terminales/células. El barrido periódico también comprueba si un cerrojo lleva demasiado tiempo abandonado. La Directora (o el Líder de célula) solo entra ante disputa genuina o cerrojo abandonado sin poder confirmarlo. Desaparece del todo en cuanto la migración de §3bis esté completa. |
 | **GitHub** | `github.com/aitormarin-TalentNetwork/supercrm` (remoto `origin`) | Repo real. La sesión directora mergea a `main` y hace `git push` aquí. |
 | **Railway** | Cuenta personal `aitormarin@gmail.com` (cuenta de Railway nueva desde 2026-08-13 — la anterior agotó el trial), proyecto `fulfilling-vision`, servicio `supercrm` → `https://supercrm-production-bf48.up.railway.app` | Auto-despliega en cada push a `main`. Ver ADR-002 en `docs/01-arquitectura.md`. **Puede volver a estar en trial limitado — revisar que no haya caducado.** El proyecto viejo (`reasonable-creativity`, trial agotado) queda abandonado, no se usa. |
@@ -54,7 +54,18 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
    - confirmar que lo que hay en el worktree coincide con lo que el auditor revisó (nada añadido de última hora fuera de su alcance).
    Si todo cuadra, la directora:
    - **antes de mergear, se asegura de que `convex/_generated/` está regenerado y coincide con el código fuente de esa rama** (`npx convex codegen` desde el worktree, o verificar que ya está al día) — NO es un fichero de infraestructura a excluir del commit como `AGENTS.md`/`CLAUDE.md`. Incidente real (2026-08-10): se excluyó de varios commits seguidos, Railway estuvo ~4 horas fallando el build en producción sin que se detectara, porque el push a GitHub "parecía" exitoso aunque el build fallara. Tras cualquier merge que toque `convex/*.ts`, comprobar el build de Railway de verdad (no solo que el push llegó) antes de dar la publicación por buena.
-   - ⚠️ **`npx convex codegen` NO publica funciones nuevas al backend** — solo regenera tipos/bindings TypeScript (comprobado con `--help`: "Generate backend type definitions"). Incidente real (2026-08-12): varias tareas (AIT-33, AIT-35) se dieron por publicadas tras `codegen` sin que `changePriority`/`advanceBillingStatus` llegaran a desplegarse de verdad — el frontend compilaba bien y hasta parecía funcionar (un fallback de UI enmascaraba la ausencia del dato real), pero la mutation no existía en el backend. **El comando correcto para desplegar a `third-goldfinch-805` (el deployment que usa la app real) es `npx convex dev --once`.** Verificar siempre después con `npx convex function-spec` que las funciones nuevas aparecen listadas. NUNCA usar `npx convex deploy` para este proyecto — apunta a un deployment de "producción" de Convex distinto y sin usar (`stoic-impala-857`), no al que lee la app.
+   - ⚠️ **AIT-59 (2026-08-24) cambió este bloque — la instrucción vieja de abajo ya NO
+     aplica.** `stoic-impala-857` es ahora el deployment de producción real; Railway
+     construye contra él en cada push a `main` (ver ADR-004 en `docs/01-arquitectura.md`)
+     — publicar un cambio de `convex/*.ts` **ya no exige ningún paso manual de Convex**:
+     el propio `git push` de este mismo paso 4 ya lo hace, vía el "Build Command" del
+     servicio (`npx convex deploy --cmd "npm run build" --cmd-url-env-var-name
+     NEXT_PUBLIC_CONVEX_URL`). `npx convex dev --once` contra `third-goldfinch-805`
+     ahora es solo para desarrollo/test — ya NO publica nada que la app real sirva.
+     **NUNCA `npx convex deploy` a mano desde un worktree** — sigue siendo el mecanismo
+     de publicación, pero solo lo ejecuta Railway; correrlo manualmente desde una
+     terminal exige una confirmación interactiva y no tiene sentido fuera del pipeline.
+   - ⚠️ **`npx convex codegen` NO publica funciones nuevas al backend** — solo regenera tipos/bindings TypeScript (comprobado con `--help`: "Generate backend type definitions"). Incidente real (2026-08-12): varias tareas (AIT-33, AIT-35) se dieron por publicadas tras `codegen` sin que `changePriority`/`advanceBillingStatus` llegaran a desplegarse de verdad — el frontend compilaba bien y hasta parecía funcionar (un fallback de UI enmascaraba la ausencia del dato real), pero la mutation no existía en el backend. Tras cualquier merge que toque `convex/*.ts`, comprobar el build de Railway de verdad (`railway logs --build <deployment-id>`, confirmando que `npx convex deploy --cmd ...` corrió y terminó en `SUCCESS`) antes de dar la publicación por buena — no basta con que el dashboard salga en verde.
    - coge el código de esa rama y lo mergea a `main`,
    - hace `git push` (esto **ya dispara el deploy en Railway solo**, no hace falta nada más),
    - marca el issue de Linear como Done,
@@ -315,9 +326,21 @@ aislado de las demás, apuntado desde el `.env.local` de su propio worktree
 
 - Cada terminal lanza `npx convex dev` cuando quiera, sin pedir turno a nadie — ya no
   puede pisar lo de otra terminal, porque no comparten deployment.
-- El deployment compartido (`third-goldfinch-805`, el que lee Railway/la app real) pasa a
-  tocarlo **solo** la Directora (o el Integrador, cuando esté activo) en el momento del
-  merge — ya es un punto de un solo actor, no necesita arbitraje.
+- ⚠️ **AIT-59 (2026-08-24) invalidó la premisa original de este bullet — leer esta nota
+  antes del bullet.** Cuando esto se escribió, `third-goldfinch-805` era lo que leía
+  Railway/la app real, y el diseño de §3bis asumía que publicar seguiría siendo "tocar
+  el compartido en el momento del merge". Ya no es así: `third-goldfinch-805` es ahora
+  solo un deployment de dev/test, sin ningún rol de publicación — publicar a producción
+  ocurre solo, vía el build de Railway contra `stoic-impala-857` (ver ADR-004 en
+  `docs/01-arquitectura.md`), sin que nadie tenga que "tocar" ningún deployment
+  compartido en el momento del merge, ni siquiera la Directora/Integrador. Si esta
+  migración de §3bis se ejecuta ahora, el bullet de abajo ("pasa a tocarlo solo la
+  Directora... en el momento del merge") ya no describe ninguna acción real que exista
+  que hacer — simplemente no hay nada que tocar en el compartido al publicar.
+- El deployment compartido (`third-goldfinch-805`) ya NO tiene rol de publicación (ver
+  aviso de arriba) — cuando se ejecute esta migración de §3bis, no hace falta que nadie
+  lo "toque" en el momento del merge; el diseño original de este bullet (arbitrar quién
+  toca el compartido al publicar) queda obsoleto por AIT-59.
 - **Coste asumido:** se pierde el aviso temprano de choques de schema entre ramas en
   curso (el incidente de "main no se puede desplegar porque otra rama ya metió datos
   incompatibles", 2026-08-12, ver bullet de "un deploy puede fallar por datos reales" en

@@ -146,7 +146,7 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 
 **Contexto:** el plan inicial (§7 antigua) era decidir el hosting en la Fase 6 · Cierre, con Vercel como opción natural para Next.js. En la práctica, Aitor ya tenía Railway configurado y funcionando (cuenta personal, conectado por GitHub al repo `aitormarin-TalentNetwork/supercrm`) antes de llegar a esa fase, para poder ver la app en vivo mientras se desarrolla con varias terminales de Claude Code en paralelo.
 
-**Decisión:** Railway, cuenta personal de Aitor (`aitormarin@gmail.com`, workspace "My Projects", proyecto **`fulfilling-vision`**, servicio `supercrm`). **Auto-deploy en cada push a `main`** vía la integración de GitHub — no hace falta ningún paso manual de despliegue: mergear y hacer `git push` ya publica. URL actual: `https://supercrm-production-bf48.up.railway.app`. Las variables de entorno del frontend (`NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`, `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD`) están puestas en el servicio y apuntan al deployment de Convex real (`third-goldfinch-805`).
+**Decisión:** Railway, cuenta personal de Aitor (`aitormarin@gmail.com`, workspace "My Projects", proyecto **`fulfilling-vision`**, servicio `supercrm`). **Auto-deploy en cada push a `main`** vía la integración de GitHub — no hace falta ningún paso manual de despliegue: mergear y hacer `git push` ya publica. URL actual: `https://supercrm-production-bf48.up.railway.app`. Las 4 variables de entorno del frontend puestas en el servicio: `NEXT_PUBLIC_CONVEX_URL`/`NEXT_PUBLIC_CONVEX_SITE_URL` apuntan al deployment de Convex de producción (`stoic-impala-857` desde AIT-59/2026-08-24 — ver ADR-004; antes de esa fecha apuntaban a `third-goldfinch-805`, el compartido de dev/test). `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`/`NEXT_PUBLIC_DEMO_SALES_PASSWORD` no "apuntan" a ningún deployment — son las contraseñas de autorrelleno de `/login`, copiadas de `SEED_OWNER_PASSWORD`/`SEED_SALES_PASSWORD` del deployment que esté sirviendo producción en cada momento (hoy, `stoic-impala-857`).
 
 **Alternativa descartada:** Vercel — no se llegó a evaluar; Railway ya estaba desplegando con éxito cuando se revisó esta decisión, y no hay ningún requisito del MVP que lo justifique.
 
@@ -156,6 +156,10 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 - ⚠️ **Esta cuenta Railway nueva también puede estar en trial limitado** — revisar el plan/facturación antes de que caduque otra vez, no descubrirlo por una caída en medio de una demo (ya pasó una vez, ver migración de arriba).
 - Existen ahora **dos proyectos Railway huérfanos**, ninguno se usa ni se toca: "Mi CRM basic" (cuenta `aitor.marin@talent-network.org`, dominio `supercrm-production.up.railway.app`, sin deployment real) y `reasonable-creativity` (cuenta Railway vieja de `aitormarin@gmail.com`, trial agotado).
 - El CLI de Railway en esta máquina ya está autenticado con la cuenta correcta (`aitormarin@gmail.com`) y enlazado (`railway link`) al proyecto `fulfilling-vision` — a diferencia de la vez anterior, si hace falta gestionar el proyecto real por CLI ya funciona sin re-loguear.
+- **AIT-59 (2026-08-24, ver ADR-004 más abajo):** el "Build Command" de Railway ejecuta
+  ahora `npx convex deploy` en cada build, apuntando a `stoic-impala-857`, en vez de
+  servir lo último que una terminal empujara a mano contra el deployment compartido de
+  desarrollo/test.
 
 **Estado:** 🟢 Cerrada.
 
@@ -178,6 +182,81 @@ Las cuentas semilla `marta@supercrm.es`/`carlos@supercrm.es` (Password) siguen e
 **Alternativa descartada (para la limitación de arriba):** interceptar la ruta HTTP `/api/auth/callback/google` a mano para añadir un `?error=` explícito. Exige reimplementar infraestructura interna de `@convex-dev/auth` (PKCE, state, verificación de firma) no pensada para sobrescribirse — desproporcionado para una mejora de UX de un mensaje de error.
 
 **Estado:** 🟢 Cerrada. Pendiente de verificación end-to-end real del camino Google (redirect a Google de verdad, no solo construcción de la URL de autorización) hasta que `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` estén dados de alta en el deployment de Convex — ver `docs/03-setup.md` §6bis. El camino Password no necesita esta verificación: no se ha tocado.
+
+### ADR-004 · Separar Convex de desarrollo/test del de producción — 2026-08-24 (AIT-59)
+
+**Contexto:** Railway (producción real) y el `npx convex dev` que usan las 3 terminales
+en local apuntaban **al mismo deployment de Convex** (`third-goldfinch-805`) — sin datos
+reales de negocio hoy, pero con la suite E2E de Playwright ya escribiendo datos de
+prueba directamente ahí, y sin ningún riesgo aceptable a medio plazo. Investigando el
+gap se encontró además que Convex ya había provisionado automáticamente, junto al de
+dev, un deployment de producción sin usar (`stoic-impala-857`) — no hacía falta crear
+ninguno nuevo.
+
+**Decisión:** `third-goldfinch-805` se queda como el deployment de desarrollo/test
+compartido de las 3 terminales, sin ningún cambio (mismo turno/cerrojo de `CLAUDE.md`,
+ver también §3bis del README de la fábrica sobre la migración, pendiente y distinta, a
+deployments de dev aislados por terminal). `stoic-impala-857` pasa a ser el deployment
+de producción real — configurado con `npx convex deploy` (nunca `convex dev`), patrón
+oficial de Convex para integrarse con Railway/Vercel, y con **todas** las variables de
+entorno que las funciones ya mergeadas en `main` necesitan para no fallar en producción
+(Convex Auth, cuentas semilla, y también las 3 claves VAPID de AIT-57 — `convex/crons.ts`
+dispara el envío de avisos push cada hora, así que faltarlas habría sido una regresión
+silenciosa de una funcionalidad ya en el MVP en cuanto la Tanda 2 conectara Railway).
+
+**Entrega en dos tandas** (AIT-59, ver Linear para el detalle): Tanda 1 — configurar
+`stoic-impala-857` (schema, funciones, claves de auth, cuentas semilla, claves VAPID) y
+esta misma documentación. Tanda 2 — generar el `CONVEX_DEPLOY_KEY` persistente para CI
+(ver nota más abajo — el plan original lo situaba en la Tanda 1; se trasladó durante la
+implementación) y conectar Railway de verdad (cambiar su "Build Command" para que
+ejecute `npx convex deploy` en cada build, en vez de servir lo último que una terminal
+empujara a mano contra el deployment compartido).
+
+**Estado a fecha 2026-08-24: cutover completo.** `stoic-impala-857` tiene el schema, las
+funciones, Convex Auth y las claves VAPID de `main` configurados, con las 2 cuentas de
+prueba sembradas, y Railway construye contra ese deployment en cada push a `main` desde
+que la Tanda 2 se ejecutó — verificado en vivo: `railway logs --build` confirmó
+`SUCCESS` con el SHA correcto, `/login` responde 200, las 2 cuentas de prueba inician
+sesión correctamente (Marta → `/panel`, Carlos → `/hoy`), las rutas protegidas
+redirigen sin sesión, y `third-goldfinch-805` (dev/test) sigue respondiendo con
+normalidad para las 3 terminales.
+
+**Consecuencias:**
+- Ningún fichero de configuración nuevo en el repo — Railway Config as Code
+  (`railway.toml`) está deprecado para servicios que, como este, nunca lo adoptaron; el
+  "Build Command" se fija desde su dashboard (Settings → Build), sin versionar. Ver
+  `docs/03-setup.md` §8 para el comando exacto y el detalle operativo.
+- `NEXT_PUBLIC_CONVEX_URL` la inyecta `npx convex deploy --cmd --cmd-url-env-var-name`
+  en cada build de Railway. **`NEXT_PUBLIC_CONVEX_SITE_URL` no se inyecta igual** — sigue
+  siendo una variable estática fijada a mano en Railway (verificado contra la
+  documentación oficial de Convex: `--cmd-url-env-var-name` solo fija la variable
+  nombrada explícitamente, ninguna otra) — no asumir que las dos funcionan igual.
+- **Hallazgo de la implementación: el "Build Command" de Railway no respeta comillas
+  simples.** El patrón oficial de Convex (`--cmd 'npm run build'`) falló en la práctica
+  — Railway no agrupa el valor entre comillas simples al construir el comando, así que
+  `--cmd` solo recibía "npm" (sin "run build"), y el build fallaba. Con comillas dobles
+  (`--cmd "npm run build"`) funciona correctamente — ver el comando completo en
+  `docs/03-setup.md` §8.
+- `CONVEX_DEPLOY_KEY` se generó fresco al empezar la Tanda 2 (no en la Tanda 1, pese a
+  que el plan original lo situaba ahí — `npx convex deploy` desde un worktree con
+  `.env.local` de desarrollo exige una confirmación interactiva imposible de saltarse,
+  ver `docs/03-setup.md` §8) y ya está puesta en Railway.
+- **Hallazgo de la implementación: las 2 cuentas de prueba sembradas en la Tanda 1
+  tenían un hash de contraseña que no verificaba en el login**, pese a que el valor en
+  claro de `SEED_OWNER_PASSWORD`/`SEED_SALES_PASSWORD` coincidía (confirmado por hash)
+  entre dev, prod y Railway — causa raíz no determinada con certeza. `curl`/HTTP no lo
+  detecta (el login solo falla al comprobar la contraseña, no al cargar la página); se
+  diagnosticó reproduciendo el hashing de Convex Auth (`Scrypt` de `lucia`) localmente
+  contra el hash guardado, y se resolvió borrando las 2 cuentas (`authAccounts` +
+  `users`) y sus reservas de bootstrap (`appConfig`, claves `bootstrap_claim:<email>`) y
+  volviendo a ejecutar `bootstrapInitialAccounts` — que NO actualiza cuentas ya
+  existentes (comprobado en `convex/users.ts`), así que un simple re-lanzamiento no
+  basta si esto se repite. Si vuelve a pasar, comprobar primero con `npx convex data
+  authAccounts --prod` que solo hay una fila por email (no duplicados) antes de asumir
+  que el problema es el mismo.
+
+**Estado:** 🟢 Cerrada. Tanda 1 y Tanda 2 completas — separación dev/test vs producción
+en vigor.
 
 ## 7. Decisiones abiertas
 

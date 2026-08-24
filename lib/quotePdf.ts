@@ -3,13 +3,11 @@
 // (convex/quotes.ts) — nunca se recalculan aquí subtotal/impuestos/total,
 // solo se formatean para imprimirlos.
 //
-// "Imagen del negocio" (criterio de aceptación): el catálogo de tiendas
-// (convex/schema.ts:stores) todavía no tiene un campo de logo — solo
-// `name`, no hay infraestructura de subida de imágenes en el proyecto. En
-// vez de añadir esa función (fuera del alcance de esta tarea, es un cambio
-// de modelo de datos aparte — issue de continuación AIT-61), la "imagen" es
-// un membrete de marca: el nombre de la tienda en el color primario del
-// design system, en vez de un logotipo.
+// "Imagen del negocio" (criterio de aceptación): si la tienda tiene un
+// logo subido (AIT-61, convex/schema.ts:stores.logoStorageId), se
+// incrusta en la cabecera; si no, se dibuja el membrete de marca de
+// siempre (el nombre de la tienda en el color primario del design
+// system).
 import jsPDF from "jspdf";
 import { formatCurrency, formatDate } from "./format";
 
@@ -26,11 +24,19 @@ const QUOTE_STATUS_LABEL: Record<"sent" | "accepted" | "rejected", string> = {
 
 export type QuotePdfData = {
   storeName: string;
+  // AIT-61: URL del logo de la tienda (convex/stores.ts::getStoreInfo /
+  // convex/opportunities.ts::getSummary), o null si no hay logo subido —
+  // en ese caso se dibuja el membrete de texto de siempre.
+  logoUrl: string | null;
   customerName: string;
   customerPhone: string;
   ownerName: string | null;
   status: "sent" | "accepted" | "rejected";
   sentAt: number;
+  // AIT-54: cada versión de un presupuesto puede generar su propio PDF, no
+  // solo la vigente — el número de versión se imprime en la cabecera para
+  // que no haya ambigüedad sobre cuál de varios PDF descargados es cuál.
+  version: number;
   lines: { productName: string; quantity: number; unitPrice: number }[];
   taxRate: number;
   subtotal: number;
@@ -38,7 +44,18 @@ export type QuotePdfData = {
   total: number;
 };
 
-export function buildQuotePdf(data: QuotePdfData): jsPDF {
+// AIT-61: convierte el blob descargado del logo a data URL — formato que
+// tanto `doc.getImageProperties` como `doc.addImage` aceptan directamente.
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error("No se pudo leer el logo."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function buildQuotePdf(data: QuotePdfData): Promise<jsPDF> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const marginX = 20;
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -70,33 +87,69 @@ export function buildQuotePdf(data: QuotePdfData): jsPDF {
     return kept;
   }
 
-  // --- Cabecera: nombre de tienda (membrete) + etiqueta "Presupuesto" ---
+  // --- Cabecera: logo (si hay) o nombre de tienda (membrete) + etiqueta "Presupuesto" ---
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  const presupuestoLabel = "Presupuesto";
+  const presupuestoLabel = `Presupuesto · v${data.version}`;
   const presupuestoWidth = doc.getTextWidth(presupuestoLabel);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  // Una sola línea: es un membrete de marca, no un párrafo — un nombre de
-  // tienda desmesurado se trunca en vez de partirse en varias líneas, para
-  // no tener que recalcular la altura de todo lo que va debajo por culpa
-  // de la cabecera.
-  const storeNameMaxWidth = pageWidth - marginX * 2 - presupuestoWidth - 10;
-  const [storeNameLine] = wrapText(data.storeName, storeNameMaxWidth, 1);
-  doc.setTextColor(...COLOR_PRIMARY);
-  doc.text(storeNameLine, marginX, y);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
   doc.setTextColor(...COLOR_TEXT_MUTED);
   doc.text(presupuestoLabel, pageWidth - marginX, y, { align: "right" });
 
-  y += 6;
-  doc.setDrawColor(...COLOR_BORDER);
-  doc.line(marginX, y, pageWidth - marginX, y);
+  // Mismo hueco tanto para el membrete de texto como para el logo: nunca
+  // invaden la etiqueta "Presupuesto · vN" de la derecha.
+  const storeNameMaxWidth = pageWidth - marginX * 2 - presupuestoWidth - 10;
 
-  y += 10;
+  // AIT-61: caja de logo con coordenadas fijas. `logoTop`/`logoMaxHeight`
+  // están elegidos para que, si no hay logo (o falla su carga), el
+  // camino de fallback deje la línea separadora exactamente donde
+  // estaba antes de esta tarea (y = 24 texto, y += 6 → 30) — cero
+  // regresión visual para las tiendas sin logo. Si hay logo, la línea se
+  // dibuja siempre `logoLineGap` (4mm, muy por encima del grosor de
+  // trazo por defecto de jsPDF) por debajo del borde inferior REAL del
+  // logo ya dibujado — nunca coincide con él, así que nunca lo puede
+  // atravesar, sea cual sea la altura real que acabe teniendo el logo
+  // dentro de ese límite.
+  const logoTop = 16;
+  const logoMaxHeight = 14;
+  const logoMaxWidth = storeNameMaxWidth;
+  const logoLineGap = 4;
+
+  let lineY = y + 6; // 24 + 6 = 30, camino sin logo (sin cambios respecto al PDF anterior a AIT-61)
+  let logoDrawn = false;
+  if (data.logoUrl !== null) {
+    try {
+      const response = await fetch(data.logoUrl);
+      if (!response.ok) throw new Error("No se pudo descargar el logo.");
+      const dataUrl = await blobToDataUrl(await response.blob());
+      const { width: naturalWidth, height: naturalHeight } = doc.getImageProperties(dataUrl);
+      const scale = Math.min(logoMaxWidth / naturalWidth, logoMaxHeight / naturalHeight);
+      const drawWidth = naturalWidth * scale;
+      const drawHeight = naturalHeight * scale;
+      doc.addImage(dataUrl, marginX, logoTop, drawWidth, drawHeight);
+      lineY = logoTop + drawHeight + logoLineGap;
+      logoDrawn = true;
+    } catch {
+      // Cae al membrete de texto de siempre — no bloquea la descarga del
+      // PDF por un logo que no carga o no se puede incrustar.
+    }
+  }
+
+  if (!logoDrawn) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    // Una sola línea: es un membrete de marca, no un párrafo — un nombre
+    // de tienda desmesurado se trunca en vez de partirse en varias
+    // líneas, para no tener que recalcular la altura de todo lo que va
+    // debajo por culpa de la cabecera.
+    const [storeNameLine] = wrapText(data.storeName, storeNameMaxWidth, 1);
+    doc.setTextColor(...COLOR_PRIMARY);
+    doc.text(storeNameLine, marginX, y);
+  }
+
+  doc.setDrawColor(...COLOR_BORDER);
+  doc.line(marginX, lineY, pageWidth - marginX, lineY);
+
+  y = lineY + 10;
   const headerBlockTop = y;
   // Columnas de igual ancho con un hueco en medio: cada texto libre se
   // envuelve/trunca a `headerColWidth`, así que ninguna de las dos
@@ -268,7 +321,7 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-export function downloadQuotePdf(data: QuotePdfData): void {
-  const doc = buildQuotePdf(data);
-  doc.save(`presupuesto-${slugify(data.customerName)}.pdf`);
+export async function downloadQuotePdf(data: QuotePdfData): Promise<void> {
+  const doc = await buildQuotePdf(data);
+  doc.save(`presupuesto-${slugify(data.customerName)}-v${data.version}.pdf`);
 }
