@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
 import { LogOut, X } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Avatar } from "@/components/ui/Avatar";
+import { useSignOutAndUnlinkPush } from "@/components/push/useSignOutAndUnlinkPush";
 import { useNav } from "./NavContext";
 import { OWNER_NAV_ITEMS, SALES_NAV_ITEMS, ROLE_LABEL } from "./navConfig";
 
@@ -28,7 +28,7 @@ const FOCUSABLE_SELECTOR =
 export function AppNav() {
   const { open, close } = useNav();
   const pathname = usePathname();
-  const { signOut } = useAuthActions();
+  const signOut = useSignOutAndUnlinkPush();
   const role = useQuery(api.users.getCurrentUserRole);
   // getCurrentUserInfo (a diferencia de getCurrentUserRole) usa
   // requireUser y lanza si no hay sesión — al estar este componente
@@ -179,7 +179,9 @@ export function AppNav() {
             del panel, separado del resto (border-t), para no tener que
             entrar a Ajustes solo para salir. Sustituye AL botón que ya
             existía SOLO en Ajustes — ese se queda también (app/ajustes/
-            page.tsx), mismo signOut() de @convex-dev/auth/react. */}
+            page.tsx), mismo useSignOutAndUnlinkPush (AIT-57: desvincula la
+            suscripción push del dispositivo antes de cerrar sesión de
+            verdad). */}
         <div className="mt-auto flex-none border-t border-border p-3">
           <button
             type="button"
