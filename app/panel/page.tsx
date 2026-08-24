@@ -32,8 +32,9 @@ export default function PanelPage() {
   // sesión (signIn en curso) y fallar contra el token todavía-no-reemplazado
   // del usuario anterior. AIT-31: storeManager ve su tienda igual que
   // owner ve la suya — ambos pasan el guard, cada uno acotado a la suya
-  // por requireStoreAccess (owner no pide ninguna tienda ajena aquí
-  // todavía: eso es la comparativa entre tiendas, pendiente aparte).
+  // por requireStoreAccess. La comparativa entre tiendas (AIT-56, más
+  // abajo) es aparte: usa su propia query (getStoreComparison), no este
+  // guard ni requireStoreAccess.
   const canQuery = role === "owner" || role === "storeManager";
   const store = useQuery(api.stores.getStoreInfo, canQuery ? {} : "skip");
   const pipelineValue = useQuery(
@@ -56,6 +57,13 @@ export default function PanelPage() {
   const pendingBilling = useQuery(
     api.dashboard.listPendingBilling,
     canQuery ? {} : "skip",
+  );
+  // AIT-56: comparativa entre tiendas — solo `owner` (ve todas las
+  // tiendas del negocio, docs/02-modelo-de-datos.md §4b); `storeManager`
+  // no la pide, "skip" para ella igual que para "sales" más abajo.
+  const storeComparison = useQuery(
+    api.dashboard.getStoreComparison,
+    role === "owner" ? {} : "skip",
   );
 
   useEffect(() => {
@@ -80,7 +88,8 @@ export default function PanelPage() {
     atRiskCount === undefined ||
     funnel === undefined ||
     atRiskList === undefined ||
-    pendingBilling === undefined;
+    pendingBilling === undefined ||
+    (role === "owner" && storeComparison === undefined);
 
   if (loading) {
     return (
@@ -167,6 +176,61 @@ export default function PanelPage() {
               </div>
             </div>
           </div>
+
+          {/* COMPARATIVA ENTRE TIENDAS — AIT-56: solo owner, y solo si hay
+            más de una tienda (con una sola, "comparativa" no dice nada —
+            evita una sección vacía de contenido para el caso, hoy
+            mayoritario, de un negocio de una sola tienda). */}
+          {role === "owner" &&
+            storeComparison !== undefined &&
+            storeComparison.length > 1 && (
+              <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-[var(--shadow-e1)]">
+                <div className="flex items-center gap-2 px-5 pb-3.5 pt-[18px]">
+                  <h2 className="m-0 text-base font-bold">
+                    Comparativa entre tiendas
+                  </h2>
+                  <span className="rounded-pill bg-neutral-100 px-2.5 py-0.5 text-[11px] font-bold text-text-secondary">
+                    {storeComparison.length}
+                  </span>
+                </div>
+
+                <div className="flex items-center px-5 pb-2 text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                  <span className="min-w-0 flex-[1.6]">Tienda</span>
+                  <span className="flex-1 text-right">Pipeline</span>
+                  <span className="flex-1 text-right">Forecast</span>
+                  <span className="flex-[0.9] text-right">En riesgo</span>
+                </div>
+                {storeComparison.map((item) => (
+                  <div
+                    key={item.storeId}
+                    className="flex items-center border-t border-border px-5 py-3"
+                  >
+                    <span className="flex min-w-0 flex-[1.6] items-center gap-2.5">
+                      <Store size={14} className="flex-none text-neutral-400" />
+                      <span className="min-w-0 truncate text-sm font-semibold">
+                        {item.storeName}
+                      </span>
+                    </span>
+                    <span className="flex-1 text-right font-mono text-[13.5px] font-semibold">
+                      {formatCurrency(item.pipelineValue)}
+                    </span>
+                    <span className="flex-1 text-right font-mono text-[13.5px] font-semibold">
+                      {formatCurrency(item.forecastTotal)}
+                    </span>
+                    <span className="flex-[0.9] text-right">
+                      {item.atRiskCount > 0 ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-pill bg-error-subtle px-2.5 py-0.5 text-xs font-semibold text-error">
+                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                          {item.atRiskCount}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-text-muted">0</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </section>
+            )}
 
           {/* EMBUDO */}
           <section className="rounded-lg border border-border bg-surface p-5 shadow-[var(--shadow-e1)]">

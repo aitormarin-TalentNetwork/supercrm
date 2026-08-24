@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 import { query } from "./_generated/server";
-import { requireStoreAccess } from "./model/access";
+import { requireOwner, requireStoreAccess } from "./model/access";
 import { startOfBusinessDay } from "../lib/businessTime";
 
 // AIT-31 (multi-tienda): argumento común a todas las queries de este
@@ -461,5 +461,56 @@ export const listPendingBilling = query({
     return enriched
       .filter((item) => item !== null)
       .sort((a, b) => a.closedAt - b.closedAt);
+  },
+});
+
+// AIT-56: comparativa entre tiendas para el Panel — solo `owner`
+// (docs/02-modelo-de-datos.md §4b: "ve todas las tiendas del negocio";
+// `storeManager` está acotado a la suya, no tiene "comparativa" que ver).
+// requireOwner en vez de requireStoreAccess a propósito: esta query no
+// acota a una tienda, las recorre TODAS explícitamente.
+// Mismos 3 KPIs que el resto del Panel (pipeline/forecast/riesgo), uno por
+// tienda, para que Marta compare de un vistazo — reutiliza
+// getOpenOpportunitiesForStore y RISK_THRESHOLD_MS ya definidos en este
+// archivo en vez de duplicar el cálculo. forecastTotal aquí es la suma
+// total (no desglosada por periodo, a diferencia de getForecast): para
+// comparar tiendas basta el total, el desglose por mes ya lo tiene su
+// propia sección para la tienda que se está viendo.
+export const getStoreComparison = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireOwner(ctx);
+    const stores = await ctx.db.query("stores").collect();
+    const now = Date.now();
+
+    const comparison = await Promise.all(
+      stores.map(async (store) => {
+        const open = await getOpenOpportunitiesForStore(ctx, store._id);
+        const pipelineValue = open.reduce(
+          (sum, o) => sum + (o.estimatedAmount ?? 0),
+          0,
+        );
+        const forecastTotal = open.reduce(
+          (sum, o) =>
+            o.expectedCloseDate === undefined
+              ? sum
+              : sum + (o.estimatedAmount ?? 0),
+          0,
+        );
+        const atRiskCount = open.filter(
+          (o) => now - o.lastActivityAt > RISK_THRESHOLD_MS,
+        ).length;
+        return {
+          storeId: store._id,
+          storeName: store.name,
+          openCount: open.length,
+          pipelineValue,
+          forecastTotal,
+          atRiskCount,
+        };
+      }),
+    );
+
+    return comparison.sort((a, b) => b.pipelineValue - a.pipelineValue);
   },
 });
