@@ -15,7 +15,7 @@ El PRD las nombra así:
 | Usuario | `users` | Quién usa el sistema y qué puede ver (`owner` = Marta, `sales` = Carlos). |
 | Cliente | `customers` | La persona o empresa a la que vendemos. |
 | Oportunidad | `opportunities` | Una posible venta y su recorrido por las etapas. **Es el centro de todo.** |
-| Presupuesto | `quotes` | La oferta económica de una oportunidad. En el MVP era importe suelto + estado, sin PDF; AIT-29 (Post-MVP) lo evolucionó a líneas de producto con cálculo en servidor — ver §2. |
+| Presupuesto | `quotes` | La oferta económica de una oportunidad. En el MVP era importe suelto + estado, sin PDF; AIT-29 (Post-MVP) lo evolucionó a líneas de producto con cálculo en servidor, AIT-53 añadió el PDF y AIT-54 varias versiones históricas por oportunidad — ver §2. |
 | Interacción | `interactions` | Cada contacto que se tiene con el cliente (llamada, WhatsApp, email, visita). |
 | Próximo paso | `nextSteps` | La siguiente acción a hacer y cuándo. **Es la razón de ser del producto.** |
 
@@ -101,18 +101,21 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 > El PRD §7 lo fija: *"Columnas por etapa: Contacto → Presupuesto → Negociación/Cierre (con resultado Ganada/Perdida)"*. Y `Design/pantallas/Pipeline.dc.html` implementa exactamente eso (`const OPEN = ['contactado','propuesta','negociacion']`, más Ganada y Perdida como resultado). **Diseño y PRD ya coinciden: 3 etapas + status.** Añadir una etapa más sería alcance que el PRD no pide.
 
 ### `quotes`
-**Post-MVP (AIT-29):** ya no es un importe suelto — es una colección de líneas, con subtotal/impuestos/total calculados en el servidor.
+**Post-MVP:** ya no es un importe suelto — es una colección de líneas, con subtotal/impuestos/total calculados en el servidor (AIT-29), generación de PDF en cliente (AIT-53) y varias versiones históricas por oportunidad (AIT-54).
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `opportunityId` | id(`opportunities`) | Como mucho un presupuesto por oportunidad (upsert) — igual que en el MVP. Varias versiones por oportunidad queda para una ronda 2 de AIT-29 |
+| `opportunityId` | id(`opportunities`) | **Varias filas por oportunidad** (0..n) — una por versión. Ya no hay upsert: cada guardado inserta una fila nueva, ninguna versión se pierde ni se modifica después de creada |
+| `version` | number, opcional | 1, 2, 3… por oportunidad. Ausente = versión 1 implícita (todo `quotes` creado antes de AIT-54, cuando como mucho podía existir una fila por oportunidad) |
 | `lines` | array de `{productId, productName, quantity, unitPrice}` | `productName`/`unitPrice` son una FOTO del catálogo al añadir la línea, no una referencia viva — si el precio de un producto cambia después en `products`, los presupuestos ya creados no se mueven solos |
 | `taxRate` | number | Ej. `0.21` para 21% de IVA |
 | `subtotal` | number | `Σ (quantity × unitPrice)` de las líneas — calculado en servidor, nunca confiado del cliente |
 | `tax` | number | `subtotal × taxRate` |
 | `total` | number | `subtotal + tax` |
-| `status` | `"sent"` \| `"accepted"` \| `"rejected"` | Los 3 del PRD §8 (heredados del MVP). La paleta del design system trae además `borrador` y `vencido`: son tokens sobrantes, no estados usados |
-| `sentAt` | number | |
+| `status` | `"sent"` \| `"accepted"` \| `"rejected"` | Los 3 del PRD §8 (heredados del MVP). Es una propiedad de CADA versión, no de la oportunidad — dos versiones pueden tener estados distintos. La paleta del design system trae además `borrador` y `vencido`: son tokens sobrantes, no estados usados |
+| `sentAt` | number | Cuándo se creó ESA versión concreta — cada fila tiene la suya, no se toca después de insertarse |
+
+**La versión vigente** es la de `version` más alto para esa oportunidad (desempate por `sentAt` más reciente, aunque en la práctica nunca hace falta desempatar: `version` nunca se repite dentro de la misma oportunidad) — la resuelve `convex/quotes.ts:listForOpportunity`, no hay ningún campo `isCurrent` explícito.
 
 ### `products` (Post-MVP, AIT-29 — no es una de las 7 entidades del MVP)
 | Campo | Tipo | Notas |
@@ -172,6 +175,15 @@ Idempotencia de `opportunities.createQuick`: un reintento de red con la misma `c
 | `interactionId` | id(`interactions`) | La interacción que produjo esa petición |
 
 Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunityRequests`. Un reintento de red con la misma `clientRequestId` no debe duplicar ni la entrada del historial ni el próximo paso que la interacción regenera.
+
+### `quoteRequests` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `clientRequestId` | string | Generada por el cliente, una por apertura del diálogo de Presupuesto |
+| `userId` | id(`users`) | Quién la generó |
+| `quoteId` | id(`quotes`) | La versión de presupuesto que produjo esa petición |
+
+Idempotencia de `quotes.createVersion` (AIT-54): mismo mecanismo que `opportunityRequests`/`interactionRequests`. Sin esto, un reintento de red creaba una versión duplicada con datos idénticos, porque `createVersion` siempre inserta (nunca hace upsert).
 
 ### `pushSubscriptions` (Post-MVP, AIT-57 — no es una de las 7 entidades del PRD)
 | Campo | Tipo | Notas |
@@ -270,6 +282,7 @@ export default defineSchema({
 
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
+    version: v.optional(v.number()),
     lines: v.array(
       v.object({
         productId: v.id("products"),
@@ -336,6 +349,12 @@ export default defineSchema({
     clientRequestId: v.string(),
     userId: v.id("users"),
     interactionId: v.id("interactions"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  quoteRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    quoteId: v.id("quotes"),
   }).index("by_client_request_id", ["clientRequestId"]),
 });
 ```

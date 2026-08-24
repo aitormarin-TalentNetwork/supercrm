@@ -137,11 +137,19 @@ export default defineSchema({
   // plano de AIT-21 por una colección de líneas. `productName`/`unitPrice`
   // son una FOTO del catálogo en el momento de añadir la línea, no una
   // referencia viva — si el precio de un producto cambia en el catálogo
-  // después, los presupuestos ya creados no deben moverse solos. Sigue
-  // habiendo como mucho UN presupuesto por oportunidad (upsert, igual que
-  // AIT-21) — varias versiones queda para una ronda 2 aparte, junto al PDF.
+  // después, los presupuestos ya creados no deben moverse solos. AIT-54
+  // (ronda 2) sustituyó el upsert de una sola fila por varias versiones
+  // por oportunidad — ver el campo `version` justo debajo.
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
+    // Varias versiones por oportunidad (AIT-54): ausente = versión 1
+    // implícita — todo `quotes` creado antes de AIT-54 (cuando como mucho
+    // podía existir una fila por oportunidad) no tiene este campo, mismo
+    // patrón que `opportunities.priority`/`billingStatus` para datos
+    // anteriores a que el campo existiera. No hace falta migración: un
+    // campo opcional nuevo no rompe la validación de los documentos ya
+    // guardados.
+    version: v.optional(v.number()),
     lines: v.array(
       v.object({
         productId: v.id("products"),
@@ -231,6 +239,18 @@ export default defineSchema({
     clientRequestId: v.string(),
     userId: v.id("users"),
     interactionId: v.id("interactions"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  // Idempotencia de quotes.createVersion (AIT-54), mismo mecanismo que
+  // opportunityRequests/interactionRequests: una clave por apertura del
+  // diálogo de presupuesto, reutilizada en un reintento del MISMO envío —
+  // sin esto, un reintento de red (Convex ya confirmó pero la respuesta no
+  // llegó) creaba una versión duplicada con datos idénticos, porque
+  // createVersion siempre inserta (ronda de auditoría 1, mayor #2).
+  quoteRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    quoteId: v.id("quotes"),
   }).index("by_client_request_id", ["clientRequestId"]),
 
   // AIT-30 (Post-MVP): recordatorio de recompra tras una venta ganada.

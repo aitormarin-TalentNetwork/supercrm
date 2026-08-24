@@ -31,6 +31,10 @@ export type QuotePdfData = {
   ownerName: string | null;
   status: "sent" | "accepted" | "rejected";
   sentAt: number;
+  // AIT-54: cada versión de un presupuesto puede generar su propio PDF, no
+  // solo la vigente — el número de versión se imprime en la cabecera para
+  // que no haya ambigüedad sobre cuál de varios PDF descargados es cuál.
+  version: number;
   lines: { productName: string; quantity: number; unitPrice: number }[];
   taxRate: number;
   subtotal: number;
@@ -73,7 +77,7 @@ export function buildQuotePdf(data: QuotePdfData): jsPDF {
   // --- Cabecera: nombre de tienda (membrete) + etiqueta "Presupuesto" ---
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  const presupuestoLabel = "Presupuesto";
+  const presupuestoLabel = `Presupuesto · v${data.version}`;
   const presupuestoWidth = doc.getTextWidth(presupuestoLabel);
 
   doc.setFont("helvetica", "bold");
@@ -270,5 +274,5 @@ function slugify(text: string): string {
 
 export function downloadQuotePdf(data: QuotePdfData): void {
   const doc = buildQuotePdf(data);
-  doc.save(`presupuesto-${slugify(data.customerName)}.pdf`);
+  doc.save(`presupuesto-${slugify(data.customerName)}-v${data.version}.pdf`);
 }
