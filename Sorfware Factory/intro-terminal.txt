@@ -90,6 +90,12 @@ una vez que el trabajo pasa auditoría.
   Nunca dejes más de un fichero activo a la vez para la misma tarea — el auditor debe
   poder encontrar el suyo sin ambigüedad, y el nombre debe decirle en qué ronda está.
 
+- **Antes de escalar, comprueba primero si esto es coordinación directa entre
+  terminales que puedes resolver tú misma** (como ya haces con el cerrojo de Convex:
+  coordínate por `SendMessage` con la terminal implicada en vez de escalar) — escala a
+  la coordinadora solo cuando de verdad haga falta una decisión que no es tuya, hay una
+  disputa genuina, o no puedes resolverlo hablando directamente con la otra terminal.
+
 - **Cualquier cosa operativa — necesitar una decisión que no puedes tomar tú misma
   (alcance ambiguo, credenciales que no tienes), estar parada/bloqueada esperando algo,
   o cualquier otro "necesito que alguien mire esto"** va **SIEMPRE a la coordinadora, y
