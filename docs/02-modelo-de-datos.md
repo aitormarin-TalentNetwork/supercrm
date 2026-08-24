@@ -73,6 +73,8 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `ownerId` | id(`users`) | Comercial asignado — **se asigna solo** según quién ha iniciado sesión |
 | `storeId` | id(`stores`) | Igual: automático |
 
+Índice `by_store` (AIT-58, Post-MVP): permite a `customers.list` (pantalla "Clientes") resolver "todos los clientes de mi tienda" para owner/storeManager sin escanear la tabla entera — mismo criterio que `by_store_status` en `opportunities` (AIT-33).
+
 ### `opportunities`
 | Campo | Tipo | Notas |
 |---|---|---|
@@ -227,7 +229,9 @@ export default defineSchema({
     source: v.string(),
     ownerId: v.id("users"),
     storeId: v.id("stores"),
-  }).index("by_owner", ["ownerId"]),
+  })
+    .index("by_owner", ["ownerId"])
+    .index("by_store", ["storeId"]),
 
   opportunities: defineTable({
     customerId: v.id("customers"),

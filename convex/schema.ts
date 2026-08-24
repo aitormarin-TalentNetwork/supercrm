@@ -53,7 +53,14 @@ export default defineSchema({
     source: v.string(),
     ownerId: v.id("users"),
     storeId: v.id("stores"),
-  }).index("by_owner", ["ownerId"]),
+  })
+    .index("by_owner", ["ownerId"])
+    // AIT-58: listado de clientes de la tienda (customers.list) — sin esto,
+    // resolver "todos los clientes de mi tienda" para owner/storeManager
+    // exigiría un scan completo de la tabla filtrado en memoria, igual que
+    // el problema ya corregido en opportunities (ver by_store_status más
+    // abajo, AIT-33 ronda 2).
+    .index("by_store", ["storeId"]),
 
   opportunities: defineTable({
     customerId: v.id("customers"),
