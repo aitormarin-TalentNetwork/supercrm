@@ -309,6 +309,7 @@ export default function OportunidadPage({
           opportunityId={opportunityId}
           isOpen={isOpen}
           storeName={summary.storeName}
+          logoUrl={summary.logoUrl}
           customerName={summary.customerName}
           customerPhone={summary.customerPhone}
           ownerName={summary.ownerName}
@@ -484,6 +485,7 @@ function QuoteSection({
   opportunityId,
   isOpen,
   storeName,
+  logoUrl,
   customerName,
   customerPhone,
   ownerName,
@@ -491,6 +493,7 @@ function QuoteSection({
   opportunityId: Id<"opportunities">;
   isOpen: boolean;
   storeName: string | null;
+  logoUrl: string | null;
   customerName: string;
   customerPhone: string;
   ownerName: string | null;
@@ -501,8 +504,13 @@ function QuoteSection({
   const current = versions ? versions[0] : versions; // undefined=cargando, null=sin presupuesto
   const history = versions ? versions.slice(1) : [];
   const [editorOpen, setEditorOpen] = useState(false);
+  // AIT-61: descargar el PDF pasó a ser async (hace falta un fetch del
+  // logo antes de incrustarlo) — estado de carga por número de versión,
+  // no un único booleano, porque hay un botón por versión (vigente +
+  // historial) y pulsar uno no debe bloquear visualmente los demás.
+  const [downloadingVersion, setDownloadingVersion] = useState<number | null>(null);
 
-  function handleDownloadPdf(version: {
+  async function handleDownloadPdf(version: {
     version: number;
     status: "sent" | "accepted" | "rejected";
     sentAt: number;
@@ -512,20 +520,26 @@ function QuoteSection({
     tax: number;
     total: number;
   }) {
-    downloadQuotePdf({
-      storeName: storeName ?? "SuperCRM",
-      customerName,
-      customerPhone,
-      ownerName,
-      status: version.status,
-      sentAt: version.sentAt,
-      version: version.version,
-      lines: version.lines,
-      taxRate: version.taxRate,
-      subtotal: version.subtotal,
-      tax: version.tax,
-      total: version.total,
-    });
+    setDownloadingVersion(version.version);
+    try {
+      await downloadQuotePdf({
+        storeName: storeName ?? "SuperCRM",
+        logoUrl,
+        customerName,
+        customerPhone,
+        ownerName,
+        status: version.status,
+        sentAt: version.sentAt,
+        version: version.version,
+        lines: version.lines,
+        taxRate: version.taxRate,
+        subtotal: version.subtotal,
+        tax: version.tax,
+        total: version.total,
+      });
+    } finally {
+      setDownloadingVersion(null);
+    }
   }
 
   return (
@@ -608,9 +622,10 @@ function QuoteSection({
               variant="ghost"
               size="sm"
               leftIcon={<Download size={14} />}
+              disabled={downloadingVersion === current.version}
               onClick={() => handleDownloadPdf(current)}
             >
-              Descargar PDF
+              {downloadingVersion === current.version ? "Generando…" : "Descargar PDF"}
             </Button>
           </div>
 
@@ -639,9 +654,10 @@ function QuoteSection({
                         variant="ghost"
                         size="sm"
                         leftIcon={<Download size={13} />}
+                        disabled={downloadingVersion === version.version}
                         onClick={() => handleDownloadPdf(version)}
                       >
-                        PDF
+                        {downloadingVersion === version.version ? "Generando…" : "PDF"}
                       </Button>
                     </div>
                   </div>

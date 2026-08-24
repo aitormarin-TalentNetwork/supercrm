@@ -39,6 +39,7 @@ stores (1 en el MVP)
 | Campo | Tipo | Notas |
 |---|---|---|
 | `name` | string | |
+| `logoStorageId` | id(`_storage`)? | AIT-61 (Post-MVP): logo real para la cabecera del PDF del presupuesto — ausente = sin logo, cae al membrete tipográfico (nombre de la tienda). Se sube desde `/ajustes` (owner-only): `stores.generateLogoUploadUrl` (mutation) da la URL de subida, `storesLogo.setLogo` (action — necesita `ctx.storage.get()` para decodificar el archivo de verdad con `pngjs`/`jpeg-js`, solo disponible en actions) valida el contenido y lo asigna, `stores.removeLogo` (mutation) lo quita. `stores.getStoreInfo`/`opportunities.getSummary` resuelven la URL pública (`ctx.storage.getUrl`) para el frontend. |
 
 ### `users`
 | Campo | Tipo | Notas |
@@ -240,6 +241,7 @@ export default defineSchema({
 
   stores: defineTable({
     name: v.string(),
+    logoStorageId: v.optional(v.id("_storage")),
   }),
 
   appConfig: defineTable({

@@ -37,6 +37,11 @@ export default defineSchema({
 
   stores: defineTable({
     name: v.string(),
+    // AIT-61 (Post-MVP): logo real para el membrete del PDF de
+    // presupuesto (convex/storesLogo.ts::setLogo lo valida y asigna) —
+    // ausente = sin logo, el PDF cae al membrete tipográfico de siempre
+    // (lib/quotePdf.ts).
+    logoStorageId: v.optional(v.id("_storage")),
   }),
 
   // Invariante explícito de "la tienda por defecto": un documento con
