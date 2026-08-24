@@ -95,6 +95,12 @@ una vez que el trabajo pasa auditoría.
   coordínate por `SendMessage` con la terminal implicada en vez de escalar) — escala a
   la coordinadora solo cuando de verdad haga falta una decisión que no es tuya, hay una
   disputa genuina, o no puedes resolverlo hablando directamente con la otra terminal.
+  Si además es algo que de verdad necesita que Aitor actúe él mismo, no solo que se
+  entere la coordinadora — una decisión de alcance, credenciales que solo él tiene, un
+  cutover real como el de Railway — dispara tú misma el aviso por voz antes de terminar
+  tu turno: `touch /tmp/claude-crm-notify-$(basename "$PWD")`. Es condicional, no
+  automático: solo cuando de verdad haga falta que actúe, nunca para anunciar que
+  terminaste algo sin más — si dudas, no lo toques.
 
 - **Cualquier cosa operativa — necesitar una decisión que no puedes tomar tú misma
   (alcance ambiguo, credenciales que no tienes), estar parada/bloqueada esperando algo,

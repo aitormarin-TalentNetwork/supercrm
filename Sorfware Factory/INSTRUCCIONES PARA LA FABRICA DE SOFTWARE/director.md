@@ -206,6 +206,14 @@ activo, o a quien dirige el proyecto si no) cuando:
 - Algo de infraestructura falla de verdad.
 - Cualquier otra cosa que la revisión final del paso 4 deje sin cuadrar.
 
+En cualquiera de los casos anteriores, antes de terminar tu turno:
+`touch /tmp/claude-crm-notify-$(basename "$PWD")` — no lo dejes solo como un paso
+mental aparte, dispáralo en el momento mismo en que reconoces el disparador de la lista
+de arriba (añadido 2026-08-24, tras un incidente real: T3 se quedó esperando una
+decisión de Aitor sin disparar el aviso, porque el mecanismo solo estaba documentado
+aquí y en README.md, nunca en `intro-terminal.txt` — un Desarrollador nunca lo tuvo en
+su propio contexto).
+
 Fuera de eso, sigues adelante sin esperar confirmación en cada paso — pero reportas un
 resumen de lo que has hecho después, por transparencia, no por permiso. P. ej., decidir
 cuánto margen dar a una terminal antes de intervenir, o cómo investigar un bloqueo
