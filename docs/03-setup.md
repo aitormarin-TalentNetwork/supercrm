@@ -221,19 +221,37 @@ compartido de las 3 terminales (nada cambia ahí). Producción usa uno propio,
 
 **Cómo se despliega a producción:** nunca `npx convex dev` (eso es solo desarrollo).
 Railway ejecuta `npx convex deploy` en su propio build, cada vez que hay un push a
-`main` — no hace falta ningún paso manual una vez la Tanda 2 de AIT-59 esté activa
-(ver el estado real en el ADR-004 o en `checklist-produccion-real.md`, en `Sorfware
-Factory/`). Si hace falta desplegar a `stoic-impala-857` a mano (por ejemplo, para
-verificarlo antes de conectar Railway), `npx convex deploy` resuelve el destino solo al
-deployment de producción por defecto del proyecto — **no admite el flag `--prod`** (a
-diferencia de `env`/`run`/`@convex-dev/auth`, que sí lo admiten); comprueba el nombre del
-deployment que el propio comando imprime en su cabecera antes de aceptar el push.
+`main` — no hace falta ningún paso manual (Tanda 2 de AIT-59 ya activa, ver ADR-004 y
+`checklist-produccion-real.md`, en `Sorfware Factory/`). El "Build Command" real,
+fijado en el dashboard de Railway (Settings → Build del servicio `supercrm` — no
+versionable, ver ADR-004):
+
+```
+npx convex deploy --cmd "npm run build" --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL
+```
+
+**⚠️ Comillas dobles, no simples — hallazgo real de la implementación.** El patrón
+oficial de los docs de Convex usa comillas simples (`--cmd 'npm run build'`), pero el
+campo "Build Command" del dashboard de Railway NO respeta el agrupamiento de comillas
+simples al construir el comando — el build falló en la práctica (`npx convex deploy`
+solo recibió "npm" como valor de `--cmd`, sin "run build", y `npm` sin subcomando
+falla). Con comillas dobles, el mismo comando funciona correctamente. Si algún día hay
+que tocar este campo de nuevo, usar comillas dobles, y verificar el resultado con
+`railway logs --build <deployment-id>` antes de dar el cambio por bueno — no basta con
+que el build salga en verde en el dashboard.
+
+Si hace falta desplegar a `stoic-impala-857` a mano (por ejemplo, para verificarlo
+antes de un cambio), `npx convex deploy` resuelve el destino solo al deployment de
+producción por defecto del proyecto — **no admite el flag `--prod`** (a diferencia de
+`env`/`run`/`@convex-dev/auth`, que sí lo admiten); comprueba el nombre del deployment
+que el propio comando imprime en su cabecera antes de aceptar el push.
 
 **`CONVEX_DEPLOY_KEY`:** el equivalente a una contraseña de servicio para que Railway (o
-cualquier CI) pueda desplegar sin sesión interactiva. **La clave persistente que usará
-Railway de verdad se genera al empezar la Tanda 2** (justo antes de pegarla en Railway,
-no antes) — no la entrega la Tanda 1, aunque el plan original la situaba ahí; ver ADR-004
-§Consecuencias para el porqué. Se genera por CLI, no por dashboard:
+cualquier CI) pueda desplegar sin sesión interactiva. Ya está puesta en Railway (variable
+del servicio `supercrm`, generada al ejecutar la Tanda 2 de AIT-59, justo antes de
+pegarla ahí — no la entregó la Tanda 1 pese a que el plan original la situaba ahí; ver
+ADR-004 §Consecuencias para el porqué). Si hiciera falta regenerarla en el futuro (por
+ejemplo, tras rotarla), se genera por CLI, no por dashboard:
 
 ```bash
 npx convex deployment token create <nombre> --deployment prod --save-env <fichero>
