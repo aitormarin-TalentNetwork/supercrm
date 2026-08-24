@@ -47,16 +47,31 @@ real exactamente igual que si nadie hubiera avisado nunca.
    directo cada vez que crea o actualiza tareas (arranque de un proyecto nuevo, una
    onda nueva, o un ajuste de alcance en marcha) — trátalo como una señal para mirar,
    no como sustituto de tu propio barrido periódico.
-2. La terminal desarrolla y exporta su trabajo para el auditor, y te avisa.
-3. Disparas al auditor. Si el proyecto le da al auditor una ventana visible propia
+2. **Antes de que la terminal escriba una sola línea de código, pasa por una fase de
+   plan obligatoria (añadida 2026-08-24, decisión de Aitor — gate duro, sin excepciones)**:
+   la terminal entra en modo plan, redacta el plan de implementación y lo exporta
+   (mismo mecanismo de "un único fichero activo" que el código, con el infijo
+   `plan-loop<N>` — ver `intro-terminal.txt`). Disparas al auditor sobre el PLAN, mismo
+   contrato GO/NO-GO que el audit de código (ver siguiente paso para el mecanismo
+   concreto). **Nunca dejas pasar una tarea a implementación sin el GO al plan — ni
+   siquiera bajo presión de tiempo, ni porque el plan te parezca obvio.** Si es NO-GO,
+   la terminal revisa el plan y repite la ronda sola, sin que tengas que intervenir
+   salvo atasco real (mismo criterio que el bucle de código). Si es GO, la terminal
+   pasa a desarrollar de verdad — a partir de aquí el flujo sigue exactamente igual que
+   antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
+   escribirlo.
+3. La terminal desarrolla y exporta su trabajo para el auditor, y te avisa.
+4. Disparas al auditor. Si el proyecto le da al auditor una ventana visible propia
    (recomendado — ver Configuración para el mecanismo concreto de este proyecto),
    ejecútalo AHÍ, no escondido en tu propia sesión: así quien dirige el proyecto puede
    ver y, si hace falta, resolver un bloqueo del auditor (típicamente un prompt de
    permiso de su propia CLI, no una pregunta sustantiva) sin depender de que tú lo
    notes. Le devuelves el veredicto a la terminal. Bucle desarrollo ↔ auditoría hasta
    que hay GO — sin que nadie tenga que intervenir en cada ronda salvo que se atasque de
-   verdad (ver más abajo).
-4. Con el GO, haces una revisión final antes de publicar — nunca te la saltas solo
+   verdad (ver más abajo). Este es también el mecanismo que usas para el audit del plan
+   del paso 2 — mismo disparo, mismo canal, mismo veredicto GO/NO-GO, solo que apuntando
+   al fichero `plan-loop<N>` en vez del de código.
+5. Con el GO, haces una revisión final antes de publicar — nunca te la saltas solo
    porque el auditor ya dio el OK:
    - releer la fuente de verdad de alcance por si algo cambió desde que la tarea
      arrancó;
@@ -67,7 +82,7 @@ real exactamente igual que si nadie hubiera avisado nunca.
    - comprobar que lo construido cumple entero el título y los criterios de aceptación
      de la issue — si el alcance es menor (recorte razonable, no descuido) y no existe
      ya la issue de continuación con lo que falta, créala ahora, antes de marcar Done.
-5. Si todo cuadra: publicas (o entregas al rol de publicación dedicado si el proyecto lo
+6. Si todo cuadra: publicas (o entregas al rol de publicación dedicado si el proyecto lo
    tiene activo), marcas la tarea como completada, archivas los artefactos de auditoría,
    y rellenas la cola de tareas listas para la siguiente terminal libre — como parte
    fija de publicar, no un paso aparte que hay que acordarse de hacer. Si la tarea que
@@ -76,7 +91,7 @@ real exactamente igual que si nadie hubiera avisado nunca.
    ningún ADR relacionado siga "provisional" sin que quede ya ninguna alternativa real en
    consideración — nadie más lo revisa por su cuenta en este punto (mismo chequeo que
    hace el Integrador si está activo, ver `integrador.md`).
-6. Se repite. El orden en que se publican las tareas de las distintas terminales lo
+7. Se repite. El orden en que se publican las tareas de las distintas terminales lo
    decides y administras tú — no es "quien avisa primero, publica primero" automático.
 
 ### Recursos compartidos entre terminales

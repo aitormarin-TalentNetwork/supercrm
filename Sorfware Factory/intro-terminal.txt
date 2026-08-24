@@ -13,18 +13,31 @@ una vez que el trabajo pasa auditoría.
 
 === PARTE GENÉRICA (aplica a cualquier proyecto) ===
 
-- **La secuencia es fija y no se salta ningún paso:**
-    1. Desarrollas.
-    2. Exportas TODO para el auditor en UN ÚNICO fichero (formato en Configuración) —
+- **La secuencia es fija y no se salta ningún paso (fase de plan añadida 2026-08-24,
+  gate duro — decisión de Aitor, ver `director.md`):**
+    1. **Fase de plan, antes de tocar código.** Nada más coger la tarea, entra en modo
+       plan de Claude Code (sin escribir ni tocar código): lee la issue de Linear, la
+       pantalla correspondiente en `Design/pantallas/` y la entidad en
+       `docs/02-modelo-de-datos.md`, y redacta un plan de implementación. Expórtalo a un
+       único fichero activo (convención de nombre `plan-loop<N>` en Configuración) y
+       avisa por el mismo canal de siempre (punto de control + mensaje directo a la
+       coordinadora) de "plan listo para auditar". Mismo contrato GO/NO-GO que el audit
+       de código de más abajo, mismo bucle: si NO-GO, revisa el plan y vuelve a exportar
+       con ronda+1 (borra el fichero de la ronda anterior, nunca dejes más de uno
+       activo); si GO, sal de modo plan, pasa a modo auto, y sigue con el resto de la
+       secuencia sin cambios. **El GO al plan es un gate duro, igual que el del código:
+       nunca pases a implementar sin él, ni aunque el plan te parezca obvio.**
+    2. Desarrollas.
+    3. Exportas TODO para el auditor en UN ÚNICO fichero (formato en Configuración) —
        nunca varios ficheros sueltos, para que no haya nada que se pueda perder o
        confundir. Avisa en tu punto de control de "listo para auditar" (mecanismo en
        Configuración) **y además manda un mensaje directo a la sesión coordinadora**
        diciendo que exportaste y en qué fichero.
-    3. Esperas el veredicto — te lo devuelve la coordinadora por el mismo canal directo.
-    4. Si es NO-GO: corriges lo señalado y vuelves al paso 2 — incluido avisar otra vez
+    4. Esperas el veredicto — te lo devuelve la coordinadora por el mismo canal directo.
+    5. Si es NO-GO: corriges lo señalado y vuelves al paso 3 — incluido avisar otra vez
        a la coordinadora, sin esperar a que nadie te lo pida. No sigas adelante con nada
        más mientras el veredicto sea NO-GO. Repite el ciclo las veces que haga falta.
-    5. Si es GO: avisa en tu punto de control de "GO recibido, listo para publicar" **y
+    6. Si es GO: avisa en tu punto de control de "GO recibido, listo para publicar" **y
        manda también el aviso por mensaje directo a la coordinadora**. PARAS AQUÍ. No
        hagas nada más por tu cuenta — ni publicar, ni fusionar, ni marcar la tarea como
        completada, ni ningún otro paso "de cara a publicar" (aunque te parezca el
@@ -145,6 +158,9 @@ una vez que el trabajo pasa auditoría.
   <n> = el número de esta terminal (te lo dice el nombre de tu carpeta de worktree:
   "T1", "T2" o "T3"). <id> = el issue de Linear de la tarea. <N> = número de ronda:
   empieza en 1, sube en 1 cada vez que vuelves a exportar tras un NO-GO.
+  Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
+  T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
+  activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
 - **Punto de control — aviso por voz** (en los dos puntos de control: listo para
   auditar / GO recibido — NO en ningún otro momento, no lo uses para narrar el trabajo
   en curso): lanza esto en una terminal, con tu propio número y la tarea actual:
