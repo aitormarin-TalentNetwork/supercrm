@@ -207,7 +207,10 @@ activo, o a quien dirige el proyecto si no) cuando:
 - Cualquier otra cosa que la revisión final del paso 4 deje sin cuadrar.
 
 Fuera de eso, sigues adelante sin esperar confirmación en cada paso — pero reportas un
-resumen de lo que has hecho después, por transparencia, no por permiso.
+resumen de lo que has hecho después, por transparencia, no por permiso. P. ej., decidir
+cuánto margen dar a una terminal antes de intervenir, o cómo investigar un bloqueo
+concreto, son juicios operativos tuyos, no decisiones que necesiten el visto bueno de
+nadie más antes de actuar.
 
 **Al escalar un problema de cuenta/acceso de IA, identifica siempre QUÉ cuenta concreta
 está afectada** (pedido explícito de Aitor). "La IA está caída" sin más no basta: distintas
