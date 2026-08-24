@@ -230,8 +230,10 @@ diferencia de `env`/`run`/`@convex-dev/auth`, que sí lo admiten); comprueba el 
 deployment que el propio comando imprime en su cabecera antes de aceptar el push.
 
 **`CONVEX_DEPLOY_KEY`:** el equivalente a una contraseña de servicio para que Railway (o
-cualquier CI) pueda desplegar sin sesión interactiva. Se genera por CLI, no por
-dashboard:
+cualquier CI) pueda desplegar sin sesión interactiva. **La clave persistente que usará
+Railway de verdad se genera al empezar la Tanda 2** (justo antes de pegarla en Railway,
+no antes) — no la entrega la Tanda 1, aunque el plan original la situaba ahí; ver ADR-004
+§Consecuencias para el porqué. Se genera por CLI, no por dashboard:
 
 ```bash
 npx convex deployment token create <nombre> --deployment prod --save-env <fichero>
