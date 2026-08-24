@@ -71,5 +71,12 @@ de alcance/producto, no se asume silencio como aprobación.
     volver a poner sobre la mesa antes del salto a real, no una aprobación permanente.
   - **Entorno de Convex compartido entre desarrollo y producción** (mismo deployment que
     usa Railway en producción). AIT-59 creada en Backlog para no perderlo.
+    **🟢 Resuelto (2026-08-24, AIT-59):** Railway ahora despliega en cada build contra
+    `stoic-impala-857` (deployment de producción propio, separado del compartido
+    `third-goldfinch-805` de desarrollo/test) — ver ADR-004 en `docs/01-arquitectura.md`.
+    Verificado en vivo: login de las 2 cuentas de prueba funciona contra el nuevo
+    backend, rutas protegidas redirigen sin sesión, y `third-goldfinch-805` sigue
+    respondiendo con normalidad para las 3 terminales. No cambia la fila de arriba
+    (credenciales en claro en el login) — eso sigue pendiente, sin relación con esta.
 - Añade aquí cualquier otro ítem que se descubra después, con la misma disciplina —
   este documento es acumulativo, no se sustituye.
