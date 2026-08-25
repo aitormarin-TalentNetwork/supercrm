@@ -181,7 +181,7 @@ Las cuentas semilla `marta@supercrm.es`/`carlos@supercrm.es` (Password) siguen e
 
 **Alternativa descartada (para la limitación de arriba):** interceptar la ruta HTTP `/api/auth/callback/google` a mano para añadir un `?error=` explícito. Exige reimplementar infraestructura interna de `@convex-dev/auth` (PKCE, state, verificación de firma) no pensada para sobrescribirse — desproporcionado para una mejora de UX de un mensaje de error.
 
-**Estado:** 🟢 Cerrada. Pendiente de verificación end-to-end real del camino Google (redirect a Google de verdad, no solo construcción de la URL de autorización) hasta que `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` estén dados de alta en el deployment de Convex — ver `docs/03-setup.md` §6bis. El camino Password no necesita esta verificación: no se ha tocado.
+**Estado:** 🟢 Cerrada. Verificación end-to-end real completada (2026-08-25) — login con `admin@talent-network.org` (owner → `/panel`) y `aitor.marin@talent-network.org` (sales → `/hoy`) funcionan contra Google de verdad; una cuenta de Google sin alta previa se rechaza sin sesión y sin alta automática; el camino Password (`marta@supercrm.es`) sigue sin cambios. Detalle del hallazgo real de esta verificación (secret de Google desincronizado) en `docs/03-setup.md` §6bis.
 
 ### ADR-004 · Separar Convex de desarrollo/test del de producción — 2026-08-24 (AIT-59)
 
