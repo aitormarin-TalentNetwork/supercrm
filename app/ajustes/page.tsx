@@ -16,7 +16,6 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
@@ -149,25 +148,17 @@ function InfoRow({
   );
 }
 
-// Espejo del MIN_PASSWORD_LENGTH de convex/users.ts — validación en
-// cliente antes de llamar a la action, mismo criterio que ya usa
-// Catálogo con el precio (parseEuroAmount) antes de llamar a create.
-const MIN_PASSWORD_LENGTH = 8;
-
 const ASSIGNABLE_ROLES = ["sales", "storeManager"] as const;
 
-// Los errores de una `action` (createUser) llegan al cliente envueltos en
-// ruido de Convex Dev ("[Request ID: ...] Server Error Uncaught Error: ...
-// at handler (...) Called by client") — a diferencia de una mutation
-// normal, cuyo err.message ya llega limpio. En vez de parsear ese
-// envoltorio (frágil, cambia entre dev/prod), se compara contra la lista
-// cerrada de mensajes que createUser puede lanzar (convex/users.ts) — si
-// coincide se muestra tal cual (útil, p.ej. distinguir email duplicado),
-// si no, mensaje genérico. Nunca se muestra el mensaje crudo del servidor.
+// AIT-60: createUser pasó de `action` a `mutation` (ya no hay
+// createAccount/contraseña de por medio) — el err.message de una mutation
+// ya llega limpio, pero se mantiene la comparación contra la lista
+// cerrada de mensajes que createUser puede lanzar (convex/users.ts) por
+// si acaso, y para no mostrar nunca un mensaje crudo del servidor que no
+// se reconozca.
 const KNOWN_CREATE_USER_ERRORS = [
   "El email es obligatorio.",
   "El nombre es obligatorio.",
-  `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
   "Ya existe un usuario con ese email.",
   "La tienda indicada no existe.",
   "Solo la dueña puede crear usuarios.",
@@ -226,17 +217,15 @@ function NewUserForm({
 }: {
   stores: { id: Id<"stores">; name: string }[];
 }) {
-  const createUser = useAction(api.users.createUser);
+  const createUser = useMutation(api.users.createUser);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<(typeof ASSIGNABLE_ROLES)[number]>("sales");
   const [storeId, setStoreId] = useState<Id<"stores"> | "">(
     stores[0]?.id ?? "",
   );
   const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -257,14 +246,6 @@ function NewUserForm({
     } else {
       setEmailError("");
     }
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setPasswordError(
-        `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
-      );
-      hasError = true;
-    } else {
-      setPasswordError("");
-    }
     if (!storeId) {
       setFormError("Selecciona una tienda.");
       hasError = true;
@@ -277,13 +258,11 @@ function NewUserForm({
       await createUser({
         name: name.trim(),
         email: email.trim(),
-        password,
         role,
         storeId: storeId as Id<"stores">,
       });
       setName("");
       setEmail("");
-      setPassword("");
       setRole("sales");
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
@@ -329,14 +308,6 @@ function NewUserForm({
         </div>
       </div>
       <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[180px] flex-1">
-          <PasswordInput
-            label="Contraseña provisional"
-            error={passwordError}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
         <div className="w-[170px]">
           <Select
             label="Rol"
@@ -369,6 +340,10 @@ function NewUserForm({
           {loading ? "Creando…" : "Crear usuario"}
         </Button>
       </div>
+      <p className="text-xs text-text-muted">
+        Podrá entrar en cuanto inicie sesión con esa cuenta de Google — no
+        hace falta contraseña.
+      </p>
     </form>
   );
 }
