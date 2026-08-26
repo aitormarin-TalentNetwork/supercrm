@@ -206,6 +206,36 @@ Sin argumentos, crea (si no existen ya) `admin@talent-network.org` (owner) y `ai
 
 **✅ Verificado end-to-end en vivo (2026-08-25):** los 3 casos de arriba (owner, sales, cuenta sin acceso) funcionan tal como se describe, más el camino Password (`marta@supercrm.es`) confirmado sin cambios. **Hallazgo real durante esta verificación:** el primer intento falló con un error genérico en el intercambio de token, indistinguible en el navegador/logs de Convex de un problema de nuestro propio `createOrUpdateUser` (el rechazo por lista blanca y el fallo de intercambio de token dan el mismo mensaje al usuario). Causa real: `AUTH_GOOGLE_SECRET` en Convex no coincidía con el secret vigente en Google Cloud Console para ese Client ID (aunque el Client ID sí coincidía — comprobado comparando solo los últimos caracteres de cada lado, nunca el valor completo, per la regla de no volcar secretos). Si esto se repite: comprobar primero que el Client ID coincide (es público, seguro de comparar entero) y, si coincide pero el login sigue fallando en el intercambio de token, sospechar del secret antes que del código — regenerarlo en Google Cloud Console y volver a ponerlo con `npx convex env set AUTH_GOOGLE_SECRET`.
 
+### 6ter. Recuperación de contraseña vía Resend (AIT-62)
+
+Completa el enlace "¿Olvidaste tu contraseña?" de `/login` (AIT-63, frontend) —
+`convex/ResendOTPPasswordReset.ts`/`convex/auth.ts` (ver ADR-005). Solo afecta al
+provider `Password`.
+
+- **API key:** [dashboard de Resend](https://resend.com/api-keys) → crear API key →
+  `npx convex env set RESEND_API_KEY <api-key>`.
+- **Remitente — ⚠️ trampa conocida:** con el dominio de prueba de Resend
+  (`onboarding@resend.dev`) solo se puede entregar al email del propio dueño de la
+  cuenta Resend — NO sirve para probar el envío contra `marta@supercrm.es` ni ninguna
+  otra cuenta real del proyecto. Antes de poder verificar el criterio de aceptación
+  "dispara un email real", hace falta verificar un dominio propio en el dashboard de
+  Resend y dar de alta un remitente de ese dominio:
+  `npx convex env set RESEND_FROM_EMAIL <remitente@dominio-verificado>`.
+- Sin `RESEND_API_KEY`/`RESEND_FROM_EMAIL`, el fallo ocurre en el punto esperado (al
+  intentar enviar, con un mensaje claro de configuración), no antes — se puede
+  desarrollar y probar todo lo demás (la distinción de método de login, el rechazo de
+  código incorrecto/caducado, el rate-limit) sin tenerlas puestas.
+
+**Verificación:** pedir un reseteo real desde `/login` (o `npx convex run auth:signIn
+'{"provider":"password","params":{"flow":"reset","email":"marta@supercrm.es"}}'`) y
+comprobar que llega un email real con un código de 6 dígitos, válido 15 minutos.
+
+**Consecuencia operativa:** al mergear a `main`, `RESEND_API_KEY` y
+`RESEND_FROM_EMAIL` hacen falta TAMBIÉN en el deployment de producción
+(`stoic-impala-857`), no solo en desarrollo — si no, el reseteo de contraseña
+quedaría roto en producción real aunque funcione en dev (mismo patrón que otras
+variables de entorno nuevas de este proyecto, ver ADR-004).
+
 ## 7. Web Push (AIT-57, Post-MVP)
 
 Avisos push reales (pasos vencidos y oportunidades en riesgo, con la app cerrada) — ver `convex/webPush.ts` (envío), `convex/pushInternal.ts` (candidatos), `convex/pushSubscriptions.ts` (alta/baja desde el cliente) y `convex/crons.ts` (dispara el envío cada hora).
@@ -309,6 +339,7 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
 | `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es` — usadas por el bootstrap original de AIT-8 para crearlas (ya hecho, viven en el deployment desde entonces). Desde AIT-60, `bootstrapInitialAccounts` sin argumentos ya NO recrea estas 2 cuentas (solo crea las de Google, ver más abajo) — para levantar el proyecto de cero necesitando también las cuentas de contraseña, hace falta un `createAccount` manual con estas contraseñas (mismo patrón que el bootstrap original, no automatizado hoy). |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Deployment de Convex (`npx convex env`) | Envío del código de reseteo de contraseña (AIT-62) — `convex/ResendOTPPasswordReset.ts` las lee. `RESEND_FROM_EMAIL` necesita un dominio verificado en Resend para entregar a cuentas reales, no el de prueba. Ver §6ter. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Deployment de Convex (`npx convex env`) | Firma y envío de Web Push (`convex/webPush.ts`). La privada nunca sale del deployment de Convex — ver §7. |
 | `CONVEX_DEPLOY_KEY` | Railway (variable del servicio, **nunca** `.env.local`) | Contraseña de servicio para que `npx convex deploy` publique a `stoic-impala-857` sin sesión interactiva (AIT-59, ver §8 y ADR-004). Se genera fresco por CLI justo antes de usarse. |

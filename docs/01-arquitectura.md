@@ -135,7 +135,7 @@ Dos roles, definidos en el usuario: `owner` (Marta) y `sales` (Carlos).
 **Alternativa descartada:** Clerk. Añade un servicio externo y una integración por webhook con Convex solo para mantener sincronizado el usuario — coste que no se justifica para un MVP de una sola tienda y dos usuarios.
 
 **Consecuencias:**
-- No hay recuperación de contraseña real ni verificación de email para las cuentas por contraseña (el PRD no lo pide; "¿Olvidaste la contraseña?" en el login es solo informativo). Desde ADR-003, las cuentas por Google sí tienen el email verificado por Google — pero el provider Password sigue vivo en paralelo, con la misma limitación de siempre para quien entra por ahí.
+- **Actualizado por AIT-62 (ver ADR-005 más abajo):** desde esta tarea SÍ hay recuperación real de contraseña (Convex Auth + Resend) para las cuentas por contraseña — la limitación descrita aquí originalmente ("es solo informativo") queda obsoleta. La verificación de email en el sentido de Convex Auth (`emailVerificationTime`) sigue sin usarse para las cuentas por contraseña — lo que cambia es solo el flujo de reseteo.
 - No hay registro público: los usuarios se crean con `convex/users.ts:createUser` (Ajustes, cuentas Google) o con `bootstrapInitialAccounts` (`internalMutation`, cuentas Google iniciales) — las cuentas por contraseña siguen su propio camino con `createAccount` (ver ADR-003), nunca un formulario de alta abierto.
 - **Decisión definitiva** (cerrada en la auditoría de 2026-08-20: el curso ya no va a pedir Clerk ni otra alternativa de auth). Queda igualmente documentado que, si algún día se quisiera cambiar, **no** sería un cambio acotado a un par de archivos — afecta a toda la superficie de autenticación: `convex/auth.ts`, `convex/auth.config.ts` (el dominio del JWT deja de ser el de Convex Auth), `convex/http.ts` (dejaría de tener sentido tal cual — son las rutas que exige `@convex-dev/auth`, no Clerk), `convex/users.ts` (el bootstrap de las 2 cuentas via `createAccount` es específico de Convex Auth; con Clerk las cuentas se gestionan desde su propio dashboard/API), `proxy.ts` (usa `convexAuthNextjsMiddleware`; se sustituiría por el middleware de Clerk), `app/ConvexClientProvider.tsx`/`app/layout.tsx`, y el propio formulario de `app/login/page.tsx` (hoy construido sobre `useAuthActions().signIn`, un hook específico de esta librería) — además de cambiar las dependencias (`@convex-dev/auth`/`@auth/core` → `@clerk/nextjs`). Lo único que probablemente sobreviviría es el concepto de datos (`role`/`storeId` en `users`), no necesariamente su forma exacta. Es una reescritura completa de la capa de auth, no un cambio acotado — pero eso no es una condición para reabrir la decisión, solo el coste que tendría hacerlo si algún día se decidiera cambiar.
 - La compatibilidad de `@convex-dev/auth` con la convención `proxy.ts` de Next.js 16 (que sustituye a `middleware.ts`) se verificó por inspección de código — usa únicamente APIs estables de `next/server`/`next/headers`, agnósticas al nombre del archivo — pero el README/changelog de la librería no menciona Next.js 16 explícitamente. Es una inferencia de bajo riesgo, no una confirmación del fabricante; se valida con un build de producción real antes de cerrar AIT-9.
@@ -257,6 +257,93 @@ normalidad para las 3 terminales.
 
 **Estado:** 🟢 Cerrada. Tanda 1 y Tanda 2 completas — separación dev/test vs producción
 en vigor.
+
+### ADR-005 · Recuperación de contraseña: Resend + `authorize` propio en Password — 2026-08-25 (AIT-62)
+
+**Contexto:** completa un hueco que ya estaba en el PRD original (enlace "¿Olvidaste tu
+contraseña?" en Acceso, nunca construido — ver la corrección en ADR-001 de arriba). Solo
+afecta al provider `Password` — no toca el login por Google (AIT-60/ADR-003).
+
+**Decisión — envío del código:** Convex Auth expone el flujo de reseteo vía
+`Password({reset: EmailConfig})` (`flow: "reset"`/`"reset-verification"`), el mismo
+mecanismo que ya usa la propia librería para verificación de email por link/código — no
+se construye nada nuevo, se conecta ese `EmailConfig` (`convex/ResendOTPPasswordReset.ts`)
+al envío real. El código es numérico de 6 dígitos (el generador por defecto de la
+librería produce un token de 32 caracteres pensado para un link, no para que una persona
+lo teclee), generado con `crypto.getRandomValues` (CSPRNG del runtime por defecto de las
+actions de Convex, sin `"use node"`) con muestreo por rechazo para no sesgar el módulo.
+Válido 15 minutos (`maxAge`). El envío usa `fetch` directo a la API REST de Resend
+(`https://api.resend.com/emails`) en vez del SDK npm `resend` — mismo patrón que usa
+`@auth/core` para su propio provider `Resend` de magic-link, sin añadir una dependencia
+nueva solo para esto.
+
+**Alternativa descartada:** el SDK oficial `resend` (mejor tipado de errores de la API) —
+se prefirió `fetch` por minimalismo, dado que ya hay un patrón de referencia (`@auth/core`)
+que resuelve lo mismo sin él.
+
+**Decisión — distinguir Google-only sin necesitar el schema:** `convex/users.ts:getLoginMethodsForEmail`
+(sin sesión previa, criterio de aceptación #2) usa el mismo invariante ya real de este
+proyecto (ver ADR-003 y `docs/02-modelo-de-datos.md`): solo hay dos caminos que crean una
+fila en `users`, mutuamente excluyentes — Password (`createAccount`) crea su fila de
+`authAccounts` en el mismo acto que crea el usuario; Google (`createUser`/
+`bootstrapInitialAccounts`) inserta directamente en `users`, y la fila de `authAccounts`
+no existe hasta el primer login OAuth real. Una fila `users` con CERO filas en
+`authAccounts` solo puede ser una cuenta Google todavía sin su primer login — no hace
+falta ningún campo nuevo en el schema para saberlo.
+
+**Decisión — rate-limit del envío, y por qué el `authorize` de `Password` está forkeado:**
+`@convex-dev/rate-limiter` (0.3.2, primer componente Convex de este proyecto,
+`convex/convex.config.ts`), 3 solicitudes por email cada 15 minutos. El chequeo NO vive
+en `sendVerificationRequest` (donde estaría "naturalmente", dentro de `config.reset`) —
+hallazgo de auditoría (ronda 2): `authVerificationCodes` tiene como mucho 1 fila por
+cuenta (`generateUniqueVerificationCode`, en la propia librería, borra la anterior sin
+condición alguna) ANTES de llamar a `sendVerificationRequest` — un rate-limit puesto ahí
+llega tarde: la 4ª solicitud ya habría borrado el código válido de la 3ª sin haber llegado
+a enviarlo, dejando a cualquiera que conozca un email capaz de inutilizar su recuperación
+sin necesitar el código él mismo. Los otros dos puntos de personalización que expone la
+librería tampoco sirven: `profile(params, ctx)` sí recibe `ctx`, pero la librería la llama
+sin `await`, así que hacerla async rompe el flujo en vez de arreglarlo;
+`generateVerificationToken` no recibe ni `ctx` ni el email. La única vía real es
+sustituir el `authorize` completo del provider Password (`convex/auth.ts`) — reimplementado
+con las mismas funciones públicas que usa la librería internamente
+(`createAccount`/`retrieveAccount`/`signInViaProvider`/`modifyAccountCredentials`/
+`invalidateSessions`, exportadas explícitamente para este uso), copiando tal cual las
+ramas que no cambian de comportamiento (`signUp`/`signIn`/`reset-verification`/
+`email-verification`, esta última siempre inerte — `verify` nunca se ha configurado en
+este proyecto, pero se preserva con el mismo mensaje exacto de la librería) e
+insertando el chequeo solo en `reset`, antes de `retrieveAccount`/`signInViaProvider`.
+
+**Consecuencias:**
+- `convex/auth.ts` pasa a controlar el flujo completo de `Password`
+  (signUp/signIn/reset/reset-verification/email-verification), no solo la config — es
+  un fork documentado
+  de `Password.js` de `@convex-dev/auth@0.0.94`. Si se actualiza la librería en el
+  futuro, hay que revisar a mano si `Password.js` cambió su `authorize` y si el fork
+  sigue reflejándolo fielmente — no se actualiza solo.
+- Nuevas variables de entorno: `RESEND_API_KEY` y `RESEND_FROM_EMAIL` (remitente
+  configurable, no hardcodeado). **Consecuencia operativa:** con el dominio de prueba de
+  Resend (`onboarding@resend.dev`) solo se puede entregar al propio dueño de la cuenta
+  Resend — hace falta un dominio propio verificado en el dashboard de Resend antes de
+  que el envío funcione para cuentas reales del proyecto. Ver `docs/03-setup.md` §6ter.
+  Al mergear a `main`, ambas variables también hacen falta en el deployment de
+  producción (`stoic-impala-857`), no solo en desarrollo.
+- Nueva dependencia directa `lucia` (antes transitiva, vía `@convex-dev/auth`) — el
+  `authorize` propio necesita `Scrypt` para el hash/verificación de contraseñas, mismo
+  mecanismo que usaba la librería.
+
+**Estado:** 🟡 No cerrada — el DISEÑO tiene GO de auditoría (3 rondas de plan: B1
+CSPRNG, M1 Google-only sin primer login, M2 dominio de Resend, M3 rate-limit antes de
+persistir, M4 prueba de código caducado real, todos resueltos a nivel de diseño), pero
+la VERIFICACIÓN EN VIVO todavía no está completa — no se marca 🟢 hasta que lo esté.
+Ya verificado en vivo contra el deployment propio (`uncommon-puffin-303`):
+`getLoginMethodsForEmail` (los 3 casos, incluido Google-only sin primer login), el
+flujo de reset hasta el punto de envío, el rechazo de código incorrecto, y —
+específicamente — que una solicitud rate-limitada NO borra el código válido de una
+solicitud anterior (confirmado con `npx convex data authVerificationCodes`: misma
+fila, mismo `_id`, mismo hash, antes y después del intento rechazado). **Pendiente,
+sin verificar todavía** (bloqueo conocido: `RESEND_API_KEY`/`RESEND_FROM_EMAIL`, ver
+`docs/03-setup.md` §6ter) — el envío real de un email, un reseteo completo con ese
+código real, y el rechazo de ese mismo código real una vez caducado.
 
 ## 7. Decisiones abiertas
 

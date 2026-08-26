@@ -172,6 +172,45 @@ export const bootstrapInitialAccounts = internalMutation({
   },
 });
 
+// AIT-62: distingue, para la pantalla de Acceso (AIT-63), si un email tiene
+// login por contraseña, por Google, ambos o ninguno — sin sesión previa
+// (igual que `signIn` mismo no exige sesión previa). Anti-enumeración: un
+// email inexistente da el mismo resultado que "sin providers", nunca un
+// error ni un `null` que delate si existe (mismo criterio que ADR-003).
+export const getLoginMethodsForEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", trimmedEmail))
+      .unique();
+    if (user === null) return { hasPassword: false, hasGoogle: false };
+
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .withIndex("userIdAndProvider", (q) => q.eq("userId", user._id))
+      .collect();
+
+    if (accounts.length === 0) {
+      // Invariante de este proyecto (ver docs/01-arquitectura.md,
+      // "Consecuencia técnica" de ADR-003, y docs/02-modelo-de-datos.md):
+      // solo hay dos caminos que crean una fila en `users`, y son mutuamente
+      // excluyentes — Password (`createAccount`) crea su fila de
+      // `authAccounts` en el mismo acto que crea el usuario; Google
+      // (`createUser`/`bootstrapInitialAccounts`) inserta directamente en
+      // `users` y la fila de `authAccounts` no existe hasta el primer login
+      // OAuth real. Una fila `users` con CERO filas en `authAccounts` solo
+      // puede ser una cuenta Google todavía sin su primer login.
+      return { hasPassword: false, hasGoogle: true };
+    }
+    return {
+      hasPassword: accounts.some((a) => a.provider === "password"),
+      hasGoogle: accounts.some((a) => a.provider === "google"),
+    };
+  },
+});
+
 export const getCurrentUserRole = query({
   args: {},
   handler: async (ctx) => {
