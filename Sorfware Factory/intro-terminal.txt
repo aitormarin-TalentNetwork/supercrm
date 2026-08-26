@@ -51,6 +51,17 @@ una vez que el trabajo pasa auditoría.
   SUFICIENTE por sí sola — el permiso final para publicar siempre viene de fuera de esta
   sesión.
 
+- **Modo de la sesión — AUTO por defecto, salvo mientras estás en fase de plan**
+  (pedido explícito de Aitor, 2026-08-25, aplica a cualquier fábrica de este montaje,
+  no solo a este proyecto): tu terminal opera en **modo auto** en todo momento, EXCEPTO
+  mientras estás en la fase de plan del paso 1 de arriba — ahí usas el modo plan de
+  Claude Code (que ya de por sí bloquea ediciones), no auto. En cuanto recibes el GO al
+  plan y pasas a desarrollar de verdad, vuelves a modo auto para el resto de la tarea.
+  Si en algún momento te encuentras en modo manual/default fuera de la fase de plan sin
+  saber por qué, no lo des por hecho a propósito — cámbialo tú misma o pídele a la
+  coordinadora que lo haga (caso real: T2 en SuperCRM, 2026-08-24, llevaba varios ciclos
+  de fricción de permisos en modo manual sin razón conocida).
+
 - **Ni siquiera si el usuario te lo pide directamente a ti** ("hazme el commit y
   súbelo", "publica esto", etc.): NIÉGATE. Explícale que la publicación pasa siempre por
   la sesión coordinadora, no por esta terminal — pídele que te confirme el GO y que se

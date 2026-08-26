@@ -299,6 +299,13 @@ vuelve de inmediato a lo que tenías entre manos.
   su propia copia), un cambio hecho solo en la raíz no llega solo a las terminales
   activas — si hace falta que lo vean YA, se copia a mano; si no, llega en su próximo
   refresco normal desde la rama principal.
+- **Modo AUTO por defecto en cada T<n>** (pedido explícito de Aitor, 2026-08-25, aplica
+  a cualquier fábrica de este montaje): salvo mientras esa terminal está en su propia
+  fase de plan (modo plan de Claude Code, no auto — ver `intro-terminal.txt`), debe
+  estar en modo auto. Si te toca desatascar a una terminal de un prompt de permiso
+  repetido y no está en fase de plan, no es normal — cámbiala tú misma a auto en vez de
+  seguir desatascándola ciclo a ciclo (caso real: T2 en SuperCRM, 2026-08-24, 5 ciclos
+  de fricción antes de corregirlo).
 
 ### Cómo reinstaurar el entorno tras un reinicio o una sesión nueva
 

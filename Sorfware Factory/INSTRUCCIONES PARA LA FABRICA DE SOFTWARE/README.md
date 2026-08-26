@@ -559,6 +559,14 @@ localizar esa ventana (p. ej. la de `bounds` de abajo) debe hacerlo por este mis
 capturado, no por contenido de título — buscar por título sigue siendo poco fiable
 mientras el bucle no haya ganado su próxima ronda.
 
+**Modo de la sesión — AUTO por defecto** (pedido explícito de Aitor, 2026-08-25, aplica
+a cualquier fábrica de este montaje): en cuanto la ventana está arriba y orientada, deja
+la sesión en **modo auto**, sin excepción para los cinco roles centrales. Única
+excepción, y solo temporal: la ventana Desarrollador de un worker, mientras está en su
+fase de plan (ver `intro-terminal.txt`) — ahí usa el modo plan de Claude Code, no auto,
+y vuelve a auto en cuanto recibe el GO al plan. No des por supuesto que una ventana ya
+quedó en auto solo porque la creaste con la receta de arriba — verifícalo.
+
 Para roles de raíz (PM, Directora, Integrador — `CLAUDE.md` no los distingue solo por
 carpeta, a diferencia de un Desarrollador en su worktree): no hace falta pasar el rol
 como argumento de arranque — espera a que la sesión aparezca en `ListAgents` y mándale
