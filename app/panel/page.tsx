@@ -36,6 +36,7 @@ export default function PanelPage() {
   // abajo) es aparte: usa su propia query (getStoreComparison), no este
   // guard ni requireStoreAccess.
   const canQuery = role === "owner" || role === "storeManager";
+  const userInfo = useQuery(api.users.getCurrentUserInfo, canQuery ? {} : "skip");
   const store = useQuery(api.stores.getStoreInfo, canQuery ? {} : "skip");
   const pipelineValue = useQuery(
     api.dashboard.getPipelineValue,
@@ -83,6 +84,7 @@ export default function PanelPage() {
   }
 
   const loading =
+    userInfo === undefined ||
     pipelineValue === undefined ||
     forecast === undefined ||
     atRiskCount === undefined ||
@@ -121,7 +123,7 @@ export default function PanelPage() {
 
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-4 pb-16 pt-[18px]">
           <p className="m-0 text-sm text-text-secondary">
-            Hola Marta — así van las ventas de tu negocio.
+            Hola {userInfo.name} — así van las ventas de tu negocio.
           </p>
 
           {/* KPIs */}
