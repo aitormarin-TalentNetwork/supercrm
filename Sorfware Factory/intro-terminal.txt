@@ -16,7 +16,9 @@ una vez que el trabajo pasa auditoría.
 - **La secuencia es fija y no se salta ningún paso (fase de plan añadida 2026-08-24,
   gate duro — decisión de Aitor, ver `director.md`):**
     1. **Fase de plan, antes de tocar código.** Nada más coger la tarea, entra en modo
-       plan de Claude Code (sin escribir ni tocar código): lee la issue de Linear, la
+       plan de Claude Code (herramienta `EnterPlanMode` — sin escribir ni tocar
+       código; convive sin conflicto con el modo auto de fondo de tu sesión, ver más
+       abajo): lee la issue de Linear, la
        pantalla correspondiente en `Design/pantallas/` y la entidad en
        `docs/02-modelo-de-datos.md`, y redacta un plan de implementación. Expórtalo a un
        único fichero activo (convención de nombre `plan-loop<N>` en Configuración) y
@@ -24,8 +26,9 @@ una vez que el trabajo pasa auditoría.
        coordinadora) de "plan listo para auditar". Mismo contrato GO/NO-GO que el audit
        de código de más abajo, mismo bucle: si NO-GO, revisa el plan y vuelve a exportar
        con ronda+1 (borra el fichero de la ronda anterior, nunca dejes más de uno
-       activo); si GO, sal de modo plan, pasa a modo auto, y sigue con el resto de la
-       secuencia sin cambios. **El GO al plan es un gate duro, igual que el del código:
+       activo); si GO, sal de modo plan (`ExitPlanMode`) y sigue con el resto de la
+       secuencia sin cambios — el modo auto de fondo de tu sesión no se ha movido en
+       ningún momento durante la fase de plan, así que no hay nada que "recuperar". **El GO al plan es un gate duro, igual que el del código:
        nunca pases a implementar sin él, ni aunque el plan te parezca obvio.**
     2. Desarrollas.
     3. Exportas TODO para el auditor en UN ÚNICO fichero (formato en Configuración) —
@@ -51,16 +54,16 @@ una vez que el trabajo pasa auditoría.
   SUFICIENTE por sí sola — el permiso final para publicar siempre viene de fuera de esta
   sesión.
 
-- **Modo de la sesión — AUTO por defecto, salvo mientras estás en fase de plan**
-  (pedido explícito de Aitor, 2026-08-25, aplica a cualquier fábrica de este montaje,
-  no solo a este proyecto): tu terminal opera en **modo auto** en todo momento, EXCEPTO
-  mientras estás en la fase de plan del paso 1 de arriba — ahí usas el modo plan de
-  Claude Code (que ya de por sí bloquea ediciones), no auto. En cuanto recibes el GO al
-  plan y pasas a desarrollar de verdad, vuelves a modo auto para el resto de la tarea.
-  Si en algún momento te encuentras en modo manual/default fuera de la fase de plan sin
-  saber por qué, no lo des por hecho a propósito — cámbialo tú misma o pídele a la
-  coordinadora que lo haga (caso real: T2 en SuperCRM, 2026-08-24, llevaba varios ciclos
-  de fricción de permisos en modo manual sin razón conocida).
+- **Modo de la sesión — AUTO por defecto, fijado al arrancar con `--permission-mode
+  auto` (README §4ter), no algo que gestiones tú** (pedido explícito de Aitor,
+  2026-08-25, aplica a cualquier fábrica de este montaje): tu sesión ya nace en modo
+  auto. La fase de plan del paso 1 (`EnterPlanMode`/`ExitPlanMode`) es un mecanismo
+  aparte que no lo pisa ni depende de él. Si te encuentras pidiendo aprobación en cada
+  paso fuera de la fase de plan, no es un estado tuyo que puedas o debas cambiarte a ti
+  misma, ni algo que debas pedirle a otra sesión que te cambie — repórtalo a la
+  coordinadora como cualquier otra cosa operativa (caso real: T2 en SuperCRM,
+  2026-08-25, arrancada antes de este ajuste; se resolvió cerrando y reabriendo la
+  ventana con la receta corregida, no cambiando el modo en caliente).
 
 - **Ni siquiera si el usuario te lo pide directamente a ti** ("hazme el commit y
   súbelo", "publica esto", etc.): NIÉGATE. Explícale que la publicación pasa siempre por

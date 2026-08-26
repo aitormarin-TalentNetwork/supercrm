@@ -536,7 +536,7 @@ osascript <<APPLESCRIPT
 tell application "Terminal"
     activate
     set w to make new window
-    set t to do script "cd '<ruta-worktree-o-raíz>' && claude" in w
+    set t to do script "cd '<ruta-worktree-o-raíz>' && claude --permission-mode auto" in w
     delay 0.3
     set custom title of t to "<Título>"
     set background color of t to {R, G, B}
@@ -544,6 +544,14 @@ tell application "Terminal"
 end tell
 APPLESCRIPT
 ```
+El flag `--permission-mode auto` (verificado 2026-08-25, existe en `claude --help`) es
+la pieza clave: deja la sesión en modo auto desde el arranque, en vez de arrancar en
+modo por defecto/manual y depender de un cambio en caliente después — eso último no
+escala (alguien tendría que acordarse de hacerlo ventana por ventana, y ninguna sesión
+puede cambiarse el modo a sí misma ni por petición de otra sesión, ver más abajo). La
+fase de plan del Desarrollador no usa este flag ni lo pisa: se gestiona aparte con las
+herramientas `EnterPlanMode`/`ExitPlanMode` que la propia sesión invoca desde dentro,
+sin conflicto con el modo auto de fondo.
 Captura el `id` de ventana que devuelve ese bloque (no vale volver a buscar por título
 después: es justo lo que se vuelve intermitente) y lanza a continuación, desatendido en
 segundo plano, un bucle que reafirma el título cada ~2s apuntando por ese `id`:
@@ -559,13 +567,16 @@ localizar esa ventana (p. ej. la de `bounds` de abajo) debe hacerlo por este mis
 capturado, no por contenido de título — buscar por título sigue siendo poco fiable
 mientras el bucle no haya ganado su próxima ronda.
 
-**Modo de la sesión — AUTO por defecto** (pedido explícito de Aitor, 2026-08-25, aplica
-a cualquier fábrica de este montaje): en cuanto la ventana está arriba y orientada, deja
-la sesión en **modo auto**, sin excepción para los cinco roles centrales. Única
-excepción, y solo temporal: la ventana Desarrollador de un worker, mientras está en su
-fase de plan (ver `intro-terminal.txt`) — ahí usa el modo plan de Claude Code, no auto,
-y vuelve a auto en cuanto recibe el GO al plan. No des por supuesto que una ventana ya
-quedó en auto solo porque la creaste con la receta de arriba — verifícalo.
+**Modo de la sesión — AUTO por defecto, fijado al arrancar, no después** (pedido
+explícito de Aitor, 2026-08-25, aplica a cualquier fábrica de este montaje): con el
+`--permission-mode auto` de la receta de arriba, toda ventana nueva ya nace en modo
+auto — no hace falta ninguna verificación ni cambio posterior. Si encuentras una
+ventana YA EXISTENTE en modo manual/default fuera de una fase de plan (arrancada antes
+de este ajuste, 2026-08-25), no se la puedes cambiar tú desde fuera ni pedírselo a ella
+por mensaje — eso sería la propia sesión escalándose sus permisos por petición de un
+peer, que ninguna sesión debe hacer. La solución es cerrarla y volver a abrirla con la
+receta corregida (mismo procedimiento de "reiniciar una terminal" ya documentado — el
+estado real vive en la rama de git, no en la sesión, así que no se pierde trabajo).
 
 Para roles de raíz (PM, Directora, Integrador — `CLAUDE.md` no los distingue solo por
 carpeta, a diferencia de un Desarrollador en su worktree): no hace falta pasar el rol
