@@ -251,6 +251,15 @@ externo de si sigue procesando activamente, y solo si nada de eso aclara nada, p
 directamente. Tratar un silencio como un fallo sin comprobarlo desperdicia una escalada
 que probablemente no hacía falta.
 
+**Timing concreto de cuánto esperar antes de insistir/escalar** (pedido explícito de
+Aitor, 2026-08-26, mismo protocolo general que sigue el resto del pipeline en
+`intro-terminal.txt`): si está "busy" (`ListAgents`), espera 2 minutos antes de
+insistir; si está "idle" y aun así no responde, insiste ya, sin esperar. Si tras
+insistir pasan 5 minutos en total sin respuesta real, escala — al CEO si hay uno
+activo, si no directamente a Aitor (mismo criterio de siempre). Esto es el
+complemento de timing al método de verificación de arriba (transcript/indicador
+externo/pregunta directa), no lo sustituye.
+
 ### Escalar no es dispararlo y olvidarlo — verifica que llegó
 
 Ninguna jerarquía de este pipeline es una pirámide ciega, ni siquiera en la cima: si el

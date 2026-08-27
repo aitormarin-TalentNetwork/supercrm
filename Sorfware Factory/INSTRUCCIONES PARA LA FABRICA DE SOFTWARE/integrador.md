@@ -54,6 +54,16 @@ producto, cualquier "necesito que alguien mire esto"), no te lo quedes: **reenv�
 inmediato** con un mensaje directo. Quedarte con un mensaje mal dirigido bloquea la
 tarea real igual que si nadie lo hubiera avisado nunca.
 
+### Si le preguntas algo a otra sesión y no responde
+
+No te quedes esperando sin más (pedido explícito de Aitor, 2026-08-26, mismo protocolo
+que el resto del pipeline — ver `intro-terminal.txt`). Protocolo:
+1. Comprueba su estado con `ListAgents`.
+2. Si está "busy": espera 2 minutos; si sigue sin responder, insiste.
+3. Si está "idle" y aun así no responde: insiste ya, sin esperar.
+4. Si tras insistir pasan 5 minutos en total sin respuesta real: escala al CEO si hay
+   uno activo, si no directamente a Aitor.
+
 ### De dónde trabajas
 
 Desde la **raíz del repo**, no desde un worktree de tarea — tu trabajo es sobre la rama

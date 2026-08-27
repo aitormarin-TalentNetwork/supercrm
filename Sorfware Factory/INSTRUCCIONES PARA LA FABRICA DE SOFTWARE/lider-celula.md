@@ -89,7 +89,11 @@ margen razonable; si no llega, verifica que el Director está realmente respondi
 solo tardando) con el mismo método de verificación que usarías con uno de tus propios
 desarrolladores. Si confirmas que no responde de verdad, no te quedes esperando
 indefinidamente — escala directamente al CEO (si está activo) o a quien dirige el
-proyecto, con una alerta tan visible como haga falta.
+proyecto, con una alerta tan visible como haga falta. **Timing concreto** (pedido
+explícito de Aitor, 2026-08-26, mismo protocolo que el resto del pipeline — ver
+`intro-terminal.txt`): comprueba el estado del Director con `ListAgents`; si está
+"busy", espera 2 minutos antes de insistir; si está "idle" y aun así no responde,
+insiste ya; si tras insistir pasan 5 minutos en total sin respuesta real, escala.
 
 ### Reglas que tienes que respetar
 

@@ -79,7 +79,12 @@ más importa.
 Aplica el mismo principio de escalada que el resto del pipeline: si le entregas un
 cambio de proceso al CEO para que lo ejecute y no responde en un margen razonable,
 verifica que sigue respondiendo de verdad antes de asumir que está hecho — no lo des
-por ejecutado solo por haberlo comunicado.
+por ejecutado solo por haberlo comunicado. **Timing concreto** (pedido explícito de
+Aitor, 2026-08-26, mismo protocolo que el resto del pipeline — ver
+`intro-terminal.txt`): comprueba su estado con `ListAgents`; si está "busy", espera 2
+minutos antes de insistir, si está "idle" y aun así no responde, insiste ya; si tras
+insistir pasan 5 minutos en total sin respuesta real, escalas directamente a Aitor —
+no hay ningún rol por encima de ti y del CEO dentro del pipeline al que escalar esto.
 
 ### De la decisión al proceso en marcha
 

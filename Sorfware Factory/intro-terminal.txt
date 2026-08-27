@@ -140,6 +140,19 @@ una vez que el trabajo pasa auditoría.
   documentación del proyecto, o es algo que a ella le corresponde decidir), o hacer de
   intermediaria con el usuario o con otro rol.
 
+- **Si le preguntas algo a otra terminal por mensaje directo y no responde, no te
+  quedes esperando sin más** (pedido explícito de Aitor, 2026-08-26 — complementa el
+  mecanismo de check-in de arriba: aquel resuelve "¿quién existe?", este resuelve "¿qué
+  hago si alguien que sé que existe no me contesta?"). Protocolo:
+    1. Comprueba su estado con `ListAgents`.
+    2. Si está "busy": espera 2 minutos; si sigue sin responder, insiste (repite/reenvía
+       la pregunta).
+    3. Si está "idle" y aun así no responde: insiste ya, sin esperar los 2 minutos.
+    4. Si tras insistir pasan 5 minutos en total sin respuesta real: escala a la
+       coordinadora (mismo canal que cualquier otro bloqueo operativo, ver arriba) —
+       ella verifica esa terminal con los niveles que tenga documentados y la
+       reincorpora al servicio.
+
 - **Cómo coger tu siguiente tarea**: puede llegarte de dos formas — (a) el usuario te lo
   pide directamente ("coge tu siguiente tarea"), o (b) la propia coordinadora te manda
   ya el brief siguiente por mensaje directo sin que el usuario tenga que decírtelo. En

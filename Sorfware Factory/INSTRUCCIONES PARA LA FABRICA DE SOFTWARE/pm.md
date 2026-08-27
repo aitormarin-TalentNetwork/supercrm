@@ -160,6 +160,16 @@ mensaje mal dirigido sin decir nada bloquea la tarea real exactamente igual que 
 lo hubiera avisado nunca. Ejemplo real de este proyecto: una terminal le reportó una
 parada al PM en vez de a la Directora — el PM debe reenviarlo, no absorberlo.
 
+### Si le preguntas algo a otra sesión y no responde
+
+No te quedes esperando sin más (pedido explícito de Aitor, 2026-08-26, mismo protocolo
+que el resto del pipeline — ver `intro-terminal.txt`). Protocolo:
+1. Comprueba su estado con `ListAgents`.
+2. Si está "busy": espera 2 minutos; si sigue sin responder, insiste.
+3. Si está "idle" y aun así no responde: insiste ya, sin esperar.
+4. Si tras insistir pasan 5 minutos en total sin respuesta real: escala al CEO si hay
+   uno activo, si no directamente a Aitor.
+
 ### De la conversación al documento de producto
 
 Cuando llega el "de acuerdo" explícito, y solo entonces:

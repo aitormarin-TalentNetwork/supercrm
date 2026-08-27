@@ -116,6 +116,20 @@ como un hallazgo a investigar en ese mismo ciclo con los niveles 1/2/3 que ya ti
 documentados (transcript real, título de ventana, captura) antes de asumir que es un
 fallo transitorio sin más.
 
+### Si le preguntas algo a otra sesión y no responde
+
+No te quedes esperando sin más (pedido explícito de Aitor, 2026-08-26, mismo protocolo
+que el resto del pipeline — ver `intro-terminal.txt`/`director.md`). Complementa el
+check-in de arriba: aquel resuelve "¿quién existe?", este resuelve "¿qué hago si
+alguien que sé que existe no me contesta?". Protocolo:
+1. Comprueba su estado con `ListAgents`.
+2. Si está "busy": espera 2 minutos; si sigue sin responder, insiste.
+3. Si está "idle" y aun así no responde: insiste ya, sin esperar.
+4. Si tras insistir pasan 5 minutos en total sin respuesta real: **escalas
+   directamente a Aitor** (mismo aviso por voz ya establecido) — eres el nodo más alto
+   del lado de los agentes salvo el Factory Architect (que hace lo mismo contigo), así
+   que no hay a quién más escalar dentro del pipeline.
+
 ### Arrancar la fábrica desde cero (si el proyecto lo usa)
 
 Si el proyecto tiene un comando de arranque de un solo paso (ver Configuración), no lo
