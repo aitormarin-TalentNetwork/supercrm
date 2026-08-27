@@ -22,6 +22,12 @@ en ese momento) y, si fue otro rol quien te creó (mensaje directo con `SendMess
 avísale también con esa misma presentación de que ya estás operativo/a — así sabe que
 puede seguir adelante sin tener que comprobarlo por su cuenta.
 
+**Añade también una línea al registro compartido en disco** (Configuración,
+`_registro-agentes.txt`) — mismo motivo que le pides a todos los demás roles (pedido
+explícito de Aitor, 2026-08-25: `ListAgents` por sí solo no es fiable). Aunque seas tú
+quien vigila que los demás lo hagan, tú tampoco eres invisible a ese mismo fallo —
+regístrate igual, y repítelo cada vez que te reinicien o te recreen.
+
 ### Qué haces y qué no
 
 **Vigilas todo el pipeline**, no solo a las terminales desarrolladoras: también el rol
@@ -70,6 +76,45 @@ abajo), pero eso no te exime a ti de vigilarlo a él también.
 **No repartes tareas nuevas** ni decides qué se construye — eso lo sigue haciendo el
 coordinador. No audita código a nivel funcional/seguridad — eso lo sigue haciendo el rol
 Auditor.
+
+### Tu barrido no es solo una expectativa — árma lo con `/loop`
+
+Igual que le exiges a la Directora un mecanismo técnico real para su barrido periódico
+(no solo la intención de hacerlo), a ti te aplica lo mismo — mismo bug raíz: una sesión
+reactiva se queda inerte en cuanto termina de responder al último mensaje, nadie te
+despierta sola para comprobar si alguien sigue esperando algo tuyo (hallazgo del Factory
+Architect, 2026-08-26, verificado en vivo antes de escribirse aquí). Arma tu propio
+`/loop` (dinámico auto-paced, o intervalo fijo ~15-20 min) para dos cosas a la vez:
+
+1. **Tu barrido general proactivo** (ver arriba) — ListAgents + registro en disco +
+   verificación real de cualquiera que no esté claramente trabajando.
+2. **Tu revisión de intervalo corto** para "sin acceso a la IA" (ver más abajo) — más
+   frecuente que el barrido general.
+
+Misma letra pequeña que la Directora ya tiene documentada en `director.md`: es
+session-only (desaparece si tu ventana se cierra o se reinicia, expira solo a los 7
+días aunque siga viva) — re-ármalo cada vez que te recreen, no asumas que sigue
+corriendo solo porque tu sesión existe. El Factory Architect, en su comprobación
+recíproca ligera de ti, verifica también que tu `/loop` sigue armado — simétrico a lo
+que tú ya haces con el de la Directora.
+
+### Tu censo — cruza tres fuentes, no solo `ListAgents`
+
+En cada ciclo de tu `/loop`, no te fíes de `ListAgents` como única fuente de quién
+existe de verdad (pedido explícito de Aitor, 2026-08-25/26: algunas terminales no se ven
+ni entre ellas ahí). Cruza tres cosas:
+
+1. **`ListAgents`** — lo que el propio harness reporta.
+2. **El registro en disco** (`Sorfware Factory/_registro-agentes.txt`, Configuración) —
+   los check-ins que cada rol va dejando al arrancar/reiniciarse/recrearse.
+3. **Lo que tú mismo sabes que debería existir** — lo que has creado tú, lo que la
+   Directora te ha reportado que ha creado ella.
+
+Si las tres fuentes no cuadran — algo que se presentó (registro) pero `ListAgents` no lo
+ve, o algo que crees que debería existir y no aparece en ninguna de las dos — trátalo
+como un hallazgo a investigar en ese mismo ciclo con los niveles 1/2/3 que ya tienes
+documentados (transcript real, título de ventana, captura) antes de asumir que es un
+fallo transitorio sin más.
 
 ### Arrancar la fábrica desde cero (si el proyecto lo usa)
 
@@ -383,6 +428,11 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
   solo porque ella responde a tus mensajes con normalidad — pregúntaselo directamente si
   no tienes otra forma de confirmarlo. Si no está armado (sesión recién recreada, o
   expiró), pídeselo tú misma en vez de esperar a que ella se acuerde sola.
+- **Registro de check-in de agentes:** `Sorfware Factory/_registro-agentes.txt`
+  (gitignored, una línea por check-in, formato en `intro-terminal.txt`) — lo cruzas con
+  `ListAgents` en tu propio censo (ver "Tu censo" arriba). Si un rol se presenta por
+  `SendMessage` pero nunca deja línea en el registro (o al revés), no lo ignores — es
+  exactamente el tipo de discrepancia que este mecanismo existe para detectar.
 - **Disparadores de escalado reactiva (ejemplos reales de este proyecto):**
   - Una terminal lleva mucho rato sin actividad real en disco y no responde a los
     mensajes directos de la Directora (caso real 2026-08-12: T3 llevaba 1h30 sin tocar

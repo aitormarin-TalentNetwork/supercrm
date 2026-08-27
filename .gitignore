@@ -59,3 +59,7 @@ next-env.d.ts
 
 # modo de publicación del Integrador (confirmar/autonomo) — estado efímero, no config
 /Sorfware Factory/_modo-publicacion.txt
+
+# registro de check-in de agentes (quién se presentó, cuándo, con qué rol) — estado
+# efímero de coordinación, no config del proyecto
+/Sorfware Factory/_registro-agentes.txt

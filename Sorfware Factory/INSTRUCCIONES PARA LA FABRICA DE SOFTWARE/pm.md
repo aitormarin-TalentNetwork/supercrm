@@ -22,6 +22,15 @@ en ese momento) y, si fue otro rol quien te creó (mensaje directo con `SendMess
 avísale también con esa misma presentación de que ya estás operativo/a — así sabe que
 puede seguir adelante sin tener que comprobarlo por su cuenta.
 
+**Además, manda esa misma presentación al CEO** si hay uno activo — compruébalo con
+`ListAgents` — aunque no haya sido él quien te creó (pedido explícito de Aitor,
+2026-08-25, aplica a cualquier fábrica de este montaje: `ListAgents` por sí solo no es
+fiable para saber quién existe de verdad, así que la presentación activa es la
+redundancia). Y añade una línea al registro compartido en disco (ver Configuración,
+`_registro-agentes.txt`) como segundo canal más, no como sustituto del mensaje directo.
+Repite esto mismo (mensaje al CEO + línea en el registro) cada vez que te reinicien o
+te recreen, no solo la primera vez.
+
 ### Eres la puerta de entrada de `/factory`
 
 Si el proyecto tiene el comando de arranque de un solo paso `/factory` (ver

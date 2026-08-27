@@ -13,6 +13,16 @@ una vez que el trabajo pasa auditoría.
 
 === PARTE GENÉRICA (aplica a cualquier proyecto) ===
 
+- **Preséntate activamente al arrancar, reiniciar, o recrearte** (pedido explícito de
+  Aitor, 2026-08-25 — `ListAgents` por sí solo no es fiable para saber quién existe de
+  verdad, algunas terminales no se ven entre sí ni siquiera ahí). Dos acciones, no una:
+    1. `SendMessage` directo al CEO si hay uno activo (comprueba con `ListAgents`; si no
+       lo hay, a la coordinadora) con: nombre de tu sesión, rol (Desarrollador), tu
+       terminal (T1/T2/T3), y motivo (arranque/reinicio/recreación).
+    2. Además, como redundancia contra el fallo de `ListAgents` de arriba, añade una
+       línea al registro compartido en disco (Configuración, `_registro-agentes.txt`)
+       — no sustituye al mensaje directo, es un segundo canal, no una alternativa.
+
 - **La secuencia es fija y no se salta ningún paso (fase de plan añadida 2026-08-24,
   gate duro — decisión de Aitor, ver `director.md`):**
     1. **Fase de plan, antes de tocar código.** Nada más coger la tarea, entra en modo
@@ -148,6 +158,11 @@ una vez que el trabajo pasa auditoría.
 - **Coordinadora:** la sesión "Directora", corriendo en la raíz del proyecto.
 - **Mensajería directa:** herramienta `SendMessage` — mira en `ListAgents` si no sabes
   con qué nombre de sesión identificar a la Directora, o pide confirmación si dudas.
+- **Registro de check-in de agentes:** `Sorfware Factory/_registro-agentes.txt`
+  (gitignored, igual que `_modo-publicacion.txt`/`_turno-convex.lock` — estado efímero,
+  no config). Formato, una línea por check-in, se añade con `>>` sin borrar lo anterior:
+  `timestamp | sesión | rol | terminal/carpeta | motivo`. Ejemplo:
+  `date '+%Y-%m-%d %H:%M:%S'` seguido de `| T2 | Desarrollador | T2 | arranque`.
 - **Turno de recurso compartido — Convex:** antes de CUALQUIER `npx convex dev` (no
   solo la primera vez), mira primero `CONVEX_DEPLOYMENT` en tu propio `.env.local`:
     - Si es un deployment propio de tu terminal (no `third-goldfinch-805`): ya estás
