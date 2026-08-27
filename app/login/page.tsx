@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { PasswordResetDialog } from "@/components/auth/PasswordResetDialog";
 
 // Cuentas de prueba visibles siempre, incluida producción — decisión
 // explícita del proyecto (es un entorno de pruebas, sin datos reales) para
@@ -74,6 +75,7 @@ export default function LoginPage() {
   const [credError, setCredError] = useState("");
   const [loading, setLoading] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   // Una sola vía de redirección tras autenticarse, para las dos formas de
   // entrar (contraseña y Google) — con Google, la navegación pasa por una
@@ -305,11 +307,7 @@ export default function LoginPage() {
               <div className="mt-2 text-right">
                 <button
                   type="button"
-                  onClick={() =>
-                    alert(
-                      "Pide a la dueña de tu empresa que restablezca tu acceso.",
-                    )
-                  }
+                  onClick={() => setResetDialogOpen(true)}
                   className="text-sm font-semibold text-primary hover:underline"
                 >
                   ¿Olvidaste la contraseña?
@@ -373,6 +371,12 @@ export default function LoginPage() {
           </p>
         </div>
       </main>
+
+      <PasswordResetDialog
+        open={resetDialogOpen}
+        onClose={() => setResetDialogOpen(false)}
+        initialEmail={email}
+      />
     </div>
   );
 }
