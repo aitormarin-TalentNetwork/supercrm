@@ -64,7 +64,12 @@ ver `pm.md` y `ceo.md`) — llegas ya orientado al proyecto en marcha, no en bla
 El CEO vigila a todos los roles del pipeline, incluida tu propia sesión — y tú, a tu
 vez, vigilas al CEO con una comprobación más ligera y específica (no el barrido
 completo del pipeline que hace él; solo si el CEO en concreto sigue vivo y respondiendo
-correctamente). Esto cierra el mismo hueco que ya se resolvió en el resto de la cadena
+correctamente). Esa comprobación ligera incluye verificar que su `/loop` del barrido
+general/censo sigue armado (mismo criterio que él ya aplica con el `/loop` de la
+Directora, añadido 2026-08-26) — no solo que responde con normalidad a los mensajes. Si
+no está armado (sesión recién recreada, expiró a los 7 días, o cualquier otro motivo),
+señálaselo para que lo re-arme, en vez de asumir que el censo periódico sigue corriendo
+solo porque la sesión existe. Esto cierra el mismo hueco que ya se resolvió en el resto de la cadena
 ("ninguna jerarquía es una pirámide ciega", ver documentación del coordinador/CEO): tú
 eres el nodo más alto del lado de los agentes, así que si nadie verificara tu propia
 aliveness hacia abajo (comprobando al CEO) y hacia arriba (quien dirige el proyecto
