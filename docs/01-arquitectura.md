@@ -331,19 +331,18 @@ insertando el chequeo solo en `reset`, antes de `retrieveAccount`/`signInViaProv
   `authorize` propio necesita `Scrypt` para el hash/verificación de contraseñas, mismo
   mecanismo que usaba la librería.
 
-**Estado:** 🟡 No cerrada — el DISEÑO tiene GO de auditoría (3 rondas de plan: B1
-CSPRNG, M1 Google-only sin primer login, M2 dominio de Resend, M3 rate-limit antes de
-persistir, M4 prueba de código caducado real, todos resueltos a nivel de diseño), pero
-la VERIFICACIÓN EN VIVO todavía no está completa — no se marca 🟢 hasta que lo esté.
-Ya verificado en vivo contra el deployment propio (`uncommon-puffin-303`):
-`getLoginMethodsForEmail` (los 3 casos, incluido Google-only sin primer login), el
-flujo de reset hasta el punto de envío, el rechazo de código incorrecto, y —
-específicamente — que una solicitud rate-limitada NO borra el código válido de una
+**Estado:** 🟢 Cerrada (AIT-62 y AIT-63, 27/08/2026) — diseño y verificación en vivo
+completos. Además de lo ya verificado contra el deployment propio de T1
+(`uncommon-puffin-303`): `getLoginMethodsForEmail` (los 3 casos, incluido Google-only
+sin primer login), el flujo de reset hasta el punto de envío, el rechazo de código
+incorrecto, y que una solicitud rate-limitada NO borra el código válido de una
 solicitud anterior (confirmado con `npx convex data authVerificationCodes`: misma
-fila, mismo `_id`, mismo hash, antes y después del intento rechazado). **Pendiente,
-sin verificar todavía** (bloqueo conocido: `RESEND_API_KEY`/`RESEND_FROM_EMAIL`, ver
-`docs/03-setup.md` §6ter) — el envío real de un email, un reseteo completo con ese
-código real, y el rechazo de ese mismo código real una vez caducado.
+fila, mismo `_id`, mismo hash, antes y después del intento rechazado) — con las
+credenciales de Resend puestas se verificó también, de principio a fin: envío real de
+un email, reseteo completo con ese código real (contraseña cambiada, sesión emitida),
+y rechazo de ese mismo código real una vez caducado. El frontend (AIT-63) se verificó
+además clic a clic en el navegador: diálogo → código real → contraseña nueva →
+redirect real de `/login` a `/hoy` con sesión iniciada.
 
 ## 7. Decisiones abiertas
 
