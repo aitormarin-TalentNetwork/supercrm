@@ -31,6 +31,7 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Rol Integrador** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/integrador.md` | Diseño **activo** desde 2026-08-14 (cobertura real pendiente — comprobar con `ListAgents` si hay una terminal real jugándolo antes de asumir que ya cubre publicación; mientras no la haya, la Directora sigue publicando ella misma). Cuando haya una terminal real: recoge de la Directora las tareas con GO y hace ella misma el merge/push/verificación de Railway/Linear Done/archivo — la Directora deja de publicar directamente y su trabajo en una tarea termina en "aviso al Integrador". Ver ese documento para el detalle completo. |
 | **Rol CEO** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/ceo.md` | Diseño activo desde 2026-08-12; **se activa bajo demanda** (vía `/factory`, §4ter, o pidiéndoselo a una sesión explícitamente) — no hay una sesión CEO corriendo por defecto, comprobar con `ListAgents`. Supervisa a los workers y al pipeline día a día (Directora, Integrador); la Directora le escala lo que no sabe resolver por su cuenta. Ejecuta los cambios de proceso que decide el Factory Architect (o los decide él mismo si ese rol no está activo). Puede leer transcripts/inspeccionar visualmente una terminal y alterar al worker concreto — y siempre reporta lo aprendido al Factory Architect después. Mientras no haya sesión CEO activa, la Directora escala directamente a Aitor. |
 | **Rol Factory Architect** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/factory-architect.md` | Activo desde 2026-08-15, se crea con `/factory`. Es con quien Aitor habla para ajustar procesos/workflows de la fábrica — decide cambios sencillos de organización él mismo, pregunta a Aitor los sustanciales. Recibe del CEO los avisos de "esto no funciona, revisa el proceso" y le entrega la decisión ya tomada para que la ejecute — nunca implementa él mismo. Vigilancia recíproca con el CEO (ver `ceo.md`). |
+| **Rol Tester** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/tester.md` | Nuevo, activo desde 2026-09-03. Prueba la app ya publicada en Railway (no código, producto en marcha) con el MCP de Playwright + la suite `e2e/*.spec.ts` como smoke-test — periódico vía `/loop` propio, más reactivo en cuanto se confirma un deploy nuevo. Reporta hallazgos siempre al PM (nunca a la Directora ni a Aitor directamente), que evalúa y coordina con la Directora antes de convertirlo en issue de Linear. |
 | **Mensajería directa entre terminales** | `SendMessage` / `ListAgents` (herramientas de Claude Code, no de este repo) | Desde 2026-08-12: la Directora y las terminales desarrolladoras se hablan directamente por aquí (asignar tarea, avisar de export listo, devolver veredicto, corregir) — Aitor ya no tiene que hacer de mensajero pegando texto entre terminales, salvo que quiera intervenir. Confirmar primero qué nombre de sesión (`ListAgents`) corresponde a qué terminal (T1/T2/T3) — no asumirlo solo por el nombre, que puede venir de una tarea antigua. |
 | **Linear** | Equipo "VibeCoding Academy" (AIT), proyecto "SuperCRM — MVP", MCP `linear-aitor` | Fuente de verdad de qué está Done / In Progress / Backlog, y el orden de fases (no adelantarse). |
 | **Convex** | Deployment compartido `third-goldfinch-805` para desarrollo/test de las 3 terminales (dashboard en `README.md` de la raíz) + `stoic-impala-857` como deployment de producción (AIT-59 — ver §2 paso 4 más abajo y ADR-004 en `docs/01-arquitectura.md`; **activo desde 2026-08-24, Railway construye contra `stoic-impala-857` en cada push a `main`**) + un deployment de dev propio por terminal (objetivo de §3bis, migración distinta y todavía pendiente) | Hoy: `third-goldfinch-805` compartido por TODAS las terminales para dev/test, ver riesgo en §3. `stoic-impala-857` es el de producción, activado por AIT-59 (Tanda 1 y Tanda 2 completas). Objetivo de §3bis (aparte, no confundir): cada terminal desarrolla contra su propio deployment de dev aislado; `third-goldfinch-805` ya no tiene rol de publicación — el punto de publicación es el build de Railway contra `stoic-impala-857`, no un merge a `third-goldfinch-805`. |
@@ -474,7 +475,7 @@ abrir esa ventana.
 
 El PM se presenta primero, y decide con Aitor cuándo levantar al resto del equipo: crea
 entonces al **CEO** (orientado ya al proyecto en marcha); el CEO crea **Directora**,
-**Integrador** y **Factory Architect**, cada uno orientado igual; la Directora, una vez
+**Integrador**, **Factory Architect** y **Tester**, cada uno orientado igual; la Directora, una vez
 arriba, crea las terminales de desarrollo que el backlog sostenga ahora mismo — **nunca
 un número fijo**, mismo criterio de siempre: no se abre una terminal para rellenar un
 hueco sin tarea independiente real (§3, "no adelantar fases").
@@ -504,6 +505,7 @@ visualmente lo que va junto, sin depender de una mecánica que no se puede garan
 | PM | verde oscuro `{0, 20000, 0}` | `PM` |
 | Directora | azul oscuro `{0, 0, 20000}` | `Directora` |
 | Integrador | ámbar oscuro `{20000, 12000, 0}` | `Integrador` |
+| Tester | turquesa oscuro `{0, 18000, 18000}` | `Tester` |
 | Desarrollador (`T<n>`) | por defecto (negro) | `T<n> - Desarrollador` |
 | Auditor (`T<n>`) | por defecto (negro) | `T<n> - Auditor` |
 
@@ -529,7 +531,7 @@ Architect, ejecutados por el CEO):
    en paralelo sin que nadie lo notara. Se arregla creando la ventana explícitamente con
    `make new window` en vez de dejar que `do script` decida.
 
-Se usa para **cada** ventana que arranca `claude` — los cinco roles centrales y la
+Se usa para **cada** ventana que arranca `claude` — los seis roles centrales y la
 ventana Desarrollador de cada worker (la ventana Auditor nunca arranca `claude`, no
 necesita este tratamiento):
 ```bash
@@ -622,7 +624,7 @@ es un Desarrollador seguido, a su derecha, de su Auditor. Usa siempre la receta 
 ```
                 [ PM ]
 
-Fila arriba:    [ CEO ]  [ Factory Architect ]  [ Integrador ]
+Fila arriba:    [ CEO ]  [ Factory Architect ]  [ Integrador ]  [ Tester ]
 
                           [T1-Dev][T1-Aud]
 [ Directora ]             [T2-Dev][T2-Aud]
@@ -639,8 +641,9 @@ fila de roles centrales: `Y = Y0 - H - GAP` (es decir, `Y0` pasa a ser la fila d
 CEO/Factory Architect/Integrador, no la más alta de todas).
 
 **Fila de arriba — roles centrales**, en `Y0`, uno al lado de otro (`CEO` en `X0`,
-`Factory Architect` en `X0+(W+GAP)`, `Integrador` en `X0+2*(W+GAP)`) — usa la receta de
-"abrir ventana nueva" para cada uno, luego la de `bounds` con estas coordenadas.
+`Factory Architect` en `X0+(W+GAP)`, `Integrador` en `X0+2*(W+GAP)`, `Tester` en
+`X0+3*(W+GAP)`) — usa la receta de "abrir ventana nueva" para cada uno, luego la de
+`bounds` con estas coordenadas.
 
 **La lista de parejas `T<n>`**, empezando en `Y1 = Y0 + H + 60`: para la pareja número
 `i` (empezando en 0), la ventana Desarrollador va en `X = X0 + W + GAP`,

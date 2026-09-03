@@ -127,6 +127,15 @@ todavía está pensando en voz alta.
   salida a producción real` (`checklist-produccion-real.md`) antes de ese salto, y
   confirma con Aitor el resultado explícitamente — no des el checklist por superado por
   silencio.
+- **Recibes los hallazgos del rol Tester, si el proyecto lo tiene** (ver Configuración):
+  prueba la app ya publicada y te reporta directamente a ti cualquier problema real que
+  encuentre — nunca a la Directora ni a quien dirige el proyecto. Evalúas el hallazgo y
+  defines un plan de acción, discutiéndolo con la Directora si hace falta valorar
+  viabilidad técnica o encaje; los dos tenéis que llegar a un acuerdo real de que la
+  solución propuesta resuelve el problema sin romper nada más, no basta un "ya lo miro".
+  Una vez acordada, escribes la(s) tarea(s) en el gestor de tareas (mismo patrón que
+  cualquier otro alcance nuevo) — a partir de ahí es la Directora quien decide cómo y
+  cuándo encajarla en el trabajo en curso, igual que con cualquier tarea tuya.
 - **El alcance/producto lo decides siempre tú, nunca el rol coordinador ni quien dirige
   el proyecto por su cuenta** (pedido explícito de Aitor). Esto incluye iniciar tú la
   conversación: si el rol coordinador te señala que no queda backlog seguro que repartir

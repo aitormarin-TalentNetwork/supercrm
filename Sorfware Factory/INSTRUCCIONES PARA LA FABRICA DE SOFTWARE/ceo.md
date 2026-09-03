@@ -430,9 +430,12 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
   ver README §4ter para la mecánica completa (colores/títulos por rol, cómo se crean
   PM/Directora, cómo la Directora crea después las terminales de trabajo).
 - **Roles del pipeline que vigilas:** T1/T2/T3 (terminales desarrolladoras), la
-  Directora (coordinador), el Integrador si ya está activo, y el Factory Architect
-  (activo, se crea con `/factory` — ver `factory-architect.md`). El Factory Architect
-  te vigila a ti recíprocamente, con comprobación ligera, no barrido completo.
+  Directora (coordinador), el Integrador si ya está activo, el Factory Architect
+  (activo, se crea con `/factory` — ver `factory-architect.md`), y el Tester (activo
+  desde 2026-09-03, se crea con `/factory` — ver `tester.md`; aliveness + su propio
+  `/loop` armado, mismo trato que ya das a la Directora — ver bullet siguiente). El
+  Factory Architect te vigila a ti recíprocamente, con comprobación ligera, no barrido
+  completo.
 - **A quién le reportas hallazgos de proceso, en vez de decidir tú sola:** el Factory
   Architect — ver `factory-architect.md`.
 - **Al comprobar que la Directora sigue viva, comprueba también de paso que su `/loop`
@@ -517,8 +520,8 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
 - **Documentos de proceso que ejecutas/editas** (el Factory Architect decide el QUÉ, ver
   arriba; tú ejecutas la edición): `README.md`, `CLAUDE.md`, `intro-terminal.txt`,
   `auditor_prompt.txt`/`AGENTS.md`, `pm.md`, `director.md`, `integrador.md`,
-  `lider-celula.md`, `factory-architect.md`, `.claude/commands/factory.md`, o este mismo
-  documento.
+  `lider-celula.md`, `factory-architect.md`, `tester.md`, `.claude/commands/factory.md`,
+  o este mismo documento.
 - **Cada worktree (T1/T2/T3) tiene su propia copia** de `CLAUDE.md`/`AGENTS.md` — si la
   lección afecta a desarrolladores activos, recuerda propagarla (`git merge main` en
   cada worktree, ver `README.md` §3).
