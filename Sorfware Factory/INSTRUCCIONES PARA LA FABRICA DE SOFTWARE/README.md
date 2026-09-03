@@ -587,6 +587,40 @@ como argumento de arranque — espera a que la sesión aparezca en `ListAgents` 
 el rol por `SendMessage` ("eres el Product Manager, lee `pm.md` completo"), exactamente
 igual que ya se hace hoy con los briefs de tarea a T1/T2/T3.
 
+### Receta: cerrar una ventana que tiene un proceso `claude` vivo dentro, sin quedarte
+con un diálogo atascado (hallazgo del CEO, verificado 2026-09-03)
+
+Aplica cuando ya has decidido de verdad que esa ventana concreta hay que cerrarla o
+relanzarla (p. ej. arrancó con un flag/config antiguo, o se quedó atascada en un prompt
+interactivo de arranque que no vas a resolver a mano) — **esto no es un permiso general
+para matar cualquier proceso de cualquier ventana que parezca parada sin más**; la
+decisión de que hay que cerrarla sigue el mismo criterio de siempre (verificación real
+antes de actuar, nunca asumir, ver §2bis).
+
+**No uses `tell application "Terminal" to close (first window whose id is X)` directamente
+sobre una ventana con un proceso vivo dentro.** Terminal.app no cierra sin más: dispara su
+propio diálogo nativo "¿Terminar procesos en curso?", que solo un clic humano puede
+resolver — ninguna sesión de Claude Code puede simular clics/teclas (bloqueado por el
+clasificador de modo auto, con razón: es una capacidad de riesgo real). El comando
+`close` además **devuelve sin error aunque no haya cerrado nada de verdad** — no lo des
+por hecho solo porque `osascript` no falló, verifica el resultado (vuelve a listar las
+ventanas, o captura pantalla) antes de reportar la ventana como cerrada.
+
+Mecánica correcta, sin diálogos:
+```bash
+# 1. Averigua el PID del proceso claude de esa ventana/tty (o ya lo tienes capturado)
+ps -o pid,tty,comm -p <PID>
+
+# 2. Mátalo directamente — esto NO dispara ningún diálogo de confirmación
+kill <PID>
+
+# 3. Ahora sí, cierra la ventana ya vacía (opcional — un shell sin proceso hijo
+#    normalmente cierra sin preguntar; si de todos modos aparece un diálogo residual
+#    de una ventana que YA tenía uno abierto antes del paso 2, ese diálogo concreto
+#    solo lo descarta un clic humano — pídeselo a Aitor, no es bloqueante para nada más)
+osascript -e 'tell application "Terminal" to close (first window whose id is <ID>)'
+```
+
 ### Receta: colocar dos ventanas relacionadas una al lado de la otra
 
 Verificado 2026-08-15, no necesita ningún permiso de Accesibilidad (es una propiedad
