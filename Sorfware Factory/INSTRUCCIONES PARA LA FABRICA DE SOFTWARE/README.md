@@ -547,6 +547,24 @@ tell application "Terminal"
 end tell
 APPLESCRIPT
 ```
+**Fallback si `make new window` falla** (hallazgo del CEO, 2026-09-03: en al menos una
+sesión, `set w to make new window` falló de forma consistente con "AppleEvent handler
+failed" (-10000), mientras que las lecturas/escrituras de propiedades sobre ventanas ya
+existentes seguían funcionando con normalidad — no confirmado todavía como problema
+general del entorno, solo una observación puntual; `make new window` sigue siendo la
+receta primaria porque resuelve un riesgo real ya documentado más arriba, la
+reutilización silenciosa de una ventana inactiva). Si te pasa lo mismo, usa el idioma
+clásico sin ventana de destino explícita:
+```bash
+osascript -e 'tell application "Terminal" to do script "cd '"'"'<ruta>'"'"' && claude --permission-mode auto"'
+```
+**Advertencia:** esta forma es exactamente la que tenía el riesgo de reutilización que
+`make new window` vino a resolver — antes de seguir con el resto de la receta (título,
+color, `id`), comprueba explícitamente que la ventana devuelta es nueva de verdad
+(compara el número de ventanas antes/después con `get id of every window`, o confirma
+que su título no venía heredado de una sesión anterior) — no lo des por hecho solo
+porque no reutilizó ninguna esta vez.
+
 El flag `--permission-mode auto` (verificado 2026-08-25, existe en `claude --help`) es
 la pieza clave: deja la sesión en modo auto desde el arranque, en vez de arrancar en
 modo por defecto/manual y depender de un cambio en caliente después — eso último no

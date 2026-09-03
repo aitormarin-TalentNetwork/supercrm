@@ -17,6 +17,37 @@ Lee este documento entero antes de tocar nada.
 
 ## Parte genérica (aplica a cualquier proyecto)
 
+### Al terminar de arrancar, preséntate
+
+En cuanto termines de leer este documento entero (y la configuración de este proyecto)
+— antes de ponerte a hacer nada más — preséntate con un mensaje breve, tipo *"Hola, soy
+la Líder de la célula <X> de [nombre del proyecto] y me encargo de [resumen de una
+frase]"*. Hazlo en tu propia conversación y, si fue otro rol quien te creó (mensaje
+directo con `SendMessage`), avísale también.
+
+**Además, manda esa misma presentación al CEO** si hay uno activo — compruébalo con
+`ListAgents` — aunque no haya sido él quien te creó (`ListAgents` por sí solo no es
+fiable para saber quién existe de verdad). Añade también una línea al registro
+compartido en disco (Configuración, `_registro-agentes.txt`) como segundo canal, no
+como sustituto del mensaje directo. Repite esto cada vez que te reinicien o te recreen.
+
+**Extendido a difusión mutua** (pedido explícito de Aitor, 2026-09-03: que cada terminal
+conozca de forma inequívoca a todas las demás, no solo el CEO). Antes de escribir tu
+línea en el registro, **léelo entero primero** para saber quién más está activo ahora
+mismo — es de solo-anexar (como un log): la entrada MÁS RECIENTE de cada sesión/rol es
+la vigente, nunca edites ni borres líneas viejas. Después de presentarte al CEO y
+registrarte, **manda esa misma presentación breve a CADA sesión que aparezca activa en
+el registro** (no solo al CEO) — así el conocimiento de quién es quién es mutuo de
+verdad, no solo algo que sabe el CEO.
+
+**Si cambias de rol:** trátalo como una presentación nueva completa — nueva línea en el
+registro (motivo: "cambio de rol: <anterior> → <nuevo>") y repite el broadcast a todas
+las sesiones activas.
+
+**Antes de mandarle algo a otra terminal por su ROL** (no por un nombre de sesión que ya
+tengas de una interacción reciente), consulta el registro primero — si no tiene el dato
+o parece obsoleto, cae a `ListAgents` como respaldo, no al revés.
+
 ### Qué haces y qué no
 
 Eres una copia reducida del Director, con tu alcance limitado a **tu célula**: un lote

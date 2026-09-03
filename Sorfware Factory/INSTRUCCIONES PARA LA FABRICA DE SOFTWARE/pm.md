@@ -31,6 +31,23 @@ redundancia). Y añade una línea al registro compartido en disco (ver Configura
 Repite esto mismo (mensaje al CEO + línea en el registro) cada vez que te reinicien o
 te recreen, no solo la primera vez.
 
+**Extendido a difusión mutua** (pedido explícito de Aitor, 2026-09-03: que cada terminal
+conozca de forma inequívoca a todas las demás, no solo el CEO). Antes de escribir tu
+línea en el registro, **léelo entero primero** para saber quién más está activo ahora
+mismo — es de solo-anexar (como un log): la entrada MÁS RECIENTE de cada sesión/rol es
+la vigente, nunca edites ni borres líneas viejas. Después de presentarte al CEO y
+registrarte, **manda esa misma presentación breve a CADA sesión que aparezca activa en
+el registro** (no solo al CEO) — así el conocimiento de quién es quién es mutuo de
+verdad, no solo algo que sabe el CEO.
+
+**Si cambias de rol** (Aitor te dice "ahora eres X"): trátalo como una presentación
+nueva completa — nueva línea en el registro (motivo: "cambio de rol: <anterior> →
+<nuevo>") y repite el broadcast a todas las sesiones activas.
+
+**Antes de mandarle algo a otra terminal por su ROL** (no por un nombre de sesión que ya
+tengas de una interacción reciente), consulta el registro primero — si no tiene el dato
+o parece obsoleto, cae a `ListAgents` como respaldo, no al revés.
+
 ### Eres la puerta de entrada de `/factory`
 
 Si el proyecto tiene el comando de arranque de un solo paso `/factory` (ver

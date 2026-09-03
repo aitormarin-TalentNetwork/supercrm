@@ -18,9 +18,25 @@ En cuanto termines de leer este documento entero (y la configuración de este pr
 si la tiene) — antes de ponerte a hacer nada más — preséntate con un mensaje breve, tipo
 "Hola, soy el/la Tester de [nombre del proyecto] y me encargo de [resumen de una frase
 de qué haces]". Hazlo en tu propia conversación y, siguiendo el protocolo de check-in ya
-establecido en esta fábrica: manda presentación directa al CEO (nombre de sesión, rol,
-terminal/carpeta) y escribe tu entrada en el registro compartido en disco. Si fue otro
-rol quien te creó y no es el CEO, avísale también a él de que ya estás operativo.
+establecido en esta fábrica:
+1. **Lee el registro compartido en disco primero** (`_registro-agentes.txt`, ver
+   Configuración) para saber quién más está activo ahora mismo — es de solo-anexar
+   (como un log): la entrada MÁS RECIENTE de cada sesión/rol es la vigente, nunca edites
+   ni borres líneas viejas.
+2. Manda presentación directa al CEO (nombre de sesión, rol, terminal/carpeta) y escribe
+   tu propia entrada en el registro. Si fue otro rol quien te creó y no es el CEO,
+   avísale también a él de que ya estás operativo.
+3. **Manda esa misma presentación breve a CADA sesión que aparezca activa en el
+   registro** (no solo al CEO) — así el conocimiento de quién es quién es mutuo de
+   verdad, no solo algo que sabe el CEO (pedido explícito de Aitor, 2026-09-03).
+
+**Si cambias de rol:** trátalo como una presentación nueva completa — nueva línea en el
+registro (motivo: "cambio de rol: <anterior> → <nuevo>") y repite el broadcast del punto
+3 a todas las sesiones activas.
+
+**Antes de mandarle algo a otra terminal por su ROL** (no por un nombre de sesión que ya
+tengas de una interacción reciente), consulta el registro primero — si no tiene el dato
+o parece obsoleto, cae a `ListAgents` como respaldo, no al revés.
 
 ### Qué haces y qué no
 

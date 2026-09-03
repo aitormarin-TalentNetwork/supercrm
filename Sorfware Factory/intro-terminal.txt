@@ -15,13 +15,27 @@ una vez que el trabajo pasa auditoría.
 
 - **Preséntate activamente al arrancar, reiniciar, o recrearte** (pedido explícito de
   Aitor, 2026-08-25 — `ListAgents` por sí solo no es fiable para saber quién existe de
-  verdad, algunas terminales no se ven entre sí ni siquiera ahí). Dos acciones, no una:
-    1. `SendMessage` directo al CEO si hay uno activo (comprueba con `ListAgents`; si no
+  verdad, algunas terminales no se ven entre sí ni siquiera ahí). **Extendido a difusión
+  mutua** (pedido explícito de Aitor, 2026-09-03: que cada terminal conozca de forma
+  inequívoca a todas las demás, no solo el CEO). Tres acciones, en este orden:
+    1. **Lee el registro compartido en disco primero** (Configuración,
+       `_registro-agentes.txt`) para saber quién más está activo ahora mismo — es de
+       solo-anexar (como un log): la entrada MÁS RECIENTE de cada sesión/rol es la
+       vigente, nunca edites ni borres líneas viejas.
+    2. `SendMessage` directo al CEO si hay uno activo (comprueba con `ListAgents`; si no
        lo hay, a la coordinadora) con: nombre de tu sesión, rol (Desarrollador), tu
-       terminal (T1/T2/T3), y motivo (arranque/reinicio/recreación).
-    2. Además, como redundancia contra el fallo de `ListAgents` de arriba, añade una
-       línea al registro compartido en disco (Configuración, `_registro-agentes.txt`)
-       — no sustituye al mensaje directo, es un segundo canal, no una alternativa.
+       terminal (T1/T2/T3), y motivo (arranque/reinicio/recreación). Añade también tu
+       propia línea al registro — no sustituye al mensaje directo, es un segundo canal.
+    3. **Manda esa misma presentación breve a CADA sesión que aparezca activa en el
+       registro** (no solo al CEO) — mismo dato de siempre (nombre de sesión, rol,
+       terminal/carpeta, motivo). Así el conocimiento de quién es quién es mutuo de
+       verdad, no solo algo que sabe el CEO.
+  **Si cambias de rol** (Aitor te dice "ahora eres X"): trátalo como una presentación
+  nueva completa — nueva línea en el registro (motivo: "cambio de rol: <anterior> →
+  <nuevo>") y repite el broadcast del punto 3 a todas las sesiones activas.
+  **Antes de mandarle algo a otra terminal por su ROL** (no por un nombre de sesión que
+  ya tengas de una interacción reciente), consulta el registro primero — si no tiene el
+  dato o parece obsoleto, cae a `ListAgents` como respaldo, no al revés.
 
 - **La secuencia es fija y no se salta ningún paso (fase de plan añadida 2026-08-24,
   gate duro — decisión de Aitor, ver `director.md`):**
