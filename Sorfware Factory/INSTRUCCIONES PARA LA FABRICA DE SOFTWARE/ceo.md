@@ -450,6 +450,17 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
 3. Si la lección afecta a cómo trabajan las terminales desarrolladoras, actualízalo
    también en su documento de onboarding — y si el proyecto duplica ficheros de proceso
    por worktree, recuerda propagarlo a los activos (ver Configuración).
+4. **Si el documento que editas es el de un rol con una sesión YA VIVA, avísale tú misma
+   por `SendMessage` en el momento del cambio — no te fíes de que lo recoja sola**
+   (hallazgo del Factory Architect, 2026-09-03: el PM llevaba corriendo desde antes de
+   que se añadiera la regla del registro de check-in, 2026-08-26; la regla estaba en su
+   documento desde el primer día, pero una sesión ya viva no vuelve a leer su propio
+   documento de rol por su cuenta — solo lo hace si algo se lo dice. Se quedó sin
+   enterarse semanas). Esto aplica a cualquier rol de sesión larga (PM, Directora,
+   Integrador, Tester, y a ti misma) — editar el fichero es solo la mitad del trabajo;
+   la otra mitad es que la sesión activa afectada se entere de verdad, ahora, no la
+   próxima vez que se reinicie. Si el cambio afecta a varios roles activos a la vez,
+   avísales a todos, no solo al primero que se te ocurra.
 
 ---
 

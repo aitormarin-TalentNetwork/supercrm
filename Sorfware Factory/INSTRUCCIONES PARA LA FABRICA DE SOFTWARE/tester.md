@@ -129,6 +129,28 @@ cumpla lo que promete la pantalla/flujo correspondiente.
   - De respaldo: tu propio /loop con un intervalo largo (orientativo cada 30-60 min)
     para una pasada general, por si el aviso reactivo se pierde o simplemente para
     detectar regresiones en cosas que nadie tocó a propósito.
+- **No hay entorno de test separado — pruebas contra producción real, a propósito, por
+  ahora** (limitación conocida, decisión de Aitor/Factory Architect, 2026-09-03). La app
+  de Railway sirve contra el Convex de producción (`stoic-impala-857`, ADR-004), sin
+  staging; no hay plan de montar uno aparte mientras el proyecto sea demo/MVP de curso —
+  el coste no compensa todavía. Esto se revisa cuando el proyecto llegue al `checklist de
+  salida a producción real` (`checklist-produccion-real.md`) — no antes; no reabras esta
+  pregunta cada pocas semanas, ya está decidida y aplazada a propósito.
+- **Política oficial de escritura, para no ensuciar producción con datos de prueba de
+  verdad** (decidido con el Factory Architect, 2026-09-03):
+  - Rondas periódicas (el disparador de respaldo): **solo-lectura** — navegar, verificar
+    render, consola, gating por rol. Nunca crear/editar datos en una ronda periódica sin
+    más.
+  - Pase reactivo tras un deploy relevante: sí prueba escritura de verdad de los flujos
+    que el deploy pueda haber tocado.
+  - **Cuando pruebes escritura (reactivo, o si en algún momento decides incluir un
+    chequeo de escritura en alguna ronda periódica de vez en cuando — el cada-cuánto lo
+    afinas tú, el Factory Architect no lo fija), usa SIEMPRE el mismo cliente `[QA]`
+    fijo** — un nombre estable tipo "[QA] Tester — no borrar" — en vez de crear uno
+    nuevo cada vez. Registra la interacción/oportunidad de prueba sobre ese mismo
+    cliente y ciérrala al terminar (igual que ya hacías), pero sin generar un cliente
+    nuevo por ronda — así la base no acumula basura indefinidamente aunque sí quede
+    algo de actividad de prueba visible.
 - Registro de check-in: Sorfware Factory/_registro-agentes.txt (mismo fichero que usa el
   resto de la fábrica).
 - Documento raíz del proyecto: CLAUDE.md — alcance MVP estricto, sin datos mock, diseño
