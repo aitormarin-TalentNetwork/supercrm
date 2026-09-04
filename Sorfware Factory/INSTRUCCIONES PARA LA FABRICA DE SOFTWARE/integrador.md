@@ -192,8 +192,11 @@ de este proyecto).
   un fichero de infraestructura a excluir del commit — ver el incidente real documentado
   en `README.md` §2 (Railway estuvo ~4 horas fallando el build en producción por
   excluirlo). Recuerda también que `npx convex codegen` **no despliega** funciones
-  nuevas — el comando de despliegue real es `npx convex dev --once` (ver `README.md`
-  §2, incidente AIT-33/AIT-35).
+  nuevas — pero desde AIT-59 (2026-08-24) tampoco hace falta que lo hagas tú: Railway
+  construye Convex él solo en cada `git push` a `main` (ver `README.md` §2, paso 4, para
+  el mecanismo exacto contra `stoic-impala-857`). `npx convex dev --once` es solo para
+  desarrollo/test contra `third-goldfinch-805` y ya no publica nada real — nunca
+  `npx convex deploy` a mano desde un worktree.
 - **Comando de merge:** `git merge --no-ff <rama> -m "..."`, mismo estilo de mensaje que
   el historial existente. Luego `npx convex codegen` de nuevo sobre `main` por si acaso,
   y `git push origin main` (esto dispara el deploy en Railway solo).
