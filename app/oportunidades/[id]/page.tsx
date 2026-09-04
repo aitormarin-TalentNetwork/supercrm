@@ -109,7 +109,8 @@ export default function OportunidadPage({
             type="button"
             onClick={handleBack}
             aria-label="Volver"
-            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+            // AIT-71: h-11 w-11 (44px, --tap-min), no h-[38px] w-[38px].
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
           >
             <ArrowLeft size={18} />
           </button>
@@ -134,7 +135,8 @@ export default function OportunidadPage({
           type="button"
           onClick={handleBack}
           aria-label="Volver"
-          className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+          // AIT-71: h-11 w-11 (44px, --tap-min), no h-[38px] w-[38px].
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
         >
           <ArrowLeft size={18} />
         </button>
@@ -146,7 +148,8 @@ export default function OportunidadPage({
           <a
             href={`tel:${summary.customerPhone}`}
             aria-label="Llamar"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
+            // AIT-71: h-11 w-11 (44px, --tap-min), no h-10 w-10.
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
           >
             <Phone size={18} />
           </a>
@@ -602,9 +605,10 @@ function QuoteSection({
           <p className="mt-2.5 text-sm text-text-secondary">
             Todavía no se ha creado ningún presupuesto para esta oportunidad.
           </p>
+          {/* AIT-71: sin `size="sm"` (36px) — cae al `md` por defecto
+              (44px, --tap-min), mismo fix ya aplicado en AIT-68. */}
           <Button
             variant="secondary"
-            size="sm"
             className="mt-3"
             leftIcon={<Plus size={14} />}
             disabled={!isOpen}
