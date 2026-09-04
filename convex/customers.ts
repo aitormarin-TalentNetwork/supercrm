@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
-import { isStoreWideRole, requireUser } from "./model/access";
+import { mutation, query } from "./_generated/server";
+import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 
 // Datos del cliente y sus oportunidades para la Ficha de cliente (AIT-11).
 // El historial de interacciones es una query aparte (convex/interactions.ts),
@@ -8,9 +8,13 @@ import { isStoreWideRole, requireUser } from "./model/access";
 // acceso que opportunities.getSummary: misma tienda, y si no ve toda la
 // tienda (isStoreWideRole), solo lo suyo.
 export const getFicha = query({
-  args: { customerId: v.id("customers") },
-  handler: async (ctx, { customerId }) => {
+  // AIT-70: `v.string()` + `normalizeId`, no `v.id("customers")` — ver la
+  // nota igual en opportunities.ts:getSummary.
+  args: { customerId: v.string() },
+  handler: async (ctx, { customerId: rawCustomerId }) => {
     const user = await requireUser(ctx);
+    const customerId = ctx.db.normalizeId("customers", rawCustomerId);
+    if (customerId === null) return null;
     const customer = await ctx.db.get(customerId);
     if (customer === null) return null;
     if (customer.storeId !== user.storeId) return null;
@@ -84,5 +88,33 @@ export const list = query({
         ownerName: ownerNameById.get(c.ownerId) ?? null,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  },
+});
+
+// AIT-65: eliminar un cliente — solo `owner`. Bloquea (no cascada) si
+// tiene oportunidades. Sin comprobación adicional de interacciones/
+// recordatorios: ambos exigen una oportunidad existente para crearse, así
+// que un cliente sin oportunidades no puede tenerlos (ver plan-loop1,
+// "investigación previa").
+export const remove = mutation({
+  args: { customerId: v.id("customers") },
+  handler: async (ctx, { customerId }) => {
+    const user = await requireOwner(ctx);
+    const customer = await ctx.db.get(customerId);
+    if (customer === null || customer.storeId !== user.storeId) {
+      throw new Error("Cliente no encontrado.");
+    }
+
+    const opportunities = await ctx.db
+      .query("opportunities")
+      .withIndex("by_customer", (q) => q.eq("customerId", customerId))
+      .collect();
+    if (opportunities.length > 0) {
+      throw new Error(
+        `No se puede eliminar: tiene ${opportunities.length} oportunidad(es) asociada(s). Bórralas o reasígnalas primero.`,
+      );
+    }
+
+    await ctx.db.delete(customerId);
   },
 });

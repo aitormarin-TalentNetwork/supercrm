@@ -68,12 +68,32 @@ export default function OportunidadPage({
   const { id } = use(params);
   const opportunityId = id as Id<"opportunities">;
   const router = useRouter();
+  const role = useQuery(api.users.getCurrentUserRole);
   const summary = useQuery(api.opportunities.getSummary, { opportunityId });
   const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
-  const [modal, setModal] = useState<"stage" | "priority" | "won" | "lost" | null>(
-    null,
-  );
+  const [modal, setModal] = useState<
+    "stage" | "priority" | "won" | "lost" | "delete" | null
+  >(null);
   const [interactionModalOpen, setInteractionModalOpen] = useState(false);
+  const [deleteInteractionId, setDeleteInteractionId] =
+    useState<Id<"interactions"> | null>(null);
+
+  // Detalle es el nodo central (docs/01-arquitectura.md §3): se llega desde
+  // Hoy, Pipeline, Ficha de cliente, Panel y Supervisión — "Volver" no
+  // puede apuntar siempre a /hoy (ronda de auditoría 1 de AIT-25,
+  // sugerencia #1). router.back() vuelve a la pantalla de origen real; si
+  // no hay historial propio (enlace directo, pestaña nueva), "/" ya
+  // resuelve el destino por rol (owner → /panel, sales → /hoy) sin
+  // duplicar esa lógica aquí. Declarada como function (hoisted): se usa
+  // también en la rama "no encontrada" más abajo, antes de su definición
+  // textual.
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
 
   if (summary === undefined || interactions === undefined) {
     return (
@@ -85,29 +105,29 @@ export default function OportunidadPage({
 
   if (summary === null || interactions === null) {
     return (
-      <main className="flex flex-1 items-center justify-center p-8 font-sans">
-        <p className="text-text-secondary">Oportunidad no encontrada o sin acceso.</p>
+      <main className="flex flex-1 flex-col bg-bg font-sans text-text">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="Volver"
+            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+            Oportunidad
+          </div>
+        </header>
+        <div className="flex flex-1 items-center justify-center p-8">
+          <p className="text-text-secondary">Esta oportunidad ya no existe.</p>
+        </div>
       </main>
     );
   }
 
   const isOpen = summary.status === "open";
   const isOverdue = summary.nextStep?.overdue ?? false;
-
-  // Detalle es el nodo central (docs/01-arquitectura.md §3): se llega desde
-  // Hoy, Pipeline, Ficha de cliente, Panel y Supervisión — "Volver" no
-  // puede apuntar siempre a /hoy (ronda de auditoría 1 de AIT-25,
-  // sugerencia #1). router.back() vuelve a la pantalla de origen real; si
-  // no hay historial propio (enlace directo, pestaña nueva), "/" ya
-  // resuelve el destino por rol (owner → /panel, sales → /hoy) sin
-  // duplicar esa lógica aquí.
-  function handleBack() {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-  }
 
   return (
     <main className="flex flex-1 flex-col bg-bg font-sans text-text">
@@ -255,6 +275,24 @@ export default function OportunidadPage({
                 </Button>
               </>
             )}
+            {role === "owner" && (
+              <>
+                {!isOpen && <span className="flex-1" />}
+                <Button
+                  variant="danger"
+                  leftIcon={<Trash2 size={16} />}
+                  disabled={interactions.length > 0}
+                  title={
+                    interactions.length > 0
+                      ? "No se puede eliminar: tiene interacciones registradas. Bórralas primero."
+                      : undefined
+                  }
+                  onClick={() => setModal("delete")}
+                >
+                  Eliminar oportunidad
+                </Button>
+              </>
+            )}
           </div>
         </section>
 
@@ -322,6 +360,8 @@ export default function OportunidadPage({
           <InteractionTimeline
             interactions={interactions}
             emptyMessage="Sin interacciones registradas todavía."
+            canDelete={role === "owner"}
+            onRequestDelete={setDeleteInteractionId}
           />
         </section>
       </div>
@@ -330,6 +370,16 @@ export default function OportunidadPage({
         open={interactionModalOpen}
         onClose={() => setInteractionModalOpen(false)}
         opportunityId={opportunityId}
+      />
+      <DeleteOpportunityDialog
+        open={modal === "delete"}
+        onClose={() => setModal(null)}
+        opportunityId={opportunityId}
+        customerId={summary.customerId}
+      />
+      <DeleteInteractionDialog
+        interactionId={deleteInteractionId}
+        onClose={() => setDeleteInteractionId(null)}
       />
       <ChangeStageDialog
         open={modal === "stage"}
@@ -1014,6 +1064,145 @@ function QuoteDialog({
           </div>
         )}
       </form>
+    </Dialog>
+  );
+}
+
+// AIT-65: mismo patrón que ChangeStageDialog (loading/error inline), pero
+// sin campo que editar — solo confirmación. Al tener éxito, la oportunidad
+// ya no existe: redirige a la ficha del cliente (sigue existiendo), no de
+// vuelta a esta misma página.
+function DeleteOpportunityDialog({
+  open,
+  onClose,
+  opportunityId,
+  customerId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  opportunityId: Id<"opportunities">;
+  customerId: Id<"customers">;
+}) {
+  const router = useRouter();
+  const removeOpportunity = useMutation(api.opportunities.remove);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleConfirm() {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await removeOpportunity({ opportunityId });
+      router.push(`/clientes/${customerId}`);
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo eliminando oportunidad:", err);
+      }
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se ha podido eliminar la oportunidad. Inténtalo de nuevo.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button variant="danger" onClick={handleConfirm} disabled={loading}>
+        {loading ? "Eliminando…" : "Eliminar oportunidad"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Eliminar oportunidad"
+      description="Esta oportunidad se eliminará de forma permanente, junto con su presupuesto y próximo paso. Esta acción no se puede deshacer."
+      width={420}
+      footer={footer}
+    >
+      {error && (
+        <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+      )}
+    </Dialog>
+  );
+}
+
+// AIT-65: confirmación de borrado de UNA interacción — `interactionId`
+// (en vez de `open`) controla la visibilidad, igual que
+// `interactionOpportunityId` ya hace en app/clientes/[id]/page.tsx para
+// RegistrarInteraccionModal: null = cerrado.
+function DeleteInteractionDialog({
+  interactionId,
+  onClose,
+}: {
+  interactionId: Id<"interactions"> | null;
+  onClose: () => void;
+}) {
+  const removeInteraction = useMutation(api.interactions.remove);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleConfirm() {
+    if (loading || interactionId === null) return;
+    setLoading(true);
+    setError("");
+    try {
+      await removeInteraction({ interactionId });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo eliminando interacción:", err);
+      }
+      setError("No se ha podido eliminar la interacción. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button variant="danger" onClick={handleConfirm} disabled={loading}>
+        {loading ? "Eliminando…" : "Eliminar interacción"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={interactionId !== null}
+      onClose={handleClose}
+      title="Eliminar interacción"
+      description="Esta interacción se eliminará de forma permanente. Esta acción no se puede deshacer."
+      width={420}
+      footer={footer}
+    >
+      {error && (
+        <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+      )}
     </Dialog>
   );
 }
