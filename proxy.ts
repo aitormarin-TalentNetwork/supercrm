@@ -24,6 +24,12 @@ const isProtectedRoute = createRouteMatcher([
   "/pipeline(.*)",
   "/supervision(.*)",
   "/catalogo(.*)",
+  // AIT-67: faltaba en esta lista — era la única pantalla privada que no
+  // pasaba por este redirect, así que sin sesión llegaba a montarse y sus
+  // queries de Convex (customers.list, customers.getFicha) lanzaban "No
+  // autenticado." sin ningún guard que lo capturase (pantalla de error
+  // muerta en vez de /login).
+  "/clientes(.*)",
   // AIT-30 (hallazgo de auditoría, NO-GO ronda 1): sin esto, un usuario
   // anónimo podía cargar /reactivar directamente — la query de Convex
   // rechaza la petición ("No autenticado"), pero eso no sustituye el
