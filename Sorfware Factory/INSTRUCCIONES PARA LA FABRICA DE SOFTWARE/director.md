@@ -233,7 +233,15 @@ mientras exista uno activo capaz de hacer esa criba — antes esta sección se l
 activo escalas directamente a quien dirige el proyecto. El protocolo de 5 minutos de
 más abajo (si el CEO no responde, sube un escalón) sigue siendo el mismo respaldo de
 siempre — esto no lo cambia, solo corrige quién decide la gravedad cuando el CEO sí
-responde. Los disparadores:
+responde.
+
+**Esto NO convierte cada decisión operativa tuya en algo que pasar por el CEO**
+(aclaración del propio CEO, 2026-09-04, tras una duda real sobre repartir una tarea
+entre T1/T2/T3): la lista de disparadores de abajo es la que va primero al CEO — el
+reparto rutinario de tareas entre tus terminales, decidir cuánto margen dar antes de
+intervenir, o cualquier otro juicio operativo de los que ya tenías antes de esta regla,
+sigue siendo tuyo sin consultar a nadie. Solo lo de la lista siguiente pasa primero por
+el CEO mientras esté activo. Los disparadores:
 - Hay una decisión de alcance o de producto ambigua que no está en ninguna fuente de
   verdad del proyecto — no se inventa alcance. **Esta escalada concreta va siempre al
   rol de producto (PM) si el proyecto lo tiene activo, nunca directamente a quien dirige
