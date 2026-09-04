@@ -759,10 +759,57 @@ note o lo entienda. Esto le da a Aitor un canal de observación e intervención
 independiente del Director — mismo principio de "malla, no pirámide" ya aplicado entre
 agentes (ver §2bis y `ceo.md`), ahora extendido a Aitor.
 
-Comando, lanzado por la Directora apuntando a la ventana Auditor correcta de ese worker:
+Comando, lanzado por la Directora apuntando a la ventana Auditor correcta de ese worker
+— encadena al final un marker de finalización (`touch /tmp/claude-crm-auditor-done-T<n>`,
+ver "Patrón: aviso instantáneo sin depender del barrido" más abajo, §2bis-ter, para el
+mecanismo completo de cómo la Directora se entera sola, al instante, de que el auditor
+terminó):
 ```bash
-osascript -e 'tell application "Terminal" to do script "cd \"<worktree>\" && codex exec \"Audita el fichero <ruta> siguiendo tu rol de auditor ya cargado desde AGENTS.md\"" in (first window whose custom title of tab 1 contains "T<n> - Auditor")'
+osascript -e 'tell application "Terminal" to do script "cd \"<worktree>\" && codex exec \"Audita el fichero <ruta> siguiendo tu rol de auditor ya cargado desde AGENTS.md\" ; touch /tmp/claude-crm-auditor-done-T<n>" in (first window whose custom title of tab 1 contains "T<n> - Auditor")'
 ```
+
+### Patrón: aviso instantáneo sin depender del barrido (principio general, 2026-09-04)
+
+**Cuándo aplica:** cualquier vez que un rol dispara trabajo no interactivo/no-mensajeable
+sobre un proceso externo (no una sesión Claude Code — eso ya tiene su propio canal, ver
+`SendMessage`/`notify_when_idle`) y necesita saber cuándo termina, sin esperar al próximo
+ciclo de un barrido periódico ni quedarse sondeando a mano. Caso que lo originó: la
+Directora disparaba al auditor (`codex exec`, ver arriba) y un veredicto NO-GO se quedó
+~6 horas sin relayar porque nadie volvía a mirar esa ventana concreta hasta el siguiente
+ciclo del barrido (hasta 20 min, y esa noche ni eso — ver incidente en `director.md`).
+No es un parche puntual para Directora↔Auditor: es el mecanismo por defecto para
+**cualquier** par de roles, actuales o futuros, en esta situación.
+
+**El patrón, en 2 pasos:**
+1. Encadena un marker de finalización al final de lo que dispares — `touch
+   /tmp/<algo>-done-<identificador único de esa tarea concreta>` (nunca reutilices un
+   marker de otro propósito, p. ej. el del aviso de voz a Aitor — son cosas distintas).
+2. Lanza tú mismo, con la herramienta `Bash` y `run_in_background: true`, un bucle que
+   espere ese marker: `until [ -f /tmp/<mismo-marker> ]; do sleep 2; done; rm -f
+   /tmp/<mismo-marker>`. Recibes la notificación de finalización directamente en tu
+   propia conversación, en el instante en que el marker aparece — sin sondeo por
+   intervalos largos ni depender de que nadie más lo note.
+
+**Esto es cinturón y tirantes con el barrido, no lo sustituye**: el aviso instantáneo es
+el camino rápido; el barrido periódico sigue siendo la red de seguridad si el proceso en
+segundo plano muere (p. ej. con un reinicio de sesión) o el aviso se pierde por
+cualquier otro motivo — no lo elimines de tu barrido solo porque tengas esto armado.
+
+**Verificado en vivo** (2026-09-04): el CEO probó el mecanismo directamente (marker +
+`Bash run_in_background` esperándolo) antes de documentarlo aquí — funciona exactamente
+como se describe.
+
+**Mejora opcional para el caso Directora↔Auditor, NO verificada todavía — no adoptar sin
+probarla primero:** en vez de releer el buffer de pantalla de la ventana del auditor
+(frágil), `codex exec "..." 2>&1 | tee /tmp/claude-crm-auditor-T<n>.log` mostraría la
+salida en pantalla igual que ahora (Aitor sigue viendo/pudiendo intervenir) y además la
+guardaría en un fichero legible directamente con `Read`, sin scripting de Terminal.app.
+**Riesgo a comprobar antes de adoptarlo:** algunas CLIs cambian de comportamiento (dejan
+de renderizar prompts interactivos) cuando su salida no va a un TTY real sino a una
+tubería — verifica que el prompt de permiso de Codex se sigue viendo y siendo clicable
+con `tee` de por medio. Si rompe eso, descártalo y quédate con la lectura de ventana que
+ya existe; el patrón de arriba (marker + espera en segundo plano) funciona igual de bien
+sin esta mejora.
 
 ### Modo de publicación del Integrador
 

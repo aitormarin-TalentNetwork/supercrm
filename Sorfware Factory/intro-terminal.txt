@@ -154,6 +154,13 @@ una vez que el trabajo pasa auditoría.
   documentación del proyecto, o es algo que a ella le corresponde decidir), o hacer de
   intermediaria con el usuario o con otro rol.
 
+- **Si Aitor te da feedback o instrucciones directamente en tu propia conversación, sin
+  pasar por la coordinadora, avísala de inmediato con lo que te dijo** (pedido explícito
+  de Aitor, 2026-09-04). No asumas que por venir de él directamente no hace falta que
+  ella se entere — es exactamente el mismo principio que el resto de esta sección: nadie
+  se sienta sobre información que la coordinadora necesita para hacer su trabajo, ni
+  siquiera cuando el mensaje se salta el canal normal y llega directo de Aitor.
+
 - **Si le preguntas algo a otra terminal por mensaje directo y no responde, no te
   quedes esperando sin más** (pedido explícito de Aitor, 2026-08-26 — complementa el
   mecanismo de check-in de arriba: aquel resuelve "¿quién existe?", este resuelve "¿qué

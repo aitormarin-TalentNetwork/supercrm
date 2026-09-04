@@ -327,20 +327,29 @@ compartidos" arriba): si lleva abandonado más de lo razonable, es el mismo tipo
 problema que una terminal parada — nadie más tiene por qué notarlo si no lo necesita
 todavía.
 
-**Este mismo barrido también repasa las auditorías DISPARADAS Y AÚN NO RELAYADAS —
-un hueco distinto de "terminal atascada"** (añadido 2026-09-04, incidente real: un
-veredicto NO-GO de un plan-loop de AIT-66 salió a los pocos minutos de dispararse, pero
-se quedó ~6 horas sin relayar porque el barrido solo comprobaba sesiones atascadas,
-nunca volvía a mirar el CONTENIDO de una ventana de auditor ya disparada — un `codex
-exec` que termina se queda en un prompt normal, sin ninguna señal que `ListAgents`
-pueda captar; es "trabajo terminado sin relayar", no "atascado"). El criterio de "sigue
-abierta": el fichero `..._loop<N>-para-auditor.txt` (de plan o de código, cubre ambos
-tipos de gate) que disparaste sigue siendo el vigente en "codigo para auditar/" y
-todavía no le has mandado el veredicto a la terminal correspondiente. Para cada una,
-relee el contenido de esa ventana de Auditor concreta (mismo mecanismo `osascript`/
-historial de ventana que ya usas para el resto del barrido) para ver si ya hay
-veredicto — y si lo hay, relaya de inmediato a la terminal, no te quedes solo en
-"detectado".
+**Camino rápido, ya no dependas solo del barrido para enterarte de un veredicto:**
+cuando dispares al auditor (`README.md` §"El auditor deja de ser invisible"), encadena
+el marker de finalización y lanza tú misma la espera en segundo plano — mecanismo
+general documentado en `README.md` §"Patrón: aviso instantáneo sin depender del
+barrido". Te enteras al instante, en tu propia conversación, sin esperar al siguiente
+ciclo.
+
+**El barrido sigue repasando las auditorías DISPARADAS Y AÚN NO RELAYADAS de todas
+formas, como red de seguridad** — un hueco distinto de "terminal atascada" (añadido
+2026-09-04, incidente real: un veredicto NO-GO de un plan-loop de AIT-66 salió a los
+pocos minutos de dispararse, pero se quedó ~6 horas sin relayar porque ni el aviso
+instantáneo estaba armado esa noche ni el barrido volvía a mirar el CONTENIDO de una
+ventana de auditor ya disparada — un `codex exec` que termina se queda en un prompt
+normal, sin ninguna señal que `ListAgents` pueda captar; es "trabajo terminado sin
+relayar", no "atascado"). El aviso instantáneo es el camino rápido; esto es el
+respaldo si el proceso en segundo plano muere (p. ej. un reinicio de sesión) o se te
+olvida armarlo. El criterio de "sigue abierta": el fichero
+`..._loop<N>-para-auditor.txt` (de plan o de código, cubre ambos tipos de gate) que
+disparaste sigue siendo el vigente en "codigo para auditar/" y todavía no le has
+mandado el veredicto a la terminal correspondiente. Para cada una, relee el contenido
+de esa ventana de Auditor concreta (mismo mecanismo `osascript`/historial de ventana
+que ya usas para el resto del barrido) para ver si ya hay veredicto — y si lo hay,
+relaya de inmediato a la terminal, no te quedes solo en "detectado".
 
 **Mecanismo técnico que arma este barrido (añadido 2026-08-24, verificado en vivo):**
 usa la skill `/loop` **en modo dinámico auto-paced (`ScheduleWakeup`), no `CronCreate`**
