@@ -181,11 +181,14 @@ export default function ReactivarPage() {
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 flex-none items-center gap-3 border-b border-border bg-surface px-4">
           <NavToggleButton />
+          {/* AIT-72: h-11 w-11 (44px, --tap-min), no h-[38px] w-[38px]
+              — mismo fix ya aplicado en "Volver" de Ficha de cliente y
+              Detalle de oportunidad (AIT-71). */}
           <button
             type="button"
             onClick={handleBack}
             aria-label="Volver"
-            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
           >
             <RefreshCw size={18} />
           </button>

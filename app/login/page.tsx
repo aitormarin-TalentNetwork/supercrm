@@ -305,10 +305,13 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <div className="mt-2 text-right">
+                {/* AIT-72: min-h-[44px] (--tap-min), no solo la altura de
+                    la línea de texto — mismo patrón ya usado en los
+                    enlaces "Ver pipeline"/"Ver supervisión" del Panel. */}
                 <button
                   type="button"
                   onClick={() => setResetDialogOpen(true)}
-                  className="text-sm font-semibold text-primary hover:underline"
+                  className="inline-flex min-h-[44px] items-center text-sm font-semibold text-primary hover:underline"
                 >
                   ¿Olvidaste la contraseña?
                 </button>

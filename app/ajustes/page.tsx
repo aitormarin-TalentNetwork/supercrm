@@ -475,12 +475,13 @@ function UserRow({
               ))}
             </Select>
           </div>
-          <Button size="sm" onClick={handleSave} disabled={loading}>
+          {/* AIT-72: sin `size="sm"` (36px) — cae al `md` por defecto
+              (44px, --tap-min), mismo fix ya aplicado en AIT-68/71. */}
+          <Button onClick={handleSave} disabled={loading}>
             {loading ? "Guardando…" : "Guardar"}
           </Button>
           <Button
             variant="secondary"
-            size="sm"
             onClick={() => setEditing(false)}
             disabled={loading}
           >
@@ -509,12 +510,17 @@ function UserRow({
       </div>
       {!isOwnerRow && (
         <>
+          {/* AIT-72: h-11 w-11 (44px, --tap-min) en vez de h-8 w-8 (32px)
+              — "Desactivar" en concreto es una acción con consecuencias
+              reales, y los dos controles quedan en fila junto al resto de
+              la información del usuario (riesgo de toque accidental,
+              prioridad sugerida por el Tester). */}
           <button
             type="button"
             aria-label={`Editar ${user.name}`}
             onClick={startEdit}
             disabled={loading}
-            className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100 disabled:opacity-50"
+            className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100 disabled:opacity-50"
           >
             <Pencil size={15} />
           </button>
@@ -525,7 +531,7 @@ function UserRow({
             }
             onClick={handleToggleActive}
             disabled={loading}
-            className={`inline-flex h-8 w-8 flex-none items-center justify-center rounded-md disabled:opacity-50 ${
+            className={`inline-flex h-11 w-11 flex-none items-center justify-center rounded-md disabled:opacity-50 ${
               user.active
                 ? "text-text-secondary hover:bg-error-subtle hover:text-error"
                 : "text-text-secondary hover:bg-[var(--color-success-subtle)] hover:text-[#15803D]"

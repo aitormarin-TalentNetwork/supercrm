@@ -45,11 +45,17 @@ export function PasswordInput({
           } ${className}`}
           {...rest}
         />
+        {/* AIT-72: h-11 w-11 (44px, --tap-min) — antes el botón no tenía
+            ninguna medida propia, así que su objetivo táctil era solo el
+            icono (16×16, el más pequeño de la app). right-0 en vez de
+            right-3: con el ancho ya en 44px, centra el icono en una
+            posición muy similar a la de antes sin necesitar recalcular
+            el padding-right del input. */}
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-          className="absolute right-3 inline-flex text-neutral-400 hover:text-text-secondary"
+          className="absolute right-0 inline-flex h-11 w-11 items-center justify-center text-neutral-400 hover:text-text-secondary"
         >
           {visible ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
