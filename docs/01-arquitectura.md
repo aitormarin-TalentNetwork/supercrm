@@ -80,6 +80,17 @@ CRM curso Vibe Coding/
 
 **Regla:** una carpeta de `app/` por pantalla del PRD. Los modales (**Alta rápida** y **Registrar interacción**) **no son rutas**: son componentes que se abren desde varias pantallas y devuelven al punto de origen.
 
+**Acciones rápidas globales (AIT-66):** `components/nav/QuickActions.tsx` es el elemento de
+cabecera común, montado en el `<header>` de las 10 pantallas, que abre esos dos modales desde
+cualquier sitio — mismo criterio que `NavToggleButton`/`AppNav` (AIT-51): un único componente
+reutilizado en cada cabecera, en vez de un layout global. "+ Nuevo" siempre abre
+`AltaRapidaModal`. "+ Registrar interacción" nunca queda `disabled` (un botón deshabilitado no
+comunica nada en táctil/teclado — hallazgo de auditoría de AIT-66): si la pantalla no tiene
+ninguna oportunidad en contexto (`registrarInteraccionOpportunityId` sin pasar), abre un
+`Dialog` informativo explicando que hace falta una oportunidad abierta, en vez del modal real
+— decisión de producto (PM, AIT-66): sin selector de oportunidad, para no introducir un flujo
+nuevo.
+
 ---
 
 ## 3. Las 10 pantallas y su ruta

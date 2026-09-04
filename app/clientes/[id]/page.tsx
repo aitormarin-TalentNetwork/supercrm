@@ -7,7 +7,6 @@ import { useMutation, useQuery } from "convex/react";
 import {
   ArrowLeft,
   Mail,
-  MessageSquare,
   Phone,
   Plus,
   Store,
@@ -22,7 +21,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
-import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency } from "@/lib/format";
 
 export default function FichaClientePage({
@@ -36,15 +35,6 @@ export default function FichaClientePage({
   const role = useQuery(api.users.getCurrentUserRole);
   const ficha = useQuery(api.customers.getFicha, { customerId });
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
-  // La oportunidad del modal se fija al abrirlo (no se recalcula en cada
-  // render): si se derivara en cada render de `activeOpportunity` (más
-  // abajo), y esa oportunidad se cerrara desde otra pestaña/sesión
-  // mientras el modal sigue abierto, la siguiente oportunidad abierta
-  // pasaría a ser la "activa" y el envío acabaría registrando la
-  // interacción en una oportunidad distinta a la que el usuario veía en
-  // pantalla, sin ningún aviso (ronda de auditoría 1, mayor #2).
-  const [interactionOpportunityId, setInteractionOpportunityId] =
-    useState<Id<"opportunities"> | null>(null);
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
@@ -113,16 +103,19 @@ export default function FichaClientePage({
         >
           <ArrowLeft size={18} />
         </button>
-        <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+        <div className="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-wide text-text-muted">
           Ficha de cliente
         </div>
-        <a
-          href={`tel:${customer.phone}`}
-          aria-label="Llamar"
-          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
-        >
-          <Phone size={18} />
-        </a>
+        <div className="ml-auto flex flex-none items-center gap-2">
+          <QuickActions registrarInteraccionOpportunityId={activeOpportunity?.id ?? null} />
+          <a
+            href={`tel:${customer.phone}`}
+            aria-label="Llamar"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
+          >
+            <Phone size={18} />
+          </a>
+        </div>
       </header>
 
       <div className="mx-auto flex max-w-[880px] flex-col gap-4 px-4 pb-24 pt-[18px]">
@@ -161,23 +154,6 @@ export default function FichaClientePage({
           <div className="mt-[18px] flex flex-wrap items-center gap-2.5 border-t border-border pt-[18px]">
             <Button leftIcon={<Plus size={16} />} disabled title="Disponible próximamente">
               Nueva oportunidad
-            </Button>
-            <Button
-              variant="secondary"
-              leftIcon={<MessageSquare size={16} />}
-              disabled={activeOpportunity === null}
-              title={
-                activeOpportunity === null
-                  ? "Este cliente no tiene ninguna oportunidad abierta."
-                  : undefined
-              }
-              onClick={() => {
-                if (activeOpportunity) {
-                  setInteractionOpportunityId(activeOpportunity.id);
-                }
-              }}
-            >
-              Registrar interacción
             </Button>
             {role === "owner" && (
               <>
@@ -258,13 +234,6 @@ export default function FichaClientePage({
         </div>
       </div>
 
-      {interactionOpportunityId && (
-        <RegistrarInteraccionModal
-          open={interactionOpportunityId !== null}
-          onClose={() => setInteractionOpportunityId(null)}
-          opportunityId={interactionOpportunityId}
-        />
-      )}
       <DeleteCustomerDialog
         open={deleteCustomerOpen}
         onClose={() => setDeleteCustomerOpen(false)}

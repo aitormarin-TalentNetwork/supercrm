@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
 import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
 import { useSignOutAndUnlinkPush } from "@/components/push/useSignOutAndUnlinkPush";
@@ -62,7 +63,12 @@ export default function AjustesPage() {
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
           <NavToggleButton />
-          <h1 className="m-0 text-[15px] font-bold">Ajustes</h1>
+          <h1 className="min-w-0 flex-1 truncate text-[15px] font-bold">
+            Ajustes
+          </h1>
+          <div className="ml-auto flex flex-none items-center gap-2">
+            <QuickActions />
+          </div>
         </header>
 
         <div

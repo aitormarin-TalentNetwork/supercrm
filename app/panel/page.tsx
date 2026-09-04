@@ -8,6 +8,7 @@ import { AlertTriangle, CalendarDays, Store, TrendingUp } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Avatar } from "@/components/ui/Avatar";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { BillingStatusBadge } from "@/components/crm/BillingStatusBadge";
 import { formatCurrency, formatDate } from "@/lib/format";
 
@@ -114,11 +115,14 @@ export default function PanelPage() {
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
           <NavToggleButton />
-          <h1 className="m-0 text-[15px] font-bold">Panel</h1>
-          <span className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary">
-            <Store size={13} className="text-neutral-400" />
-            {store?.name ?? "…"}
+          <h1 className="m-0 flex-none text-[15px] font-bold">Panel</h1>
+          <span className="inline-flex min-w-0 max-w-[120px] items-center gap-1.5 truncate rounded-pill border border-border bg-surface px-2.5 py-1 text-xs font-semibold text-text-secondary">
+            <Store size={13} className="flex-none text-neutral-400" />
+            <span className="truncate">{store?.name ?? "…"}</span>
           </span>
+          <div className="ml-auto flex flex-none items-center gap-2">
+            <QuickActions />
+          </div>
         </header>
 
         <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-4 px-4 pb-16 pt-[18px]">
@@ -240,7 +244,7 @@ export default function PanelPage() {
               <h2 className="m-0 text-base font-bold">Embudo por etapa</h2>
               <Link
                 href="/pipeline"
-                className="text-[13px] font-semibold text-primary hover:underline"
+                className="inline-flex min-h-[44px] items-center text-[13px] font-semibold text-primary hover:underline"
               >
                 Ver pipeline
               </Link>
@@ -293,7 +297,7 @@ export default function PanelPage() {
               </div>
               <Link
                 href="/supervision"
-                className="text-[13px] font-semibold text-primary hover:underline"
+                className="inline-flex min-h-[44px] items-center text-[13px] font-semibold text-primary hover:underline"
               >
                 Ver supervisión
               </Link>

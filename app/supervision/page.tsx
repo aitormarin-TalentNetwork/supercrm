@@ -17,6 +17,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { formatCurrency } from "@/lib/format";
 
@@ -130,6 +131,7 @@ export default function SupervisionPage() {
                   {store?.name ?? "…"}
                 </span>
               </Badge>
+              <QuickActions />
             </div>
           </div>
         </header>

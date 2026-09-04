@@ -15,6 +15,7 @@ import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { capitalizeFirst, formatCurrency } from "@/lib/format";
 import {
   BUSINESS_TIME_ZONE,
@@ -299,6 +300,7 @@ export default function HoyPage() {
           </div>
         </div>
         <div className="flex flex-none items-center gap-2">
+          <QuickActions />
           <div className="relative">
             <button
               type="button"
