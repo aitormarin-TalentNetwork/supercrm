@@ -37,7 +37,7 @@
     <header style="flex:none;background:var(--color-surface);border-bottom:1px solid var(--color-border);padding:16px 18px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
       <div style="min-width:0">
         <div style="font-size:20px;font-weight:700;letter-spacing:-.01em">{{ greeting }}, {{ name }}</div>
-        <div style="font-size:13px;color:var(--color-text-muted);margin-top:2px;text-transform:capitalize">{{ today }}</div>
+        <div style="font-size:13px;color:var(--color-text-muted);margin-top:2px">{{ today }}</div>
       </div>
       <button type="button" aria-label="Notificaciones" style="position:relative;width:42px;height:42px;flex:none;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-md);color:var(--color-text-secondary);cursor:pointer" style-hover="background:var(--color-neutral-100)" style-focus="box-shadow:var(--focus-ring);outline:none">
         <i data-lucide="bell"></i>
@@ -439,7 +439,8 @@ class Component extends DCLogic {
   renderVals() {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
-    const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    const todayRaw = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+    const today = todayRaw.charAt(0).toUpperCase() + todayRaw.slice(1);
 
     const vencidos = this.state.items.filter(x => x.estadoPaso === 'vencida').map(x => this.decorate(x));
     const hoy = this.state.items.filter(x => x.estadoPaso !== 'vencida').map(x => this.decorate(x));
