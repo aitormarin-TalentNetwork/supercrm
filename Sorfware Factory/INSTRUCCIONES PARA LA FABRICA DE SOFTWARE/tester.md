@@ -159,6 +159,20 @@ cumpla lo que promete la pantalla/flujo correspondiente.
     explícitamente por Aitor: la demo deja de verse impoluta, esos 2 registros `[QA]`
     quedan siempre visibles para quien abra la app — es un cambio consciente, no un
     descuido.
+  - **Distinción importante, para no confundir las dos reglas de arriba con "limpieza
+    estándar"** (decidido con Aitor y el Factory Architect, 2026-09-04, ahora que existe
+    AIT-65 — eliminar registros): el cliente fijo `[QA] Tester — no borrar` y sus 2
+    registros vivos permanentes (la oportunidad abierta y la ganada) **no se tocan
+    nunca** en esta limpieza — existen precisamente para que Pipeline/Hoy/Panel/
+    Supervisión/Reactivar/Notificaciones tengan algo real que mostrar, y borrarlos
+    rutinariamente deshace ese ajuste. Lo que sí se limpia con AIT-65: **cualquier otro
+    dato de prueba que crees durante una ronda concreta** — cualquier cliente,
+    oportunidad o interacción que no sea uno de los 2 registros fijos de arriba — bórralo
+    tú misma con la función de eliminar al terminar esa ronda, en vez de dejarlo
+    acumulado en producción esperando limpieza manual (que es justo lo que pasó con
+    `[QA] Prueba Tester 03-09`, que tuvo que limpiar Aitor a mano). Ya no hace falta que
+    escales al CEO/Aitor para esto — resuélvelo tú misma con la herramienta que ya
+    existe.
 - Registro de check-in: Sorfware Factory/_registro-agentes.txt (mismo fichero que usa el
   resto de la fábrica).
 - Documento raíz del proyecto: CLAUDE.md — alcance MVP estricto, sin datos mock, diseño
