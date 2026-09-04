@@ -144,7 +144,7 @@ export function AppNav() {
             type="button"
             onClick={close}
             aria-label="Cerrar menú"
-            className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+            className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
           >
             <X size={18} />
           </button>

@@ -14,7 +14,6 @@ import {
   Download,
   Euro,
   Flag,
-  MessageSquare,
   Phone,
   PartyPopper,
   Pencil,
@@ -34,7 +33,7 @@ import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { BillingStatusBadge, type BillingStatus } from "@/components/crm/BillingStatusBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
-import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
 import { computeQuoteTotals, roundTaxRate } from "@/lib/quoteMath";
 import { downloadQuotePdf } from "@/lib/quotePdf";
@@ -74,7 +73,6 @@ export default function OportunidadPage({
   const [modal, setModal] = useState<
     "stage" | "priority" | "won" | "lost" | "delete" | null
   >(null);
-  const [interactionModalOpen, setInteractionModalOpen] = useState(false);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
 
@@ -140,16 +138,19 @@ export default function OportunidadPage({
         >
           <ArrowLeft size={18} />
         </button>
-        <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+        <div className="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-wide text-text-muted">
           Oportunidad
         </div>
-        <a
-          href={`tel:${summary.customerPhone}`}
-          aria-label="Llamar"
-          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
-        >
-          <Phone size={18} />
-        </a>
+        <div className="ml-auto flex flex-none items-center gap-2">
+          <QuickActions registrarInteraccionOpportunityId={isOpen ? opportunityId : null} />
+          <a
+            href={`tel:${summary.customerPhone}`}
+            aria-label="Llamar"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-primary hover:bg-primary-subtle"
+          >
+            <Phone size={18} />
+          </a>
+        </div>
       </header>
 
       <div className="mx-auto flex max-w-[760px] flex-col gap-4 px-4 pb-24 pt-[18px]">
@@ -233,15 +234,6 @@ export default function OportunidadPage({
           </div>
 
           <div className="mt-[18px] flex flex-wrap items-center gap-2.5 border-t border-border pt-[18px]">
-            <Button
-              variant="secondary"
-              leftIcon={<MessageSquare size={16} />}
-              disabled={!isOpen}
-              title={isOpen ? undefined : "La oportunidad está cerrada."}
-              onClick={() => setInteractionModalOpen(true)}
-            >
-              Registrar interacción
-            </Button>
             {isOpen && (
               <>
                 <Button
@@ -366,11 +358,6 @@ export default function OportunidadPage({
         </section>
       </div>
 
-      <RegistrarInteraccionModal
-        open={interactionModalOpen}
-        onClose={() => setInteractionModalOpen(false)}
-        opportunityId={opportunityId}
-      />
       <DeleteOpportunityDialog
         open={modal === "delete"}
         onClose={() => setModal(null)}

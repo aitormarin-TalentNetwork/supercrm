@@ -3,16 +3,15 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
-import { AlertTriangle, Clock, Plus, Search } from "lucide-react";
+import { AlertTriangle, Clock, Search } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency } from "@/lib/format";
 
 type Stage = "contacto" | "presupuesto" | "negociacion";
@@ -46,7 +45,6 @@ export default function PipelinePage() {
     "todas",
   );
   const [sort, setSort] = useState<SortOption>("importe-desc");
-  const [altaOpen, setAltaOpen] = useState(false);
   const [dragId, setDragId] = useState<Id<"opportunities"> | null>(null);
   const [overStage, setOverStage] = useState<Stage | null>(null);
   const [moveError, setMoveError] = useState("");
@@ -130,24 +128,18 @@ export default function PipelinePage() {
             <div className="ml-auto flex w-full items-center gap-2.5 sm:w-auto">
               <div className="flex-1 sm:w-[220px] sm:flex-none">
                 <Input
-                  size="sm"
                   leftIcon={<Search size={15} />}
                   placeholder="Buscar cliente…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <Button
-                leftIcon={<Plus size={16} />}
-                onClick={() => setAltaOpen(true)}
-              >
-                Nueva oportunidad
-              </Button>
+              <QuickActions />
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-1.5 text-[13px] font-medium text-text-secondary">
+            <label className="flex min-h-[44px] items-center gap-1.5 text-[13px] font-medium text-text-secondary">
               <input
                 type="checkbox"
                 checked={onlyAtRisk}
@@ -159,7 +151,6 @@ export default function PipelinePage() {
             <span className="flex-1" />
             <div className="w-[190px]">
               <Select
-                size="sm"
                 aria-label="Filtrar por prioridad"
                 value={priorityFilter}
                 onChange={(e) =>
@@ -174,7 +165,6 @@ export default function PipelinePage() {
             </div>
             <div className="w-[190px]">
               <Select
-                size="sm"
                 aria-label="Ordenar"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortOption)}
@@ -299,8 +289,6 @@ export default function PipelinePage() {
             </div>
           ))}
         </div>
-
-        <AltaRapidaModal open={altaOpen} onClose={() => setAltaOpen(false)} />
       </main>
     </div>
   );

@@ -10,6 +10,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { BUSINESS_TIME_ZONE } from "@/lib/businessTime";
 
 // No se reutiliza lib/format.ts:formatDate: esa función formatea en la
@@ -188,13 +189,16 @@ export default function ReactivarPage() {
           >
             <RefreshCw size={18} />
           </button>
-          <div>
-            <h1 className="m-0 text-[17px] font-bold tracking-tight">
+          <div className="min-w-0 flex-1 truncate">
+            <h1 className="truncate text-[17px] font-bold tracking-tight">
               Clientes a reactivar
             </h1>
-            <p className="text-[12px] text-text-muted">
+            <p className="truncate text-[12px] text-text-muted">
               Recordatorios de recompra tras una venta ganada
             </p>
+          </div>
+          <div className="ml-auto flex flex-none items-center gap-2">
+            <QuickActions />
           </div>
         </header>
 

@@ -8,6 +8,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency, parseEuroAmount } from "@/lib/format";
 
 type Product = { id: Id<"products">; name: string; price: number };
@@ -44,13 +45,16 @@ export default function CatalogoPage() {
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
           <NavToggleButton />
-          <div className="min-w-0">
-            <h1 className="text-[15px] font-bold text-text">
+          <div className="min-w-0 flex-1 truncate">
+            <h1 className="truncate text-[15px] font-bold text-text">
               Catálogo de productos
             </h1>
-            <p className="text-[12px] text-text-muted">
+            <p className="truncate text-[12px] text-text-muted">
               Para construir presupuestos por líneas
             </p>
+          </div>
+          <div className="ml-auto flex flex-none items-center gap-2">
+            <QuickActions />
           </div>
         </header>
 

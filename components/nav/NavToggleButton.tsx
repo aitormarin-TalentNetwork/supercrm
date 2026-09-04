@@ -22,7 +22,7 @@ export function NavToggleButton() {
       // cierra) — igual que aria-label ya distingue "Abrir"/"Cerrar" en
       // otros toggles del proyecto.
       aria-label={open ? "Cerrar menú" : "Abrir menú"}
-      className="inline-flex h-9 w-9 flex-none items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
+      className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
     >
       <Menu size={18} />
     </button>

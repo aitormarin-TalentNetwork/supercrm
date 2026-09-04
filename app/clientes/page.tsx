@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Table, TableColumn } from "@/components/ui/Table";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { QuickActions } from "@/components/nav/QuickActions";
 
 type CustomerRow = {
   id: string;
@@ -126,7 +127,10 @@ export default function ClientesPage() {
                 {customers.length} cliente{customers.length === 1 ? "" : "s"}
               </p>
             </div>
-            <div className="ml-auto w-full sm:w-[260px]">
+            <div className="ml-auto flex flex-none items-center gap-2">
+              <QuickActions />
+            </div>
+            <div className="w-full sm:w-[260px]">
               <Input
                 size="sm"
                 leftIcon={<Search size={15} />}
