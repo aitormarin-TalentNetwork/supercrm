@@ -255,28 +255,32 @@ export default function PanelPage() {
                 const width = Math.round(
                   (f.totalAmount / maxFunnelAmount) * 100,
                 );
+                // AIT-73: quitar solo el ancho fijo del importe no basta —
+                // con label y recuento también fijos, un importe real de 5
+                // cifras sigue desbordando a 320px. La barra pasa a su
+                // propia línea para no competir por ese espacio.
                 return (
-                  <div key={f.stage} className="flex items-center gap-3.5">
-                    <div className="flex w-[120px] flex-none items-center gap-2">
+                  <div key={f.stage} className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
                       <span
                         className="h-2 w-2 flex-none rounded-full"
                         style={{ background: meta.color }}
                       />
-                      <span className="text-[13.5px] font-semibold">
+                      <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold">
                         {meta.label}
                       </span>
+                      <span className="flex-none whitespace-nowrap text-xs text-text-muted">
+                        {f.count} op.
+                      </span>
+                      <span className="flex-none whitespace-nowrap text-right font-mono text-[13.5px] font-semibold">
+                        {formatCurrency(f.totalAmount)}
+                      </span>
                     </div>
-                    <div className="h-[26px] min-w-0 flex-1 overflow-hidden rounded-sm bg-neutral-100">
+                    <div className="h-[26px] w-full overflow-hidden rounded-sm bg-neutral-100">
                       <div
                         className="h-full rounded-sm transition-[width] duration-300"
                         style={{ width: `${width}%`, background: meta.color }}
                       />
-                    </div>
-                    <div className="w-[54px] flex-none text-right text-xs text-text-muted">
-                      {f.count} op.
-                    </div>
-                    <div className="w-[92px] flex-none text-right font-mono text-[13.5px] font-semibold">
-                      {formatCurrency(f.totalAmount)}
                     </div>
                   </div>
                 );
