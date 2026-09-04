@@ -87,7 +87,8 @@ export default function FichaClientePage({
   // La más reciente con `status === "open"` (la lista ya viene ordenada por
   // lastActivityAt desc desde customers.getFicha): el cliente puede tener
   // varias oportunidades, pero el modal solo cuelga la interacción de una.
-  // Si no hay ninguna abierta, el botón queda deshabilitado más abajo — no
+  // Si no hay ninguna abierta, se pasa `null` a QuickActions en la
+  // cabecera, que abre su Dialog informativo en vez del modal real — no
   // tiene sentido registrar una interacción sin oportunidad a la que
   // enganchar el próximo paso (regla 6, docs/02-modelo-de-datos.md §1).
   const activeOpportunity = opportunities.find((o) => o.status === "open") ?? null;
