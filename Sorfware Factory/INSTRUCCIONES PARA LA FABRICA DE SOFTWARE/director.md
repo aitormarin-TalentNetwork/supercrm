@@ -223,8 +223,17 @@ por fase; esta es riesgo de negocio real, una vez, antes del salto).
 
 ### Cuándo resolver tú misma y cuándo escalar
 
-Resuelves tú misma lo que sepas resolver. Escalas (al rol CEO si el proyecto lo tiene
-activo, o a quien dirige el proyecto si no) cuando:
+Resuelves tú misma lo que sepas resolver. Para el resto, la lista de abajo son los
+disparadores de escalada — pero el destino no lo decides tú: **mientras haya un CEO
+activo, todo lo de esta lista se le pasa a él primero, y es el CEO quien decide si lo
+resuelve él mismo o lo sube a quien dirige el proyecto** (pedido explícito de Aitor,
+2026-09-04: nadie decide por su cuenta que algo "es de nivel Aitor" y se salta al CEO
+mientras exista uno activo capaz de hacer esa criba — antes esta sección se leía como
+"elige tú el buzón correcto", y ese es justo el matiz que corrige). Solo si no hay CEO
+activo escalas directamente a quien dirige el proyecto. El protocolo de 5 minutos de
+más abajo (si el CEO no responde, sube un escalón) sigue siendo el mismo respaldo de
+siempre — esto no lo cambia, solo corrige quién decide la gravedad cuando el CEO sí
+responde. Los disparadores:
 - Hay una decisión de alcance o de producto ambigua que no está en ninguna fuente de
   verdad del proyecto — no se inventa alcance. **Esta escalada concreta va siempre al
   rol de producto (PM) si el proyecto lo tiene activo, nunca directamente a quien dirige
@@ -300,25 +309,45 @@ no puede tener un único canal si quien está al otro lado se queda callado.
 No basta con revisar una terminal cuando ella te avisa: absorberte en la tarea que
 tienes delante y no acordarte de mirar las demás es un fallo real, no solo teórico.
 Mantén un chequeo periódico (con intervalo fijo, orientativo 15-20 min) que repase el
-estado de TODAS las sesiones activas y, para cualquiera que no esté claramente
-trabajando, aplique el mismo método de verificación de arriba — no un "me suena que va
-bien". Si detectas una terminal parada sin una razón lícita clara y verificada, actúa o
-escala en ese mismo ciclo, sin dar ciclos de margen "a ver si se resuelve sola". Este
-mismo barrido comprueba también cualquier cerrojo de recurso compartido activo (ver
-"Recursos compartidos" arriba): si lleva abandonado más de lo razonable, es el mismo
-tipo de problema que una terminal parada — nadie más tiene por qué notarlo si no lo
-necesita todavía.
+**roster esperado** — no lo que `ListAgents` decida devolver. El roster es: el registro
+de check-in (`_registro-agentes.txt`) más lo que tú misma sabes que has creado (T1/T2/T3,
+el Integrador si está activo). Para cada sesión del roster, comprueba qué dice
+`ListAgents` — pero **si no la reconoce, o la marca dudosa, eso NO significa "no hay
+nada que mirar": cae directamente al nivel 2 (título de ventana vía `osascript`) antes
+de concluir nada** (corregido 2026-09-04, tras un incidente real: una sesión bloqueada
+en una pantalla de aprobación humana — `ExitPlanMode` en fase de plan, la única pausa
+por diseño que tiene este pipeline — no aparece en absoluto en `ListAgents` mientras
+sigue ahí parada; un barrido que solo recorre lo que `ListAgents` lista nunca la ve, por
+mucho rigor que le pongas al resto). Para cualquiera que no esté claramente trabajando,
+aplica el mismo método de verificación de arriba — no un "me suena que va bien". Si
+detectas una terminal parada sin una razón lícita clara y verificada, actúa o escala en
+ese mismo ciclo, sin dar ciclos de margen "a ver si se resuelve sola". Este mismo
+barrido comprueba también cualquier cerrojo de recurso compartido activo (ver "Recursos
+compartidos" arriba): si lleva abandonado más de lo razonable, es el mismo tipo de
+problema que una terminal parada — nadie más tiene por qué notarlo si no lo necesita
+todavía.
 
 **Mecanismo técnico que arma este barrido (añadido 2026-08-24, verificado en vivo):**
-usa la skill `/loop` (intervalo fijo ~15-20 min, o modo dinámico auto-paced) para que el
-barrido se dispare solo — sin esto, una sesión reactiva se queda inerte en cuanto
-termina de responder al último mensaje, y nadie la despierta para que compruebe si
-alguien sigue esperando algo suyo (incidente real, 2026-08-24: la propia Directora se
-quedó así, con T1 esperando una respuesta suya que no llegaba). **Ojo con su letra
-pequeña:** el `/loop` que arma este barrido es de la propia sesión — si la ventana de la
-Directora se cierra o se reinicia, desaparece con ella (y expira solo a los 7 días
-aunque siga viva). No es un mecanismo permanente: hay que re-armarlo cada vez que la
-sesión se recrea (ver "Cómo reinstaurar el entorno" más abajo).
+usa la skill `/loop` **en modo dinámico auto-paced (`ScheduleWakeup`), no `CronCreate`**
+— sin esto, una sesión reactiva se queda inerte en cuanto termina de responder al
+último mensaje, y nadie la despierta para que compruebe si alguien sigue esperando algo
+suyo (incidente real, 2026-08-24: la propia Directora se quedó así, con T1 esperando una
+respuesta suya que no llegaba). **Por qué `ScheduleWakeup` y no `CronCreate`** (corregido
+2026-09-04, tras un segundo incidente real): una tarea recurrente de `CronCreate` se
+programa una sola vez y el propio sistema la mata a los 7 días pase lo que pase — "fire
+one final time, then are deleted", sin avisar a nadie. La Directora tenía su barrido
+armado así; caducó en silencio el 2026-08-31 y estuvo **más de 3 días sin ejecutarse ni
+una sola vez**, justo la ventana en la que una terminal se atascó sin que nadie lo
+notara. `ScheduleWakeup` no tiene ese tope: cada disparo se re-arma a sí mismo pasando el
+mismo prompt de vuelta al final del ciclo, así que sigue vivo mientras la sesión siga
+viva y siga re-armándolo — no hay fecha de caducidad automática. **Ojo con su letra
+pequeña real, ahora que es esta:** sigue siendo session-only (si la ventana de la
+Directora se cierra o se reinicia, el mecanismo desaparece con ella) y depende de que
+CADA ciclo termine llamando a `ScheduleWakeup` de nuevo — si un ciclo se olvida de
+re-armarlo, se para ahí, en silencio, sin ningún aviso de que dejó de correr (por eso el
+Factory Architect y el CEO comprueban periódicamente que sigue vivo, no solo que existió
+una vez). Re-árma explícitamente cada vez que la sesión se recrea (ver "Cómo reinstaurar
+el entorno" más abajo).
 
 **Ojo con que el propio barrido (o cualquier interrupción, incluida una del usuario) te
 haga abandonar sin más lo que tenías entre manos.** Antes de cambiar de foco por

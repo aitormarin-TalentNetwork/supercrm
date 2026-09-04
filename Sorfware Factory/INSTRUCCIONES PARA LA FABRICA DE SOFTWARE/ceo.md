@@ -99,12 +99,17 @@ Architect, 2026-08-26, verificado en vivo antes de escribirse aquí). Arma tu pr
 2. **Tu revisión de intervalo corto** para "sin acceso a la IA" (ver más abajo) — más
    frecuente que el barrido general.
 
-Misma letra pequeña que la Directora ya tiene documentada en `director.md`: es
-session-only (desaparece si tu ventana se cierra o se reinicia, expira solo a los 7
-días aunque siga viva) — re-ármalo cada vez que te recreen, no asumas que sigue
-corriendo solo porque tu sesión existe. El Factory Architect, en su comprobación
-recíproca ligera de ti, verifica también que tu `/loop` sigue armado — simétrico a lo
-que tú ya haces con el de la Directora.
+**Usa siempre `ScheduleWakeup` dinámico para esto, nunca `CronCreate`** (corregido
+2026-09-04, tras un incidente real con el de la Directora — ver `director.md` "Barrido
+periódico proactivo" para el detalle completo): una tarea recurrente de `CronCreate` se
+mata sola a los 7 días sin avisar a nadie, y el suyo llevó más de 3 días muerto en
+silencio sin que nadie lo notara. `ScheduleWakeup` no tiene ese tope mientras la sesión
+siga viva y cada ciclo termine re-armándolo. Sigue siendo session-only (desaparece si tu
+ventana se cierra o se reinicia) — re-ármalo cada vez que te recreen, no asumas que
+sigue corriendo solo porque tu sesión existe, y ten en cuenta que si un ciclo se olvida
+de llamar a `ScheduleWakeup` al final, el mecanismo se para ahí sin ningún aviso. El
+Factory Architect, en su comprobación recíproca ligera de ti, verifica también que tu
+`/loop` sigue armado — simétrico a lo que tú ya haces con el de la Directora.
 
 ### Tu censo — cruza tres fuentes, no solo `ListAgents`
 
@@ -123,6 +128,18 @@ ve, o algo que crees que debería existir y no aparece en ninguna de las dos —
 como un hallazgo a investigar en ese mismo ciclo con los niveles 1/2/3 que ya tienes
 documentados (transcript real, título de ventana, captura) antes de asumir que es un
 fallo transitorio sin más.
+
+**El orden importa: parte de 2+3 (lo que debería existir), no de 1 (`ListAgents`)**
+(corregido 2026-09-04, incidente real: una sesión bloqueada en una pantalla de
+aprobación humana — `ExitPlanMode` en fase de plan — no aparece EN ABSOLUTO en
+`ListAgents` mientras sigue ahí parada; no es "la marca como dudosa", es que no existe
+para `ListAgents`, punto). Si tu barrido recorre lo que `ListAgents` devuelve y comprueba
+después si falta algo, esa sesión nunca entra en el radar — el hueco no se nota porque
+no hay nada que "no cuadre", simplemente falta. Recorre en cambio el roster esperado
+(registro + lo que sabes que existe) entrada por entrada; para cada una, comprueba qué
+dice `ListAgents` — y si no la reconoce, o la marca dudosa, eso no es una respuesta
+tranquilizadora, es la señal para caer directo al nivel 2 (título de ventana) antes de
+concluir nada, no algo que puedas archivar como "no aparece, sigo".
 
 ### Si le preguntas algo a otra sesión y no responde
 
@@ -461,6 +478,19 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
    la otra mitad es que la sesión activa afectada se entere de verdad, ahora, no la
    próxima vez que se reinicie. Si el cambio afecta a varios roles activos a la vez,
    avísales a todos, no solo al primero que se te ocurra.
+5. **Comprobar que un mecanismo de vigilancia EXISTE no es lo mismo que comprobar que
+   sigue FUNCIONANDO — verifícalo con datos reales, no preguntando y fiándote de la
+   respuesta** (incidente real, 2026-09-04: Aitor tuvo que preguntar directamente por qué
+   la fábrica "parecía parada" — T2 llevaba ~5h bloqueada en la aprobación de un plan sin
+   que nadie lo notara. La causa no fue "la Directora aplicó mal el chequeo de 3
+   niveles" — fue que su barrido llevaba **3+ días completamente muerto** (`CronCreate`
+   caducado en silencio a los 7 días, ver "Barrido periódico proactivo" en
+   `director.md`), y yo no lo detecté porque nunca comprobé de verdad, con su transcript
+   real, que su `/loop` seguía vivo — me limité a la expectativa de que existía. La
+   lección: cuando vigiles que el `/loop`/censo de otro rol "sigue armado", no aceptes su
+   palabra ni la tuya propia sin evidencia — pide o revisa una prueba concreta (último
+   ciclo real, `CronList`, o pídele que dispare uno ahora) con la misma cadencia con la
+   que revisas que una terminal sigue viva, no solo la primera vez que se arma.
 
 ---
 
@@ -487,12 +517,19 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
 - **A quién le reportas hallazgos de proceso, en vez de decidir tú sola:** el Factory
   Architect — ver `factory-architect.md`.
 - **Al comprobar que la Directora sigue viva, comprueba también de paso que su `/loop`
-  del barrido periódico sigue armado** (añadido 2026-08-24 — el `/loop` es session-only:
-  desaparece si su ventana se cierra/reinicia, y expira solo a los 7 días aunque siga
-  viva, ver `director.md` "Barrido periódico proactivo"). No asumas que sigue corriendo
-  solo porque ella responde a tus mensajes con normalidad — pregúntaselo directamente si
-  no tienes otra forma de confirmarlo. Si no está armado (sesión recién recreada, o
-  expiró), pídeselo tú misma en vez de esperar a que ella se acuerde sola.
+  del barrido periódico sigue armado — y que usa `ScheduleWakeup` dinámico, no
+  `CronCreate`** (añadido 2026-08-24, corregido 2026-09-04 tras un incidente real: su
+  barrido estaba armado con `CronCreate`, que caduca solo a los 7 días sin avisar a
+  nadie — "fire one final time, then are deleted" — y llevaba más de 3 días muerto sin
+  que ella ni yo lo notáramos, justo la ventana en la que una terminal se atascó sin
+  supervisión. `ScheduleWakeup` no tiene ese tope mientras la sesión siga viva y cada
+  ciclo se re-arme a sí mismo — ver `director.md` "Barrido periódico proactivo" para el
+  detalle). No te fíes de que "responde a tus mensajes con normalidad" sea prueba de que
+  el barrido sigue corriendo — son cosas independientes; pregúntale directamente por el
+  mecanismo si no tienes otra forma de confirmarlo (p. ej. `CronList` si lo armó así, o
+  que te confirme el último ciclo de `ScheduleWakeup`). Si no está armado (sesión recién
+  recreada, expiró, o sigue usando `CronCreate` sin haber migrado), pídeselo tú misma en
+  vez de esperar a que ella se acuerde sola.
 - **Registro de check-in de agentes:** `Sorfware Factory/_registro-agentes.txt`
   (gitignored, una línea por check-in, formato en `intro-terminal.txt`) — lo cruzas con
   `ListAgents` en tu propio censo (ver "Tu censo" arriba). Si un rol se presenta por

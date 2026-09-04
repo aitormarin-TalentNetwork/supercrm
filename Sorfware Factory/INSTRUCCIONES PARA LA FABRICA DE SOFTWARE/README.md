@@ -206,12 +206,20 @@ respondiendo bien). Ninguno de los dos es punto ciego del otro. Detalle en
   habla** (decidido 2026-08-13, tras detectar que la directora se absorbe en la tarea que
   tiene delante y deja terminales en Idle/paradas sin darse cuenta — no es un problema de
   no saber la regla de escalado, es no llegar a mirar). No basta con revisar una terminal
-  cuando ella te avisa: mantén un `/loop` con intervalo fijo (orientativo 15-20 min) que
-  ejecute `ListAgents` sobre TODAS las sesiones activas (T1/T2/T3, y el Integrador si está
-  activo) y, para cualquiera que no esté claramente trabajando, aplique el método de
-  verificación de staleness ya documentado (transcript → título de ventana vía
-  `osascript` → captura de pantalla si hace falta, ver `ceo.md` §2 para el detalle
-  técnico) — no un "me suena que va bien". Si detectas una terminal parada sin una razón
+  cuando ella te avisa: mantén un `/loop` **en modo dinámico auto-paced (`ScheduleWakeup`),
+  no `CronCreate`** (corregido 2026-09-04 — ver §2bis-bis o `director.md` "Barrido
+  periódico proactivo" para el incidente completo: un `CronCreate` recurrente caduca
+  solo a los 7 días sin avisar a nadie, y el de la Directora estuvo así, muerto, más de 3
+  días seguidos sin que nadie lo notara) que recorra el **roster esperado** — el registro
+  de check-in (`_registro-agentes.txt`) más lo que tú misma sabes que has creado
+  (T1/T2/T3, el Integrador si está activo) — **no lo que `ListAgents` decida devolver**.
+  Para cada sesión del roster, comprueba `ListAgents`, pero si no la reconoce o la marca
+  dudosa eso no es tranquilizador: cae directo al método de verificación de staleness ya
+  documentado (transcript → título de ventana vía `osascript` → captura de pantalla si
+  hace falta, ver `ceo.md` §2 para el detalle técnico) antes de concluir nada — no un "me
+  suena que va bien" ni un "no aparece, sigo" (una sesión bloqueada en una pantalla de
+  aprobación humana, como `ExitPlanMode` en fase de plan, no aparece EN ABSOLUTO en
+  `ListAgents` mientras sigue ahí parada). Si detectas una terminal parada sin una razón
   lícita clara y verificada, aplica ya la regla de velocidad de escalado de §2bis (ver
   también memoria `director-stall-escalation-threshold`): actúa/escala en ese mismo
   ciclo, no des ciclos de margen "a ver si se resuelve sola". **Este mismo barrido
@@ -245,6 +253,19 @@ respondiendo bien). Ninguno de los dos es punto ciego del otro. Detalle en
   producto/alcance bloqueada, auditor sin cuota, etc.) — nunca para anunciar que
   terminaste de trabajar sin más, ni para un resultado positivo que no requiere nada de
   él. Si dudas, no lo crees: el silencio por defecto es la conducta correcta.
+- **Segundo hook de voz, en `PermissionRequest` (añadido 2026-09-04, tras el incidente de
+  T2 atascada ~5h en la aprobación de un plan sin que nadie lo oyera)**: el hook de `Stop`
+  de arriba NUNCA se dispara mientras una sesión sigue bloqueada esperando una decisión
+  de permiso (incluida la aprobación de `ExitPlanMode` en fase de plan) — el turno no ha
+  terminado, así que `Stop` no llega a correr, por mucho que el marker esté puesto. El
+  hook en `PermissionRequest` sí dispara exactamente en ese instante: en las cuatro
+  copias de `.claude/settings.local.json` (raíz y cada worktree T1/T2/T3), suena
+  `afplay`+`say` DIRECTAMENTE, sin pasar por el fichero marker (aquí no aplica esa lógica
+  — no hay "borrar para no repetir" porque la sesión sigue parada hasta que alguien
+  responda). No se filtra por herramienta concreta: con el modo auto ya establecido en
+  toda la fábrica, cualquier `PermissionRequest` que llegue a aparecer es en sí mismo
+  señal suficiente de que algo necesita a Aitor. No confundir con `PermissionDenied` —
+  ese se resuelve solo en modo auto y no necesita aviso.
 - **No paralelizar tareas que toquen el mismo archivo.** Van juntas, secuenciales, en la misma rama/terminal (ejemplo real: AIT-14 y AIT-15 comparten `convex/opportunities.ts` → se dieron a la misma terminal).
 - **Mientras una terminal no esté migrada a deployment propio (ver §3bis), el turno de
   Convex se organiza con un cerrojo — ya NO se pide a la Directora** (rediseñado
