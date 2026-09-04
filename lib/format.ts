@@ -43,15 +43,6 @@ export function formatDate(timestampMs: number): string {
   });
 }
 
-// AIT-69: `text-transform:capitalize` pone en mayúscula CADA palabra
-// ("4 De Septiembre"); esto capitaliza solo la primera letra de la cadena
-// ("4 de septiembre" -> "4 de septiembre" ya en minúsculas -> se usa sobre
-// frases como las que devuelve toLocaleDateString con weekday/month "long",
-// que en es-ES vienen enteras en minúsculas).
-export function capitalizeFirst(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 export function formatDateTime(timestampMs: number): string {
   const date = new Date(timestampMs);
   const day = date.toLocaleDateString("es-ES", {

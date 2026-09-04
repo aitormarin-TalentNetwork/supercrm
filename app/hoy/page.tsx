@@ -15,7 +15,7 @@ import { PriorityBadge } from "@/components/crm/PriorityBadge";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
-import { capitalizeFirst, formatCurrency } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import {
   BUSINESS_TIME_ZONE,
   businessDaysBetween,
@@ -277,14 +277,12 @@ export default function HoyPage() {
   const hour = getBusinessHour(new Date().getTime());
   const greeting =
     hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
-  const today = capitalizeFirst(
-    new Date().toLocaleDateString("es-ES", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      timeZone: BUSINESS_TIME_ZONE,
-    }),
-  );
+  const today = new Date().toLocaleDateString("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: BUSINESS_TIME_ZONE,
+  });
 
   return (
     <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
@@ -295,7 +293,9 @@ export default function HoyPage() {
             <h1 className="text-xl font-bold text-text">
               {greeting}, {userInfo?.name ?? "…"}
             </h1>
-            <p className="mt-0.5 text-[13px] text-text-muted">{today}</p>
+            <p className="mt-0.5 text-[13px] capitalize text-text-muted">
+              {today}
+            </p>
           </div>
         </div>
         <div className="flex flex-none items-center gap-2">
