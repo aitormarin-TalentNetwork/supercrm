@@ -771,9 +771,16 @@ osascript -e 'tell application "Terminal" to do script "cd \"<worktree>\" && cod
 ### Patrón: aviso instantáneo sin depender del barrido (principio general, 2026-09-04)
 
 **Cuándo aplica:** cualquier vez que un rol dispara trabajo no interactivo/no-mensajeable
-sobre un proceso externo (no una sesión Claude Code — eso ya tiene su propio canal, ver
-`SendMessage`/`notify_when_idle`) y necesita saber cuándo termina, sin esperar al próximo
-ciclo de un barrido periódico ni quedarse sondeando a mano. Caso que lo originó: la
+sobre un proceso externo y necesita saber cuándo termina, sin esperar al próximo ciclo de
+un barrido periódico ni quedarse sondeando a mano. **Por qué no usar `SendMessage`/
+`notify_when_idle` directamente** (pregunta real de Aitor, 2026-09-04): ese mecanismo da
+aviso inmediato de verdad, pero solo entre sesiones Claude Code — el auditor (`codex
+exec`) no es una sesión Claude Code, es un proceso de otra CLI corriendo en su propia
+ventana de Terminal, invisible para ese canal. El patrón de abajo es lo más parecido a
+ese mismo "aviso inmediato sin sondeo" que se puede lograr contra un proceso externo
+opaco. Si en el futuro el trabajo que disparas SÍ es otra sesión Claude Code, usa
+`SendMessage`/`notify_when_idle` en vez de este patrón — este es específicamente para
+cuando eso no es una opción. Caso que lo originó: la
 Directora disparaba al auditor (`codex exec`, ver arriba) y un veredicto NO-GO se quedó
 ~6 horas sin relayar porque nadie volvía a mirar esa ventana concreta hasta el siguiente
 ciclo del barrido (hasta 20 min, y esa noche ni eso — ver incidente en `director.md`).
