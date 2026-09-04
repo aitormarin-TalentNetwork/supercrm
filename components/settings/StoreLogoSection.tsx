@@ -107,9 +107,10 @@ export function StoreLogoSection() {
             if (file) void handleFileSelected(file);
           }}
         />
+        {/* AIT-72: sin `size="sm"` (36px) — cae al `md` por defecto (44px,
+            --tap-min), mismo fix ya aplicado en AIT-68/71. */}
         <Button
           variant="secondary"
-          size="sm"
           leftIcon={<Upload size={14} />}
           disabled={loading}
           onClick={() => fileInputRef.current?.click()}
@@ -117,12 +118,15 @@ export function StoreLogoSection() {
           {loading ? "Guardando…" : store.logoUrl ? "Cambiar" : "Subir"}
         </Button>
         {store.logoUrl && (
+          // AIT-72: h-11 w-11 (44px, --tap-min) en vez de h-8 w-8 (32px) —
+          // mismo patrón que "Editar"/"Desactivar" de Ajustes, hallado de
+          // paso en este mismo fichero.
           <button
             type="button"
             aria-label="Quitar logo"
             onClick={handleRemove}
             disabled={loading}
-            className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-error-subtle hover:text-error disabled:opacity-50"
+            className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-error-subtle hover:text-error disabled:opacity-50"
           >
             <X size={15} />
           </button>
