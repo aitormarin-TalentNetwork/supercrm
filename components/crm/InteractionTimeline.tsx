@@ -75,11 +75,16 @@ export function InteractionTimeline({
                   </div>
                 </div>
                 {canDelete && (
+                  // AIT-71: h-11 w-11 (44px, --tap-min) en vez de h-8 w-8
+                  // (32px) — la más pequeña de la lista y una acción
+                  // destructiva, prioridad sugerida por el Tester.
+                  // Márgenes negativos para que el crecimiento del
+                  // objetivo táctil no empuje el layout de la fila.
                   <button
                     type="button"
                     aria-label="Eliminar interacción"
                     onClick={() => onRequestDelete?.(h.id)}
-                    className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-error-subtle hover:text-error"
+                    className="-my-1.5 -mr-1.5 inline-flex h-11 w-11 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-error-subtle hover:text-error"
                   >
                     <Trash2 size={15} />
                   </button>

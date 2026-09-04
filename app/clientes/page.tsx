@@ -131,8 +131,9 @@ export default function ClientesPage() {
               <QuickActions />
             </div>
             <div className="w-full sm:w-[260px]">
+              {/* AIT-71: sin `size="sm"` (36px) — cae al `md` por defecto
+                  (44px, --tap-min), mismo fix ya aplicado en AIT-68. */}
               <Input
-                size="sm"
                 leftIcon={<Search size={15} />}
                 placeholder="Buscar por nombre, teléfono o email…"
                 value={search}

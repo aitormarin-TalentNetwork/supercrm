@@ -167,8 +167,10 @@ export default function SupervisionPage() {
                 Comparativa por comercial
               </h2>
               <div className="w-full sm:w-[190px]">
+                {/* AIT-71: sin `size="sm"` (36px) — cae al `md` por defecto
+                    (44px, --tap-min), mismo fix ya aplicado en AIT-68 a los
+                    Select/Input de Pipeline. */}
                 <Select
-                  size="sm"
                   value={filtro}
                   onChange={(e) =>
                     setFiltro(e.target.value as Id<"users"> | "todos")
