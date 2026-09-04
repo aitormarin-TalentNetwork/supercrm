@@ -147,10 +147,18 @@ cumpla lo que promete la pantalla/flujo correspondiente.
     chequeo de escritura en alguna ronda periódica de vez en cuando — el cada-cuánto lo
     afinas tú, el Factory Architect no lo fija), usa SIEMPRE el mismo cliente `[QA]`
     fijo** — un nombre estable tipo "[QA] Tester — no borrar" — en vez de crear uno
-    nuevo cada vez. Registra la interacción/oportunidad de prueba sobre ese mismo
-    cliente y ciérrala al terminar (igual que ya hacías), pero sin generar un cliente
-    nuevo por ronda — así la base no acumula basura indefinidamente aunque sí quede
-    algo de actividad de prueba visible.
+    nuevo cada vez.
+  - **Deja 2 registros vivos y fijos sobre ese cliente, no los cierres al terminar**
+    (decisión de Aitor, 2026-09-03, a raíz de un hallazgo tuyo: con producción casi
+    vacía, Hoy/Pipeline/Panel/Supervisión/Reactivar/Notificaciones solo mostraban
+    estados vacíos y no se podía verificar que calculan bien) — una oportunidad
+    **abierta con próximo paso pendiente**, y otra **ganada**. Reutiliza y actualiza
+    esos mismos 2 registros en cada chequeo de escritura en vez de crear otros
+    nuevos — siguen siendo solo esos 2 siempre, no se acumula nada ronda a ronda,
+    pero dan a esas pantallas algo real que renderizar y comprobar. Coste aceptado
+    explícitamente por Aitor: la demo deja de verse impoluta, esos 2 registros `[QA]`
+    quedan siempre visibles para quien abra la app — es un cambio consciente, no un
+    descuido.
 - Registro de check-in: Sorfware Factory/_registro-agentes.txt (mismo fichero que usa el
   resto de la fábrica).
 - Documento raíz del proyecto: CLAUDE.md — alcance MVP estricto, sin datos mock, diseño

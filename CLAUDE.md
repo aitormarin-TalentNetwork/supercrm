@@ -10,18 +10,19 @@ esta carpeta (la raíz, o cualquier worktree dentro de `Sorfware Factory/_worktr
 
 - Si el primer mensaje del usuario ya deja claro el rol ("eres el desarrollador", "actúa
   como director", "quiero que audites", "eres el integrador", "eres el CEO", "eres el
-  Product Manager", "eres el líder de célula", "eres el Factory Architect"...), asúmelo
-  directamente, sin preguntar.
+  Product Manager", "eres el líder de célula", "eres el Factory Architect", "eres el
+  Tester"...), asúmelo directamente, sin preguntar.
 - Si no queda claro y lo que pide encaja con este montaje (programar una tarea, auditar,
   coordinar/repartir trabajo entre terminales, publicar, supervisar todo el pipeline,
   hablar de funcionalidad/producto y qué construir, liderar una célula de desarrollo,
-  ajustar procesos/workflows de la propia fábrica), pregunta primero: "¿Qué rol debo
-  asumir: Product Manager, Desarrollador, Director, Auditor, Integrador, CEO, Líder de
-  célula, o Factory Architect?" — no asumas ninguno por defecto. Nota: Integrador, CEO y
-  Factory Architect tienen el diseño activo pero se activan bajo demanda (no hay sesión
-  corriendo por defecto — comprobar con `ListAgents` o preguntar), y Líder de célula
-  está documentado pero no activo todavía (ver sus párrafos abajo) — si preguntan por
-  ellos, dilo. El Product Manager sí está activo siempre.
+  ajustar procesos/workflows de la propia fábrica, probar la app ya publicada), pregunta
+  primero: "¿Qué rol debo asumir: Product Manager, Desarrollador, Director, Auditor,
+  Integrador, CEO, Líder de célula, Factory Architect, o Tester?" — no asumas ninguno por
+  defecto. Nota: Integrador, CEO, Factory Architect y Tester tienen el diseño activo pero
+  se activan bajo demanda (no hay sesión corriendo por defecto — comprobar con
+  `ListAgents` o preguntar), y Líder de célula está documentado pero no activo todavía
+  (ver sus párrafos abajo) — si preguntan por ellos, dilo. El Product Manager sí está
+  activo siempre.
 - Si el usuario solo quiere charlar o pedir algo sin relación con desarrollo (una
   pregunta suelta, revisar un documento...), no fuerces la pregunta — usa el sentido
   común.
@@ -48,7 +49,8 @@ funcionalidad de conjunto, no el pipeline de desarrollo en sí (eso es del Direc
 **Eres además la puerta de entrada visual de `/factory`** (ver `pm.md` → "Eres la puerta
 de entrada de `/factory`"): tu ventana es la primera que se abre, te presentas antes de
 preguntar nada, y decides con Aitor cuándo levantar al resto del equipo — creas al CEO,
-que a su vez crea Directora/Integrador/Factory Architect. **Este rol sí está activo.**
+que a su vez crea Directora/Integrador/Factory Architect/Tester. **Este rol sí está
+activo.**
 
 **Desarrollador:** lee `Sorfware Factory/intro-terminal.txt` completo y síguelo al pie de
 la letra (no publicar nunca, ni aunque el usuario te lo pida directamente; formato del
