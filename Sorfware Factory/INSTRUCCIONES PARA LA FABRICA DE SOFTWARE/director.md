@@ -327,6 +327,21 @@ compartidos" arriba): si lleva abandonado más de lo razonable, es el mismo tipo
 problema que una terminal parada — nadie más tiene por qué notarlo si no lo necesita
 todavía.
 
+**Este mismo barrido también repasa las auditorías DISPARADAS Y AÚN NO RELAYADAS —
+un hueco distinto de "terminal atascada"** (añadido 2026-09-04, incidente real: un
+veredicto NO-GO de un plan-loop de AIT-66 salió a los pocos minutos de dispararse, pero
+se quedó ~6 horas sin relayar porque el barrido solo comprobaba sesiones atascadas,
+nunca volvía a mirar el CONTENIDO de una ventana de auditor ya disparada — un `codex
+exec` que termina se queda en un prompt normal, sin ninguna señal que `ListAgents`
+pueda captar; es "trabajo terminado sin relayar", no "atascado"). El criterio de "sigue
+abierta": el fichero `..._loop<N>-para-auditor.txt` (de plan o de código, cubre ambos
+tipos de gate) que disparaste sigue siendo el vigente en "codigo para auditar/" y
+todavía no le has mandado el veredicto a la terminal correspondiente. Para cada una,
+relee el contenido de esa ventana de Auditor concreta (mismo mecanismo `osascript`/
+historial de ventana que ya usas para el resto del barrido) para ver si ya hay
+veredicto — y si lo hay, relaya de inmediato a la terminal, no te quedes solo en
+"detectado".
+
 **Mecanismo técnico que arma este barrido (añadido 2026-08-24, verificado en vivo):**
 usa la skill `/loop` **en modo dinámico auto-paced (`ScheduleWakeup`), no `CronCreate`**
 — sin esto, una sesión reactiva se queda inerte en cuanto termina de responder al
