@@ -3,13 +3,23 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
-import { ArrowLeft, Mail, MessageSquare, Phone, Plus, Store, UserCheck } from "lucide-react";
+import { useMutation, useQuery } from "convex/react";
+import {
+  ArrowLeft,
+  Mail,
+  MessageSquare,
+  Phone,
+  Plus,
+  Store,
+  Trash2,
+  UserCheck,
+} from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { RegistrarInteraccionModal } from "@/components/crm/RegistrarInteraccionModal";
@@ -23,6 +33,7 @@ export default function FichaClientePage({
   const { id } = use(params);
   const customerId = id as Id<"customers">;
   const router = useRouter();
+  const role = useQuery(api.users.getCurrentUserRole);
   const ficha = useQuery(api.customers.getFicha, { customerId });
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
   // La oportunidad del modal se fija al abrirlo (no se recalcula en cada
@@ -34,6 +45,22 @@ export default function FichaClientePage({
   // pantalla, sin ningún aviso (ronda de auditoría 1, mayor #2).
   const [interactionOpportunityId, setInteractionOpportunityId] =
     useState<Id<"opportunities"> | null>(null);
+  const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
+  const [deleteInteractionId, setDeleteInteractionId] =
+    useState<Id<"interactions"> | null>(null);
+
+  // Mismo criterio que app/oportunidades/[id]/page.tsx (ronda de auditoría
+  // 1 de AIT-25, sugerencia #1): la Ficha de cliente también se alcanza
+  // desde varias pantallas (Detalle, Pipeline...), no solo Hoy. Declarada
+  // como function (hoisted): se usa también en la rama "no encontrado" más
+  // abajo, antes de su definición textual.
+  function handleBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  }
 
   if (ficha === undefined || interactions === undefined) {
     return (
@@ -45,8 +72,23 @@ export default function FichaClientePage({
 
   if (ficha === null || interactions === null) {
     return (
-      <main className="flex flex-1 items-center justify-center p-8 font-sans">
-        <p className="text-text-secondary">Cliente no encontrado o sin acceso.</p>
+      <main className="flex flex-1 flex-col bg-bg font-sans text-text">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="Volver"
+            className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-md text-text-secondary hover:bg-neutral-100"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+            Ficha de cliente
+          </div>
+        </header>
+        <div className="flex flex-1 items-center justify-center p-8">
+          <p className="text-text-secondary">Este cliente ya no existe.</p>
+        </div>
       </main>
     );
   }
@@ -59,17 +101,6 @@ export default function FichaClientePage({
   // tiene sentido registrar una interacción sin oportunidad a la que
   // enganchar el próximo paso (regla 6, docs/02-modelo-de-datos.md §1).
   const activeOpportunity = opportunities.find((o) => o.status === "open") ?? null;
-
-  // Mismo criterio que app/oportunidades/[id]/page.tsx (ronda de auditoría
-  // 1 de AIT-25, sugerencia #1): la Ficha de cliente también se alcanza
-  // desde varias pantallas (Detalle, Pipeline...), no solo Hoy.
-  function handleBack() {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-  }
 
   return (
     <main className="flex flex-1 flex-col bg-bg font-sans text-text">
@@ -148,6 +179,24 @@ export default function FichaClientePage({
             >
               Registrar interacción
             </Button>
+            {role === "owner" && (
+              <>
+                <span className="flex-1" />
+                <Button
+                  variant="danger"
+                  leftIcon={<Trash2 size={16} />}
+                  disabled={opportunities.length > 0}
+                  title={
+                    opportunities.length > 0
+                      ? "No se puede eliminar: tiene oportunidades asociadas. Bórralas o reasígnalas primero."
+                      : undefined
+                  }
+                  onClick={() => setDeleteCustomerOpen(true)}
+                >
+                  Eliminar cliente
+                </Button>
+              </>
+            )}
           </div>
           <p className="mt-2.5 text-xs text-text-muted">
             Muy pronto podrás crear oportunidades desde aquí.
@@ -202,6 +251,8 @@ export default function FichaClientePage({
             <InteractionTimeline
               interactions={interactions}
               emptyMessage="Sin interacciones registradas todavía."
+              canDelete={role === "owner"}
+              onRequestDelete={setDeleteInteractionId}
             />
           </section>
         </div>
@@ -214,6 +265,156 @@ export default function FichaClientePage({
           opportunityId={interactionOpportunityId}
         />
       )}
+      <DeleteCustomerDialog
+        open={deleteCustomerOpen}
+        onClose={() => setDeleteCustomerOpen(false)}
+        customerId={customerId}
+        customerName={customer.name}
+      />
+      <DeleteInteractionDialog
+        interactionId={deleteInteractionId}
+        onClose={() => setDeleteInteractionId(null)}
+      />
     </main>
+  );
+}
+
+// AIT-65: mismo patrón que los diálogos de borrado de
+// app/oportunidades/[id]/page.tsx — confirmación con estado de
+// carga/error inline. Al tener éxito, la ficha ya no existe: redirige al
+// listado de clientes (AIT-58).
+function DeleteCustomerDialog({
+  open,
+  onClose,
+  customerId,
+  customerName,
+}: {
+  open: boolean;
+  onClose: () => void;
+  customerId: Id<"customers">;
+  customerName: string;
+}) {
+  const router = useRouter();
+  const removeCustomer = useMutation(api.customers.remove);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleConfirm() {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await removeCustomer({ customerId });
+      router.push("/clientes");
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo eliminando cliente:", err);
+      }
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se ha podido eliminar el cliente. Inténtalo de nuevo.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button variant="danger" onClick={handleConfirm} disabled={loading}>
+        {loading ? "Eliminando…" : "Eliminar cliente"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Eliminar cliente"
+      description={`Vas a eliminar a ${customerName} de forma permanente. Esta acción no se puede deshacer.`}
+      width={420}
+      footer={footer}
+    >
+      {error && (
+        <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+      )}
+    </Dialog>
+  );
+}
+
+// AIT-65: idéntico a DeleteInteractionDialog de
+// app/oportunidades/[id]/page.tsx — se repite aquí (no se comparte)
+// porque ambas páginas ya definen sus propios diálogos locales, mismo
+// patrón que el resto de este proyecto (p.ej. ChangeStageDialog vive solo
+// en la página de oportunidad, no se comparte con ninguna otra).
+function DeleteInteractionDialog({
+  interactionId,
+  onClose,
+}: {
+  interactionId: Id<"interactions"> | null;
+  onClose: () => void;
+}) {
+  const removeInteraction = useMutation(api.interactions.remove);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  function handleClose() {
+    if (loading) return;
+    setError("");
+    onClose();
+  }
+
+  async function handleConfirm() {
+    if (loading || interactionId === null) return;
+    setLoading(true);
+    setError("");
+    try {
+      await removeInteraction({ interactionId });
+      onClose();
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo eliminando interacción:", err);
+      }
+      setError("No se ha podido eliminar la interacción. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button variant="danger" onClick={handleConfirm} disabled={loading}>
+        {loading ? "Eliminando…" : "Eliminar interacción"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={interactionId !== null}
+      onClose={handleClose}
+      title="Eliminar interacción"
+      description="Esta interacción se eliminará de forma permanente. Esta acción no se puede deshacer."
+      width={420}
+      footer={footer}
+    >
+      {error && (
+        <div className="rounded-md bg-error-subtle p-3 text-sm text-error">{error}</div>
+      )}
+    </Dialog>
   );
 }

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
-import { isStoreWideRole, requireUser } from "./model/access";
+import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
 import { addBusinessMonths, startOfBusinessDay } from "../lib/businessTime";
 import { isAtRisk } from "../lib/risk";
@@ -186,9 +186,18 @@ export const createQuick = mutation({
 // cliente relacionado se valida también contra la misma tienda, para que
 // una relación cruzada futura no filtre el nombre de un cliente ajeno.
 export const getSummary = query({
-  args: { opportunityId: v.id("opportunities") },
-  handler: async (ctx, { opportunityId }) => {
+  // AIT-70: `v.string()`, no `v.id("opportunities")` — un ID con formato
+  // inválido (tecleado a mano, o de otra tabla) hace que `v.id()` rechace
+  // el argumento con un ArgumentValidationError ANTES de que este handler
+  // llegue a ejecutarse, imposible de interceptar con un `if` interno.
+  // `ctx.db.normalizeId` nunca lanza — permite dar el mismo trato de "no
+  // encontrada" tanto a un ID inventado como a uno de un registro
+  // realmente borrado (AIT-65).
+  args: { opportunityId: v.string() },
+  handler: async (ctx, { opportunityId: rawOpportunityId }) => {
     const user = await requireUser(ctx);
+    const opportunityId = ctx.db.normalizeId("opportunities", rawOpportunityId);
+    if (opportunityId === null) return null;
     const opportunity = await ctx.db.get(opportunityId);
     if (opportunity === null) return null;
     if (opportunity.storeId !== user.storeId) return null;
@@ -295,6 +304,26 @@ export async function loadOpenOpportunityOrThrow(
   }
   if (opportunity.status !== "open") {
     throw new Error("La oportunidad ya está cerrada.");
+  }
+  return opportunity;
+}
+
+// AIT-65: mismo criterio de acceso que loadOpenOpportunityOrThrow, SIN el
+// chequeo de `status === "open"` — eliminar una oportunidad tiene que
+// funcionar también sobre una ya cerrada (ganada o perdida), a diferencia
+// de changeStage/markWon/markLost/advanceBillingStatus.
+export async function loadOpportunityOrThrow(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  opportunityId: Id<"opportunities">,
+): Promise<Doc<"opportunities">> {
+  const opportunity = await ctx.db.get(opportunityId);
+  if (opportunity === null) throw new Error("Oportunidad no encontrada.");
+  if (opportunity.storeId !== user.storeId) {
+    throw new Error("Oportunidad no encontrada.");
+  }
+  if (!isStoreWideRole(user) && opportunity.ownerId !== user._id) {
+    throw new Error("Oportunidad no encontrada.");
   }
   return opportunity;
 }
@@ -591,5 +620,61 @@ export const listOpen = query({
     );
 
     return enriched.filter((item) => item !== null);
+  },
+});
+
+// AIT-65: eliminar una oportunidad — solo `owner` (issue: "Solo el rol
+// owner puede borrar", no `storeManager`, aunque el resto del proyecto
+// trate a ambos como store-wide). Bloquea (no cascada) si tiene
+// `interactions` — es el único hijo de "historial" que la issue protege.
+// `quotes`/`nextSteps`/`repurchaseReminders` son artefactos de trabajo
+// propios de la oportunidad, no historial de contacto — se cascadean.
+export const remove = mutation({
+  args: { opportunityId: v.id("opportunities") },
+  handler: async (ctx, { opportunityId }) => {
+    const user = await requireOwner(ctx);
+    const opportunity = await loadOpportunityOrThrow(ctx, user, opportunityId);
+
+    const interactions = await ctx.db
+      .query("interactions")
+      .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
+      .collect();
+    if (interactions.length > 0) {
+      throw new Error(
+        `No se puede eliminar: tiene ${interactions.length} interacción(es) registrada(s). Bórralas primero.`,
+      );
+    }
+
+    const quotes = await ctx.db
+      .query("quotes")
+      .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
+      .collect();
+    for (const quote of quotes) {
+      await ctx.db.delete(quote._id);
+    }
+
+    const nextSteps = await ctx.db
+      .query("nextSteps")
+      .withIndex("by_opportunity", (q) => q.eq("opportunityId", opportunityId))
+      .collect();
+    for (const step of nextSteps) {
+      await ctx.db.delete(step._id);
+    }
+
+    // Sin índice `by_opportunity` en `repurchaseReminders` (solo
+    // `by_customer`/`by_status`/`by_store_status`) — se consulta por
+    // cliente (ya conocido) y se filtra en memoria, mismo patrón que otras
+    // tablas pequeñas del proyecto sin índice dedicado.
+    const reminders = (
+      await ctx.db
+        .query("repurchaseReminders")
+        .withIndex("by_customer", (q) => q.eq("customerId", opportunity.customerId))
+        .collect()
+    ).filter((r) => r.opportunityId === opportunityId);
+    for (const reminder of reminders) {
+      await ctx.db.delete(reminder._id);
+    }
+
+    await ctx.db.delete(opportunityId);
   },
 });

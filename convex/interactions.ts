@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
-import { isStoreWideRole, requireUser } from "./model/access";
+import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import { closePendingNextSteps, loadOpenOpportunityOrThrow } from "./opportunities";
 import type { Id } from "./_generated/dataModel";
 
@@ -30,9 +30,13 @@ async function resolveAuthorName(
 // es suyo. Se revalida aquí (no basta con que la UI ya haya llamado a
 // getFicha) porque es una query pública independiente.
 export const listByCustomer = query({
-  args: { customerId: v.id("customers") },
-  handler: async (ctx, { customerId }) => {
+  // AIT-70: `v.string()` + `normalizeId` — ver la nota en
+  // opportunities.ts:getSummary.
+  args: { customerId: v.string() },
+  handler: async (ctx, { customerId: rawCustomerId }) => {
     const user = await requireUser(ctx);
+    const customerId = ctx.db.normalizeId("customers", rawCustomerId);
+    if (customerId === null) return null;
     const customer = await ctx.db.get(customerId);
     if (customer === null) return null;
     if (customer.storeId !== user.storeId) return null;
@@ -62,9 +66,13 @@ export const listByCustomer = query({
 // Mismo criterio de acceso que opportunities.getSummary: misma tienda, y
 // si es sales, solo lo suyo.
 export const listByOpportunity = query({
-  args: { opportunityId: v.id("opportunities") },
-  handler: async (ctx, { opportunityId }) => {
+  // AIT-70: `v.string()` + `normalizeId` — ver la nota en
+  // opportunities.ts:getSummary.
+  args: { opportunityId: v.string() },
+  handler: async (ctx, { opportunityId: rawOpportunityId }) => {
     const user = await requireUser(ctx);
+    const opportunityId = ctx.db.normalizeId("opportunities", rawOpportunityId);
+    if (opportunityId === null) return null;
     const opportunity = await ctx.db.get(opportunityId);
     if (opportunity === null) return null;
     if (opportunity.storeId !== user.storeId) return null;
@@ -187,5 +195,75 @@ export const create = mutation({
       status: "pending",
       assigneeId: opportunity.ownerId,
     });
+  },
+});
+
+// AIT-65: eliminar una interacción — solo `owner`. Sin restricción de
+// `status` de la oportunidad (a diferencia de `create`, que exige
+// `loadOpenOpportunityOrThrow`) — se puede borrar una interacción de una
+// oportunidad ya cerrada. Sin hijos que comprobar (la issue lo dice
+// literal: "una interacción no tiene hijos").
+//
+// Hallazgo de auditoría (ronda 1, Major M1): borrar la interacción que
+// fijó `lastActivityAt` (el máximo acumulado que actualiza `create`, más
+// arriba) sin recalcular dejaba a la oportunidad con una fecha de
+// actividad que ya no existe. Se recalcula SOLO si esta interacción era
+// exactamente la que fijó el valor actual (`occurredAt === lastActivityAt`)
+// — la igualdad prueba que ninguna interacción ni evento de ciclo de vida
+// posterior existe (si existiera, `lastActivityAt` ya sería mayor, porque
+// nunca retrocede solo). El nuevo valor es el máximo entre la creación de
+// la oportunidad, su cierre (si está cerrada) y las interacciones que
+// quedan — limitación aceptada: un `changeStage` intermedio no deja
+// rastro propio, así que el recálculo puede quedar por debajo del valor
+// "verdadero" con historial completo, nunca por encima (error siempre en
+// la dirección seguro para el producto: la oportunidad puede parecer en
+// riesgo antes, nunca después). `lastRiskPushSentAt` se capa con el mismo
+// nuevo valor si lo supera, para no reproducir el bug ya corregido una
+// vez en este proyecto (AIT-57, ronda 1, "Mayor" #2): dejarlo por encima
+// de un `lastActivityAt` ya corregido bloquearía para siempre la
+// elegibilidad de un aviso de riesgo futuro
+// (`convex/pushInternal.ts:listAtRiskOpportunities`).
+//
+// El `nextStep` que esta interacción generó (si sigue "pending") NO se
+// toca — decisión explícita, no omisión: sigue siendo una tarea futura
+// válida con independencia de que se borre el registro histórico que la
+// motivó, y el schema no guarda qué `nextStep` cerró `closePendingNextSteps`
+// en su momento como para poder "deshacerlo" con seguridad sin arriesgar
+// dejar la oportunidad sin ningún paso pendiente (regla 6).
+export const remove = mutation({
+  args: { interactionId: v.id("interactions") },
+  handler: async (ctx, { interactionId }) => {
+    const user = await requireOwner(ctx);
+    const interaction = await ctx.db.get(interactionId);
+    if (interaction === null) {
+      throw new Error("Interacción no encontrada.");
+    }
+    const opportunity = await ctx.db.get(interaction.opportunityId);
+    if (opportunity === null || opportunity.storeId !== user.storeId) {
+      throw new Error("Interacción no encontrada.");
+    }
+
+    await ctx.db.delete(interactionId);
+
+    if (interaction.occurredAt === opportunity.lastActivityAt) {
+      const remaining = await ctx.db
+        .query("interactions")
+        .withIndex("by_opportunity", (q) =>
+          q.eq("opportunityId", interaction.opportunityId),
+        )
+        .collect();
+      const newLastActivityAt = Math.max(
+        opportunity._creationTime,
+        opportunity.closedAt ?? 0,
+        ...remaining.map((i) => i.occurredAt),
+      );
+      await ctx.db.patch(interaction.opportunityId, {
+        lastActivityAt: newLastActivityAt,
+        lastRiskPushSentAt:
+          opportunity.lastRiskPushSentAt !== undefined
+            ? Math.min(opportunity.lastRiskPushSentAt, newLastActivityAt)
+            : undefined,
+      });
+    }
   },
 });

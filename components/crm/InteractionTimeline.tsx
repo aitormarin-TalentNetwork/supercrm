@@ -1,4 +1,4 @@
-import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Mail, MapPin, MessageCircle, Phone, Trash2 } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { formatDateTime } from "@/lib/format";
 
@@ -30,9 +30,20 @@ const INTERACTION_META: Record<
 interface InteractionTimelineProps {
   interactions: Interaction[];
   emptyMessage: string;
+  // AIT-65: presentacional puro — no abre el diálogo de confirmación ni
+  // llama a ninguna mutation. Cada página que usa este componente ya
+  // conoce el rol y gestiona su propio diálogo de borrado; esto solo avisa
+  // qué interacción se ha pedido borrar.
+  canDelete?: boolean;
+  onRequestDelete?: (interactionId: Id<"interactions">) => void;
 }
 
-export function InteractionTimeline({ interactions, emptyMessage }: InteractionTimelineProps) {
+export function InteractionTimeline({
+  interactions,
+  emptyMessage,
+  canDelete = false,
+  onRequestDelete,
+}: InteractionTimelineProps) {
   if (interactions.length === 0) {
     return <p className="text-sm text-text-secondary">{emptyMessage}</p>;
   }
@@ -54,11 +65,25 @@ export function InteractionTimeline({ interactions, emptyMessage }: InteractionT
               </span>
               {!isLast && <span className="my-1 w-0.5 flex-1 bg-border" />}
             </div>
-            <div className="min-w-0 pb-4">
-              <div className="text-sm font-semibold">{meta.label}</div>
-              <div className="mt-0.5 text-[13px] text-text-secondary">{h.note}</div>
-              <div className="mt-1 font-mono text-xs text-text-muted">
-                {formatDateTime(h.occurredAt)} · {h.author}
+            <div className="min-w-0 flex-1 pb-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold">{meta.label}</div>
+                  <div className="mt-0.5 text-[13px] text-text-secondary">{h.note}</div>
+                  <div className="mt-1 font-mono text-xs text-text-muted">
+                    {formatDateTime(h.occurredAt)} · {h.author}
+                  </div>
+                </div>
+                {canDelete && (
+                  <button
+                    type="button"
+                    aria-label="Eliminar interacción"
+                    onClick={() => onRequestDelete?.(h.id)}
+                    className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md text-text-secondary hover:bg-error-subtle hover:text-error"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </div>
             </div>
           </div>

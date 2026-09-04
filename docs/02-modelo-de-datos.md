@@ -513,3 +513,4 @@ un argumento, un patrón mucho más difícil de hacer mal por descuido.
 4. **Marcar como perdida** → `lostReason` es obligatorio.
 5. **Cerrar (ganada o perdida)** → los `nextSteps` pendientes de esa oportunidad dejan de contar como pendientes.
 6. **Invariante:** ninguna oportunidad con `status = "open"` puede quedarse sin un `nextStep` pendiente.
+7. **Eliminar (AIT-65)** → bloquea (no cascada) si el registro tiene hijos de historial: un cliente con oportunidades, o una oportunidad con interacciones. Los artefactos de trabajo de una oportunidad borrada (`quotes`, `nextSteps`, `repurchaseReminders`) se eliminan junto con ella — no son historial de contacto, así que no bloquean. Borrar una interacción recalcula `lastActivityAt`/`lastRiskPushSentAt` de su oportunidad si esa interacción era la que fijaba el valor actual, pero no toca el `nextStep` que generó. Solo `owner` puede borrar.
