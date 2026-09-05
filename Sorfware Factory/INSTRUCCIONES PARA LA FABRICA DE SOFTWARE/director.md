@@ -90,7 +90,7 @@ real exactamente igual que si nadie hubiera avisado nunca.
    falta que lo descubras solo revisando por tu cuenta: el PM te avisa por mensaje
    directo cada vez que crea o actualiza tareas (arranque de un proyecto nuevo, una
    onda nueva, o un ajuste de alcance en marcha) — trátalo como una señal para mirar,
-   no como sustituto de tu propio barrido periódico. Si el proyecto tiene rol Tester
+   no como sustituto de tu propio barrido periódico. Si el proyecto tiene rol QA
    (ver Configuración), algunas de esas tareas nacen de un hallazgo suyo en la app ya
    publicada — te llegan igual, vía el PM, ya evaluadas y acordadas con él; es una
    instancia más de tu flujo normal de priorización, no necesita mecanismo aparte.
@@ -457,7 +457,8 @@ Referencia rápida de nombres (para no perderte al leer el README):
 - Auditor = Codex (`AGENTS.md`/`auditor_prompt.txt`). Rol de publicación dedicado =
   Integrador (`integrador.md`, no activo todavía). Supervisión = CEO (`ceo.md`, no
   activo todavía). Producto = PM (`pm.md`, activo). Pruebas de la app publicada =
-  Tester (`tester.md`, activo desde 2026-09-03) — reporta hallazgos al PM, no a ti.
+  QA (`qa.md`, activo desde 2026-09-03, se llamaba "Tester" hasta 2026-09-05) — reporta
+  hallazgos al PM, no a ti.
 - Recurso compartido con turno = Convex (deployment `third-goldfinch-805`, migración a
   deployments aislados por terminal documentada en README §3bis, pendiente). Turno
   organizado con cerrojo autoservicio (`Sorfware Factory/_turno-convex.lock/`, reclamado

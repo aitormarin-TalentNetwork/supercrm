@@ -31,7 +31,7 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Rol Integrador** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/integrador.md` | Diseño **activo** desde 2026-08-14 (cobertura real pendiente — comprobar con `ListAgents` si hay una terminal real jugándolo antes de asumir que ya cubre publicación; mientras no la haya, la Directora sigue publicando ella misma). Cuando haya una terminal real: recoge de la Directora las tareas con GO y hace ella misma el merge/push/verificación de Railway/Linear Done/archivo — la Directora deja de publicar directamente y su trabajo en una tarea termina en "aviso al Integrador". Ver ese documento para el detalle completo. |
 | **Rol CEO** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/ceo.md` | Diseño activo desde 2026-08-12; **se activa bajo demanda** (vía `/factory`, §4ter, o pidiéndoselo a una sesión explícitamente) — no hay una sesión CEO corriendo por defecto, comprobar con `ListAgents`. Supervisa a los workers y al pipeline día a día (Directora, Integrador); la Directora le escala lo que no sabe resolver por su cuenta. Ejecuta los cambios de proceso que decide el Factory Architect (o los decide él mismo si ese rol no está activo). Puede leer transcripts/inspeccionar visualmente una terminal y alterar al worker concreto — y siempre reporta lo aprendido al Factory Architect después. Mientras no haya sesión CEO activa, la Directora escala directamente a Aitor. |
 | **Rol Factory Architect** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/factory-architect.md` | Activo desde 2026-08-15, se crea con `/factory`. Es con quien Aitor habla para ajustar procesos/workflows de la fábrica — decide cambios sencillos de organización él mismo, pregunta a Aitor los sustanciales. Recibe del CEO los avisos de "esto no funciona, revisa el proceso" y le entrega la decisión ya tomada para que la ejecute — nunca implementa él mismo. Vigilancia recíproca con el CEO (ver `ceo.md`). |
-| **Rol Tester** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/tester.md` | Nuevo, activo desde 2026-09-03. Prueba la app ya publicada en Railway (no código, producto en marcha) con el MCP de Playwright + la suite `e2e/*.spec.ts` como smoke-test — periódico vía `/loop` propio, más reactivo en cuanto se confirma un deploy nuevo. Reporta hallazgos siempre al PM (nunca a la Directora ni a Aitor directamente), que evalúa y coordina con la Directora antes de convertirlo en issue de Linear. |
+| **Rol QA** | `Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/qa.md` | Activo desde 2026-09-03, se llamaba "Tester" hasta 2026-09-05 (renombrado, mismo rol). Prueba la app ya publicada en Railway (no código, producto en marcha) con el MCP de Playwright + la suite `e2e/*.spec.ts` como smoke-test — periódico vía `/loop` propio, más reactivo en cuanto se confirma un deploy nuevo. Reporta hallazgos siempre al PM (nunca a la Directora ni a Aitor directamente), que evalúa y coordina con la Directora antes de convertirlo en issue de Linear. |
 | **Mensajería directa entre terminales** | `SendMessage` / `ListAgents` (herramientas de Claude Code, no de este repo) | Desde 2026-08-12: la Directora y las terminales desarrolladoras se hablan directamente por aquí (asignar tarea, avisar de export listo, devolver veredicto, corregir) — Aitor ya no tiene que hacer de mensajero pegando texto entre terminales, salvo que quiera intervenir. Confirmar primero qué nombre de sesión (`ListAgents`) corresponde a qué terminal (T1/T2/T3) — no asumirlo solo por el nombre, que puede venir de una tarea antigua. |
 | **Linear** | Equipo "VibeCoding Academy" (AIT), proyecto "SuperCRM — MVP", MCP `linear-aitor` | Fuente de verdad de qué está Done / In Progress / Backlog, y el orden de fases (no adelantarse). |
 | **Convex** | Deployment compartido `third-goldfinch-805` para desarrollo/test de las 3 terminales (dashboard en `README.md` de la raíz) + `stoic-impala-857` como deployment de producción (AIT-59 — ver §2 paso 4 más abajo y ADR-004 en `docs/01-arquitectura.md`; **activo desde 2026-08-24, Railway construye contra `stoic-impala-857` en cada push a `main`**) + un deployment de dev propio por terminal (objetivo de §3bis, migración distinta y todavía pendiente) | Hoy: `third-goldfinch-805` compartido por TODAS las terminales para dev/test, ver riesgo en §3. `stoic-impala-857` es el de producción, activado por AIT-59 (Tanda 1 y Tanda 2 completas). Objetivo de §3bis (aparte, no confundir): cada terminal desarrolla contra su propio deployment de dev aislado; `third-goldfinch-805` ya no tiene rol de publicación — el punto de publicación es el build de Railway contra `stoic-impala-857`, no un merge a `third-goldfinch-805`. |
@@ -220,11 +220,12 @@ explícito es un resultado válido y valioso — el silencio que se lee como "ve
 es el fallo real. Ya existía para el auditor (`auditor_prompt.txt`/`AGENTS.md`: "si una
 conclusión requiere evidencia que no está disponible, decláralo explícitamente como no
 verificado") — **ahora aplica a cualquier rol, no solo al auditor.** Caso real que
-justifica extenderlo (2026-09-04): el Tester declaró explícitamente que no podía
-comprobar desde el navegador si la mutation `remove` de AIT-65 rechazaba de verdad a un
-usuario `sales` en el servidor, o si el botón simplemente estaba oculto en la UI sin
-protección real detrás. Por declararlo en vez de callarlo, el CEO pudo verificarlo leyendo
-el código (`requireOwner` sí rechaza server-side). Si el Tester hubiera asumido que "no
+justifica extenderlo (2026-09-04): el QA (entonces llamado "Tester") declaró
+explícitamente que no podía comprobar desde el navegador si la mutation `remove` de
+AIT-65 rechazaba de verdad a un usuario `sales` en el servidor, o si el botón
+simplemente estaba oculto en la UI sin protección real detrás. Por declararlo en vez de
+callarlo, el CEO pudo verificarlo leyendo el código (`requireOwner` sí rechaza
+server-side). Si el QA hubiera asumido que "no
 se ve el botón" bastaba como prueba de seguridad, una posible brecha de permisos habría
 quedado sin detectar.
 
@@ -563,7 +564,7 @@ abrir esa ventana.
 
 El PM se presenta primero, y decide con Aitor cuándo levantar al resto del equipo: crea
 entonces al **CEO** (orientado ya al proyecto en marcha); el CEO crea **Directora**,
-**Integrador**, **Factory Architect** y **Tester**, cada uno orientado igual; la Directora, una vez
+**Integrador**, **Factory Architect** y **QA**, cada uno orientado igual; la Directora, una vez
 arriba, crea las terminales de desarrollo que el backlog sostenga ahora mismo — **nunca
 un número fijo**, mismo criterio de siempre: no se abre una terminal para rellenar un
 hueco sin tarea independiente real (§3, "no adelantar fases").
@@ -593,7 +594,7 @@ visualmente lo que va junto, sin depender de una mecánica que no se puede garan
 | PM | verde oscuro `{0, 20000, 0}` | `PM` |
 | Directora | azul oscuro `{0, 0, 20000}` | `Directora` |
 | Integrador | ámbar oscuro `{20000, 12000, 0}` | `Integrador` |
-| Tester | turquesa oscuro `{0, 18000, 18000}` | `Tester` |
+| QA | turquesa oscuro `{0, 18000, 18000}` | `QA` |
 | Desarrollador (`T<n>`) | por defecto (negro) | `T<n> - Desarrollador` |
 | Auditor (`T<n>`) | por defecto (negro) | `T<n> - Auditor` |
 
@@ -764,7 +765,7 @@ es un Desarrollador seguido, a su derecha, de su Auditor. Usa siempre la receta 
 ```
                 [ PM ]
 
-Fila arriba:    [ CEO ]  [ Factory Architect ]  [ Integrador ]  [ Tester ]
+Fila arriba:    [ CEO ]  [ Factory Architect ]  [ Integrador ]  [ QA ]
 
                           [T1-Dev][T1-Aud]
 [ Directora ]             [T2-Dev][T2-Aud]
@@ -781,7 +782,7 @@ fila de roles centrales: `Y = Y0 - H - GAP` (es decir, `Y0` pasa a ser la fila d
 CEO/Factory Architect/Integrador, no la más alta de todas).
 
 **Fila de arriba — roles centrales**, en `Y0`, uno al lado de otro (`CEO` en `X0`,
-`Factory Architect` en `X0+(W+GAP)`, `Integrador` en `X0+2*(W+GAP)`, `Tester` en
+`Factory Architect` en `X0+(W+GAP)`, `Integrador` en `X0+2*(W+GAP)`, `QA` en
 `X0+3*(W+GAP)`) — usa la receta de "abrir ventana nueva" para cada uno, luego la de
 `bounds` con estas coordenadas.
 
@@ -939,12 +940,12 @@ cualquier mecanismo nuevo antes de darlo por bueno en el resto de documentos.
 |---|---|---|
 | Rol **Líder de célula** | **NO VERIFICADO** | Documentado por completo en `lider-celula.md` desde 2026-08-14, nunca activado — el proyecto no ha escalado a varias células todavía. Ningún paso de su flujo se ha ejecutado en vivo. |
 | Fallback `tee` para leer el log del auditor en vez del buffer de ventana | **NO VERIFICADO** | Propuesto 2026-09-04 (ver §"El auditor deja de ser invisible"), marcado explícitamente "no adoptar sin probarla primero" — riesgo conocido de que algunas CLIs dejen de renderizar prompts interactivos con la salida en tubería. Nadie lo ha probado todavía. |
-| Fallback `do script` para crear ventana nueva (cuando `make new window` falla) | Verificado, 2026-09-03 | Usado con éxito por el CEO tras 4 fallos consecutivos de `make new window` en la creación de la ventana del Tester — funcionó de forma fiable las veces que se probó. |
+| Fallback `do script` para crear ventana nueva (cuando `make new window` falla) | Verificado, 2026-09-03 | Usado con éxito por el CEO tras 4 fallos consecutivos de `make new window` en la creación de la ventana del QA (entonces llamado "Tester") — funcionó de forma fiable las veces que se probó. |
 | `make new window` como receta primaria de creación de ventana | **NO VERIFICADO del todo** | Falló 4/4 en una investigación puntual (2026-09-03), causa nunca diagnosticada (podría ser específico de esa sesión). Se mantiene como primaria por decisión del Factory Architect porque normalmente funciona y resuelve un bug de reutilización real — pero su fiabilidad de fondo no está confirmada, solo asumida. |
 | Mecanismo de **parpadeo de ventana** (fondo alternando color de rol/blanco cuando algo necesita a Aitor, con hook para pararlo al responder) | **NO VERIFICADO — nunca implementado** | Encargado por el Factory Architect el 2026-08-31. Repasado el historial de git y de documentos el 2026-09-05: no hay commit, no hay mención en ningún `.md`, no hay hook en `settings.local.json` relacionado. Se quedó sin construir, no solo sin verificar — el CEO no tenía constancia de este hueco hasta que el Factory Architect preguntó directamente. |
 | Patrón de aviso instantáneo (marker + `Bash run_in_background`) para saber cuándo termina el auditor | Verificado parcialmente, 2026-09-04 | El CEO probó el mecanismo genérico en vivo (marker de prueba + espera en segundo plano, notificación recibida al instante) antes de documentarlo. La Directora lo adoptó, pero su barrido de respaldo (no el aviso instantáneo) fue el que cazó el siguiente veredicto sin relayar — no hay confirmación todavía de que el aviso instantáneo en sí haya disparado con éxito en un ciclo real de auditor. |
 | `ScheduleWakeup` sin tope de caducidad (a diferencia de `CronCreate`, que caduca a los 7 días) | Verificado por observación, no por documentación oficial | Sin huecos ni caducidad a lo largo de más de 30h de uso continuo en esta sesión del CEO. El límite de 7 días de `CronCreate` sí está confirmado directamente en su documentación por el Factory Architect ("fire one final time, then are deleted"). |
-| `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El Tester declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
+| `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El QA (entonces llamado "Tester") declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
 | Hook `PermissionRequest` (aviso de voz inmediato cuando una sesión se bloquea en una aprobación) | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 

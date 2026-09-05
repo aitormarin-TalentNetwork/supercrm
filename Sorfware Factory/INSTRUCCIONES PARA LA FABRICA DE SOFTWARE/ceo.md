@@ -173,7 +173,8 @@ remediar un worker roto son dos cosas distintas aunque usen la misma técnica.
 ### Nunca des una acción de gestión de ventanas por hecha sin verificarla de verdad
 
 Pedido explícito de Aitor, 2026-09-03, tras un incidente real: al crear la ventana del
-Tester, un `close` de AppleScript sobre una ventana con un proceso `claude` vivo dentro
+QA (entonces llamado "Tester"), un `close` de AppleScript sobre una ventana con un
+proceso `claude` vivo dentro
 disparó el diálogo nativo de macOS "¿Terminar procesos en curso?" — que solo un clic
 humano puede resolver (ninguna sesión puede simular clics/teclas, bloqueado por el
 clasificador de modo auto, con razón). El comando devolvió sin error, y reporté la
@@ -474,7 +475,7 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
    documento desde el primer día, pero una sesión ya viva no vuelve a leer su propio
    documento de rol por su cuenta — solo lo hace si algo se lo dice. Se quedó sin
    enterarse semanas). Esto aplica a cualquier rol de sesión larga (PM, Directora,
-   Integrador, Tester, y a ti misma) — editar el fichero es solo la mitad del trabajo;
+   Integrador, QA, y a ti misma) — editar el fichero es solo la mitad del trabajo;
    la otra mitad es que la sesión activa afectada se entere de verdad, ahora, no la
    próxima vez que se reinicie. Si el cambio afecta a varios roles activos a la vez,
    avísales a todos, no solo al primero que se te ocurra.
@@ -509,8 +510,9 @@ Resolver el problema puntual no es suficiente. Después de cada intervención:
   PM/Directora, cómo la Directora crea después las terminales de trabajo).
 - **Roles del pipeline que vigilas:** T1/T2/T3 (terminales desarrolladoras), la
   Directora (coordinador), el Integrador si ya está activo, el Factory Architect
-  (activo, se crea con `/factory` — ver `factory-architect.md`), y el Tester (activo
-  desde 2026-09-03, se crea con `/factory` — ver `tester.md`; aliveness + su propio
+  (activo, se crea con `/factory` — ver `factory-architect.md`), y el QA (activo
+  desde 2026-09-03, se llamaba "Tester" hasta 2026-09-05, se crea con `/factory` — ver
+  `qa.md`; aliveness + su propio
   `/loop` armado, mismo trato que ya das a la Directora — ver bullet siguiente). El
   Factory Architect te vigila a ti recíprocamente, con comprobación ligera, no barrido
   completo.

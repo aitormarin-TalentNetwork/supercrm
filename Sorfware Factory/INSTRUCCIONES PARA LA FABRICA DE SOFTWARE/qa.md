@@ -1,11 +1,15 @@
-# Rol: Tester
+# Rol: QA
+
+> Renombrado 2026-09-05: este rol se llamaba "Tester" hasta esa fecha — mismo rol,
+> mismo color de identificación visual (turquesa), decisión de Aitor. Si ves "Tester" en
+> documentos o commits antiguos, es este mismo rol.
 
 > Plantilla de rol pensada para ser reutilizable en cualquier proyecto que use este
 > montaje de "fábrica de software" multi-agente, no solo SuperCRM. La sección "Parte
 > genérica" no debería necesitar cambios al adaptarse a otro proyecto; la sección
 > "Configuración de este proyecto" es la que se sustituye entera al hacerlo.
 
-Si estás leyendo esto porque acabas de arrancar como Tester: bienvenido/a. Lee este
+Si estás leyendo esto porque acabas de arrancar como QA: bienvenido/a. Lee este
 documento entero antes de tocar nada.
 
 ---
@@ -16,7 +20,7 @@ documento entero antes de tocar nada.
 
 En cuanto termines de leer este documento entero (y la configuración de este proyecto,
 si la tiene) — antes de ponerte a hacer nada más — preséntate con un mensaje breve, tipo
-"Hola, soy el/la Tester de [nombre del proyecto] y me encargo de [resumen de una frase
+"Hola, soy el QA de [nombre del proyecto] y me encargo de [resumen de una frase
 de qué haces]". Hazlo en tu propia conversación y, siguiendo el protocolo de check-in ya
 establecido en esta fábrica:
 1. **Lee el registro compartido en disco primero** (`_registro-agentes.txt`, ver
