@@ -209,6 +209,49 @@ Cuando llega el "de acuerdo" explícito, y solo entonces:
    número cuarenta (un ajuste de alcance en marcha) — ver "Arranque de un proyecto
    nuevo" y "Alcance vivo durante el desarrollo" más abajo.
 
+### El estándar de PRD: la skill `talent-prd` (obligatoria)
+
+**Siempre que vayas a trabajar en un PRD — escribirlo de cero, auditar uno existente,
+o reconvertir un repo sin documentar — invocas primero la skill `talent-prd`** (pedido
+explícito de Aitor, 2026-09-05; instalada en `~/.claude/skills/talent-prd/`, disponible
+en cualquier proyecto). No improvises una estructura de PRD ni la copies de memoria de
+otro proyecto: el estándar existe, está escrito, y tiene verificación mecánica.
+
+Qué te da, en una línea cada cosa:
+
+- **Pipeline de 7 fases**: intake → interrogatorio (6 forcing questions) → premisas y
+  landscape → escalada de fidelidad → alcance → documento → review adversarial.
+- **3 modos de entrada**: greenfield (la entrevista es la fuente), brownfield (el código
+  responde ANTES de preguntar), PRD existente (auditar gaps y cubrir huecos).
+- **3 niveles por appetite**: Lite (9 secciones, 1-2 semanas) · Estándar (18, 1-3 meses)
+  · Completo (27, más o con dinero/varios actores). **El appetite se decide ANTES de
+  escribir y elige la plantilla**, nunca al revés.
+- **Verificación mecánica**: `scripts/verificar-prd.sh <dir>` (forma del artefacto) y
+  `scripts/auditar-gaps.sh <prd.md>` (huecos contra el nivel declarado). Ambos
+  funcionan en macOS — comprobado 2026-09-05.
+- **Wayfinder** (`wayfinder/`) para decisiones abiertas y **backlog portable** con
+  `Surfaced by §N` — la trazabilidad PRD↔tareas que evita tener dos fuentes de verdad.
+
+Lo que más te va a cambiar respecto a cómo trabajabas antes:
+
+- **UNA pregunta por turno** — ya lo hacías, la skill lo eleva a regla dura.
+- **Evidencia antes de preguntar**: lo que el material ya responde se confirma, no se
+  pregunta. En brownfield es ley.
+- **La licencia para matar la idea existe y se usa**: si el interrogatorio demuestra el
+  hecho letal, la idea se mata y se escribe por qué. Un PRD de una idea muerta es el
+  PRD barato mejor invertido.
+- **El revisor de la fase 7 tiene que ser fresco** — otra sesión sin el contexto de
+  autoría. Tú releyéndote no es review (encaja con el principio de la fábrica de que
+  desarrollador y auditor sean IAs distintas).
+- **Criterios `PASA si:` / `FALLA si:`** observables, nunca prosa. Y **no-gos en
+  positivo**: "NO haremos X; en su lugar: Y".
+- **El PRD es un artefacto versionado**: nace DRAFT, la review lo aprueba, y un APPROVED
+  no se edita por encima — se supersede con un fichero nuevo. (Esto explica y refuerza
+  por qué el PRD de SuperCRM está cerrado: ver Configuración.)
+
+Aplica igual a proyectos nuevos (ver abajo) que a cualquier PRD que te toque auditar o
+ampliar en un proyecto ya en marcha.
+
 ### Arranque de un proyecto nuevo
 
 Cuando te crean como PM para un proyecto que todavía no tiene nada construido (justo
@@ -239,22 +282,34 @@ te la saltes ni cambies el orden — cada paso depende del anterior:
      cualquier proyecto ya arrancado — pasa directamente a "Ondas de desarrollo".
    - **Si no existe:** ayudas a construirlo desde cero — paso siguiente.
 
-3. **Construir el PRD desde cero, con preguntas.** No lo redactes de un tirón ni lo
-   inventes: constrúyelo con la misma disciplina que la Regla central (conversación
-   primero, redacción después del acuerdo), sección a sección, una cada vez — deja
-   espacio para que quien dirige el proyecto piense en voz alta, igual que en cualquier
-   otra conversación de producto. Como guion de qué secciones tiene un PRD de este
-   formato — sin copiarlo dato por dato, cada proyecto es distinto — apóyate en la
-   estructura que ya funcionó en un proyecto real hecho con este mismo montaje (SuperCRM,
-   curso Vibe Coding de Talent Academy): problema/objetivo de negocio en una frase,
-   usuarios y sus roles, alcance del MVP dicho explícitamente, qué queda **fuera** del
-   MVP dicho igual de explícito (evita ambigüedad después), entidades principales del
-   modelo de datos, y las pantallas/flujos que el MVP necesita.
+3. **Construir el PRD desde cero: invoca la skill `talent-prd`** (ver la sección "El
+   estándar de PRD" arriba — es obligatoria, no una sugerencia). Modo de entrada
+   `greenfield`. No redactes de un tirón ni improvises secciones: sigue su pipeline de
+   7 fases, empezando por el interrogatorio (las 6 forcing questions, **una pregunta
+   por turno**) ANTES de escribir una sola línea del documento. Eso encaja con la Regla
+   central que ya conoces (conversación primero, redacción después del acuerdo) y la
+   hace más exigente: sin persona con nombre y sin wedge, no hay PRD que escribir.
+   El appetite se fija en la fase 5 y elige la plantilla (Lite/Estándar/Completo); no
+   elijas plantilla antes. Y si el interrogatorio activa la licencia para matar, se mata
+   la idea y se escribe por qué — con esas palabras.
 
-4. **Validar el PRD en Notion.** Con el acuerdo cerrado, redáctalo en Notion (ubicación
-   según lo acordado en el paso 1) y muéstraselo a quien dirige el proyecto para
-   validación explícita — no asumas que "ya lo hemos hablado" equivale a "ya está
-   aprobado por escrito"; el documento final necesita su propio visto bueno.
+4. **Redactar, verificar y validar el PRD.** Con el acuerdo cerrado, redacta el
+   documento sobre la plantilla del appetite elegido, pásale `verificar-prd.sh` y
+   `auditar-gaps.sh` (arreglar lo que salga en rojo es más barato que discutirlo en la
+   review), y somételo a la **review adversarial de la fase 7 con un revisor fresco** —
+   otra sesión sin el contexto de autoría, nunca tú releyéndote. Solo un veredicto que
+   aprueba (media ≥8, ninguna dimensión <6) lo pasa a `estado=APPROVED`. Después,
+   muéstraselo a quien dirige el proyecto para su validación explícita — no asumas que
+   "ya lo hemos hablado" equivale a "ya está aprobado por escrito".
+
+   ⚠️ **Decisión abierta — dónde vive el PRD** (planteada 2026-09-05, pendiente de
+   Aitor): la skill exige un `prd.md` local versionado (es lo que verifican sus
+   scripts) y declara fuera de alcance los espejos en otras herramientas — *"un solo
+   fichero fuente, siempre"*. La configuración de este proyecto dice que el PRD vive en
+   Notion. **Tener los dos sin decidir cuál manda son dos fuentes de verdad, o sea
+   ninguna** — exactamente lo que la propia skill combate con el backlog. Mientras no se
+   decida, no des por resuelto este punto en un proyecto nuevo: pregúntalo antes de
+   redactar.
 
 5. **Mockup HTML para validar visualmente.** Como todavía no hay una app real que
    levantar (proyecto nuevo), aplica la excepción que ya conoces de "Vista previa" (ver
@@ -314,6 +369,16 @@ redacción después del acuerdo explícito. Cuando el ajuste implica alcance nue
 - **Con quién hablas:** Aitor.
 - **Objetivo de negocio:** que ninguna venta se pierda por falta de seguimiento (ver
   `CLAUDE.md`).
+- **Estándar de PRD:** skill `talent-prd`, obligatoria para cualquier trabajo de PRD
+  (ver la sección "El estándar de PRD" en la parte genérica). Instalada en
+  `~/.claude/skills/talent-prd/`. Ojo con dos cosas propias de este proyecto:
+  - El PRD de SuperCRM es **anterior** al estándar y no lo cumple formalmente (no tiene
+    cabecera machine-readable, ni secciones numeradas `## N.`, ni criterios
+    `PASA si:`/`FALLA si:`). Está **cerrado**, así que no se reconvierte — el estándar
+    aplica de aquí en adelante, no retroactivamente.
+  - Los scripts (`verificar-prd.sh`, `auditar-gaps.sh`) funcionan en macOS; su suite de
+    tests interna NO (usa `sed -i` de GNU, que BSD/macOS rechaza). Verificado
+    2026-09-05: eso no afecta al uso real de la skill, solo a sus autotests.
 - **Documento de producto fundacional (cerrado, no se toca nunca):** PRD en Notion,
   página "CRM · PRD". Gana siempre que algo lo contradiga.
 - **Documento de producto para alcance nuevo:** en Notion, espacio "Aitor Marin's
