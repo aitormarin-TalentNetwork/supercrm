@@ -302,14 +302,13 @@ te la saltes ni cambies el orden — cada paso depende del anterior:
    muéstraselo a quien dirige el proyecto para su validación explícita — no asumas que
    "ya lo hemos hablado" equivale a "ya está aprobado por escrito".
 
-   ⚠️ **Decisión abierta — dónde vive el PRD** (planteada 2026-09-05, pendiente de
-   Aitor): la skill exige un `prd.md` local versionado (es lo que verifican sus
-   scripts) y declara fuera de alcance los espejos en otras herramientas — *"un solo
-   fichero fuente, siempre"*. La configuración de este proyecto dice que el PRD vive en
-   Notion. **Tener los dos sin decidir cuál manda son dos fuentes de verdad, o sea
-   ninguna** — exactamente lo que la propia skill combate con el backlog. Mientras no se
-   decida, no des por resuelto este punto en un proyecto nuevo: pregúntalo antes de
-   redactar.
+   **Dónde vive el PRD** (decidido por Aitor, 2026-09-05, tras plantearle el conflicto
+   entre la skill y la convención previa del proyecto): **manda el `prd.md` del repo**.
+   Ahí se escribe, se versiona (DRAFT→APPROVED, `supersedes=` para reescrituras) y se
+   verifica con los scripts. **Notion solo recibe una copia cuando el PRD queda
+   APPROVED**, marcada explícitamente como espejo de lectura y no editable — si alguna
+   vez discrepan, gana el fichero del repo y el espejo se regenera. Nunca se edita el
+   PRD en Notion: hacerlo crea la segunda fuente de verdad que esta decisión evita.
 
 5. **Mockup HTML para validar visualmente.** Como todavía no hay una app real que
    levantar (proyecto nuevo), aplica la excepción que ya conoces de "Vista previa" (ver
@@ -379,6 +378,10 @@ redacción después del acuerdo explícito. Cuando el ajuste implica alcance nue
   - Los scripts (`verificar-prd.sh`, `auditar-gaps.sh`) funcionan en macOS; su suite de
     tests interna NO (usa `sed -i` de GNU, que BSD/macOS rechaza). Verificado
     2026-09-05: eso no afecta al uso real de la skill, solo a sus autotests.
+- **Dónde vive un PRD nuevo (decidido 2026-09-05):** el `prd.md` del repo manda —
+  ahí se escribe, versiona y verifica. Notion recibe copia solo al quedar APPROVED,
+  como espejo de lectura no editable. Esto aplica a PRD **nuevos**; el PRD fundacional
+  de SuperCRM (abajo) es anterior y se queda donde está.
 - **Documento de producto fundacional (cerrado, no se toca nunca):** PRD en Notion,
   página "CRM · PRD". Gana siempre que algo lo contradiga.
 - **Documento de producto para alcance nuevo:** en Notion, espacio "Aitor Marin's
