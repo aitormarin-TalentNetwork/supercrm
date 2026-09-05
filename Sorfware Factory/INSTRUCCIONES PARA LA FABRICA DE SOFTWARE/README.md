@@ -197,6 +197,73 @@ respondiendo bien). Ninguno de los dos es punto ciego del otro. Detalle en
 
 ---
 
+## 2ter. Principio general: la verificación no se autodelega (2026-09-05)
+
+Estaba disperso en cuatro sitios (`CLAUDE.md`, `pm.md`, `auditor_prompt.txt`/`AGENTS.md`,
+y este mismo documento) y en ninguno completo. Se escribe aquí una sola vez; cada
+documento de rol enlaza a esta sección en vez de repetir la explicación entera.
+
+**Dos mitades, ambas obligatorias:**
+
+**(a) Quien produce algo no es quien lo verifica.** Instancias vigentes de este
+principio en la fábrica:
+- El auditor tiene que ser una IA de otra familia distinta a la que desarrolla (ver
+  `CLAUDE.md`) — evita puntos ciegos compartidos entre desarrollador y auditor.
+- La fase 7 de `talent-prd` exige un revisor fresco, sin contexto de autoría, antes de
+  dar algo por bueno (ver `pm.md`).
+- Cuando se adopte un mecanismo de compactado (`compact-60` u otro): quien sale de un
+  compact no verifica su propio estado de regreso — lo hace otra sesión o un chequeo
+  externo.
+
+**(b) Quien no puede verificar algo lo DECLARA; no lo omite.** Un "no verificado"
+explícito es un resultado válido y valioso — el silencio que se lee como "verificado"
+es el fallo real. Ya existía para el auditor (`auditor_prompt.txt`/`AGENTS.md`: "si una
+conclusión requiere evidencia que no está disponible, decláralo explícitamente como no
+verificado") — **ahora aplica a cualquier rol, no solo al auditor.** Caso real que
+justifica extenderlo (2026-09-04): el Tester declaró explícitamente que no podía
+comprobar desde el navegador si la mutation `remove` de AIT-65 rechazaba de verdad a un
+usuario `sales` en el servidor, o si el botón simplemente estaba oculto en la UI sin
+protección real detrás. Por declararlo en vez de callarlo, el CEO pudo verificarlo leyendo
+el código (`requireOwner` sí rechaza server-side). Si el Tester hubiera asumido que "no
+se ve el botón" bastaba como prueba de seguridad, una posible brecha de permisos habría
+quedado sin detectar.
+
+**Cómo aplica esto en la práctica:** antes de dar por buena una verificación que hiciste
+tú mismo sobre tu propio trabajo, pregúntate si alguien de fuera podría confirmarlo de
+forma independiente — si la respuesta es "solo yo puedo verlo así", decláralo como
+parcial. Y antes de callar un límite de lo que pudiste comprobar, dilo explícitamente en
+vez de dejar que el silencio se lea como "todo bien".
+
+## 2quater. Procedimiento de adopción de skills (2026-09-05)
+
+Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
+misma pregunta ("¿esto se adopta como estándar de un rol?") se reinventa cada vez.
+
+- **Quién decide que una skill sea estándar obligatorio de un rol: Aitor.** No el rol
+  que la usa, no el Factory Architect, no el CEO — es una decisión de herramienta, coste
+  y máquina, no de proceso.
+- **Quién diseña cómo encaja en el pipeline: el Factory Architect. Quién lo escribe en
+  los documentos: el CEO** — salvo que Aitor se lo pida directamente al propio rol
+  afectado, en cuyo caso lo hace ese rol y **avisa después al Factory Architect**
+  (precedente 2026-09-05 con el PM y `talent-prd`, funcionó bien — queda como vía
+  válida, no como excepción a evitar).
+- **Verificación obligatoria ANTES de declararla obligatoria**: correr los propios
+  autotests de la skill en esta máquina concreta. Si están rotos, se documenta el estado
+  real en vez de asumir que funciona (caso real: la suite de `talent-prd` falla en macOS
+  porque usa `sed -i` en su variante GNU, incompatible con la de BSD). Una skill con
+  autotests rotos SÍ puede adoptarse igualmente si aporta valor, pero se declara **no
+  verificada** en la tabla de la sección 7 — nunca se da por buena en silencio.
+- **Dónde se instala**: global (`~/.claude/skills/`) si el rol/mecanismo es reutilizable
+  entre proyectos; dentro del proyecto si es específico de este. La decisión se anota
+  explícitamente, porque instalar en global afecta a cualquier otro proyecto de la
+  máquina, no solo a este.
+- **Registro obligatorio**: entrada en la tabla de piezas (§1) — fecha, quién la pidió,
+  dónde está instalada, y su estado de verificación (enlazado a la tabla de la sección
+  7). Para que dentro de unos meses nadie se encuentre una skill obligatoria aparecida
+  de la nada sin saber por qué ni desde cuándo.
+
+---
+
 ## 3. Reglas que la sesión directora tiene que respetar
 
 - **No crear nada fuera de la carpeta del proyecto** (`CRM curso Vibe Coding`) sin que Aitor lo pida explícitamente. Ya pasó una vez (worktrees en una carpeta hermana) y hubo que deshacerlo.
@@ -858,5 +925,29 @@ más hasta confirmar conmigo el reparto.
 - **Política general:** ante un cuello de botella de archivo compartido con una terminal YA EN MARCHA (trabajo sin mergear en curso), por defecto esperar en vez de aceptar solape. Cuando dos tareas arrancan a la vez desde el mismo `main` limpio (sin nadie por delante), el solape de bajo riesgo ya validado es aceptable si Aitor lo confirma explícitamente.
 
 Nota de proceso confirmada en producción: cuando una tarea libera una terminal, su worktree se reutiliza cambiando de rama (`git checkout -b <rama-nueva> main`) en vez de crear un worktree nuevo — más simple, mismo `node_modules`/`.env.local` ya instalados.
+
+---
+
+## 7. Estado de verificación (patrón robado a `talent-prd`, 2026-09-05)
+
+Cada afirmación sobre cómo funciona la fábrica se marca **Verificado** (con evidencia y
+fecha) o **NO VERIFICADO** (en negrita, con el motivo) — nunca se deja implícito. Un "no
+verificado" honesto vale más que un "funciona" sin comprobar (ver §2ter). Añade aquí
+cualquier mecanismo nuevo antes de darlo por bueno en el resto de documentos.
+
+| Mecanismo/afirmación | Estado | Evidencia / motivo |
+|---|---|---|
+| Rol **Líder de célula** | **NO VERIFICADO** | Documentado por completo en `lider-celula.md` desde 2026-08-14, nunca activado — el proyecto no ha escalado a varias células todavía. Ningún paso de su flujo se ha ejecutado en vivo. |
+| Fallback `tee` para leer el log del auditor en vez del buffer de ventana | **NO VERIFICADO** | Propuesto 2026-09-04 (ver §"El auditor deja de ser invisible"), marcado explícitamente "no adoptar sin probarla primero" — riesgo conocido de que algunas CLIs dejen de renderizar prompts interactivos con la salida en tubería. Nadie lo ha probado todavía. |
+| Fallback `do script` para crear ventana nueva (cuando `make new window` falla) | Verificado, 2026-09-03 | Usado con éxito por el CEO tras 4 fallos consecutivos de `make new window` en la creación de la ventana del Tester — funcionó de forma fiable las veces que se probó. |
+| `make new window` como receta primaria de creación de ventana | **NO VERIFICADO del todo** | Falló 4/4 en una investigación puntual (2026-09-03), causa nunca diagnosticada (podría ser específico de esa sesión). Se mantiene como primaria por decisión del Factory Architect porque normalmente funciona y resuelve un bug de reutilización real — pero su fiabilidad de fondo no está confirmada, solo asumida. |
+| Mecanismo de **parpadeo de ventana** (fondo alternando color de rol/blanco cuando algo necesita a Aitor, con hook para pararlo al responder) | **NO VERIFICADO — nunca implementado** | Encargado por el Factory Architect el 2026-08-31. Repasado el historial de git y de documentos el 2026-09-05: no hay commit, no hay mención en ningún `.md`, no hay hook en `settings.local.json` relacionado. Se quedó sin construir, no solo sin verificar — el CEO no tenía constancia de este hueco hasta que el Factory Architect preguntó directamente. |
+| Patrón de aviso instantáneo (marker + `Bash run_in_background`) para saber cuándo termina el auditor | Verificado parcialmente, 2026-09-04 | El CEO probó el mecanismo genérico en vivo (marker de prueba + espera en segundo plano, notificación recibida al instante) antes de documentarlo. La Directora lo adoptó, pero su barrido de respaldo (no el aviso instantáneo) fue el que cazó el siguiente veredicto sin relayar — no hay confirmación todavía de que el aviso instantáneo en sí haya disparado con éxito en un ciclo real de auditor. |
+| `ScheduleWakeup` sin tope de caducidad (a diferencia de `CronCreate`, que caduca a los 7 días) | Verificado por observación, no por documentación oficial | Sin huecos ni caducidad a lo largo de más de 30h de uso continuo en esta sesión del CEO. El límite de 7 días de `CronCreate` sí está confirmado directamente en su documentación por el Factory Architect ("fire one final time, then are deleted"). |
+| `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El Tester declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
+| Hook `PermissionRequest` (aviso de voz inmediato cuando una sesión se bloquea en una aprobación) | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). |
+| Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
+
+Si encuentras un mecanismo documentado que no está en esta tabla, añádelo antes de asumir que "ya está verificado porque está escrito en alguna parte" — estar documentado y estar verificado son cosas distintas, y esa es justo la confusión que esta tabla existe para evitar.
 
 Fecha de esta foto: 2026-08-09.
