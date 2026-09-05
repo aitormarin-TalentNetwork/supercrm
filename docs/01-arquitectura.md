@@ -14,6 +14,7 @@
 | Backend + BBDD | **Convex** | Base de datos, lógica de servidor y **tiempo real** en el mismo sitio. Sin API REST propia, sin ORM, sin migraciones a mano. |
 | Autenticación | **Convex Auth** (`@convex-dev/auth`, proveedores `Password` + `Google` en paralelo) | AIT-60 (2026-08-24): Google se AÑADE junto al login por contraseña ya existente, no lo sustituye — decisión de producto que contradice a propósito el PRD cerrado. Ver ADR-001 y ADR-003 en §6. |
 | Despliegue | **Railway** (auto-deploy en cada push a `main`) | Ver ADR-002 en §6. |
+| Credenciales | **Bitwarden** | Almacén de referencia de las credenciales del proyecto (contraseñas semilla, tokens, claves de servicio). `.env.local` y las variables de entorno de Convex/Railway son copias desplegadas a partir de aquí, no la fuente de verdad. Relevante para el `checklist de salida a producción real` y la rotación de secretos (`CLAUDE.md`). |
 
 ### Qué significa "backend = Convex"
 
