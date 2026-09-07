@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --color-primary:#2563EB;--color-primary-subtle:#EFF4FF;
+      --color-bg:#F8FAFC;--color-surface:#FFFFFF;
+      --color-neutral-100:#F1F5F9;--color-neutral-400:#94A3B8;
+      --color-text:#0F172A;--color-text-secondary:#475569;--color-text-muted:#64748B;--color-border:#E2E8F0;
+      --color-info:#0284C7;--color-info-subtle:#E0F2FE;
+      --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+      --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+      --radius-md:8px;--radius-lg:12px;
+      --shadow-e3:0 12px 32px rgba(15,23,42,.16);
+    }
+    body{margin:0}*{box-sizing:border-box}
+    a{color:var(--color-primary)}a:hover{color:#1D4ED8}
+    .ico{width:18px;height:18px;stroke-width:1.75;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+    .btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:var(--radius-md);font-family:var(--font-sans);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent}
+    .btn-primary{background:var(--color-primary);color:#fff}
+    .btn-secondary{background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:rgba(15,23,42,.45);font-family:var(--font-sans);color:var(--color-text);padding:32px;display:flex;align-items:center;justify-content:center">
+  <div style="width:100%;max-width:440px;background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-e3);padding:24px">
+
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <span style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--color-info-subtle);color:var(--color-info);display:inline-flex;align-items:center;justify-content:center;flex:none">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      </span>
+      <div style="min-width:0">
+        <div style="font-size:17px;font-weight:700;line-height:1.3">Este cliente no tiene email</div>
+        <div style="font-size:14px;color:var(--color-text-secondary);line-height:1.55;margin-top:8px">
+          Para escribir a <strong style="color:var(--color-text)">Talleres Moreno</strong> hace falta una dirección de correo en su ficha. Añádela y podrás escribirle desde aquí.
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap">
+      <button class="btn btn-secondary">Ahora no</button>
+      <button class="btn btn-primary">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir email
+      </button>
+    </div>
+
+    <!-- Nota de diseño: por qué esto es un diálogo y no un botón apagado -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--color-border);display:flex;gap:9px">
+      <svg class="ico" style="color:var(--color-neutral-400);width:15px;height:15px" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div style="font-size:11px;color:var(--color-text-muted);line-height:1.5">
+        <strong style="color:var(--color-text-secondary)">Patrón AIT-66:</strong> el botón "Escribir email" nunca se deshabilita — un botón apagado no explica nada en táctil ni con teclado. Se abre este diálogo y se ofrece la salida.
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

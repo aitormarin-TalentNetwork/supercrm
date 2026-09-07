@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --color-primary:#2563EB;--color-primary-subtle:#EFF4FF;
+      --color-secondary:#0D9488;--color-secondary-subtle:#ECFDF5;
+      --color-bg:#F8FAFC;--color-surface:#FFFFFF;
+      --color-neutral-100:#F1F5F9;--color-neutral-200:#E2E8F0;--color-neutral-400:#94A3B8;--color-neutral-600:#475569;
+      --color-text:#0F172A;--color-text-secondary:#475569;--color-text-muted:#64748B;--color-border:#E2E8F0;
+      --color-warning:#D97706;--color-warning-subtle:#FEF3C7;
+      --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+      --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+      --radius-sm:6px;--radius-md:8px;--radius-lg:12px;--radius-pill:999px;
+      --shadow-e1:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.10);
+    }
+    body{margin:0}
+    *{box-sizing:border-box}
+    a{color:var(--color-primary)}a:hover{color:#1D4ED8}
+    .ficha-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+    .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)}
+    .card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1)}
+    .btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:var(--radius-md);font-family:var(--font-sans);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent}
+    .btn-primary{background:var(--color-primary);color:#fff}
+    .btn-secondary{background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)}
+    .ico{width:18px;height:18px;stroke-width:1.75;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+    .dot{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none}
+    .dot .ico{width:15px;height:15px}
+    .rail{display:flex;flex-direction:column;align-items:center;flex:none}
+    .rail span{flex:1;width:2px;background:var(--color-border);margin:4px 0}
+    .mailrow{border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px;background:var(--color-surface);cursor:pointer;min-height:44px}
+    .mailrow:hover{border-color:#CBD5E1;box-shadow:var(--shadow-e1)}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text);padding:20px">
+
+  <!-- Cabecera del cliente -->
+  <section class="card" style="padding:20px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:14px;align-items:center;min-width:0">
+        <span style="width:48px;height:48px;border-radius:var(--radius-lg);background:var(--color-primary-subtle);color:var(--color-primary);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none">AR</span>
+        <div style="min-width:0">
+          <div style="font-size:20px;font-weight:700;line-height:1.15">Panadería La Espiga</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:13px;color:var(--color-text-secondary)">
+            <span style="display:inline-flex;align-items:center;gap:5px">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              620 41 88 03
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:5px">
+              <svg class="ico" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+              ana@laespiga.es
+            </span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <!-- NUEVO en la Ola 2 -->
+        <button class="btn btn-primary">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+          Escribir email
+        </button>
+        <button class="btn btn-secondary">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Registrar interacción
+        </button>
+        <button class="btn btn-secondary">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva oportunidad
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="ficha-grid">
+
+    <!-- Columna izquierda: oportunidades (sin cambios respecto a hoy) -->
+    <section class="card" style="padding:18px 20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <span class="lbl">Oportunidades</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:13px 14px">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+            <div style="min-width:0">
+              <div style="font-size:14px;font-weight:600">Horno de convección · reposición</div>
+              <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px">Próximo paso: enviar propuesta revisada · <span style="font-family:var(--font-mono)">9 sep</span></div>
+            </div>
+            <span style="flex:none;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-pill);background:var(--color-primary-subtle);color:var(--color-primary)">Presupuesto</span>
+          </div>
+          <div style="font-size:15px;font-weight:700;margin-top:9px;font-family:var(--font-mono)">4.850,00 €</div>
+        </div>
+        <div style="border:1px solid var(--color-border);border-radius:var(--radius-md);padding:13px 14px;opacity:.72">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+            <div style="min-width:0">
+              <div style="font-size:14px;font-weight:600">Amasadora 25 kg</div>
+              <div style="font-size:12px;color:var(--color-text-muted);margin-top:4px">Cerrada · ganada</div>
+            </div>
+            <span style="flex:none;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-pill);background:#DCFCE7;color:#16A34A">Ganada</span>
+          </div>
+          <div style="font-size:15px;font-weight:700;margin-top:9px;font-family:var(--font-mono)">2.100,00 €</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Columna derecha: HISTORIAL UNIFICADO — el corazón de la Ola 2 -->
+    <section class="card" style="padding:18px 20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="lbl">Historial</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--color-secondary);background:var(--color-secondary-subtle);padding:4px 9px;border-radius:var(--radius-pill)">
+          <svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+          Gmail conectado
+        </span>
+      </div>
+      <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:14px">Emails e interacciones, en una sola línea de tiempo.</div>
+
+      <div style="display:flex;flex-direction:column">
+
+        <!-- Email recibido -->
+        <div style="display:flex;gap:12px">
+          <div class="rail">
+            <span class="dot" style="background:var(--color-primary-subtle);color:var(--color-primary)">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg>
+            </span>
+            <span></span>
+          </div>
+          <div style="padding-bottom:14px;min-width:0;flex:1">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+              <span style="font-size:11px;font-weight:700;color:var(--color-primary)">RECIBIDO</span>
+              <span style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono)">hoy · 09:14</span>
+            </div>
+            <div class="mailrow">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+                <div style="min-width:0">
+                  <div style="font-size:14px;font-weight:600">Re: Propuesta horno de convección</div>
+                  <div style="font-size:13px;color:var(--color-text-secondary);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Buenos días, hemos visto la propuesta. El precio nos encaja, pero necesitaríamos…</div>
+                  <div style="font-size:12px;color:var(--color-text-muted);margin-top:5px">Ana Ruiz · <span style="font-family:var(--font-mono)">ana@laespiga.es</span></div>
+                </div>
+                <span style="display:inline-flex;align-items:center;gap:4px;flex:none;color:var(--color-text-muted)">
+                  <svg class="ico" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                  <svg class="ico" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email enviado -->
+        <div style="display:flex;gap:12px">
+          <div class="rail">
+            <span class="dot" style="background:var(--color-secondary-subtle);color:var(--color-secondary)">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            </span>
+            <span></span>
+          </div>
+          <div style="padding-bottom:14px;min-width:0;flex:1">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+              <span style="font-size:11px;font-weight:700;color:var(--color-secondary)">ENVIADO</span>
+              <span style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono)">5 sep · 17:40</span>
+            </div>
+            <div class="mailrow">
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+                <div style="min-width:0">
+                  <div style="font-size:14px;font-weight:600">Propuesta horno de convección</div>
+                  <div style="font-size:13px;color:var(--color-text-secondary);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Hola Ana, te adjunto la propuesta que comentamos por teléfono. Incluye instalación…</div>
+                  <div style="font-size:12px;color:var(--color-text-muted);margin-top:5px">Carlos Vega → <span style="font-family:var(--font-mono)">ana@laespiga.es</span></div>
+                </div>
+                <span style="flex:none;color:var(--color-text-muted)">
+                  <svg class="ico" style="width:16px;height:16px" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interacción manual (lo que ya existe hoy) -->
+        <div style="display:flex;gap:12px">
+          <div class="rail">
+            <span class="dot" style="background:var(--color-neutral-100);color:var(--color-neutral-600)">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <span></span>
+          </div>
+          <div style="padding-bottom:14px;min-width:0;flex:1">
+            <div style="font-size:14px;font-weight:600">Llamada</div>
+            <div style="font-size:13px;color:var(--color-text-secondary);margin-top:2px">Quiere el horno antes de Navidad. Pide propuesta por escrito.</div>
+            <div style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono);margin-top:4px">5 sep · 11:20 · Carlos Vega</div>
+          </div>
+        </div>
+
+        <!-- Email enviado más antiguo, sin línea de continuación -->
+        <div style="display:flex;gap:12px">
+          <div class="rail">
+            <span class="dot" style="background:var(--color-secondary-subtle);color:var(--color-secondary)">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+            </span>
+          </div>
+          <div style="min-width:0;flex:1">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+              <span style="font-size:11px;font-weight:700;color:var(--color-secondary)">ENVIADO</span>
+              <span style="font-size:12px;color:var(--color-text-muted);font-family:var(--font-mono)">28 ago · 10:02</span>
+            </div>
+            <div class="mailrow">
+              <div style="min-width:0">
+                <div style="font-size:14px;font-weight:600">Catálogo de hornos 2026</div>
+                <div style="font-size:13px;color:var(--color-text-secondary);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Como te prometí, aquí tienes el catálogo completo con los modelos disponibles…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

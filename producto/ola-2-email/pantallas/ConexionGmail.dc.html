@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    :root{
+      --color-primary:#2563EB;--color-primary-subtle:#EFF4FF;
+      --color-secondary:#0D9488;--color-secondary-subtle:#ECFDF5;
+      --color-bg:#F8FAFC;--color-surface:#FFFFFF;
+      --color-neutral-100:#F1F5F9;--color-neutral-400:#94A3B8;--color-neutral-600:#475569;
+      --color-text:#0F172A;--color-text-secondary:#475569;--color-text-muted:#64748B;--color-border:#E2E8F0;
+      --color-success:#16A34A;--color-success-subtle:#DCFCE7;
+      --color-warning:#D97706;--color-warning-subtle:#FEF3C7;
+      --color-error:#DC2626;--color-error-subtle:#FEE2E2;
+      --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+      --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+      --radius-sm:6px;--radius-md:8px;--radius-lg:12px;--radius-pill:999px;
+      --shadow-e1:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.10);
+    }
+    body{margin:0}*{box-sizing:border-box}
+    a{color:var(--color-primary)}a:hover{color:#1D4ED8}
+    .ico{width:18px;height:18px;stroke-width:1.75;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none}
+    .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted)}
+    .card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-e1);padding:18px 20px}
+    .btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:var(--radius-md);font-family:var(--font-sans);font-size:14px;font-weight:600;cursor:pointer;border:1px solid transparent}
+    .btn-primary{background:var(--color-primary);color:#fff}
+    .btn-secondary{background:var(--color-surface);color:var(--color-text);border-color:var(--color-border)}
+    .row{display:flex;gap:13px;align-items:flex-start;padding:15px 0;border-top:1px solid var(--color-border)}
+    .state{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:var(--radius-pill)}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);font-family:var(--font-sans);color:var(--color-text);padding:24px">
+  <div style="max-width:720px;margin:0 auto">
+
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px">Ajustes</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:20px">Tu cuenta y las conexiones del CRM.</div>
+
+    <!-- Sección nueva de la Ola 2 -->
+    <section class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span class="lbl">Correo</span>
+      </div>
+      <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:4px">Conecta tu Gmail para que los correos con tus clientes aparezcan en sus fichas.</div>
+
+      <!-- Estado A: conectada -->
+      <div class="row">
+        <span style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--color-secondary-subtle);color:var(--color-secondary);display:inline-flex;align-items:center;justify-content:center;flex:none">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+        </span>
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600;font-family:var(--font-mono)">carlos@supercrm.es</span>
+            <span class="state" style="background:var(--color-success-subtle);color:var(--color-success)">
+              <svg class="ico" style="width:12px;height:12px" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+              Conectada
+            </span>
+          </div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-top:5px">Conectada el <span style="font-family:var(--font-mono)">7 sep 2026</span> · última sincronización hace 2 min</div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-top:3px">Solo lectura. El CRM no puede modificar ni borrar nada de tu buzón.</div>
+        </div>
+        <button class="btn btn-secondary" style="flex:none">Desconectar</button>
+      </div>
+
+      <!-- Estado B: degradada -->
+      <div class="row">
+        <span style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--color-warning-subtle);color:var(--color-warning);display:inline-flex;align-items:center;justify-content:center;flex:none">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        </span>
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600;font-family:var(--font-mono)">marta@supercrm.es</span>
+            <span class="state" style="background:var(--color-warning-subtle);color:var(--color-warning)">Con retraso</span>
+          </div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-top:5px">El aviso instantáneo de Gmail ha caducado. Los correos siguen llegando, pero pueden tardar hasta 15 minutos.</div>
+        </div>
+        <button class="btn btn-secondary" style="flex:none">Reactivar</button>
+      </div>
+
+      <!-- Estado C: revocada -->
+      <div class="row">
+        <span style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--color-error-subtle);color:var(--color-error);display:inline-flex;align-items:center;justify-content:center;flex:none">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </span>
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600;font-family:var(--font-mono)">laura@supercrm.es</span>
+            <span class="state" style="background:var(--color-error-subtle);color:var(--color-error)">Desconectada</span>
+          </div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-top:5px">Se retiró el permiso desde Google. Los correos ya guardados se conservan; no entrarán nuevos hasta reconectar.</div>
+        </div>
+        <button class="btn btn-primary" style="flex:none">Reconectar</button>
+      </div>
+
+      <!-- Estado D: sin conectar -->
+      <div class="row" style="align-items:center">
+        <span style="width:40px;height:40px;border-radius:var(--radius-md);background:var(--color-neutral-100);color:var(--color-neutral-400);display:inline-flex;align-items:center;justify-content:center;flex:none">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </span>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:14px;font-weight:600">Conectar otra cuenta</div>
+          <div style="font-size:12px;color:var(--color-text-muted);margin-top:3px">Solo cuentas de la organización.</div>
+        </div>
+        <button class="btn btn-primary" style="flex:none">
+          <svg class="ico" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+          Conectar Gmail
+        </button>
+      </div>
+    </section>
+
+    <!-- Nota de privacidad -->
+    <div style="display:flex;gap:11px;padding:14px 16px;background:var(--color-primary-subtle);border-radius:var(--radius-md)">
+      <svg class="ico" style="color:var(--color-primary)" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.5">
+        <strong style="color:var(--color-text)">Solo entran los correos de tus clientes.</strong>
+        El CRM descarta cualquier mensaje que no sea de un contacto dado de alta en tu tienda — no se guarda y luego se filtra: no llega a guardarse.
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
