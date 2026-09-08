@@ -356,6 +356,41 @@ y rechazo de ese mismo código real una vez caducado. El frontend (AIT-63) se ve
 además clic a clic en el navegador: diálogo → código real → contraseña nueva →
 redirect real de `/login` a `/hoy` con sesión iniciada.
 
+### ADR-0xx · La versión desplegada se lee en tiempo de petición, nunca en build
+
+**Contexto:** nadie podía responder "¿qué commit está sirviendo la app?" sin salir del
+navegador. El 08/09/2026 eso costó un error real: se propagó que AIT-76 estaba publicada
+cuando no lo estaba, y quien fue a probarla vio un 404 sin poder distinguir "el deploy no
+está vivo" de "el deploy está vivo y esta pantalla falla".
+
+**Decisión (AIT-79):** el identificador sale de `RAILWAY_GIT_COMMIT_SHA`, leído **en cada
+petición** en `lib/version.ts`. Fuente única y automática: nada de `git rev-parse` (diría
+el commit de quien construyó, no el que sirve) ni de variables que haya que mantener a
+mano (acabarían publicando el commit de hace tres despliegues, que es el fallo que esto
+viene a cerrar). Si no hay valor verificable, se devuelve `null` y no se emite nada —
+antes callar que mentir.
+
+**Por qué en tiempo de petición y no en build:** en el middleware Edge de Next.js,
+`process.env.X` se sustituye por un literal al construir — el código *parece* leer el
+entorno y no lo hace, y el valor se congela en el del build anterior. En Next.js 16
+`proxy.ts` corre en runtime Node.js, así que la lectura es real contra el entorno del
+contenedor.
+
+**Superficies:**
+- `/version` — JSON público, sin sesión (`force-dynamic` + `Cache-Control: no-store`).
+  Es la vía autoritativa. Publica también `deploymentId`, que permite comprobar que la
+  respuesta viene del despliegue que se cree y no de uno anterior que aún sirve tráfico.
+- Cabecera `x-supercrm-commit` desde `proxy.ts`, para que el dato viaje en la misma
+  respuesta que se está inspeccionando aunque la pantalla esté rota.
+  **Cobertura exacta:** se emite en lo que pasa por el handler del proxy (navegación,
+  redirects de ruta protegida y páginas de error de la app, 404 incluido). **No** en las
+  rutas donde el proxy no corre (`_next`, ficheros con punto) ni en las salidas tempranas
+  de Convex Auth (`/api/auth` y su redirect de refresco), que retornan antes.
+- `/ajustes` — línea legible para humanos; es presentación de la misma fuente, no un
+  segundo origen, y no cubre el requisito de consulta sin sesión (eso lo hace `/version`).
+
+**Estado:** 🟡 en curso (AIT-79) — falta la verificación contra dos despliegues reales.
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:

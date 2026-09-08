@@ -24,6 +24,7 @@ import { ROLE_LABEL } from "@/components/nav/navConfig";
 import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
 import { useSignOutAndUnlinkPush } from "@/components/push/useSignOutAndUnlinkPush";
 import { StoreLogoSection } from "@/components/settings/StoreLogoSection";
+import { VersionInfo } from "@/components/settings/VersionInfo";
 
 type ManagedUser = {
   id: Id<"users">;
@@ -118,6 +119,10 @@ export default function AjustesPage() {
                   Cerrar sesión
                 </Button>
               </div>
+
+              {/* AIT-79: qué commit está sirviendo la app. Al final y en
+                  discreto — es un dato de diagnóstico, no de uso diario. */}
+              <VersionInfo />
             </>
           )}
         </div>
