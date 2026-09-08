@@ -1755,6 +1755,38 @@ mismo tipo de fallos que ya vigilamos en desarrolladores, y arriesgaría la inde
 del auditor si Aitor le responde preguntas sustantivas en vivo — ver conversación que
 motivó esta decisión). Lo único que cambia es DÓNDE se ejecuta.
 
+### Qué se puede tocar de la ventana del Auditor, y qué no (decisión 35, 2026-09-08)
+
+**Corrige un límite anterior que estaba mal puesto.** Se había escrito *"nunca en la ventana
+del Auditor"*, y es demasiado grueso: **lo que hay que proteger no es la ventana, es el
+juicio.** Un auditor bloqueado en un prompt de permiso de su CLI es una terminal parada como
+cualquier otra, y prohibir la ventana entera deja el pipeline colgado sin proteger nada.
+
+**La frontera va por TIPO DE INTERVENCIÓN, no por ventana:**
+
+| | |
+|---|---|
+| ✅ **SÍ** | Leer su pantalla para ver **si está atascado y en qué**. |
+| ✅ **SÍ** | Desatascar un prompt **mecánico** de la CLI: permiso para ejecutar un comando, "¿continuar?", y equivalentes. |
+| 🚫 **NO** | Responder cualquier cosa que toque **el fondo de la auditoría**: aceptar un hallazgo, elegir un veredicto, contestar una pregunta sobre el código, o **cualquier cosa que le haga producir una conclusión a la que no llegó solo**. |
+
+> **El test, y es su enunciado corto: *si la respuesta al prompt podría cambiar el veredicto,
+> no es tuya.***
+
+**Regla de duda:** si no está claro de qué tipo es el prompt, **no se toca** y se escala a
+Aitor. El coste de esperar son minutos; el de contaminar una auditoría es que **deja de
+valer para nada, y encima sin que se note**.
+
+⚠️ **Declaración obligatoria, y no es cortesía: toda intervención sobre la ventana del
+Auditor se anota** — qué había en pantalla, qué se pulsó, quién y cuándo, en el mismo sitio
+donde se registran los demás desatascos. **La independencia del auditor tiene que quedar
+demostrable en el registro, no solo en la intención:** sin esa anotación, dentro de un mes
+**nadie puede distinguir un GO limpio de uno que alguien ayudó a producir**.
+
+*(La parte de permisos —poder leer y escribir en esa ventana— sigue pendiente de que Aitor
+cree el `settings.json` trackeado. Las dos van juntas: sin leer, escribir es pulsar teclas
+a ciegas.)*
+
 **Por qué importa:** si el auditor se cuelga en un prompt de permiso de su propia CLI
 (no una pregunta sustantiva del audit — `auditor_prompt.txt` lo instruye explícitamente
 a NO preguntar, sino declarar "no verificado" cuando falta evidencia), Aitor puede verlo
