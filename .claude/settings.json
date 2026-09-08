@@ -1,0 +1,1 @@
+{"permissions":{"allow":["Bash(osascript -e tell application \"Terminal\" to get contents of tab 1 of (first window whose id is *))","Bash(osascript -e tell application \"Terminal\" to do script * in tab 1 of (first window whose id is *))"]}}

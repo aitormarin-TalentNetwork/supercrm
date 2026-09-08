@@ -195,6 +195,21 @@ real exactamente igual que si nadie hubiera avisado nunca.
    — vacío, empujas; con algo, es del Integrador. Y verifica el efecto, no el exit code:
    tras el push, `git log origin/main..main` tiene que quedar vacío.
 
+   ⚠️ **Un PLAN nunca está bloqueado por conflicto de ficheros — solo lo está la
+   implementación** (decisión 36, 2026-09-08, instrucción de Aitor). La fase de plan no
+   escribe ningún fichero del repositorio, así que el criterio de solape no le aplica.
+   **Planificar una tarea ya aprobada NO es adelantar fases**: esa regla existe para no
+   inventar alcance, no para ordenar trabajo que ya está aprobado.
+   *Y el plan es la parte cara* — el día que se decidió esto costaban 2, 2 y 4 rondas de
+   auditoría, y hubo dos terminales paradas casi una hora esperando para hacer la mitad
+   barata. **Mantén siempre al menos una tarea planificable en la cola**, aunque su
+   implementación esté bloqueada.
+
+   ⚠️ **"Bloqueada" a secas ya no es un estado válido.** Una ficha bloqueada dice **qué
+   ficheros concretos la bloquean y cuánto de su alcance está libre** — *"5 de 6 libres,
+   bloquea `app/clientes/[id]/page.tsx`"*. Es la decisión 31 aplicada a una ficha: escribir
+   solo la conclusión **te da permiso para no volver a mirar**.
+
    ⚠️ **Al reactivar una tarea de la cola: que su condición de desbloqueo se cumpla NO
    basta. Rehaz el análisis de solapes con el estado del momento** (añadido 2026-09-08).
    Una condición escrita describe el mundo de cuando se escribió, no el de ahora — y

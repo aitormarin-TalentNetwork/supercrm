@@ -1360,6 +1360,38 @@ fichero, §3). Cada terminal sabe su propio estado mirando `CONVEX_DEPLOYMENT` e
 `.env.local` — no hace falta que la Directora lleve la cuenta centralizada de quién está
 migrada, precisamente lo que se buscaba al pasar el turno a un cerrojo autoservicio.
 - **No adelantar fases de Linear** para rellenar huecos de una terminal libre. Si no hay tarea independiente de verdad, esa terminal se queda idle (se anota por qué en su `T<n>_en-espera.txt`).
+- ⚠️ **PERO planificar una tarea YA APROBADA no es adelantar fases** (decisión 36.1,
+  2026-09-08, instrucción de Aitor). Se dice aquí, junto a la regla anterior, **porque esa
+  ambigüedad es parte de por qué no se hizo**: la regla existe para **no inventar alcance**,
+  y no dice nada sobre ordenar trabajo que ya está aprobado. *Una regla que se lee como
+  prohibición de algo que sí se puede hacer cuesta lo mismo que una regla ausente.*
+  - **Un plan NUNCA está bloqueado por conflicto de ficheros. Solo lo está la
+    implementación.** La fase de plan **no escribe ningún fichero del repositorio** — solo
+    produce su `.txt` en `codigo para auditar/`, que está fuera de git. El criterio de
+    solape existe para que dos terminales no se pisen **en disco**, así que **no le
+    aplica**.
+  - **Y el plan es la parte cara:** el 2026-09-08 costaron **2, 2 y 4 rondas** de auditoría.
+    Ese día hubo dos terminales paradas casi una hora esperando para hacer la mitad barata
+    mientras la cara podía haber ido avanzando.
+- **36.2 — "Bloqueada" a secas deja de ser un estado válido.** Una ficha bloqueada dice
+  **qué ficheros concretos la bloquean** y **cuánto de su alcance está libre**. Ejemplo real
+  que lo demuestra: *"5 de 6 libres, bloquea `app/clientes/[id]/page.tsx`"* habría destapado
+  el hueco una hora antes.
+  - 📌 **Es la decisión 31 aplicada a una ficha en vez de a un reporte entre roles:**
+    *"bloqueada"* es la **conclusión**; los ficheros y el alcance libre son **la tabla**. En
+    palabras de la Directora, escribir solo la conclusión **le dio permiso para no volver a
+    mirar**.
+- **36.3 — La cola mantiene siempre al menos una tarea PLANIFICABLE**, aunque su
+  implementación esté bloqueada. ⚠️ **Esto no autoriza a inventar alcance para llenar
+  huecos**: es ordenar lo ya aprobado, nunca abrir lo que no lo está.
+- ❓ **Pregunta abierta, con su fuente de evidencia ya en marcha:** ¿debería la unidad de
+  bloqueo ser **el fichero** y no la tarea? El 2026-09-08, **tres de las cuatro tareas
+  bloqueadas lo estaban por un solo fichero cada una**. **No se decide hoy** — partir tareas
+  tiene su propio coste y no está medido, y resolverlo con tres casos y una intuición sería
+  justo lo que este documento lleva todo el día evitando. **Pero la 36.2 obliga a anotar qué
+  ficheros bloquean y cuánto alcance queda libre**, así que en un par de semanas habrá datos
+  reales para responderla. No es una idea descartada: es una pregunta con su instrumento ya
+  puesto.
 - **Los merges/push a main los ejecuta la directora sin esperar confirmación previa de Aitor** (desde 2026-08-12, ver §2bis) — pero le reporta un resumen de cada publicación después, y **para y pregunta antes** de publicar si algo de la revisión final (§2, paso 4) no cuadra, o si el caso encaja en alguno de los disparadores de escalado de §2bis.
 - **Algoritmo para elegir la siguiente tarea de una terminal libre**, en este orden:
   1. ¿Hay algo en `codigo para auditar/cola/` con nombre `SIGUIENTE-N_...` (no `BLOQUEADA_...`)? Coge el número más bajo.
