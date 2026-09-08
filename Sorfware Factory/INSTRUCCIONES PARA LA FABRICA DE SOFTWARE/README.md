@@ -396,6 +396,31 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
 
+**(i) Una condición de desbloqueo CUMPLIDA se vuelve una afirmación falsa** (hallazgo de la
+Directora, 2026-09-08). Es la forma más peligrosa de dato caducado que hemos encontrado,
+porque **no envejece mal: envejece bien, y por eso engaña.**
+
+*El caso:* cuatro fichas de la cola decían *"condición de desbloqueo: AIT-74 mergeada a
+`main`"*. AIT-74 se mergeó. Desde ese instante, cualquiera que leyera esas fichas —la
+propia Directora una hora después, o una Directora nueva— concluiría que estaban **listas
+para repartir**, y habría lanzado dos terminales a chocar de frente con las dos que ya
+estaban trabajando. Dos estaban además marcadas como `SIGUIENTE-`, o sea reclamables por
+cualquier terminal libre. El motivo real del bloqueo había cambiado mientras tanto: el
+alcance de otra tarea creció durante su planificación y ocupó ficheros que antes estaban
+libres.
+
+**Lo que lo hace distinto de un dato viejo cualquiera: no hay nada que lo marque como
+sospechoso.** Un dato desactualizado suele chirriar; este **da tranquilidad al leerlo**,
+porque dice exactamente lo que esperabas comprobar.
+
+> **Al reactivar una tarea de la cola, no basta con comprobar que su condición escrita se
+> cumple — hay que REHACER el análisis de solapes con el estado del momento.** Una
+> condición de desbloqueo describe el mundo de cuando se escribió, no el de ahora.
+
+Es además la **cuarta forma distinta** que aparece el mismo día de que dos tareas se toquen
+sin compartir un fichero — y la única que **no necesita dos tareas**: basta con que pase el
+tiempo.
+
 **(h) Una respuesta de granularidad baja no autoriza puntos concretos** (decisión 25,
 2026-09-08, formulación de la Directora). Es un **eje distinto** del que cubren (b) y la
 decisión 21: aquellos miran **por cuántas manos ha pasado** la autorización; este mira **si

@@ -174,6 +174,17 @@ real exactamente igual que si nadie hubiera avisado nunca.
    — vacío, empujas; con algo, es del Integrador. Y verifica el efecto, no el exit code:
    tras el push, `git log origin/main..main` tiene que quedar vacío.
 
+   ⚠️ **Al reactivar una tarea de la cola: que su condición de desbloqueo se cumpla NO
+   basta. Rehaz el análisis de solapes con el estado del momento** (añadido 2026-09-08).
+   Una condición escrita describe el mundo de cuando se escribió, no el de ahora — y
+   **cuando se cumple, pasa a afirmar algo falso sin dar ninguna señal de sospecha**: al
+   leerla da tranquilidad, porque dice exactamente lo que ibas a comprobar.
+   *Caso real:* cuatro fichas decían "desbloquea cuando AIT-74 esté en `main`". AIT-74 se
+   mergeó — y para entonces el alcance de otra tarea había crecido durante su planificación
+   y ocupaba ficheros que antes estaban libres. Dos de esas fichas estaban marcadas
+   `SIGUIENTE-`, o sea **reclamables por cualquier terminal libre**: quien las cogiera
+   habría chocado de frente con dos terminales en marcha. Ver README §2quinquies (i).
+
    **Punto de control de la cola — un fichero que pare o bloquee una tarea lleva una
    línea de cabecera obligatoria: `Reflejado en Linear: <fecha>`** (añadido 2026-09-08).
    Sin esa línea, el fichero **no está terminado**. Crear el `.txt` y escribir el
