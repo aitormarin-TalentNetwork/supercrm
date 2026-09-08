@@ -1,11 +1,11 @@
-<!-- prd: estado=DRAFT version=0.6 supersedes=- appetite=completo -->
+<!-- prd: estado=DRAFT version=0.7 supersedes=- appetite=completo -->
 
 # PRD — SuperCRM Ola 2: Email de clientes dentro del CRM
 
 | Campo | Valor |
 |---|---|
 | Estado | DRAFT |
-| Version | 0.6 |
+| Version | 0.7 |
 | Supersedes | — (sigue en DRAFT; 0.1 a 0.4 corregidas, no superseded) |
 | Fase actual | **6 — documento** (premisas cerradas en la 0.5, alcance en la 0.6; listo para una ronda nueva de review) |
 | Appetite | completo |
@@ -181,6 +181,16 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
 
 ## 6. Criterios de aceptacion
 
+**Como se leen los codigos de esta seccion**, porque hasta la v0.6 la letra "H"
+significaba tres cosas distintas y se confundian (hallazgo H11 del ciclo 2):
+- **H1–H8** son las **historias de usuario** de la seccion 5. Un criterio marcado "(H4)"
+  verifica esa historia.
+- **C1–C5** son criterios que **no tienen historia detras**: nacieron de decisiones o de
+  hallazgos de review y verifican una regla, no un deseo del usuario.
+- Los "hallazgo H<n> de la ronda <n>" que aparecen en el texto son **de las reviews**, y
+  no tienen nada que ver con los dos anteriores. Se citan para dejar rastro de por que
+  algo esta escrito como esta.
+
 **Conexion de la cuenta (H1)**
 - PASA si: un usuario `sales` completa el consentimiento de Google y, al volver al
   CRM, ve su cuenta de Gmail listada como conectada con la fecha de conexion, en la
@@ -266,8 +276,13 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
 
 **Permisos (transversal) — es el invariante de seguridad**
 - PASA si: un usuario `sales` que invoque directamente la funcion de Convex que lee
-  emails, pidiendo los de un cliente de otra tienda O los de un cliente de su tienda
-  que no le pertenece, recibe un error y ningun dato.
+  emails, pidiendo los de un cliente de otra tienda O los de un cliente de su tienda que
+  no le pertenece **y en cuyos correos no aparece su propio buzon**, no recibe **ningun
+  dato** — con el mismo tratamiento que ya usan las lecturas existentes, que devuelven
+  `null` en vez de lanzar, para no distinguir "no existe" de "no es tuyo".
+- PASA si: ese mismo `sales` **si** recibe los emails de un cliente ajeno **en los que su
+  propio buzon aparece** (seccion 24), y **solo esos** — no el resto del historial de ese
+  cliente, ni su ficha, ni sus oportunidades.
 - PASA si: un usuario `storeManager` lee los emails de **cualquier** cliente de su
   tienda —igual que `owner`— y ninguno de otra tienda. Son los **tres** roles reales
   del sistema (`convex/schema.ts`), no dos.
@@ -275,14 +290,14 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
   si `storeManager` queda sin acceso a los emails de su tienda por haberse replicado un
   modelo de dos roles que no existe.
 
-**Desconectar la cuenta conserva el historial (H9)**
+**Desconectar la cuenta conserva el historial (C1)**
 - PASA si: tras desconectar la cuenta de Gmail de un vendedor, el numero de emails de
   sus clientes en la base de datos es **el mismo** que antes de desconectar, siguen
   visibles en la ficha del cliente, y no queda ni token ni canal push vivo de esa
   cuenta.
 - FALLA si: desconectar borra algun email, o deja el token o el canal push activos.
 
-**Borrado de un cliente (H10)**
+**Borrado de un cliente (C2)**
 - PASA si: al borrar un cliente **sin oportunidades** que tiene emails, el CRM muestra
   antes un dialogo con el **numero real** de emails que se van con el, y al confirmar
   desaparecen el cliente y esos emails.
@@ -292,7 +307,7 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
 - FALLA si: los emails bloquean el borrado; si el dialogo no dice el numero o dice uno
   generico; o si tras confirmar quedan en la base de datos emails del cliente borrado.
 
-**Alcance del historico (H11)**
+**Alcance del historico (C3)**
 - PASA si: tras la primera sincronizacion de un vendedor, el email mas antiguo
   almacenado **no es anterior** a la fecha de creacion de la oportunidad mas antigua a
   la que ese vendedor tiene acceso, y **no falta** ningun email posterior a esa fecha
@@ -306,7 +321,7 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
   valido antes de ella; si se baja correo anterior a esa oportunidad; o si conectar una
   cuenta sin oportunidades accesibles da un error en vez de sincronizar solo lo nuevo.
 
-**Intencion de escritura y su emparejamiento (H13)** — hace verificable la regla de §21
+**Intencion de escritura y su emparejamiento (C4)** — hace verificable la regla de §21
 - PASA si: pulsar "Escribir" desde una oportunidad y enviar el correo **dentro de 30
   minutos** atribuye la actividad a **esa** oportunidad.
 - PASA si: **dos clics seguidos** al mismo cliente y un solo envio dejan **una** intencion
@@ -317,13 +332,16 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
 - PASA si: pulsar "Escribir" y **no enviar** deja la intencion en `caducada` pasados 30
   minutos, y **ninguna** oportunidad cambia su `lastActivityAt`.
 - FALLA si: una intencion se consume mas de una vez; si una sin consumir atribuye
-  actividad; o si sigue `pendiente` mas de 30 minutos despues de su clic.
+  actividad; o si **un email posterior a la ventana de 30 minutos consume** una intencion
+  vieja. (No falla que el documento siga con el valor `pendiente` pasada la ventana: la
+  caducidad se evalua **al leer**, asi que lo que importa es que no se use, no como este
+  etiquetada mientras espera a que la limpien.)
 - Nota de implementacion, porque decide si hace falta trabajo nuevo: la caducidad se
   **evalua al leer** (una intencion con mas de 30 minutos ya no es candidata), no hace
   falta un proceso que las marque. El cron horario que existe (`convex/crons.ts`) sirve
   para limpiar las viejas, que es higiene, no correccion.
 
-**Emparejamiento de direcciones (H12)**
+**Emparejamiento de direcciones (C5)**
 - PASA si: un email dirigido a `Nombre Apellido <CLIENTE@Ejemplo.COM>` se empareja con
   el cliente cuyo `email` es `cliente@ejemplo.com`, y uno dirigido a
   `cliente+loquesea@ejemplo.com` tambien.
@@ -521,16 +539,31 @@ privacidad que la API, no mejor.
 
 ## 13. Metricas de exito
 
-Se expresan en **absolutos**, no en porcentajes: hoy existe una sola cuenta `sales`
-real, asi que cualquier porcentaje solo podria dar 0% o 100% (hallazgo H10 de la
+**Quien participa en el piloto, con nombre** (hallazgo H6 del ciclo 2, y es la
+consecuencia menos obvia del piloto interno de la seccion 4). La via de app Interna solo
+deja consentir a cuentas del Workspace de `talent-network.org`, y hoy esas son
+`admin@talent-network.org` (rol `owner`) y `aitor.marin@talent-network.org` (rol
+`sales`). **Las cuentas de prueba `marta@supercrm.es` y `carlos@supercrm.es` NO pueden
+participar**: son cuentas de contraseña de otro dominio.
+
+Eso obliga a decir algo incomodo y a decirlo aqui: **las metricas de esta ola se miden
+sobre las cuentas del Workspace, no sobre Marta y Carlos.** Carlos es la persona del
+PRD y el `sales` de todos los ejemplos, pero en el piloto su papel lo hace la cuenta
+`sales` del Workspace. Redactar metricas sobre "todos los vendedores activos" incluyendo
+a Carlos las haria **inalcanzables por construccion**, no dificiles.
+
+Se expresan en **absolutos**, no en porcentajes: en el piloto hay una sola cuenta `sales`
+participante, asi que cualquier porcentaje solo podria dar 0% o 100% (hallazgo H10 de la
 ronda 1). **Cada metrica dice desde cuando se cuenta su plazo**, porque no todas
 arrancan a la vez: las de adopcion y sustitucion dependen de que exista la fase 4, y
 las de historial y frescura dependen solo de la primera sincronizacion (hallazgo H12
 de la ronda 2).
 
-1. **Adopcion**: **todos** los vendedores activos tienen su Gmail conectado a los 14
-   dias **de publicarse la fase 1** (que es la que ya permite conectar). Con la
-   plantilla actual son 1-2 personas; el numero se revisa cuando el equipo crezca.
+1. **Adopcion**: **todas las cuentas del Workspace dadas de alta en el piloto** tienen
+   su Gmail conectado a los 14 dias **de publicarse la fase 1** (que es la que ya permite
+   conectar). Hoy son **dos**: `admin@` y `aitor.marin@`. Las cuentas de prueba de otro
+   dominio no cuentan, porque no pueden consentir. El numero se revisa cuando el piloto
+   se abra.
 2. **Sustitucion real** (refuta la señal de muerte de §11.5): a los 14 dias **de
    publicarse la fase 5** — no la 4 (hallazgo H6 de la ronda 3): la fase 4 crea las
    `emailIntents` pero es la 5 la que las **consume**, y sin consumo no hay nada que
@@ -584,6 +617,11 @@ de la ronda 2).
 
 ## 15. Requisitos no funcionales
 
+- **Volumen por pantalla y paginacion**: con el historico sin tope (seccion 4) un cliente
+  veterano puede tener miles de emails, asi que **la ficha no los carga todos**: muestra
+  los mas recientes y carga el resto bajo demanda al desplazarse. El umbral de 200 de
+  abajo es el objetivo de rendimiento de **lo que se pinta**, no un limite de lo que se
+  guarda (hallazgo H10 del ciclo 2).
 - **Latencia de lectura**: la ficha de un cliente con 200 emails carga en < 1 s.
   **Umbral NUEVO de esta ola** — no existe un umbral de rendimiento documentado en
   `docs/01-arquitectura.md` al que remitirse (hallazgo H12 de la review).
@@ -674,14 +712,20 @@ de la ronda 2).
   pocos, la fase siguiente no es sincronizar mas: es conseguir que los contactos
   tengan email.
 - **Durante la fase 1**: medir el tamaño real de los emails de un vendedor y
-  extrapolar. Ya no sirve para fijar un limite (no lo hay), sino para saber cuanto
-  cuesta el historico completo **antes de conectar al segundo vendedor**. **El umbral es
-  observable, no una impresion** (hallazgo H9 de la ronda 3): si la extrapolacion del
-  historico completo de todos los vendedores previstos supera **el 25% del limite de
-  almacenamiento del plan de Convex vigente**, se para y se reabre con Aitor la decision
-  del tope antes de conectar a nadie mas. Por debajo de eso, se sigue sin consultar. Se
-  elige un cuarto y no la mitad porque el correo crece solo, sin que nadie decida
-  ampliarlo: cuando se note ya seria tarde.
+  extrapolar. Ya no sirve para fijar un limite (no lo hay), sino para saber cuanto cuesta
+  el historico completo. **El umbral es observable, no una impresion** (hallazgo H9 de la
+  ronda 3): si la extrapolacion del historico completo de todos los vendedores previstos
+  supera **el 25% del limite de almacenamiento del plan de Convex vigente**, se para y se
+  reabre con Aitor la decision del tope. Se elige un cuarto y no la mitad porque el correo
+  crece solo, sin que nadie decida ampliarlo: cuando se note ya seria tarde.
+  **La puerta va ANTES de la primera descarga completa, no antes del segundo vendedor**
+  (hallazgo H9 del ciclo 2): sin tope, el primer vendedor puede llenar el plan el solo,
+  asi que poner el freno tras la primera bajada seria ponerlo detras del precipicio. La
+  medida se toma con la muestra de la **fase 1** —un solo contacto conocido y unos pocos
+  dias, seccion 8— y se decide **antes de ensanchar en la fase 2**.
+  **NO VERIFICADO**: el limite de almacenamiento del plan de Convex vigente no se ha
+  consultado. Sin ese numero el 25% no se puede aplicar, asi que mirarlo es parte de la
+  fase 1, no un detalle posterior.
 - **Antes de la fase 5**: probar con correos automaticos reales (respuestas de
   ausencia, acuses de recibo) que el enganche de `lastActivityAt` no marca como activa
   una oportunidad que nadie ha atendido.
@@ -712,8 +756,9 @@ de la ronda 2).
   ninguno mas.
 
 **CU3 — Leer la conversacion** (formaliza H2, H3 y H7)
-- Actor: Carlos (`sales`, solo sus clientes); Marta (`owner`) y cualquier
-  `storeManager` (todos los de su tienda) — son los tres roles reales, seccion 24.
+- Actor: un `sales` (sus clientes, **mas cualquier email de su propio buzon**, aunque el
+  cliente sea de otro comercial — seccion 24); un `owner` o `storeManager` (todos los de
+  su tienda). Son los tres roles reales.
 - Disparador: abre la ficha del cliente o una de sus oportunidades.
 - Flujo principal: el CRM muestra un historial cronologico unico que entremezcla
   interacciones manuales y emails.
@@ -738,20 +783,6 @@ de la ronda 2).
 - Postcondicion: si se envio, el email esta registrado; si no, el CRM no miente y no
   queda ninguna intencion pendiente indefinidamente.
 
-**CU6 — Desconectar la cuenta de Gmail** (formaliza la decision de §24)
-- Actor: Carlos, sobre su propia cuenta; Marta o un `storeManager` no desconectan la de
-  otro.
-- Precondicion: cuenta conectada.
-- Disparador: pulsa "Desconectar" en la pantalla de conexion.
-- Flujo principal: el CRM avisa de que **los emails ya guardados se conservan** y de que
-  dejara de recibir correo nuevo → Carlos confirma → se cierra el canal push, se borra
-  el token de refresco cifrado y la cuenta pasa a "sin conectar" → **ningun email se
-  borra**.
-- Alternativos: el cierre del canal push falla en Google → se borra el token igualmente
-  y el canal se deja expirar solo; se registra para operacion (seccion 25).
-- Postcondicion: no queda token ni canal activo; el numero de emails del cliente es
-  exactamente el mismo que antes (criterio H9 de la seccion 6).
-
 **CU5 — Reconectar tras una caida** (formaliza la operacion, seccion 23)
 - Actor: Carlos.
 - Precondicion: el token fue revocado o caduco, o el canal push expiro sin renovarse.
@@ -768,6 +799,20 @@ de la ronda 2).
   en vez de un progreso silencioso. Es el segundo precio del historico sin tope, junto
   al coste de la seccion 26.
 - Postcondicion: conexion restablecida y sin duplicados.
+
+**CU6 — Desconectar la cuenta de Gmail** (formaliza la decision de §24)
+- Actor: Carlos, sobre su propia cuenta; Marta o un `storeManager` no desconectan la de
+  otro.
+- Precondicion: cuenta conectada.
+- Disparador: pulsa "Desconectar" en la pantalla de conexion.
+- Flujo principal: el CRM avisa de que **los emails ya guardados se conservan** y de que
+  dejara de recibir correo nuevo → Carlos confirma → se cierra el canal push, se borra
+  el token de refresco cifrado y la cuenta pasa a "sin conectar" → **ningun email se
+  borra**.
+- Alternativos: el cierre del canal push falla en Google → se borra el token igualmente
+  y el canal se deja expirar solo; se registra para operacion (seccion 25).
+- Postcondicion: no queda token ni canal activo; el numero de emails del cliente es
+  exactamente el mismo que antes (criterio H9 de la seccion 6).
 
 ## 20. Diagrama actores-modulos
 
@@ -811,7 +856,9 @@ texto plano (un email tiene asunto, cuerpo, direccion e hilo). Forzarlo alli
 significaria inventar valores falsos en tres campos.
 
 **Entidad `emails`** (nueva): `customerId` (relacion principal — el email pertenece al
-cliente), `userId` (de que buzon vino), `storeId`, `direction` (entrante/saliente),
+cliente), `userId` (buzon que lo aporto), **`mailboxUserIds`** (lista de TODOS los
+buzones conectados en los que aparece ese correo), `storeId`, `direction`
+(entrante/saliente),
 identificador de mensaje de Gmail, **`messageId` de la cabecera RFC**, identificador de
 hilo, remitente, destinatarios, copia, asunto, cuerpo en texto plano, extracto, fecha e
 indicador de adjuntos. Indices por cliente y por `messageId`.
@@ -824,6 +871,19 @@ comprueba por el `Message-ID` de la cabecera RFC, que si es el mismo en ambos bu
 Si un correo llegara sin esa cabecera, se cae al identificador de Gmail y se acepta el
 duplicado como caso degradado, en vez de descartar el email.
 
+**Por que hace falta `mailboxUserIds` y no basta `userId`** (hallazgo H1 del ciclo 2).
+La seccion 24 promete que **un vendedor ve siempre los emails de su propio buzon**. Con
+un solo `userId` esa promesa se rompe en cuanto el mismo correo llega a dos buzones
+conectados: el registro se guarda una vez, con **un** propietario, y el otro vendedor
+—que tiene ese correo en su Gmail— deja de verlo en el CRM. Justo lo que la regla venia
+a evitar.
+
+Por eso el acceso **no cuelga de `userId`**, sino de la lista: ves un email si el cliente
+es tuyo, si tienes rol de tienda entera, **o si tu buzon esta en `mailboxUserIds`**. La
+lista crece cuando una segunda sincronizacion encuentra el mismo `Message-ID`: no
+reescribe nada, **añade**. `userId` se queda solo como dato de procedencia — quien lo
+aporto primero—, sin ningun poder sobre quien lo ve.
+
 **Que pasa con `direction` y `userId` cuando el mismo correo llega a dos buzones**
 (hallazgo H3 de la ronda 3): si se guardara el primero que llegue, esos dos campos
 quedarian a merced de cual sincronice antes — y `direction` decide si el email cuenta
@@ -833,13 +893,24 @@ si ese buzon esta conectado (`direction: saliente`, `userId` = quien lo envio); 
 remitente no es ninguno de los buzones conectados, con el del **destinatario** que lo
 recibio (`direction: entrante`). Si dos buzones conectados aparecen como destinatarios y
 ninguno como remitente, gana el del dueño del cliente. La segunda sincronizacion que
-encuentre el mismo `Message-ID` **no reescribe** esos campos.
+encuentre el mismo `Message-ID` **no reescribe** esos campos — pero **si añade su buzon a
+`mailboxUserIds`**, que es lo que hace que ese vendedor siga viendo su correo aunque no
+haya ganado el desempate.
 
-**Emparejamiento direccion ↔ contacto.** Hoy `customers.email` es `v.optional(v.string())`,
-texto libre, y la tabla solo tiene los indices `by_owner` y `by_store` (seccion 28):
-buscar por direccion escanearia la tabla entera en cada mensaje. Por tanto:
-- **Indice nuevo** por `storeId` + direccion normalizada, para resolver el
-  emparejamiento sin recorrer la tabla. **Hay precedente exacto y reciente**: AIT-80
+**Emparejamiento direccion ↔ contacto.** `customers.email` es `v.optional(v.string())`,
+texto libre, y **no tiene indice**: la tabla tiene `by_owner`, `by_store` y —desde
+AIT-80— `by_store_phone`, ninguno sobre el email. Buscar por direccion escanearia la
+tabla entera en cada mensaje. Por tanto:
+- **Indice nuevo `by_store_email`** por `storeId` + el propio campo `email`, **guardado
+  ya en forma canonica** — no un campo derivado aparte (misma decision y por el mismo
+  motivo que se tomo para el telefono: dos campos que hay que mantener a la par se
+  desincronizan en silencio). El alta ya guarda el email con `trim` + `toLowerCase`, asi
+  que **falta solo extender esa normalizacion** (cabecera `Nombre <a@b>`, etiqueta tras
+  `+`) y aplicarla en los **dos** escritores que hoy existen: `createQuick` y
+  `customers.update`.
+  **Y hace falta migracion**, sin ambiguedad: un indice sobre un campo canonico no
+  encuentra las filas que se guardaron antes de que existiera la normalizacion completa.
+  **Hay precedente exacto y reciente**: AIT-80
   hizo justo esto para el telefono —campo guardado ya en forma canonica, indice
   `by_store_phone`, y una migracion de una pasada para las filas anteriores—, asi que el
   patron esta probado en este mismo repositorio y no hay que inventarlo. Lo que **si**
@@ -857,12 +928,16 @@ buscar por direccion escanearia la tabla entera en cada mensaje. Por tanto:
   sola vez**, asociado al cliente cuyo `ownerId` sea el dueño del buzon; si ninguno lo
   es o lo son varios, al de creacion mas antigua. La colision se registra para operacion
   (seccion 25).
-  **Ojo: esto NO es un caso de esquina, es esperable** (hallazgo del QA, 2026-09-08).
-  `createQuick` inserta un cliente **incondicionalmente**, sin buscar si ya existe, y no
-  hay forma de editar ni fusionar fichas: el producto **fabrica duplicados de forma
-  natural** cada vez que alguien da de alta dos veces a la misma persona. Emparejar
-  contra esa tabla no devuelve un resultado, devuelve varios. **AIT-80** ataca la causa;
-  esta regla es lo que hace que la ola no se rompa mientras tanto.
+  **Cuanto de esperable es, actualizado al 2026-09-08 por la tarde.** Cuando se escribio
+  esta regla, `createQuick` insertaba **incondicionalmente** y no habia forma de editar
+  un cliente, asi que el producto fabricaba duplicados solo. **Las dos cosas se
+  arreglaron el mismo dia**: AIT-80 hace que el alta detecte por `by_store_phone` y avise
+  antes de crear (devolviendo `status: "duplicate"`), y AIT-77 añadio `customers.update`.
+  Ya no se fabrican duplicados nuevos por descuido.
+  **La regla se queda igual**, y no por prudencia: el aviso de AIT-80 **es un aviso, no un
+  bloqueo** —quien insiste puede crear el duplicado, porque dos personas pueden compartir
+  telefono—, empareja por telefono y no por email, y las fichas duplicadas anteriores a
+  hoy siguen ahi. Lo que cambia es la frecuencia esperada, no el caso.
 
 **Entidad `gmailAccounts`** (nueva): usuario, token de refresco **cifrado**, fecha de
 conexion, marca de ultima sincronizacion, marca incremental de Gmail, datos del canal
@@ -1045,9 +1120,11 @@ reales en la base de datos del CRM.
   - ningun usuario ve nada de otra tienda.
   **Se aplica en el servidor**, en cada funcion de Convex, no ocultando en la interfaz.
   **Verificado por los dos lados el 2026-09-08**, y conviene decir como porque es la
-  premisa sobre la que descansa toda la privacidad de esta ola: (a) en el codigo,
-  `opportunities.ts:203-204` devuelve `null` desde la query cuando el `storeId` no
-  coincide o cuando un rol no-tienda pide algo que no es suyo; (b) en la app publicada, un
+  premisa sobre la que descansa toda la privacidad de esta ola: (a) en el codigo, la
+  query `opportunities.getSummary` devuelve `null` cuando el `storeId` no coincide o
+  cuando un rol no-tienda pide algo que no es suyo (se cita **por funcion y no por
+  numero de linea**: este documento ya se quedo desfasado una vez porque el fichero se
+  movio bajo una cita); (b) en la app publicada, un
   `sales` que entra **por URL directa** a un registro que demostrablemente existe recibe
   "Esta oportunidad ya no existe" — una pantalla no puede ocultar lo que la query nunca le
   entrego. Ademas `requireUser` corta el acceso de una cuenta desactivada en la siguiente
@@ -1227,6 +1304,25 @@ fichero; los fragmentos literales de codigo van citados como bloque.
 - `convex/crons.ts` y `convex/http.ts` — **ya existen**: un cron horario (AIT-57) y un
   `httpRouter` montado. Son exactamente las dos piezas que esta ola necesita para
   renovar el canal push y para recibir el webhook de Pub/Sub; no hay que crearlas.
+
+- **Lo que cambio el 2026-09-08 y este documento tuvo que corregir dos veces.** Cuatro
+  tareas se publicaron mientras se escribia este PRD, y tres afirmaciones suyas sobre el
+  codigo quedaron falsas por el camino. El estado a cierre de ese dia:
+  - **`convex/customers.ts` ya expone `update`** (AIT-77): se puede editar un cliente,
+    incluido su email. Este documento llego a decir lo contrario, y era cierto por la
+    mañana.
+  - **`createQuick` ya NO inserta incondicionalmente** (AIT-80): busca por
+    `by_store_phone` y devuelve `status: "duplicate"` para que la interfaz avise. Sigue
+    siendo un aviso y no un bloqueo.
+  - **`customers` tiene un tercer indice, `by_store_phone`**, y el telefono se guarda ya
+    en forma canonica, con `lib/phone.ts` y una migracion de una pasada. Es el precedente
+    exacto del indice de email que pide la seccion 21.
+  - **`convex/opportunities.ts` expone `createForCustomer`** (AIT-74): crea una
+    oportunidad sobre un cliente existente, sin insertar en `customers`.
+
+  **Leccion de forma, no de contenido:** este documento cita codigo que se mueve varias
+  veces al dia. Las citas **por nombre de funcion** sobreviven; las citas **por numero de
+  linea** no — ya se rompio una. De aqui en adelante se cita por funcion.
 
 - `convex/customers.ts` — el borrado de un cliente **se bloquea** si tiene
   oportunidades. Su comentario razona que no hacen falta mas comprobaciones porque
