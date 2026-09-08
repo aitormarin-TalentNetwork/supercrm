@@ -58,6 +58,17 @@ una vez que el trabajo pasa auditoría.
        respondía a mano. Lo garantizaba el propio proceso: todo desarrollador acababa ahí
        en cada tarea. El 2026-09-08 costó ~85 minutos repartidos en tres sesiones, y Aitor
        tuvo que destrabar terminales a mano varias veces.
+       ⚠️ **Si por lo que sea acabas en la pantalla `Ready to code?`** (por ejemplo, una
+       sesión arrancada antes de este cambio): la opción correcta es la **`1`** ("Yes, and
+       use auto mode"). **La opción que elijas deja huella PERMANENTE en el modo de tu
+       sesión, no solo resuelve la pantalla** — medido el 2026-09-08 en las tres
+       terminales: T1 y T2 salieron por la opción de auto y siguieron en `auto` todo el
+       día; T3 salió por otra y quedó en `acceptEdits`, o sea **fuera de auto para
+       siempre**, parándose en cada permiso posterior pese a que su ventana se lanzó con
+       `--permission-mode auto`. Volver a auto exige **cerrar y relanzar** la ventana; no
+       se puede cambiar en caliente ni pedírselo a otra sesión. Por eso "pulsa la 1" no es
+       una preferencia: pulsar otra cosa **degrada la terminal de forma permanente**.
+
        ⚠️ **El gate NO se relaja, y esto va sin suavizar:** sigue siendo duro y sin
        excepciones. **Lo único que se pierde es la garantía mecánica** de que no puedas
        tocar código mientras planificas — pasa de imposibilidad técnica a **regla
