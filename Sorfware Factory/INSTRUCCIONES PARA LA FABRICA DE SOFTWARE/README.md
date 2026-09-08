@@ -817,6 +817,21 @@ provocó otro rol mirando el dato.** Las reglas no se aplicaron solas ni una sol
 > evidencia de que un principio escrito haya cambiado una conclusión en el momento de
 > tomarla.
 
+**Y la segunda mitad, que la afina y viene del QA — el rol que menos toca proceso:** *lo que
+hay que recordar **tiene que caber en una frase**, y si no cabe, hay que ejecutarlo.*
+
+Su ejemplo lo demuestra mejor que el argumento: de toda la decisión 32.1, lo que le sirve
+es ***"pedir una ruta no es lo mismo que obtenerla"***. Esa frase la va a tener presente la
+próxima vez que una herramienta escriba un fichero; **el párrafo entero, no.**
+
+> **Cada regla que se quede en principio necesita SU ENUNCIADO CORTO, o no es una regla: es
+> un párrafo.** Y una regla que **no admite** enunciado corto es una **candidata a control
+> ejecutable**, no a documento.
+
+Aplica también hacia atrás, junto con el repaso ya pendiente: al revisar las decisiones
+anteriores, a cada una que se quede en principio hay que darle su frase — o reconocer que
+pide código en vez de prosa.
+
 **El patrón en miniatura, y es el ejemplo a imitar:** en vez de *"no concluyas que una
 sesión está parada desde un dato viejo"* —que es un principio y se incumple—, la versión
 ejecutable es **"antes de afirmar que una sesión está parada, imprime su último `assistant`
@@ -996,9 +1011,34 @@ motivo mucho más pequeño y atacable que "no se puede".** La distinción import
 todo el día separando *"no se puede"* de *"no se ha hecho"*, y esto era lo segundo
 disfrazado de lo primero.
 
-**Qué comprueba el control, si merece existir, y quién lo mantiene: del Factory Architect.
-Autorizarlo: de Aitor.** El CEO no lo crea por su cuenta — sigue siendo configuración del
-repo que ejecuta comandos solos.
+### Decisión 33 — El control ejecutable: qué comprueba y qué NO
+
+**Decidido que merece existir. Autorizarlo sigue siendo de Aitor** — es configuración del
+repo que hace ejecutar comandos solos, así que ningún rol lo crea por su cuenta.
+
+**Un único trabajo, y estrecho: impedir que un secreto entre en un commit.** No se convierte
+en un validador de todo — **un hook que comprueba cinco cosas se desactiva el día que falla
+por la quinta.**
+
+**Qué mira**, sobre el contenido **staged** (no el working tree):
+- Formas de credencial: `-----BEGIN … PRIVATE KEY-----`, tokens con forma de JWT, y las
+  variables de semilla que ya nombra `CLAUDE.md` (`SEED_*_PASSWORD`, `JWT_PRIVATE_KEY`).
+- Nombres de fichero sospechosos que no estén ya ignorados: `*token*`, `*session*`,
+  `*.pem`, `.env*`.
+
+**Qué NO mira: cualquier otra cosa.** Si mañana hace falta más, se decide entonces.
+
+⚠️ **Condición sin la que no se adopta: el hook se entrega CON SU TEST, y el test tiene que
+DISCRIMINAR** — un fichero con forma de secreto **bloqueado**, y un commit normal
+**permitido**. **Si solo prueba lo segundo, no prueba nada** (decisión 19). El test vive en
+el mismo `.githooks/`, corre a mano, y su resultado se declara en §7. **Sin ese test es
+preferible no tener el hook: un control no verificado es peor que ninguno, porque se
+confía en él.**
+
+**El residuo —un clon nuevo sin el comando no tiene control y no se entera— se cierra
+haciéndolo DETECTABLE, no recordable:** el barrido del CEO comprueba
+`git config core.hooksPath` y **reporta si no está**. Eso convierte un fallo silencioso en
+uno visible, que es lo máximo posible sin poder ejecutar el comando en la máquina de otro.
 
 📌 **Y el problema estructural, que ninguna de estas reglas ataca:** los tres episodios del
 2026-09-08 —el `throw` de prueba que casi se publica, el `git add -A` que lo arrastró, y

@@ -593,6 +593,24 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### Comprobación fija de tu barrido: `core.hooksPath`
+
+Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso en uno visible:
+
+```bash
+git config --get core.hooksPath || echo "⚠️ SIN control de secretos en los commits"
+```
+
+**Por qué está aquí y no es una manía:** el control que impide que un secreto entre en un
+commit vive en un hook, y un hook solo se activa si ese comando está configurado en **esa
+copia del repo**. Quien clone en otra máquina y no lo ejecute **no tiene control y no se
+entera** — y eso no se arregla recordándoselo a nadie. Lo único que se puede hacer desde
+aquí es **detectar su ausencia y reportarla**, así que se detecta.
+
+*(Nota: en este proyecto los worktrees comparten el `.git/config` de la raíz —
+`git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
+verificados—, así que basta comprobarlo una vez desde la raíz.)*
+
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 
 Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y
