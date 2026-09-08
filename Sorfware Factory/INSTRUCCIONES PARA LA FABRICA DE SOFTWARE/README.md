@@ -800,6 +800,7 @@ desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta sal
 | Leer `process.env.X` en el **middleware Edge de Next.js** y creer que lee el entorno | **Se sustituye por un literal en tiempo de build.** El código *parece* leer el entorno y no lo hace — sobrevive a cualquier revisión de código, y solo falla **al segundo deploy**, cuando ya nadie lo relaciona con el cambio | verificar el valor **sobre el artefacto ya construido**, no leyendo el código: una build, dos arranques con valores distintos. Hallazgo de T2 el 2026-09-08, construyendo AIT-79 — que es justamente la tarea que existe para cerrar un falso verde, y estuvo a punto de nacer con uno dentro |
 | `npx tsc --noEmit` limpio **tras cambiar el tipo de retorno de una función** | **No protege un contrato que desemboca en un template literal.** `` router.push(`/oportunidades/${result}`) `` **compila con cualquier cosa** — si `result` pasa de ser un id a ser un objeto, el typecheck sigue en verde y la app navega a `/oportunidades/[object Object]`. Por el mismo camino se puede romper el contrato de una función de **otra tarea** sin que nada lo señale | **"el typecheck pasa" no dice NADA sobre un cambio de forma de retorno.** Hay que ejercitar el camino: lo cazó la suite e2e, no el compilador. Hallazgo de T3, 2026-09-08, implementando AIT-80 — y le rompió además, sin darse cuenta, una función de AIT-74 |
 | La ruta que le pasas a una herramienta para que escriba un fichero | **Puede resolverla contra otro directorio sin avisar.** Verificado en vivo el 2026-09-08: el MCP de Playwright **ignoró una ruta absoluta** y resolvió relativo a la raíz del proyecto. El fichero —un volcado de sesión con tokens de autenticación— apareció suelto en la raíz, untracked y sin ignorar, a un `git add -A` de entrar en el repo | **comprobar dónde apareció el fichero, no dónde lo pediste.** Pedir una ruta no es lo mismo que obtenerla |
+| **`git add <rutas explícitas>` como protección contra arrastrar trabajo ajeno** | **No protege: `git commit` sube el ÍNDICE ENTERO, no lo que acabas de añadir.** En un checkout compartido **el índice es estado compartido** — si otro rol dejó algo staged, entra en tu commit aunque tú hayas nombrado tus ficheros uno a uno. Verificado el 2026-09-08: el CEO commiteó dos `.md` por ruta explícita y arrastró `.claude/settings.json`, **un fichero de permisos**, que el Factory Architect tenía staged y estaba a punto de commitear con su propio mensaje | **`git commit -- <rutas>`**, que commitea solo esas rutas ignorando el resto del índice. Y antes de commitear, mirar `git diff --cached --name-only`. ⚠️ **La decisión 18.2 decía "commitea por ruta explícita" y eso resultó ser un principio disfrazado de control** — parecía una comprobación y no lo era |
 | `git add -A` en un checkout compartido | **No falla, no avisa, y se lleva lo que encuentre** — incluido trabajo en curso de otro rol que casualmente use la misma carpeta | **commitear por ruta explícita**; `git add -A` queda prohibido en la raíz (decisión 18.2). **La historia entera, porque la regla sola no enseña:** el 2026-09-08 el CEO hizo `add -A` desde la raíz para commitear documentación y arrastró un `throw new Error` que el QA había inyectado en `app/login/page.tsx` para poder ver renderizada `app/error.tsx` — una prueba legítima, bien marcada como temporal y revertida por él dos minutos después. El commit llegó a crearse. **Lo único que lo paró fue la comprobación de la decisión 9** (`git diff --name-only origin/main..main \| grep -E '^(app\|convex\|…)'`), escrita tres horas antes para algo completamente distinto: no arrastrar código en un push de documentación. Si llega a `main`, Railway despliega un login que revienta al cargar |
 | `grep <patrón> fichero \| head -1 && echo "APARECE"` | **Da positivo con CERO coincidencias.** En una tubería, `&&` evalúa el código de salida del ÚLTIMO comando (`head`, que devuelve 0 aunque grep no encuentre nada), no el del que te interesa | **cuenta ocurrencias y mira el número** (`grep -c`), nunca encadenes con `&&` sobre una tubería. Misma familia que `npm test \| tail`, con otro comando: la lección general es que **el código de salida de una tubería es el del último eslabón**. Hallazgo del Integrador, 2026-09-08, verificando AIT-76: estuvo a un paso de reportar un fallo inexistente y no cerrar una tarea correcta |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
@@ -1042,6 +1043,16 @@ asignado, y por defecto acaba en la raíz.**
   corre ahí): el sitio donde vives y el sitio donde experimentas son cosas distintas.
 - **18.2 — En un checkout compartido se commitea por ruta explícita. `git add -A` queda
   prohibido.** Ver su fila en §2sexies, con el caso real que casi lo paga.
+  - ⚠️ **CORREGIDA el mismo día: `git add <rutas>` NO basta.** `git commit` sube el índice
+    entero, y **en un checkout compartido el índice es estado compartido** — lo que otro
+    rol dejó staged entra en tu commit aunque tú hayas nombrado tus ficheros uno a uno.
+    **La forma correcta es `git commit -- <rutas>`**, que ignora el resto del índice, y
+    mirar `git diff --cached --name-only` antes.
+  - 📌 **Y la lección de método, que vale más que el arreglo:** la 18.2 **parecía un
+    control y era un principio disfrazado**. Todos la aplicamos creyendo estar protegidos.
+    Al repasar las decisiones buscando cuáles admiten volverse comprobación (decisión 29),
+    hay que mirar también **las que ya parecen comprobación y no lo son** — son peores que
+    un principio declarado, porque nadie desconfía de ellas.
 - **18.3 — Si aun así alguien deja cambios sin commitear en la raíz, lo anuncia en
   `_registro-agentes.txt` con su condición de reversión.** Cinturón, por si 18.1 se olvida.
 
@@ -1886,6 +1897,42 @@ con `tee` de por medio. Si rompe eso, descártalo y quédate con la lectura de v
 ya existe; el patrón de arriba (marker + espera en segundo plano) funciona igual de bien
 sin esta mejora.
 
+### `.claude/settings.json` — la configuración que SÍ viaja (2026-09-08)
+
+**Qué es y por qué existe.** Hasta el 2026-09-08 toda la configuración de la fábrica vivía
+en `.claude/settings.local.json`, que **está en `.gitignore`**: no viaja a los worktrees, no
+sobrevive a un clon en otra máquina, y no se puede revisar en un diff. Los hooks de voz
+estaban **duplicados a mano en cuatro copias**. `settings.json` es la versión trackeada de
+eso — se commitea, viaja y se revisa como cualquier otro fichero del repo.
+
+**Qué concede hoy, exactamente dos permisos**, autorizados por Aitor:
+- **Leer** el contenido de la ventana de otra terminal.
+- **Escribir** en la ventana de otra terminal (`do script`).
+
+**Van juntas a propósito: sin leer, escribir es pulsar teclas a ciegas.**
+
+**Motivo medido, no teórico:** el 2026-09-08 hubo **~85 minutos de terminales sordas**
+repartidos en tres sesiones, y Aitor tuvo que desatascarlas a mano varias veces porque
+ningún rol podía ver qué prompt las tenía bloqueadas.
+
+⚠️ **Sus límites son los de la decisión 35, y no son opcionales:** la capacidad es **para
+desatascar**, no para influir. En la ventana del Auditor se puede resolver un prompt
+mecánico de su CLI, pero **nada que toque el fondo de la auditoría** — *si la respuesta al
+prompt podría cambiar el veredicto, no es tuya*. Y **toda intervención sobre una ventana
+ajena se anota** (qué había, qué se pulsó, quién, cuándo).
+
+📌 **Cómo entró en el repo, porque un fichero de permisos que aparece sin explicación es lo
+primero que debería mirar con lupa cualquier auditoría futura:** lo tenía staged el Factory
+Architect, con su propio commit ya redactado, y **el CEO se lo llevó por delante** al
+commitear la decisión 36 — commiteando por ruta explícita, que es justo lo que la 18.2
+mandaba y que resultó no proteger de nada (ver §2sexies). El fichero es correcto y su
+contenido está autorizado; **lo que faltaba era su procedencia, y esto la restituye.**
+
+⚠️ **Todavía no está operativo en todas partes: ninguno de los tres worktrees lo tiene** —
+está en `main`, y sus ramas no lo verán hasta que traigan `main`. La Directora, que trabaja
+desde la raíz, sí. **No dar por hecho que la capacidad ya existe en las terminales de
+desarrollo solo porque el fichero esté en `main`.**
+
 ### Modo de publicación del Integrador
 
 **Dónde vive:** `Sorfware Factory/_modo-publicacion.txt` (en `.gitignore`). **Este
@@ -1998,7 +2045,9 @@ proyecto.
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
 | `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
-| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bzckke1ho` (v9), armado 19:04:18. ⚠️ SUS DOS RAMAS ESTÁN EN ESTADOS DISTINTOS — no se resumen en una sola casilla.**
+| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bjoyjnitk` (v10), armada 20:03, CON LATIDO cada 30 min.** ⚠️ **El artefacto de esta alarma son TRES campos, no uno: id, hora de armado y hora del último latido** — y el tercero es el único que prueba algo. Motivo, y lo detectó su propio autor al ir a reportarlo: llevaba casi **dos horas sin emitir**, y **el silencio de una alarma tiene exactamente dos lecturas — la flota está sana, o la alarma está muerta**. Un id sin señal de vida es una conclusión presentada como dato, la misma forma del *"cero pendientes"* del CEO. Con el latido (`LATIDO <hora> - watchdog vivo, N sesiones vigiladas`) el silencio deja de ser ambiguo: **si en un ciclo del barrido no hay latido de los últimos 30 minutos, la alarma está caída y se escala.** *(Versión anterior: `bzckke1ho` v9.)*
+
+⚠️ **SUS DOS RAMAS ESTÁN EN ESTADOS DISTINTOS — no se resumen en una sola casilla.**
 
 **Rama A — cola pendiente + 3 min sin producir: VERIFICADA EN VIVO, 2026-09-08, en sus dos caras y por instrumentos independientes.** Positiva: alertó a las 19:08:04 sobre la sesión `829c22a4` con `cola=1`, y el censo del CEO de las 22:15:30 UTC registró para el PM `pendientes 1` — **misma sesión, mismo número, dos mediciones separadas**; se resolvió sola, que era la primera hipótesis. Negativa: **silencio durante los 17 minutos que T2 estuvo ociosa con cero pendientes**, que es justo lo que las versiones anteriores a la doble condición habrían convertido en un aviso inútil a Aitor.
 
