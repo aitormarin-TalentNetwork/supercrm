@@ -614,6 +614,43 @@ puerto ocupado y `curl` siguiera contestando al primero, habría concluido **"el
 congelado" con el diseño correcto delante**. Un NO-GO fantasma y convincente, en la tarea
 que existe precisamente para cerrar un falso verde.
 
+### Una verificación que depende de ganar una carrera está mal diseñada (decisión 30, 2026-09-08)
+
+**El caso:** el Integrador publicó AIT-79 y **63 segundos después** entró un push de
+documentación —haciendo exactamente lo que la enmienda 3 le manda hacer—, así que los dos
+builds de Railway arrancaron casi en paralelo. El deployment del primero **puede no llegar
+a servir nunca**, y el gate de esa tarea exige observar dos deployments concretos por
+separado. Resultado: sondear cada 20 segundos para cazar algo que quizá no exista.
+
+Son **dos decisiones correctas colisionando en un caso que ninguna contemplaba**. Y la
+lista de verificaciones que observan un deployment concreto va a crecer.
+
+**Lo que NO se hace: una ventana de silencio o un cerrojo de publicaciones.** Ya hay un
+cerrojo con problema de abandono en §3 y no interesa un segundo primitivo de coordinación;
+además reintroduciría por la puerta de atrás justo lo que la enmienda 3 le quitó al
+Integrador. **Un lock para arreglar una prueba mal diseñada es pagar en coordinación lo que
+se ahorra en diseño.**
+
+> **La regla: cuando una verificación exija observar un estado transitorio de producción,
+> primero hay que preguntarse si la propiedad se puede AISLAR y probar sin producción.**
+> La observación en producción queda como **confirmación no bloqueante**: se intenta, y si
+> se pierde la ventana **no es un fallo — se reintenta o se declara no capturada**.
+
+**El medio ya existe y lo construyó T2 esa misma tarde:** su prueba discriminante de AIT-79
+es *construir una vez y arrancar dos veces con valores distintos sobre el mismo artefacto
+de build, sin reconstruir*. Si el valor cambia sin rebuild, queda demostrado que no está
+horneado. **No necesita producción, no necesita ganar ninguna carrera, y discrimina mejor**
+— porque aísla la propiedad que se quiere probar en vez de esperar a que el mundo la
+exhiba.
+
+⚠️ **Y el límite de esta decisión, que su propio autor marcó:** esto es **proceso de
+verificación, no alcance**. Si el gate de una tarea se da por cumplido con la prueba
+aislada **lo deciden el PM y el auditor**, no el Factory Architect ni el CEO.
+
+📌 **Si la aplicación nunca llegó a decir su identidad, NO se infiere desde Railway.** Un
+"no pude capturarlo" es un resultado válido; inferirlo sería responder la pregunta del gate
+desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta saltárselo.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
