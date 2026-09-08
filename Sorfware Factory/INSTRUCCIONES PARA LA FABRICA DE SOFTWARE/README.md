@@ -652,15 +652,29 @@ su ocurrencia no está bajo control de nadie**.
 verificación, no alcance**. Si el gate de una tarea se da por cumplido con la prueba
 aislada **lo deciden el PM y el auditor**, no el Factory Architect ni el CEO.
 
-**Cómo se resolvió el caso, porque enseña a leer un criterio de aceptación:** el PM
-comprobó que **nunca había pedido dos deployments** — su criterio decía que el
-identificador *"cambia cuando se publica algo nuevo **y** coincide con el commit realmente
-desplegado"*, o sea **dos propiedades**, cada una mejor demostrada por un camino distinto:
-que el valor no está horneado lo prueba la prueba aislada (y mejor que producción); que lo
-mostrado coincide con lo desplegado **basta comprobarlo contra un solo deployment**. Ver un
-segundo despliegue en vivo era una **tercera propiedad que nadie había pedido**, añadida por
-una lectura más estricta que el propio criterio. **Antes de organizar una carrera para
-satisfacer un gate, releer qué pide el gate exactamente.**
+**Cómo se resolvió el caso, y dónde estaba de verdad el fallo:** el PM comprobó que **nunca
+había pedido dos deployments** — su criterio decía que el identificador *"cambia cuando se
+publica algo nuevo **y** coincide con el commit realmente desplegado"*, o sea **dos
+propiedades**, cada una mejor demostrada por un camino distinto: que el valor no está
+horneado lo prueba la prueba aislada (y mejor que producción); que lo mostrado coincide con
+lo desplegado **basta comprobarlo contra un solo deployment**.
+
+⚠️ **La tercera propiedad —ver dos deployments distintos— NO la añadió quien ejecutaba el
+gate.** Estaba **en el gate del auditor**, literal: *"para cada uno de los dos deployments
+por separado… y entre A y B, IDs y commits distintos. No hay degradación aceptable"*. El
+Integrador ejecutó el gate que se le entregó; **degradarlo por su cuenta habría sido
+relajar un criterio que explícitamente decía no admitir degradación**, y eso sí habría sido
+una decisión suya indebida. *(Corregido a petición suya: la primera redacción de este
+párrafo decía "una lectura más estricta que el propio criterio", lo que apuntaba a él y
+además dejaba el hallazgo real fuera.)*
+
+> **El hallazgo real, que sí puede repetirse: un gate derivado exigía más que el criterio
+> de aceptación del que derivaba, y nadie cruzó los dos hasta que la ejecución lo destapó.**
+> Eso no se arregla pidiéndole a quien ejecuta que lea más suelto — se arregla **cruzando
+> el gate contra su criterio de origen antes de entregarlo**, que es un paso que hoy no
+> existe. La brecha aparece cuando un rol traduce un criterio de producto a una lista de
+> comprobaciones: cada endurecimiento parece prudente por separado, y nadie compara el
+> resultado con lo que se pedía.
 
 📌 **Si la aplicación nunca llegó a decir su identidad, NO se infiere desde Railway.** Un
 "no pude capturarlo" es un resultado válido; inferirlo sería responder la pregunta del gate
