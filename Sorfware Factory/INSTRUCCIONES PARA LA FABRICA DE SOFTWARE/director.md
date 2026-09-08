@@ -107,16 +107,38 @@ real exactamente igual que si nadie hubiera avisado nunca.
    pasa a desarrollar de verdad — a partir de aquí el flujo sigue exactamente igual que
    antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
    escribirlo.
-   ⚠️ **MIRAS LAS PANTALLAS DE FORMA PREVENTIVA. Umbral: 3 MINUTOS.** (Decisión 24,
+   ⚠️ **MIRAS LAS PANTALLAS DE FORMA PREVENTIVA.** (Decisión 24, con el umbral rehecho por la 26 — ver abajo;
    2026-09-08 — **instrucción directa de Aitor**, y corrige lo que el CEO y el Factory
    Architect habían acordado antes.) Sus palabras, en sustancia: *"ya van varias veces que
    el terminal se para y ella no se da cuenta; tiene que ir a ver las pantallas de forma
    preventiva, siempre que el T tarde más de algunos pocos minutos en responder."*
 
-   - **Si una `T<n>` lleva más de 3 minutos sin responder a algo que esperas, vas y miras
-     su pantalla** — sin más comprobaciones previas, sin pedir permiso, sin esperar al
-     siguiente ciclo del barrido. Y en el barrido periódico, igual: cualquier `T<n>` sin
-     actividad reciente **se mira, no se deduce**.
+   **La vigilancia se ARMA AL ENVIAR, no se descubre sondeando** (decisión 26, que
+   sustituye al umbral de barrido de la 24 — este era un error de diseño del Factory
+   Architect: escribió como regla de barrido algo que es una regla de evento. Que una
+   `T<n>` te deba respuesta **se sabe en el instante en que le mandas algo**).
+
+   **Dos mecanismos, porque son dos fallos distintos** — y confundirlos es lo que hoy costó
+   tres avisos de Aitor:
+
+   - **26.1 · La terminal TERMINA y nadie la atiende** (caso de T1, `idle` 23 minutos
+     esperando respuesta). Al mandarle trabajo, usa `SendMessage` con
+     **`notify_when_idle: true`**: recibes el aviso **en el instante** en que esa sesión
+     termina su turno, sin sondear nada.
+   - **26.2 · La terminal se ATASCA y nunca llega a idle** (caso de T3, `waiting`).
+     ⚠️ **Aquí `notify_when_idle` NO dispara nunca, y es contraintuitivo:** una sesión
+     parada en un prompt **no está ociosa**, así que ese aviso no llega. Por eso, junto a
+     la suscripción, arma un **temporizador**: un `Bash` en segundo plano con un `until` y
+     un `sleep` que te avise a los **5 minutos**. Si para entonces no ha llegado ni
+     respuesta ni aviso de idle, **vas y miras su pantalla**.
+     (5 y no 3: el 3 era un número pensado para un barrido; aquí el temporizador es exacto
+     y no depende de cuándo toque mirar.)
+   - **26.3 · El barrido periódico se queda a 20 minutos y como RED DE SEGURIDAD.** No hay
+     que bajarlo. Su función es cazar lo que se escape de 26.1 y 26.2 —un proceso en
+     segundo plano que murió, una suscripción perdida en un reinicio—, no ser el mecanismo
+     principal. Cinturón y tirantes, igual que el patrón de marker que ya usas con el
+     auditor.
+   - En el barrido, cualquier `T<n>` sin actividad reciente **se mira, no se deduce**.
    - **El transcript y el último `tool_use` siguen siendo el primer paso porque son más
      RÁPIDOS, no porque sean suficientes.** Si en 3 minutos no tienes diagnóstico claro,
      mira. Caso real del mismo día: T3 apareció parada con su último `tool_use` en `Edit`
