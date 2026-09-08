@@ -340,6 +340,31 @@ misma pregunta ("¿esto se adopta como estándar de un rol?") se reinventa cada 
 
 ## 2quinquies. Todo estado duradero se escribe con procedencia, donde lo lee quien actúa sobre él (2026-09-08)
 
+> ## La forma común, en palabras de la Directora
+>
+> **Estado escrito una vez que sobrevive al hecho que describía, en un sitio donde alguien
+> va a actuar sobre él.**
+>
+> Las cinco instancias de abajo son la misma cosa, y **las cinco se cazan igual: yendo a
+> mirar el mundo en vez de leer lo escrito.** Lo único que cambia entre ellas es **quién
+> tiene que acordarse**.
+
+**Las cinco, por orden de aparición el 2026-09-08:**
+
+1. **La parada de AIT-32** — el motivo vivía solo en un `.txt` de la cola; en Linear parecía
+   backlog normal. *(a)*
+2. **El modo de publicación** — una palabra suelta sin autor ni fecha, imposible de
+   distinguir de un residuo. *(b)*
+3. **El comentario de código de T1** — cierto al escribirse, falso al leerse.
+4. **Las condiciones de desbloqueo cumplidas** — no envejecen mal: **envejecen bien, y por
+   eso engañan**. *(i)*
+5. **El nombre de sesión en `titular.txt`** — y esta es la peor, porque **el dato podrido
+   está justo donde lo consulta el procedimiento que existe para cazarlo**: no produce una
+   duda, produce una **confirmación falsa** de que el cerrojo está huérfano. Las otras
+   cuatro engañan a quien lee; **esta arma a quien actúa**. *(j)*
+
+---
+
 Decisión del Factory Architect, ejecutada por el CEO. Misma familia que §2ter: algo que se
 lee como otra cosa distinta de lo que es.
 
@@ -395,6 +420,62 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
+
+**(j) Un identificador escrito en estado duradero tiene que ser uno que NO caduque**
+(decisión 34, 2026-09-08, del hallazgo de la Directora).
+
+> **Enunciado corto: *el nombre de una sesión caduca; la terminal y la tarea no.***
+
+*El caso:* el `titular.txt` del cerrojo de Convex nombraba a
+`fix-duplicate-customer-creation` — la sesión de T3 **anterior a su relanzamiento**, ya
+muerta. El cerrojo era legítimo y su dueña estaba trabajando; lo podrido era solo el
+nombre. **Y el procedimiento de "cerrojo abandonado" consiste precisamente en buscar ese
+nombre en `ListAgents`**, así que un lector diligente habría obtenido una confirmación
+falsa de orfandad — y al final de ese camino está el incidente del 2026-08-09 que motivó el
+cerrojo entero: reclamar un turno ajeno, desplegar con rama vieja, borrar funciones de otra
+terminal.
+
+- **34.1 — `titular.txt` se identifica por lo que no cambia: terminal, tarea y hora.**
+  `T3 / AIT-80 / 19:25`, y nada más. **El nombre de sesión no se escribe** — el 2026-09-08
+  cambió dos veces en una tarde. Quien necesite resolver la sesión concreta va a
+  `_registro-agentes.txt`, que es donde vive ese mapeo y se actualiza en cada
+  relanzamiento: **un solo hogar para ese dato.**
+- **34.2 —** cuando un dato volátil sea genuinamente útil, se escribe **junto** al estable y
+  **marcado como pista**, nunca como la clave que el procedimiento resuelve.
+- **34.3 — La regla que llega más lejos: cuando un procedimiento de detección resuelve un
+  identificador escrito para decidir, ese identificador ES PARTE DEL DETECTOR** — y tiene
+  que ser al menos tan duradero como el procedimiento. **Un detector que consulta un dato
+  perecedero no es un detector: es una fuente de falsos negativos con apariencia de
+  comprobación.**
+- ⚠️ **34.4 — LA SEGUNDA MITAD, Y ES CONDICIÓN DE ADOPCIÓN, NO UNA NOTA** (enmienda 5): la
+  comprobación de *"¿sigue vivo el titular?"* **deja de pasar por `ListAgents`** y pasa a
+  mirar si hay una sesión **produciendo** en el worktree de esa terminal:
+  ```bash
+  ls -t ~/.claude/projects/*Sorfware-Factory--worktrees-T3/*.jsonl | head -1
+  # y leer su último evento `assistant` — NUNCA el mtime (§2sexies)
+  ```
+  No depende de nombres, sobrevive a cualquier relanzamiento —que es justo lo que falló—, y
+  **no es mecanismo nuevo**: es el mismo método del barrido diario.
+
+  🚫 **Si solo se pudiera hacer una de las dos mitades, NO SE HACE NINGUNA.** El formato
+  actual, con su nombre podrido, **al menos falla de una forma que ya sabemos reconocer**;
+  cambiar solo el identificador movería el fallo de *"el dato caduca"* a *"el dato no se
+  puede comprobar"*, **que es peor porque no da señal**.
+
+  > **La regla general, que es lo que más vale de todo esto: un identificador y el
+  > procedimiento que lo resuelve son UNA SOLA PIEZA — no se puede cambiar uno sin el otro.**
+  >
+  > **Enunciado corto: *un identificador sin su procedimiento de resolución no es un
+  > identificador.***
+- **Aplicar hacia atrás:** *cualquier sitio donde un procedimiento nuestro busque un nombre
+  de sesión escrito en disco es candidato al mismo fallo.*
+
+📌 **Y una conducta que va aquí y no como nota de cortesía, porque es la que hace que el
+cerrojo signifique algo:** ni el CEO ni la Directora **corrigieron el `titular.txt` ajeno**,
+aunque la corrección era benigna y evidente. Se lo pidieron a T3, que fue quien lo escribió.
+Respetar que un cerrojo no se toca desde fuera **cuando la corrección parece inofensiva** es
+justo cuando cuesta — y es lo único que impide que "solo lo arreglo un poco" se convierta en
+el gesto que ya costó un incidente.
 
 **(i) Una condición de desbloqueo CUMPLIDA se vuelve una afirmación falsa** (hallazgo de la
 Directora, 2026-09-08). Es la forma más peligrosa de dato caducado que hemos encontrado,
