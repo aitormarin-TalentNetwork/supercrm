@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName } from "./helpers";
+import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName, uniquePhone } from "./helpers";
 
 // PRD §7, Proceso 4 — Cierre:
 // en "Detalle" se marca la oportunidad como ganada (con importe final) o
@@ -12,7 +12,7 @@ test.describe("Cierre de oportunidad", () => {
     const customerName = uniqueCustomerName("E2E Ganada");
     await createOpportunityViaAltaRapida(page, {
       name: customerName,
-      phone: "600444555",
+      phone: uniquePhone(),
     });
 
     await page.getByRole("button", { name: "Ganada" }).click();
@@ -36,7 +36,7 @@ test.describe("Cierre de oportunidad", () => {
     const customerName = uniqueCustomerName("E2E Perdida");
     await createOpportunityViaAltaRapida(page, {
       name: customerName,
-      phone: "600555666",
+      phone: uniquePhone(),
     });
 
     await page.getByRole("button", { name: "Perdida" }).click();

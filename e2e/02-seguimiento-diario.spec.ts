@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName, getNextStepCard } from "./helpers";
+import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName, getNextStepCard, uniquePhone } from "./helpers";
 
 // PRD §7, Proceso 2 — Seguimiento diario (Carlos):
 // "Hoy" muestra los pasos del día → toca un seguimiento → "Detalle de
@@ -13,7 +13,7 @@ test("registrar interacción desde Hoy actualiza el próximo paso y vuelve a Hoy
   const customerName = uniqueCustomerName("E2E Seguimiento");
   await createOpportunityViaAltaRapida(page, {
     name: customerName,
-    phone: "600222333",
+    phone: uniquePhone(),
   });
 
   // Vuelve a Hoy — la oportunidad recién creada tiene su próximo paso

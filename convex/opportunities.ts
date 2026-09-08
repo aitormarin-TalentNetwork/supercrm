@@ -4,6 +4,7 @@ import type { MutationCtx } from "./_generated/server";
 import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
 import { addBusinessMonths, startOfBusinessDay } from "../lib/businessTime";
+import { normalizePhone } from "../lib/phone";
 import { isAtRisk } from "../lib/risk";
 
 // AIT-30: sin catálogo de productos ni ciclo de recompra por interés
@@ -88,6 +89,10 @@ export const createQuick = mutation({
     priority: v.optional(
       v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
     ),
+    // AIT-80: "sí, ya sé que hay otro con este teléfono, créalo igualmente".
+    // Dos personas pueden compartir teléfono (una pareja, una centralita),
+    // así que el duplicado se avisa, no se bloquea.
+    confirmDuplicate: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
@@ -102,7 +107,14 @@ export const createQuick = mutation({
       )
       .collect();
     const ownRequest = existingRequests.find((r) => r.userId === user._id);
-    if (ownRequest) return ownRequest.opportunityId;
+    // AIT-80 — INVARIANTE DE ORDEN, no reordenar: la idempotencia se resuelve
+    // ANTES que la detección de duplicado semántico. Al revés, un reintento
+    // de red encontraría por `by_store_phone` al cliente que ESE MISMO envío
+    // acaba de crear y avisaría de que ya existe: el alta avisando de sí
+    // misma, por haber pulsado una vez con mala cobertura.
+    if (ownRequest) {
+      return { status: "created" as const, opportunityId: ownRequest.opportunityId };
+    }
 
     const name = args.name.trim();
     if (name.length === 0) throw new Error("El nombre es obligatorio.");
@@ -124,6 +136,53 @@ export const createQuick = mutation({
       throw new Error("El email no tiene un formato válido.");
     }
 
+    // AIT-80: el duplicado SEMÁNTICO — la misma persona dada de alta dos
+    // veces en momentos distintos. No confundir con la idempotencia de
+    // arriba, que solo cubre el reintento del MISMO envío.
+    //
+    // .collect() y NUNCA .unique(): esta clave admite repetidos. La tabla ya
+    // contiene duplicados anteriores a AIT-80 (son el motivo de la issue) y
+    // el backfill los normaliza al mismo valor, así que varias filas
+    // compartiendo `storeId + phone` es el caso ESPERADO, no el raro.
+    // .first() tampoco vale: escogería arbitrariamente, pudiendo coger uno
+    // ajeno habiendo uno accesible.
+    const canonicalPhone = normalizePhone(phone);
+    const phoneMatches = await ctx.db
+      .query("customers")
+      .withIndex("by_store_phone", (q) =>
+        q.eq("storeId", user.storeId).eq("phone", canonicalPhone),
+      )
+      .collect();
+
+    if (phoneMatches.length > 0 && args.confirmDuplicate !== true) {
+      // Mismo criterio de acceso que customers.getFicha y createForCustomer.
+      // La consulta ya va acotada por storeId, así que solo queda el segundo
+      // término: para owner y storeManager TODO match es accesible y la rama
+      // anónima de abajo no llega a darse nunca.
+      const accessible = phoneMatches
+        .filter((c) => isStoreWideRole(user) || c.ownerId === user._id)
+        .sort((a, b) => a._creationTime - b._creationTime);
+
+      return {
+        status: "duplicate" as const,
+        // Ordenados del más antiguo al más nuevo: el primero es el registro
+        // original y los siguientes los duplicados que nacieron después.
+        // Es una AYUDA VISUAL, no una selección automática — elige la
+        // persona, que es quien sabe cuál es la ficha buena para continuar
+        // el historial (auditoría AIT-80 ronda 1, respuesta a la pregunta 1).
+        matches: accessible.map((c) => ({ customerId: c._id, name: c.name })),
+        // BOOLEANO A PROPÓSITO, nunca un recuento ni una lista: un `sales`
+        // no puede ver los clientes de otro comercial, y de los ajenos no
+        // puede salir ni el id, ni el nombre, ni el propietario, NI CUÁNTOS
+        // son. Lo único que se le revela es que ese teléfono —que él acaba
+        // de teclear, o sea que ya lo conocía— existe en la tienda.
+        // Excepción consciente al modelo de permisos, AIT-80 §3.5: sin este
+        // aviso, dos comerciales trabajarían al mismo cliente sin saberlo y
+        // su historial quedaría partido en dos fichas.
+        otherOwnerMatch: accessible.length < phoneMatches.length,
+      };
+    }
+
     // El cliente solo manda 0-2 decimales, pero una llamada directa a la
     // mutation podría enviar cualquier float (12.3456…) — se redondea a
     // céntimo en servidor, no solo se confía en el parser del formulario.
@@ -143,7 +202,8 @@ export const createQuick = mutation({
 
     const customerId = await ctx.db.insert("customers", {
       name,
-      phone,
+      // Canónico, no como se tecleó: es el contrato del campo (lib/phone.ts).
+      phone: canonicalPhone,
       email,
       source: args.source,
       ownerId: user._id,
@@ -176,7 +236,7 @@ export const createQuick = mutation({
       opportunityId,
     });
 
-    return opportunityId;
+    return { status: "created" as const, opportunityId };
   },
 });
 
@@ -192,7 +252,13 @@ export const createForCustomer = mutation({
     // apertura del modal, no por click.
     clientRequestId: v.string(),
     customerId: v.id("customers"),
-    interest: v.string(),
+    // AIT-80: OPCIONAL en el contrato de la función, aunque el diálogo de
+    // AIT-74 lo siga exigiendo en cliente (diferencia intencionada, ya
+    // dictaminada por el auditor de AIT-74). Son dos contratos distintos: si
+    // el alta rápida desvía a un cliente existente, un alta SIN producto
+    // —hoy legítima, la ficha la pinta como "Sin producto especificado"—
+    // fallaría en la mutation y con un mensaje que no explica nada.
+    interest: v.optional(v.string()),
     estimatedAmount: v.optional(v.number()),
     stage: v.optional(
       v.union(
@@ -231,10 +297,7 @@ export const createForCustomer = mutation({
       throw new Error("Cliente no encontrado.");
     }
 
-    const interest = args.interest.trim();
-    if (interest.length === 0) {
-      throw new Error("El producto o interés es obligatorio.");
-    }
+    const interest = args.interest?.trim() || undefined;
 
     // Mismo saneado en servidor que createQuick: el formulario manda 0-2
     // decimales, una llamada directa puede mandar cualquier float.

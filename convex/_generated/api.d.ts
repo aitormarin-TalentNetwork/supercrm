@@ -15,6 +15,7 @@ import type * as customers from "../customers.js";
 import type * as dashboard from "../dashboard.js";
 import type * as http from "../http.js";
 import type * as interactions from "../interactions.js";
+import type * as migrations from "../migrations.js";
 import type * as model_access from "../model/access.js";
 import type * as nextSteps from "../nextSteps.js";
 import type * as opportunities from "../opportunities.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   dashboard: typeof dashboard;
   http: typeof http;
   interactions: typeof interactions;
+  migrations: typeof migrations;
   "model/access": typeof model_access;
   nextSteps: typeof nextSteps;
   opportunities: typeof opportunities;
