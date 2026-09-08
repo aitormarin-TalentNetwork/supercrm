@@ -56,6 +56,13 @@ de alcance/producto, no se asume silencio como aprobación.
 - Cualquier otra decisión que el proyecto haya documentado explícitamente como "válida
   solo mientras no haya datos reales" (buscar ese tipo de nota en `docs/`, ADRs, y
   comentarios de diseño) — se revisa una a una, no se asume que ya no aplica.
+- **Los tres niveles de escritura en producción del QA caducan aquí** (añadido 2026-09-08,
+  decisión 21 — ver `qa.md`). Mientras producción solo tiene datos de prueba, el criterio
+  es la reversibilidad: *"¿con qué acción concreta lo devuelvo a como estaba, y puedo
+  ejecutarla ahora mismo?"*. **Con clientes reales eso deja de bastar por sí solo** — una
+  escritura perfectamente reversible sigue tocando el negocio de alguien mientras existe.
+  Revisar los tres niveles con Aitor antes del salto y decidir qué se permite entonces; no
+  heredarlos por inercia.
 - **Qué ficheros VERSIONADOS de la fábrica pueden haber capturado contenido de
   producción** (añadido 2026-09-08, decisión 13.2). Los registros de la fábrica anotan
   referencias por defecto, pero se permite el contenido literal cuando **es** el objeto
