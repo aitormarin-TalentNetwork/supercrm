@@ -421,6 +421,29 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
 
+**(k) Los prompts de los `/loop` son estado duradero, y nadie los había auditado nunca**
+(decisión 39, 2026-09-08).
+
+Tienen **la peor propiedad posible de esta familia: se vuelven a disparar literales en cada
+ciclo**, así que cualquier identificador incrustado se pudre **y sigue ejecutándose igual**.
+Y **no son reactivos** — nadie los vuelve a leer entre ciclos, se ejecutan solos.
+
+*El caso:* el prompt del barrido del CEO —**el sitio desde el que se supervisa a todos los
+demás**— seguía nombrando `bzckke1ho` cuando esa alarma llevaba un rato reemplazada. Lo
+detectó él mismo al ejecutarlo.
+
+> **En sus palabras, que son la (j) y la (k) juntas: *"si algún día dejara de preguntar y me
+> fiara del prompt, estaría vigilando una alarma que ya no existe."***
+
+- **39.1 —** todo prompt de `/loop` se audita con el criterio de la (j): **ningún
+  identificador perecedero incrustado.** Ni ids de tarea, ni nombres de sesión, ni rutas que
+  dependan de una ventana concreta. Si el prompt necesita un dato así, **que lo consulte al
+  ejecutarse**, no que lo lleve escrito.
+- **39.2 — El arreglo concreto que lo hace inmune:** el prompt **no nombra el id** de la
+  alarma ajena; dice *"pídele al Factory Architect su artefacto de tres campos"*. Así el
+  dato lo aporta su dueño en el momento y **no puede caducar dentro del prompt** — que era
+  lo que ya se hacía por criterio propio, ahora por diseño.
+
 **(j) Un identificador escrito en estado duradero tiene que ser uno que NO caduque**
 (decisión 34, 2026-09-08, del hallazgo de la Directora).
 
@@ -2129,7 +2152,11 @@ proyecto.
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
 | `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
-| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bjoyjnitk` (v10), armada 20:03, CON LATIDO cada 30 min.** ⚠️ **El artefacto de esta alarma son TRES campos, no uno: id, hora de armado y hora del último latido** — y el tercero es el único que prueba algo. Motivo, y lo detectó su propio autor al ir a reportarlo: llevaba casi **dos horas sin emitir**, y **el silencio de una alarma tiene exactamente dos lecturas — la flota está sana, o la alarma está muerta**. Un id sin señal de vida es una conclusión presentada como dato, la misma forma del *"cero pendientes"* del CEO. Con el latido (`LATIDO <hora> - watchdog vivo, N sesiones vigiladas`) el silencio deja de ser ambiguo: **si en un ciclo del barrido no hay latido de los últimos 30 minutos, la alarma está caída y se escala.** *(Versión anterior: `bzckke1ho` v9.)*
+| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bjoyjnitk` (v10), armada 20:01:25, CON LATIDO cada 30 min.** ⚠️ **El artefacto de esta alarma son TRES campos, no uno: id, hora de armado y hora del último latido** — y el tercero es el único que prueba algo.
+
+⚠️ **Y su primera excepción, que vive AQUÍ y no en otro sitio a propósito** (enmienda 6, 2026-09-08): el tercer campo es **el último latido, o "primero pendiente, vence a las HH:MM"**. **Se escala solo cuando un latido lleva vencido más de un intervalo — nunca por ausencia de latidos si aún no ha tocado ninguno.** Motivo: la regla se escribió como *"si no hay latido reciente, escala"* y **veinte minutos después ya tenía un caso que la rompía** — el watchdog llevaba 21 minutos armado, sin latido porque **ninguno había vencido**, y aplicar la regla al pie de la letra habría escalado una alarma perfectamente viva. Es el mismo *silencio con dos lecturas* que el latido venía a resolver, reaparecido en el hueco entre armar y el primer latido. **Con la hora de vencimiento delante, la comprobación es aritmética y no interpretación.**
+
+📌 **Y por eso está escrita junto a la regla y no aparte: una regla y su primera excepción tienen que vivir juntas, o alguien aplicará la regla sin la excepción.** Es además la decisión 33 mordiendo a su propio autor — la regla del latido se formuló como **principio** en vez de como comprobación con su hora, y por eso tuvo un agujero desde el primer minuto. Motivo, y lo detectó su propio autor al ir a reportarlo: llevaba casi **dos horas sin emitir**, y **el silencio de una alarma tiene exactamente dos lecturas — la flota está sana, o la alarma está muerta**. Un id sin señal de vida es una conclusión presentada como dato, la misma forma del *"cero pendientes"* del CEO. Con el latido (`LATIDO <hora> - watchdog vivo, N sesiones vigiladas`) el silencio deja de ser ambiguo: **si en un ciclo del barrido no hay latido de los últimos 30 minutos, la alarma está caída y se escala.** *(Versión anterior: `bzckke1ho` v9.)*
 
 ⚠️ **SUS DOS RAMAS ESTÁN EN ESTADOS DISTINTOS — no se resumen en una sola casilla.**
 
