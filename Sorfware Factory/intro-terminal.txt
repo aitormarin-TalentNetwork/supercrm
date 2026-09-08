@@ -213,6 +213,29 @@ una vez que el trabajo pasa auditoría.
    NO aplica a `docs/`: esas son decisiones técnicas versionadas con el código a
    propósito, y ahí sí quieres la versión de TU rama.
 
+⚠️ LOCALIZADORES DE TEST: ACCESIBLES POR DEFECTO, `data-testid` COMO EXCEPCIÓN
+   (convención fijada 2026-09-08 por el Factory Architect, a raíz del primer
+   `data-testid` del repo — hasta entonces los 69 localizadores eran accesibles).
+
+   Apunta por **rol, nombre accesible o etiqueta**. Prueban lo que el usuario
+   percibe, y si un cambio los rompe suele ser porque rompió algo real.
+
+   `data-testid` es la EXCEPCIÓN, no la alternativa: solo cuando NO existe un
+   asidero accesible para ese elemento. Y con dos condiciones, porque una
+   excepción sin fricción se convierte en el camino fácil:
+
+   1. **Justifícalo en el momento**, en el código o en el plan: por qué no había
+      asidero accesible.
+   2. **Un elemento sin asidero accesible es una señal, no solo un problema de
+      test.** Si a un botón no se le puede apuntar por rol y nombre, probablemente
+      tampoco lo alcanza bien alguien navegando con teclado o con lector de
+      pantalla. **Antes de poner el testid, mira si el arreglo correcto es darle
+      el asidero.** Si aun así lo pones, deja dicho que lo miraste.
+
+   (Su sitio canónico es la sección "Convenciones de código" de `CLAUDE.md`;
+   está aquí porque es donde lo lees tú, y allí se añadirá cuando Aitor lo
+   autorice.)
+
 ⚠️ ANTES DE VERIFICAR NADA EN EL NAVEGADOR: COMPRUEBA QUE EL SERVIDOR ES EL TUYO
    (añadido 2026-09-08, hallazgo de T3). Que `npm run dev` responda en
    `localhost:3000` NO prueba que el servidor sea el tuyo: puede ser el de otra
