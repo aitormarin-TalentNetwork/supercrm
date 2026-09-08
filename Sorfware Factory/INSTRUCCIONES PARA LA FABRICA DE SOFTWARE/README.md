@@ -900,6 +900,44 @@ provocó otro rol mirando el dato.** Las reglas no se aplicaron solas ni una sol
 > evidencia de que un principio escrito haya cambiado una conclusión en el momento de
 > tomarla.
 
+### La categoría peor: una regla que PARECE control y no lo es (decisión 37)
+
+Faltaba el caso más dañino, y lo destapó el episodio del `settings.json`:
+
+> **Una regla que parece una comprobación y no lo es es PEOR que un principio declarado —
+> porque un principio sabe que se incumple, y esta no despierta ninguna desconfianza.**
+>
+> **Enunciado corto: *un control que nadie ha probado es un principio con disfraz.***
+
+*El caso:* la 18.2 decía *"commitea por ruta explícita"*. El CEO lo hizo — `git add` con los
+dos ficheros nombrados — y aun así arrastró un fichero de permisos ajeno, **porque `git
+commit` sube el índice entero**. Los cuatro roles aplicaban esa regla sintiéndose
+protegidos.
+
+**Y el detalle que lo cierra, del Factory Architect sobre sí mismo:** él **sí** corrió
+`git diff --cached --name-only` antes de commitear, y salió **solo su fichero**. Su
+comprobación **era correcta cuando la hizo y falsa tres segundos después**, porque el commit
+del otro se llevó el índice por delante. Es la decisión 22 con una vuelta nueva: **en un
+checkout compartido, `git diff --cached` es una medición que caduca de inmediato — el índice
+no es de nadie, es de los cuatro.**
+
+**37.3 — Esto reordena el repaso pendiente de las decisiones.** No se empieza por *"¿cuáles
+admiten volverse comprobación?"* sino por **"¿cuáles YA PARECEN comprobación y no lo son?"**
+Esas son las urgentes; **las otras al menos no engañan.**
+
+**37.4 — Criterio de adopción: un control se PRUEBA, no se razona.** Ningún control se
+declara vigente sin haberse ejecutado **una vez a propósito, incluida su forma exacta**.
+Evidencia de por qué: el primer intento de usar la forma corregida (`git commit -- <ruta>
+-F -`) **falló** — después de `--` todo se interpreta como ruta, y el orden bueno es
+`git commit -F - -- <rutas>`. **Que el arreglo de una regla tenga a su vez una trampa de
+sintaxis demuestra la regla entera.** Es el mismo criterio que el autor del watchdog se
+impuso tras fallar seis versiones razonando en vez de probando.
+
+📌 **Y sube la prioridad del hook de la decisión 33, no la baja:** incluso la forma corregida
+depende de que alguien recuerde escribirla bien, y acabamos de ver que tiene trampa.
+**Mientras cuatro roles commiteen desde el mismo checkout, la única defensa real corre antes
+del commit, no en la cabeza de quien lo teclea.**
+
 **Y la segunda mitad, que la afina y viene del QA — el rol que menos toca proceso:** *lo que
 hay que recordar **tiene que caber en una frase**, y si no cabe, hay que ejecutarlo.*
 
