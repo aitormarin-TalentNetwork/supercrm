@@ -706,8 +706,22 @@ simétrico, que aporta T2 desde AIT-79: **la herramienta funciona perfectamente 
 está mal elegida.** El resultado es el mismo —confianza infundada— pero se detecta de otra
 forma.
 
-> **Una comprobación que da verde tanto con el diseño bueno como con el malo no está
-> comprobando nada.** (Formulación de T2.)
+> **La evidencia buena la produce el sistema que tenía la capacidad de rechazarla.**
+>
+> **Si una comprobación no habría podido salir mal, no es una comprobación.**
+
+*(Formulación del Integrador, enmienda 9 — sustituye a la original, "una comprobación que da
+verde tanto con el diseño bueno como con el malo no está comprobando nada", porque dice lo
+mismo desde el lado de la evidencia y se aplica más fácil.)*
+
+**Sus dos ejemplos, que enseñan las dos caras:** `Schema validation complete.` **vale**,
+porque lo dice el sistema que **podía haber tumbado el deploy**; dos pasadas de migración
+con `actualizados: 0` eran **teatro**, porque no podían dar otra cosa.
+
+⚠️ **Y el caso que lo cierra, con nombre:** una prueba de **un solo build** para verificar
+que un valor no está horneado **daría verde sin poder reproducir la incompatibilidad** — con
+un único bundle no hay nada que pueda romperse. **Un falso verde en la verificación de un
+detector de falsos verdes.** (Formulación de T2.)
 
 Su caso: para verificar que la app expone el commit desplegado, mirar *"¿se ve un SHA en
 pantalla?"* habría dado verde con el diseño correcto **y con el roto**. Lo que sí
@@ -818,6 +832,30 @@ además dejaba el hallazgo real fuera.)*
 📌 **Si la aplicación nunca llegó a decir su identidad, NO se infiere desde Railway.** Un
 "no pude capturarlo" es un resultado válido; inferirlo sería responder la pregunta del gate
 desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta saltárselo.
+
+### La medición exacta sobre el sujeto equivocado (decisión 43, 2026-09-08)
+
+**Categoría propia, y no es ninguna de las anteriores.** No es falso verde —el método es
+bueno y la herramienta no miente— ni dato caducado —el dato es de ahora—. **El número
+responde correctamente sobre otra cosa.**
+
+> **Enunciado corto, de T2: *"¿estoy midiendo lo que creo que estoy midiendo?"***
+>
+> ⚠️ **Y va ANTES de medir, no al revisar el resultado.**
+
+**Lo que la hace peor que las otras, y es del Integrador: el error es INVISIBLE en el
+resultado.** Un 426 es plausible. Quince verdes son verdes. "2 fuera del conjunto" es
+creíble. **Revisar el resultado con más cuidado no la caza nunca** — solo se caza
+comprobando el sujeto **cuando todavía no hay número que evaluar**.
+
+**Y el remate que explica por qué esa comprobación no puede ser opcional:** a T1 le salieron
+"1 y 0", números **imposibles**, y por eso tiró del hilo. **Si le hubieran salido "3 y 1"
+por casualidad, habría reportado una medición equivocada como confirmación y nadie lo habría
+vuelto a mirar.** El aviso se lo dio el azar; **el resto de las veces el azar no avisa.**
+
+**Cuatro instancias el mismo día**, incluida una del Factory Architect: atribuyó la
+concentración del backlog a una propiedad del código cuando **estaba midiendo dónde habíamos
+mirado ese día** (ver §7).
 
 ### Registro vivo de comprobaciones desacreditadas
 

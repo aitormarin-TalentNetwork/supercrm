@@ -213,6 +213,18 @@ una vez que el trabajo pasa auditoría.
    NO aplica a `docs/`: esas son decisiones técnicas versionadas con el código a
    propósito, y ahí sí quieres la versión de TU rama.
 
+⚠️ UN TEST INTERMITENTE CONOCIDO NO TE EXIME DE INVESTIGAR
+   (decisión 44, 2026-09-08, del Integrador). Si un spec está declarado
+   intermitente y vuelve a fallar DESPUÉS de que hayas tocado algo que podría
+   afectarlo — un helper compartido, por ejemplo — hay **dos hipótesis**, y la
+   conocida **se traga la nueva sin que nadie la busque**.
+
+   **Enunciado corto: una explicación disponible impide buscar la real.**
+
+   Al declarar un test como intermitente, anota **qué descartaste y qué no**. Sin
+   eso, "es el intermitente de siempre" se convierte en una explicación que
+   **cierra la investigación sin haberla hecho**.
+
 ⚠️ LOCALIZADORES DE TEST: ACCESIBLES POR DEFECTO, `data-testid` COMO EXCEPCIÓN
    (convención fijada 2026-09-08 por el Factory Architect, a raíz del primer
    `data-testid` del repo — hasta entonces los 69 localizadores eran accesibles).
@@ -250,6 +262,13 @@ una vez que el trabajo pasa auditoría.
    encima: usa otro puerto o coordínalo con la coordinadora.
 
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
+       ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
+         Escrito por: Claude Code (Opus)
+       Familia de IA y herramienta. **Sin esa línea el auditor NO emite GO** — declara que
+       no puede auditar de forma independiente, y la ronda se pierde.
+       *Por qué:* que quien desarrolla y quien audita sean IAs de familias distintas es el
+       principio de fondo de toda la fábrica, no una preferencia. Hasta hoy se cumplía **por
+       costumbre y no lo verificaba nada**. Lo señaló el propio auditor.
        **En un export de CÓDIGO, la cabecera lleva además una línea obligatoria con el
        fichero del plan y la fecha de su GO** (añadido 2026-09-08), por ejemplo:
        `Plan: T3_AIT-74_..._plan-loop1-para-auditor.txt — GO del auditor 2026-09-08 18:42`.

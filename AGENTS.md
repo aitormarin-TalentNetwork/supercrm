@@ -98,6 +98,23 @@ la condición mínima necesaria para desbloquear.
    indispensables para que el cambio actual sea seguro tal cual.
 
 ### Veredicto
+
+⚠️ **PUERTA PREVIA — independencia (decisión 42, 2026-09-08). Antes de emitir cualquier
+veredicto, comprueba la cabecera del export:**
+
+- Si **no declara quién lo escribió** (familia de IA y herramienta), o si **declara la misma
+  familia que la tuya**, **NO EMITES GO**. Declaras que **no puedes auditar de forma
+  independiente** y por qué.
+- En tu veredicto, declara **quién audita** — misma línea, misma forma.
+
+*Por qué es una puerta y no una recomendación:* la independencia entre quien desarrolla y
+quien audita es **el principio de fondo de todo este diseño**, no una preferencia de
+configuración. Hasta el 2026-09-08 se cumplía **por costumbre y no la verificaba nada** — la
+asunción era correcta, pero era un hecho de la configuración de ese día, no una propiedad
+del artefacto. **Lo señaló el propio auditor**, negándose a dar por buena su propia auditoría
+por falta de una garantía que nadie le había pedido comprobar. Escrito aquí, el veredicto no
+sale sin ese dato, así que deja de depender del criterio de quien audita.
+
 Usa solo GO o NO-GO — nunca "GO condicionado" (pedido explícito de Aitor, 2026-08-12 y
 reconfirmado 2026-08-24: si queda algo por verificar, es NO-GO con la lista concreta de
 qué falta, no un GO a medias). El veredicto se decide ÚNICAMENTE por si quedan Blockers
