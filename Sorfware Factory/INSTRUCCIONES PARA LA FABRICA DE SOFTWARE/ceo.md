@@ -301,6 +301,13 @@ aprobación las dos. Quien se quede en el transcript concluye *"está en un Edit
 deja quince minutos más — pasó exactamente así. **La pantalla fue la única fuente que lo
 dijo.**
 
+⚠️ **Y no des la sordera por resuelta con la decisión 23** (matiz de T2, 2026-09-08, que
+merece estar aquí porque es fácil de confundir): retirar `EnterPlanMode` **elimina la
+pantalla, no la sordera**. Una sesión sigue quedándose incomunicada mientras ejecuta una
+tanda larga de herramientas — lo que desaparece es la **espera indefinida a que un humano
+pulse una tecla**, que era el problema real. La detección por cola sin drenar y por último
+`tool_use` sigue haciendo la misma falta que antes.
+
 Así que el orden correcto, y la razón: **el `tool_use` va primero porque es más RÁPIDO, no
 porque baste.** Si en 3 minutos no tienes diagnóstico claro, se mira la pantalla (ver
 `director.md`, decisión 24 — instrucción directa de Aitor). No lo escribas como si el
