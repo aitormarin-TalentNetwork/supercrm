@@ -272,13 +272,30 @@ for line in io.open(f, encoding="utf-8", errors="replace"):
 # ⚠️ SIN DRENAR = encolados POSTERIORES a la última actividad real. NO el total.
 pendientes = [e for e in encolados if ultimo_real and e > ultimo_real]
 ```
-⚠️ **Para saber si una sesión DESPERTÓ, la señal es el avance del último evento
-`assistant`, nunca el tamaño ni el `mtime` del fichero** (hallazgo de la Directora,
-2026-09-08, tras un falso positivo propio). El `.jsonl` **crece también cuando le encolan
-un mensaje**, no solo cuando la sesión procesa algo — así que un vigilante que mire bytes o
-fecha de modificación anuncia un desbloqueo que no ha ocurrido. Le pasó: su vigilante le
-dijo que T3 se había despertado y era mentira. Si armas un temporizador que vigile a otra
-sesión, que mire **actividad del asistente**.
+⚠️ **La señal de que una sesión está viva es lo que PRODUCE (`assistant`), nunca el
+`mtime` ni el tamaño del fichero** — y tampoco basta con "hubo un evento `user`".
+
+El `.jsonl` **crece también cuando le encolan un mensaje entrante**. Consecuencia, y es la
+peor de todo el catálogo: **una sesión sorda parece activa justo cuando alguien intenta
+hablarle** — que es siempre, porque en cuanto una terminal se atasca, los demás roles
+empiezan a escribirle. Un vigilante montado sobre `mtime` **se queda mudo exactamente en el
+caso para el que se montó**, sin dar ninguna señal de estar fallando.
+
+**El par completo, porque son la misma medición leída al revés** (los dos ocurrieron el
+2026-09-08, con el mismo dato equivocado): la Directora tuvo un **falso positivo** —su
+vigilante anunció que T3 se había despertado y era mentira— y el Factory Architect un
+**falso negativo** —su watchdog v4 habría callado ante una terminal atascada a la que
+estábamos escribiendo—. **El suyo hacía ruido; el de él callaba. Por eso el de él era
+peor.**
+
+En una sesión que trabaja de verdad, `mtime` y último `assistant` van juntos (comprobado:
+18:50:47 y 21:50:46 UTC, la misma marca). **En una atascada se separan, y esa separación es
+el diagnóstico.**
+
+📌 **Matiz para el código de abajo:** un evento `user` tampoco prueba producción — al
+drenar la cola, los mensajes pendientes aparecen de golpe como eventos `user`, y una sesión
+puede drenar y volver a bloquearse acto seguido. Si quieres estrictamente "¿está
+produciendo?", mira **solo `assistant`**; `user` sirve para saber que llegó a ingerir.
 
 ⚠️ **El total de `encolados` NO es la señal — los pendientes sí.** Una sesión sana acumula
 decenas de encolados a lo largo de la tarde, todos ya procesados; contar el total hace que
