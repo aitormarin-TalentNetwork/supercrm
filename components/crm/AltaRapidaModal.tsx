@@ -11,6 +11,10 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Dialog } from "@/components/ui/Dialog";
 import { parseEuroAmount } from "@/lib/format";
+import {
+  CUSTOMER_SOURCES,
+  type CustomerSource,
+} from "@/lib/customerSource";
 
 interface AltaRapidaModalProps {
   open: boolean;
@@ -23,8 +27,10 @@ interface AltaRapidaModalProps {
   customer?: { id: Id<"customers">; name: string } | null;
 }
 
-const CANALES = ["Llamada", "WhatsApp", "Recomendación", "Web", "Visita"] as const;
-type Canal = (typeof CANALES)[number];
+// AIT-81: el desplegable se alimenta del MISMO catálogo que valida el
+// servidor (`lib/customerSource.ts`). Antes esta lista era una copia, y una
+// copia deja de coincidir en cuanto alguien toca solo un lado: el usuario
+// elegiría un canal que la mutation rechaza, o al revés.
 
 // Mismos valores que el schema (convex/schema.ts: opportunities.stage), con
 // las etiquetas del diseño.
@@ -85,7 +91,7 @@ function AltaRapidaBlancoModal({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [source, setSource] = useState<Canal>(CANALES[0]);
+  const [source, setSource] = useState<CustomerSource>(CUSTOMER_SOURCES[0]);
   const [priority, setPriority] = useState<Prioridad>("media");
   const [interest, setInterest] = useState("");
   const [amount, setAmount] = useState("");
@@ -120,7 +126,7 @@ function AltaRapidaBlancoModal({
     setName("");
     setPhone("");
     setEmail("");
-    setSource(CANALES[0]);
+    setSource(CUSTOMER_SOURCES[0]);
     setPriority("media");
     setInterest("");
     setAmount("");
@@ -398,9 +404,9 @@ function AltaRapidaBlancoModal({
             <Select
               label="Canal de origen"
               value={source}
-              onChange={(e) => setSource(e.target.value as Canal)}
+              onChange={(e) => setSource(e.target.value as CustomerSource)}
             >
-              {CANALES.map((canal) => (
+              {CUSTOMER_SOURCES.map((canal) => (
                 <option key={canal} value={canal}>
                   {canal}
                 </option>

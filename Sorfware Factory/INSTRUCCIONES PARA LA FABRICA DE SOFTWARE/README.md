@@ -399,6 +399,16 @@ jerarquía de fuentes de `CLAUDE.md` aplicada, no una regla nueva.
 - **Mientras (a) no lleve tiempo suficiente en marcha:** quien vaya a mover una tarea
   comprueba **los dos sitios** antes — el PM al priorizar, la Directora al repartir.
   Cuesta un `ls cola/` y es literalmente lo que salvó AIT-32.
+- ⚠️ **Y la dirección que faltaba, que es PEOR de detectar: una copia puede decir DE MENOS.**
+  Las instancias anteriores eran datos que sobrevivían a su hecho — decían algo **falso**.
+  Esta dice algo **incompleto**: la Directora contó **dos** tareas en backlog leyendo sus
+  ficheros de `cola/` cuando en Linear había **cinco**, y concluyó que el backlog estaba
+  agotado. La corrigió el PM.
+  > **Una copia incompleta no se contradice con nada.** Una copia errónea choca con la
+  > fuente en cuanto alguien mira las dos; **una incompleta cuadra perfectamente con lo poco
+  > que contiene.**
+  Coste real: durante veinte minutos la fábrica creyó que se quedaba sin trabajo, cuando
+  tenía **dos tareas empezables de inmediato**.
 
 **(b) Modo de publicación → `_modo-publicacion.txt`, solo-anexar.** Una línea por cambio,
 `timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó de
@@ -420,6 +430,29 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
+
+**(k) Los prompts de los `/loop` son estado duradero, y nadie los había auditado nunca**
+(decisión 39, 2026-09-08).
+
+Tienen **la peor propiedad posible de esta familia: se vuelven a disparar literales en cada
+ciclo**, así que cualquier identificador incrustado se pudre **y sigue ejecutándose igual**.
+Y **no son reactivos** — nadie los vuelve a leer entre ciclos, se ejecutan solos.
+
+*El caso:* el prompt del barrido del CEO —**el sitio desde el que se supervisa a todos los
+demás**— seguía nombrando `bzckke1ho` cuando esa alarma llevaba un rato reemplazada. Lo
+detectó él mismo al ejecutarlo.
+
+> **En sus palabras, que son la (j) y la (k) juntas: *"si algún día dejara de preguntar y me
+> fiara del prompt, estaría vigilando una alarma que ya no existe."***
+
+- **39.1 —** todo prompt de `/loop` se audita con el criterio de la (j): **ningún
+  identificador perecedero incrustado.** Ni ids de tarea, ni nombres de sesión, ni rutas que
+  dependan de una ventana concreta. Si el prompt necesita un dato así, **que lo consulte al
+  ejecutarse**, no que lo lleve escrito.
+- **39.2 — El arreglo concreto que lo hace inmune:** el prompt **no nombra el id** de la
+  alarma ajena; dice *"pídele al Factory Architect su artefacto de tres campos"*. Así el
+  dato lo aporta su dueño en el momento y **no puede caducar dentro del prompt** — que era
+  lo que ya se hacía por criterio propio, ahora por diseño.
 
 **(j) Un identificador escrito en estado duradero tiene que ser uno que NO caduque**
 (decisión 34, 2026-09-08, del hallazgo de la Directora).
@@ -795,6 +828,7 @@ desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta sal
 | Una alarma automática que da falsos positivos | **Es PEOR que no tener alarma.** La primera vez avisa, la segunda la ignoras, y la tercera te has acostumbrado a ignorarla — justo cuando es real. El fallo no se nota porque el mecanismo *parece* funcionar: sigue emitiendo | validar la alarma contra una fuente independiente **antes** de que avise a nadie, y descartarla sin contemplaciones si falla. Caso real, 2026-09-08: el watchdog del Factory Architect necesitó **cuatro versiones**; la v3 disparó **19 falsos positivos** (incluidas sesiones de hace 24 días) porque marcaba una sesión como viva **la primera vez que la veía, no cuando la veía moverse** — inferir liveness de una observación que no la establece. Las tres versiones malas se cazaron cruzando con `ListAgents` **antes** de avisar a Aitor; sin ese cruce le habrían llegado 19 avisos falsos en una tarde |
 | `find <dir> -name "*.jsonl" -newermt "<hora>"` en macOS | **Devuelve vacío sin error** si el flag no se comporta como se espera — y "no hay coincidencias" es indistinguible de "el flag no hizo nada". Hallazgo del Factory Architect, 2026-09-08: seis ficheros cumplían la condición y `find` no devolvió ninguno. **Habría concluido que ninguna sesión estaba activa, o sea que la fábrica entera estaba muerta** | `stat -f '%Sm' -t '%H:%M:%S'` sobre los ficheros y comparar las horas a mano |
 | `grep <nombre de herramienta>` sobre un transcript | **Cuenta menciones en conversación como si fueran usos.** El CEO midió 2 `CronCreate` en tres sesiones que tenían **cero**: lo que contaba eran los mensajes de los propios roles discutiendo por qué no usarlo. **Y es estructural, no un despiste:** el transcript contiene los eventos **y además las conversaciones sobre los eventos**, y en esta fábrica la conversación supera con mucho a los eventos. **Cuanto más se discute un mecanismo, menos fiable se vuelve medirlo por texto** — o sea, el método se degrada justo cuando más se usa. Eso no se arregla teniendo cuidado | parsear el `.jsonl` y contar solo los bloques `tool_use` cuyo `name` sea la herramienta — ver `ceo.md`, "El transcript se parsea, nunca se grepea", con el código concreto |
+| **La suite `e2e` en verde, luego TU rama está sana** | **Puede haber medido la rama de OTRA terminal.** `playwright.config.ts` codifica `localhost:3000` (líneas 14 y 25) con `reuseExistingServer: true`, así que se engancha a lo que haya escuchando. Es **el falso verde más peligroso del catálogo**, por tres razones juntas: **(1) un rojo se investiga; un verde no se investiga nunca** — esa asimetría es lo que lo hace caro; **(2) cuanto más sanas estén las ramas de los demás, más convincente es el engaño** — el modo de fallo *mejora* con la salud del vecino; **(3) vive en un fichero versionado**, así que sobrevive a la tarea, a la sesión y a cualquier recreación | comprobar de quién es el 3000 antes de correr e2e (`lsof` + `cwd` del proceso). **Arreglo de fondo: el puerto sale de una variable de entorno con 3000 por defecto**, para que cada worktree fije el suyo sin tocar el fichero compartido — y entonces `reuseExistingServer` vuelve a ser seguro, porque cada terminal es dueña de su puerto. Hallazgo de T2, 2026-09-08; **ese día solo se evitó porque aplicó a mano una comprobación que no estaba escrita en ningún sitio** |
 | `npm run dev` responde en `localhost:3000`, luego el servidor es el tuyo | **Puede ser el de OTRA terminal ocupando el puerto.** Responde en 2 segundos y todo parece normal — pero estarías validando el worktree de otra rama y reportándolo como tuyo. Agravante: `reuseExistingServer: true` en `playwright.config.ts` hace que Playwright **se enganche a lo que haya escuchando sin preguntar de quién es**. Con varias terminales en paralelo no es hipotético | `lsof -nP -iTCP:3000 -sTCP:LISTEN -t` y mirar el `cwd` del proceso: tiene que ser TU worktree. Hallazgo de T3, 2026-09-08 — comprobó que el suyo sí lo era y **lo reportó igual en vez de callárselo**. También en `intro-terminal.txt`, porque es paso previo de cualquier verificación en navegador |
 | "La mutation devolvió error, luego no escribió nada" | **Un error devuelto no prueba que no se escribiera.** Es el mismo "comprueba el efecto, no el retorno" del resto de la tabla, aplicado **al caso denegado**, que es donde menos se mira | volver a entrar como el otro usuario y comprobar el estado real (que la ficha siga con el mismo número de registros). Hallazgo de T3 probando autorización, 2026-09-08 |
 | Leer `process.env.X` en el **middleware Edge de Next.js** y creer que lee el entorno | **Se sustituye por un literal en tiempo de build.** El código *parece* leer el entorno y no lo hace — sobrevive a cualquier revisión de código, y solo falla **al segundo deploy**, cuando ya nadie lo relaciona con el cambio | verificar el valor **sobre el artefacto ya construido**, no leyendo el código: una build, dos arranques con valores distintos. Hallazgo de T2 el 2026-09-08, construyendo AIT-79 — que es justamente la tarea que existe para cerrar un falso verde, y estuvo a punto de nacer con uno dentro |
@@ -820,6 +854,24 @@ y AIT-35 dadas por publicadas sin que sus mutations existieran en el backend; cu
 de build roto en producción sin que nadie lo detectara). Llevaban semanas documentadas sin
 que nadie viera que eran la misma clase de fallo que las otras cinco. Esta sección no
 inventa un problema nuevo: le pone nombre a uno ya pagado dos veces.
+
+### Un recurso local codificado en un fichero versionado es una colisión esperando a ocurrir (decisión 41.3)
+
+> **En una fábrica con varios worktrees, todo fichero versionado que codifique un recurso
+> local de la máquina —un puerto, una ruta, un deployment— es una colisión esperando a
+> ocurrir.**
+
+**Y no es la primera vez: ya tenemos el precedente resuelto en casa.** §3bis es exactamente
+este patrón —un **deployment de Convex compartido** codificado para todos— con el mismo tipo
+de fallo (una terminal pisando el trabajo de otra sin enterarse) y la misma solución: **uno
+por terminal**. El puerto 3000 de `playwright.config.ts` es el segundo caso, no un incidente
+aislado.
+
+📌 **Es además hermano de la decisión 37:** el índice de git y `playwright.config.ts` son
+**estado compartido que nadie declaró como compartido**. Ahí está la raíz común de los dos.
+
+**Candidatos por revisar con este criterio:** cualquier otro recurso local de la máquina
+codificado en el repo. Nadie ha hecho ese barrido todavía.
 
 ⚠️ **En esta máquina las herramientas de línea de comandos son BSD, no GNU** — y eso ya ha
 causado **dos falsos negativos silenciosos** distintos: el `sed -i` de los autotests de
@@ -1474,6 +1526,63 @@ migrada, precisamente lo que se buscaba al pasar el turno a un cerrojo autoservi
     **es una propiedad del código**, y se reabre. Eso convierte la 38.1 en **el instrumento
     que responde esa pregunta**: el mapa deja de ser solo una herramienta de reparto y pasa
     a ser la evidencia de una decisión de arquitectura pendiente.
+  - **40 — LA HUELLA TIENE TRES VERSIONES Y SOLO UNA SIRVE PARA AGRUPAR** (2026-09-08, del
+    mapa real que produjo la Directora). La 38.1 decía *"el plan ya nombra sus ficheros"*
+    **sin decir de qué versión hablaba** — una regla infraespecificada en el dato que la
+    sostiene.
+    - **40.1 — Se agrupa con la huella POST-AUDITORÍA del plan.** La pre-auditoría
+      **sobrestima**: incluye lo que el desarrollador cree que *podría* necesitar. Evidencia:
+      un plan declaró **seis** ficheros y los reales eran **cuatro** — uno salió en la
+      auditoría (*"«revisar» no significa necesariamente «cambiar»"*) y otro por decisión del
+      propio desarrollador. **Agrupar con la versión declarada habría serializado tres
+      terminales sin motivo.**
+      **Y no hay que esperar parado:** se agrupa provisionalmente con la huella post-plan
+      **como cota superior declarada como provisional**, y se consolida al llegar cada GO.
+      Así el reparto no se detiene y **nadie confunde una estimación con un permiso**.
+      ⚠️ **REQUISITO DE FORMATO, no sugerencia:** un reparto provisional **lleva la marca de
+      tiempo DENTRO de la propia línea**, con *"es una foto, no un permiso"* al lado.
+      Motivo, y ya se ha visto cuatro veces: **un "provisional" escrito en una ficha deja de
+      leerse como provisional a las pocas horas.** Se obliga por formato porque **un campo
+      que se puede omitir se omite el día que hay prisa** — y la prisa es exactamente cuando
+      un reparto provisional se vuelve permanente sin que nadie lo decida.
+    - **40.2 — La disjunción se reverifica AL ASIGNAR, no una sola vez al hacer el mapa.**
+      **El mapa es una foto, no un permiso permanente** (decisión 22 aplicada al reparto):
+      ese mismo día se autorizó un fichero libre al mirarlo y ocupado veinte minutos
+      después.
+      **Y el motivo de fondo: la huella de IMPLEMENTACIÓN subestima.** Una tarea salió del
+      plan con cuatro escritores de una entidad y acabó con cinco, porque al traer `main`
+      apareció uno que el plan no podía conocer. **Nunca encogió: creció.** Así que el mapa
+      **sobra antes de auditar y falta después de repartir, y los dos sesgos NO se
+      cancelan** — de ahí que hagan falta dos puntos de control, no uno.
+    - **40.3 — Vértice de corte: la regla que cambia la estrategia.**
+      > **Cuando el mapa muestre un VÉRTICE DE CORTE —una tarea que toca la mayoría de los
+      > ficheros disputados y de la que dependen las demás—, esa tarea SE PRIORIZA y no se
+      > buscan disjuntos DENTRO DE SU COMPONENTE**: ahí no los hay, y lo que parece
+      > paralelismo es espera repartida. **Trabajo en OTRO COMPONENTE CONEXO sí es trabajo**,
+      > y se reparte con normalidad.
+
+      ⚠️ **La redacción original decía *"no se buscan disjuntos a su alrededor"*, y eso
+      descartaba trabajo que la propia razón de la regla autorizaba** (enmienda 7, corregida
+      por la Directora horas después de proponer ella misma el hallazgo). **"Alrededor" no
+      es un término del grafo**: dos tareas que no tocaban ninguno de los ficheros
+      disputados —una solo `Design/pantallas/*.dc.html`, otra `app/layout.tsx` libre— **no
+      están alrededor del vértice, están en otro componente conexo**, y no reparten su
+      espera porque no esperan nada suyo. Con la redacción vieja se habrían descartado
+      **las dos únicas tareas empezables de esa noche**.
+
+      📌 **Y el vocabulario es la parte que hay que conservar, no adornarla:** con
+      *"alrededor"* el error era invisible; con **vértice de corte** y **componente conexo**
+      salta a la vista. Es un caso donde la precisión técnica **es** el mecanismo de
+      detección. Y es la decisión 36 otra vez — *una regla ambigua cuesta lo mismo que una
+      regla ausente*, aquí con el coste medido en una noche de reparto.
+      *El caso:* AIT-81 tocaba **cuatro de los cinco** ficheros disputados y las otras tres
+      dependían de ella. **No eran cuatro tareas bloqueadas por dos ficheros: era un lote
+      entero bloqueado por una tarea.** Buscar trabajo disjunto alrededor era la estrategia
+      equivocada — no lo había, y el poco que existía ya estaba asignado.
+      **Paralelizar contra un vértice de corte reparte espera, no trabajo.**
+    - 📌 **Y esto le da al mapa su TERCERA función, que es la que más rinde:** no solo
+      reparte (38.1) y no solo responde si la concentración es estructural (condición de
+      reevaluación) — **identifica qué tarea desbloquea a las demás.**
   - **38.4 —** esto le da uso inmediato a la 36.2: las fichas ya anotan qué ficheros
     bloquean y cuánto alcance queda libre, así que **con el lote planificado esos datos
     dejan de ser un registro para el futuro y pasan a ser la ENTRADA del reparto**. Es la
@@ -2129,7 +2238,30 @@ proyecto.
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
 | `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
-| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bjoyjnitk` (v10), armada 20:03, CON LATIDO cada 30 min.** ⚠️ **El artefacto de esta alarma son TRES campos, no uno: id, hora de armado y hora del último latido** — y el tercero es el único que prueba algo. Motivo, y lo detectó su propio autor al ir a reportarlo: llevaba casi **dos horas sin emitir**, y **el silencio de una alarma tiene exactamente dos lecturas — la flota está sana, o la alarma está muerta**. Un id sin señal de vida es una conclusión presentada como dato, la misma forma del *"cero pendientes"* del CEO. Con el latido (`LATIDO <hora> - watchdog vivo, N sesiones vigiladas`) el silencio deja de ser ambiguo: **si en un ciclo del barrido no hay latido de los últimos 30 minutos, la alarma está caída y se escala.** *(Versión anterior: `bzckke1ho` v9.)*
+| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bjoyjnitk` (v10), armada 20:01:25, CON LATIDO cada 30 min.** ⚠️ **El artefacto de esta alarma son TRES campos, no uno: id, hora de armado y hora del último latido** — y el tercero es el único que prueba algo.
+
+✅ **LATIDO VERIFICADO EN PRODUCCIÓN, 2026-09-08:** `LATIDO 20:31:31 - watchdog vivo, 21 sesiones vigiladas, sin paradas`, contra un vencimiento de 20:31:25. El mecanismo emite y es puntual, así que **el chequeo recíproco pasa a tener un dato que prueba algo** en vez de un id que no probaba nada.
+
+⚠️ **Pero el conteo del latido está mal etiquetado, y su autor lo declara en vez de callarlo:** *"21 sesiones vigiladas"* son **21 ficheros con línea base, no 21 sesiones vivas** — hay ocho. El contador acumula todo transcript al que tomó una medición inicial, incluidos los de sesiones muertas de días atrás, que **nunca pueden alertar** porque no las ha visto moverse. **Léelo como "ficheros con línea base". El campo que importa del latido es LA HORA; el conteo es decoración — y decoración con un número engañoso encima.**
+
+> ### 📌 La estabilidad de un instrumento de verificación es una propiedad del instrumento
+>
+> **Y por eso ese campo NO se arregla ahora, a propósito y como decisión declarada.** El
+> watchdog llevaba **seis reemplazos de id en tres horas**, y cada uno abre una ventana en
+> la que el CEO podría estar comprobando una alarma que ya no existe. **Respinar una alarma
+> que funciona para corregir un campo cosmético cambia un defecto inofensivo por un riesgo
+> real de coordinación.**
+>
+> **Un instrumento que cambia de identidad cada veinte minutos es peor que uno con un campo
+> mal etiquetado, aunque cada arreglo individual parezca una mejora.**
+>
+> Se arregla en el próximo cambio que tenga motivo propio. Y la condición que lo reabre está
+> escrita: **si ese número llega a usarse para decidir algo, deja de ser cosmético y se
+> corrige en el momento.**
+
+⚠️ **Y su primera excepción, que vive AQUÍ y no en otro sitio a propósito** (enmienda 6, 2026-09-08): el tercer campo es **el último latido, o "primero pendiente, vence a las HH:MM"**. **Se escala solo cuando un latido lleva vencido más de un intervalo — nunca por ausencia de latidos si aún no ha tocado ninguno.** Motivo: la regla se escribió como *"si no hay latido reciente, escala"* y **veinte minutos después ya tenía un caso que la rompía** — el watchdog llevaba 21 minutos armado, sin latido porque **ninguno había vencido**, y aplicar la regla al pie de la letra habría escalado una alarma perfectamente viva. Es el mismo *silencio con dos lecturas* que el latido venía a resolver, reaparecido en el hueco entre armar y el primer latido. **Con la hora de vencimiento delante, la comprobación es aritmética y no interpretación.**
+
+📌 **Y por eso está escrita junto a la regla y no aparte: una regla y su primera excepción tienen que vivir juntas, o alguien aplicará la regla sin la excepción.** Es además la decisión 33 mordiendo a su propio autor — la regla del latido se formuló como **principio** en vez de como comprobación con su hora, y por eso tuvo un agujero desde el primer minuto. Motivo, y lo detectó su propio autor al ir a reportarlo: llevaba casi **dos horas sin emitir**, y **el silencio de una alarma tiene exactamente dos lecturas — la flota está sana, o la alarma está muerta**. Un id sin señal de vida es una conclusión presentada como dato, la misma forma del *"cero pendientes"* del CEO. Con el latido (`LATIDO <hora> - watchdog vivo, N sesiones vigiladas`) el silencio deja de ser ambiguo: **si en un ciclo del barrido no hay latido de los últimos 30 minutos, la alarma está caída y se escala.** *(Versión anterior: `bzckke1ho` v9.)*
 
 ⚠️ **SUS DOS RAMAS ESTÁN EN ESTADOS DISTINTOS — no se resumen en una sola casilla.**
 

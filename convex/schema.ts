@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import { customerSourceValidator } from "./model/customerSource";
 
 export default defineSchema({
   ...authTables,
@@ -55,7 +56,11 @@ export default defineSchema({
     name: v.string(),
     phone: v.string(),
     email: v.optional(v.string()),
-    source: v.string(),
+    // AIT-81: era `v.string()` libre mientras el código asumía cinco canales.
+    // El catálogo vive en `lib/customerSource.ts` (es una lista de producto) y
+    // este validador se deriva de él, así que el schema ya no puede decir una
+    // cosa distinta de la que asume el código.
+    source: customerSourceValidator,
     ownerId: v.id("users"),
     storeId: v.id("stores"),
   })
