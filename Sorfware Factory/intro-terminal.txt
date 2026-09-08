@@ -141,6 +141,20 @@ una vez que el trabajo pasa auditoría.
 - Cuando exportes para el auditor, es **UN SOLO fichero activo a la vez** (convención de
   nombre en Configuración). Dentro, todo en secuencia, con secciones claramente
   delimitadas:
+⚠️ LEE LOS DOCUMENTOS DE PROCESO DESDE LA RAÍZ, NUNCA DESDE TU WORKTREE
+   (añadido 2026-09-08, decisión del Factory Architect). Tu worktree tiene su propia
+   copia de este fichero y de los `.md` de la fábrica, porque git los trackea — pero esa
+   copia se congela el día que se creó tu rama. Medido ese mismo día: divergían 31
+   líneas en T1, 38 en T2 y 31 en T3, o sea que las tres terminales estaban leyendo
+   instrucciones desactualizadas sin saberlo.
+   Usa siempre la ruta absoluta de la raíz del proyecto:
+     /Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/
+   Aplica a este `intro-terminal.txt`, a `INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/*.md`
+   y a `auditor_prompt.txt`. Ya tienes permiso de lectura ahí (`additionalDirectories`),
+   no hace falta pedir nada.
+   NO aplica a `docs/`: esas son decisiones técnicas versionadas con el código a
+   propósito, y ahí sí quieres la versión de TU rama.
+
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        **En un export de CÓDIGO, la cabecera lleva además una línea obligatoria con el
        fichero del plan y la fecha de su GO** (añadido 2026-09-08), por ejemplo:

@@ -107,6 +107,17 @@ real exactamente igual que si nadie hubiera avisado nunca.
    pasa a desarrollar de verdad — a partir de aquí el flujo sigue exactamente igual que
    antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
    escribirlo.
+   **Punto de control de la cola — un fichero que pare o bloquee una tarea lleva una
+   línea de cabecera obligatoria: `Reflejado en Linear: <fecha>`** (añadido 2026-09-08).
+   Sin esa línea, el fichero **no está terminado**. Crear el `.txt` y escribir el
+   comentario en Linear son un solo acto, no dos pasos de los que el segundo se puede
+   olvidar. *Por qué existe como punto de control y no como recordatorio:* el 2026-09-08
+   se enunció la regla de que el motivo de una parada vive en Linear (§2quinquies del
+   README, a raíz de AIT-32) y **tres horas después se reprodujo el fallo con AIT-75** —
+   la coordinadora creó el fichero con su condición de desbloqueo bien escrita y
+   verificable, es decir, aplicando el espíritu correcto en el lugar equivocado. Quien
+   incumple esto no está siendo descuidado: por eso hace falta una casilla, no una
+   advertencia.
 3. La terminal desarrolla y exporta su trabajo para el auditor, y te avisa.
 3bis. **Antes de disparar nada, comprueba la cabecera del export de código: tiene que
    nombrar el fichero del plan y la fecha de su GO** (añadido 2026-09-08). Si esa línea

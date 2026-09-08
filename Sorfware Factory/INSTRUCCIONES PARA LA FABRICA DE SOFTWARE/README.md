@@ -267,6 +267,17 @@ lo dijo B, confirmarlo con A y con B es una sola fuente con dos voces. Caso real
 equivocado en ese mismo dato una hora antes. De ahí el campo "quién lo oyó de primera
 mano" de §2quinquies (b).
 
+**Segundo caso real del mismo día, y del mismo género — un dato que muta al pasar de
+eslabón:** el Factory Architect dijo que *el push del PRD* del Integrador no era una
+infracción, sin pronunciarse sobre AIT-76. El CEO lo reenvió a la Directora y al QA como
+"AIT-76 ya está publicada". No lo estaba: `2edb3c7` no era ancestro de `main` y sus
+ficheros no existían ahí. El QA, que había construido una comprobación encima, se negó a
+reportar el hallazgo al PM hasta poder separar "el deploy no está vivo" de "la pantalla no
+funciona" — y la Directora lo cazó preguntando en vez de asumirlo. Dos roles pararon a
+verificar en vez de propagar, que es exactamente lo que esta sección pide. **La lección
+concreta: al reenviar algo que te dijeron, comprueba a qué se refería, no solo que te lo
+dijeron.**
+
 ## 2quater. Procedimiento de adopción de skills (2026-09-05)
 
 Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
@@ -389,6 +400,7 @@ que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 | `set w to make new window` | crea una ventana sin tab; el `do script ... in w` posterior revienta con -10000 | retirado (§4ter) — usar `do script` sin destino + comparación de conjuntos de ids |
 | `tty` desde la herramienta Bash | devuelve siempre "not a tty", no el tty real de la ventana | `ps -o tty= -p $PPID` |
 | `git status` en una rama sin upstream | verde limpio, **sin** la línea `ahead N`, con commits sin subir | `git log origin/main..main` — y configurar el upstream (`git branch --set-upstream-to`) |
+| `git commit` OK | se lee como "guardado", pero el trabajo existe **en un solo disco**, sin publicar | confirmar que `git log origin/main..main` está vacío. **Misma trampa que la fila anterior por otro camino**, y juntas explican las dos veces que pasó el 2026-09-08: 11 commits de PRD y luego 3 más, todos commiteados "correctamente" y ninguno subido |
 | `npm test \| tail` | devuelve el exit code de `tail`, no el de los tests | leer la línea `N passed` / `N failed` de la salida |
 | `npx convex codegen` | regenera tipos/bindings; **no publica funciones al backend** | verificar el build de Railway — ver §2 paso 4 |
 | `git push` exitoso | no dice absolutamente nada del build que dispara | `railway logs --build <id>`, confirmando que `convex deploy` terminó en SUCCESS — ver §2 paso 4 |
@@ -1163,6 +1175,8 @@ proyecto.
 | `ScheduleWakeup` sin tope de caducidad (a diferencia de `CronCreate`, que caduca a los 7 días) | Verificado por observación, no por documentación oficial | Sin huecos ni caducidad a lo largo de más de 30h de uso continuo en esta sesión del CEO. El límite de 7 días de `CronCreate` sí está confirmado directamente en su documentación por el Factory Architect ("fire one final time, then are deleted"). |
 | `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El QA (entonces llamado "Tester") declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
 | Hook `PermissionRequest` (aviso de voz inmediato cuando una sesión se bloquea en una aprobación) | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). |
+| Copias de `intro-terminal.txt` y documentos de proceso dentro de cada worktree | **Verificado como TRAMPA — no se leen** | Medido el 2026-09-08 por el Factory Architect y confirmado por el CEO: la copia de cada worktree diverge de la raíz **31 líneas en T1, 38 en T2, 31 en T3**. No es un riesgo teórico: las terminales estaban leyendo instrucciones desactualizadas en ese momento. Los documentos de proceso se leen **siempre desde la raíz, por ruta absoluta**; el permiso ya existe (`additionalDirectories` de los tres worktrees ya apunta a la raíz absoluta, verificado). Excluido `docs/`, que sí se quiere en la versión de la rama. |
+| Propagación de `CLAUDE.md`/`AGENTS.md` a los worktrees | **NO VERIFICADO — sigue siendo manual, y no tiene arreglo técnico** | La herramienta los carga sola desde el worktree; no hay forma de redirigirlos a la raíz. La mitigación no es técnica sino de contenido: **que no contengan detalle de proceso que cambie a menudo**, solo el selector de rol y punteros a la raíz. Hoy `CLAUDE.md` ya está casi así — mantenerlo así a propósito, no por casualidad. |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 
 Si encuentras un mecanismo documentado que no está en esta tabla, añádelo antes de asumir que "ya está verificado porque está escrito en alguna parte" — estar documentado y estar verificado son cosas distintas, y esa es justo la confusión que esta tabla existe para evitar.
