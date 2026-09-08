@@ -27,8 +27,9 @@
 > **Cambios de 0.2 → 0.3 (2026-09-08).** Se cierran las **cuatro decisiones abiertas**
 > con las respuestas de Aitor comentadas en Notion. El wayfinder queda a cero. (a) Al
 > desconectar Gmail **los emails se conservan** (§24). (b) Un cliente con emails **se
-> puede borrar**, con dialogo que dice cuantos se lleva (§23, excepcion declarada a
-> AIT-65). (c) La actividad se atribuye por **contexto del clic**, con desempate por
+> puede borrar** si no tiene oportunidades, con dialogo que dice cuantos emails se lleva
+> (§23; **ojo**: la "excepcion declarada a AIT-65" que decia esta linea en la v0.3 quedo
+> **revocada** en la v0.4 — el bloqueo por oportunidades se mantiene intacto). (c) La actividad se atribuye por **contexto del clic**, con desempate por
 > oportunidad unica (§21). (d) El historico se baja **desde la oportunidad mas antigua
 > del vendedor, sin tope** (§15) — lo que deja el coste de Convex abierto a proposito
 > (§9 y §26).
@@ -585,7 +586,7 @@ de la ronda 2).
 | Persistir los emails en el CRM en vez de leerlos en vivo | taste | La ola siguiente pone una IA a analizar la relacion; leer en vivo obligaria a rehacerlo. Es la unica decision que se toma mirando a la ola siguiente, y se declara como tal | PM, 2026-09-07 |
 | Historico **sin tope**, desde la oportunidad mas antigua del vendedor | taste | Supera la decision del 2026-09-07 ("acotado, 6-12 meses"): el limite deja de ser un numero arbitrario y lo fijan los datos de cada vendedor. Cuesta que el coste de Convex quede abierto hasta medirlo — aceptado con la consecuencia delante | Aitor, 2026-09-08 |
 | **Conservar** los emails cuando el vendedor desconecta su Gmail | taste | Los emails son historial de la **oportunidad**, no del vendedor: el historial del cliente tiene que sobrevivir a la rotacion. Cuesta guardar correo de una cuenta que retiro el consentimiento | Aitor, 2026-09-08 |
-| **Permitir borrar** un cliente con emails, con dialogo que dice cuantos | taste | Mantener el bloqueo de AIT-65 haria imborrable en la practica a un cliente con cientos de emails. Cuesta apartarse a proposito de un patron ya construido, y obliga a tocar codigo publicado | Aitor, 2026-09-08 |
+| ~~**Permitir borrar** un cliente con emails apartandose de AIT-65~~ **REVOCADA el mismo dia** | taste | Se tomo con la premisa de que los emails harian imborrable a un cliente. La review de la ronda 2 demostro que `convex/customers.ts` ya bloqueaba por oportunidades, asi que la premisa era falsa. **La sustituye la fila siguiente** | Aitor, 2026-09-08 (revocada 2026-09-08) |
 | Atribuir la actividad por **contexto del clic**, con desempate por oportunidad unica | taste | Es la unica via que usa lo que el CRM ya sabe sin inventar una asignacion; el desempate conserva la regla vigente. Cuesta que los emails escritos directamente en Gmail sigan sin atribuirse | Aitor, 2026-09-08 |
 | Marta ve el contenido completo de los emails de su tienda | taste | Es correspondencia comercial de la empresa, el filtro ya excluye lo personal, y es coherente con la supervision que ya tiene sobre el resto de interacciones | Aitor, 2026-09-07 |
 | Un `sales` ve solo los emails de **sus** clientes | mechanical | Es exactamente el modelo de permisos que ya rige hoy ("solo sus propias oportunidades y clientes, dentro de su tienda"). No inventar un modelo distinto para el email | PM, 2026-09-07 |
@@ -1098,9 +1099,9 @@ fichero; los fragmentos literales de codigo van citados como bloque.
 - `convex/customers.ts` — el borrado de un cliente **se bloquea** si tiene
   oportunidades. Su comentario razona que no hacen falta mas comprobaciones porque
   interacciones y recordatorios cuelgan de una oportunidad — **premisa que los emails
-  rompen**, porque colgarian del cliente directamente. Es el fichero que hay que tocar
-  para la excepcion declarada en la seccion 23: permitir el borrado tras confirmar
-  cuantos emails se van con el cliente.
+  rompen**, porque colgarian del cliente directamente. **El bloqueo por oportunidades se
+  queda como esta** (seccion 23): lo unico que cambia es que al borrar un cliente que si
+  procede borrar, sus emails se van en cascada con el.
 
 - `docs/01-arquitectura.md` — el patron de la cabecera (AIT-66) establece que
   "+ Registrar interaccion" **nunca queda deshabilitado**, porque un boton

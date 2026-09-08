@@ -29,6 +29,12 @@ coherencia del patron y hay que decirlo en el mensaje de confirmacion).
 
 ## Resolucion
 
+> ⚠️ **SUPERSEDED el 2026-09-08 por [[alcance-del-bloqueo-de-borrado]]**, el mismo dia.
+> La resolucion de abajo se tomo creyendo que los emails harian imborrable a un cliente;
+> la review de la ronda 2 demostro que `convex/customers.ts` ya bloqueaba por
+> oportunidades. Lo que sobrevive: los emails no bloquean. Lo que se cae: la idea de
+> apartarse del patron de AIT-65.
+
 **(b) Los emails se borran con el cliente**, pero **solo tras una confirmacion que dice
 cuantos son**.
 
