@@ -1433,6 +1433,37 @@ migrada, precisamente lo que se buscaba al pasar el turno a un cerrojo autoservi
 - **36.3 — La cola mantiene siempre al menos una tarea PLANIFICABLE**, aunque su
   implementación esté bloqueada. ⚠️ **Esto no autoriza a inventar alcance para llenar
   huecos**: es ordenar lo ya aprobado, nunca abrir lo que no lo está.
+- **38 — Con un LOTE grande de tareas nuevas: se planifica el lote entero antes de repartir
+  implementación** (2026-09-08, autorizado por Aitor al preguntar si convenía montar una
+  línea de planificación aparte).
+  - **Por qué NO una línea de planificación aparte:** la planificación **dejó de ser el
+    cuello** con la 36 — un plan no se bloquea por ficheros. El cuello real es la
+    **contención en implementación**: todo el backlog vivo gira alrededor de
+    `app/clientes/[id]/page.tsx` y `convex/opportunities.ts`. Una línea de planificación
+    produciría planes más rápido **para que se acumulen ante los mismos dos ficheros**.
+    > **Acelerar lo que no es el cuello no aumenta la producción: aumenta el trabajo
+    > parado.**
+  - **38.1 —** el plan de cada tarea ya nombra sus ficheros, así que planificar el lote
+    antes de repartir da **el mapa de huella de ficheros completo**, en vez de descubrir
+    los choques de uno en uno. Con ese mapa se agrupa por **conjuntos disjuntos**.
+  - **38.2 — Regla para abrir terminales, que sustituye a "las que sostenga el backlog":**
+    se abre una terminal más **solo cuando exista una tarea cuyo conjunto de ficheros no se
+    solape con ninguna en curso**. Si no la hay, **esa terminal no es capacidad: es una cola
+    de espera más.** El 2026-09-08 con tres ya chocaban.
+  - **38.3 — Nada de segunda Directora por función.** Partir el ciclo en "planificación" y
+    "desarrollo" crea un problema de coordinación entre coordinadoras. **Si hay que
+    escalar, es por célula** — ese diseño ya existe y nunca se ha activado
+    (`lider-celula.md`), y un líder se queda con el **ciclo completo** de sus tareas.
+    **Disparador, como condición medible y no como intuición:** cuando una Directora no
+    pueda cubrir sus terminales **de verdad**. El 2026-09-08 sus fallos **no fueron de
+    capacidad** — fueron una regla ambigua (36) y un barrido de 20 min para un umbral de 3
+    (26), las dos ya corregidas. **Antes de partir el rol se miden un par de días con las
+    correcciones puestas.**
+  - **38.4 —** esto le da uso inmediato a la 36.2: las fichas ya anotan qué ficheros
+    bloquean y cuánto alcance queda libre, así que **con el lote planificado esos datos
+    dejan de ser un registro para el futuro y pasan a ser la ENTRADA del reparto**. Es la
+    primera vez que una de nuestras reglas de registro alimenta una decisión operativa el
+    mismo día en que se escribió.
 - ❓ **Pregunta abierta, con su fuente de evidencia ya en marcha:** ¿debería la unidad de
   bloqueo ser **el fichero** y no la tarea? El 2026-09-08, **tres de las cuatro tareas
   bloqueadas lo estaban por un solo fichero cada una**. **No se decide hoy** — partir tareas
