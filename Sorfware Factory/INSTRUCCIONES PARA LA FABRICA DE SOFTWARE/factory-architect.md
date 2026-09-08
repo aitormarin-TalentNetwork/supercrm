@@ -137,3 +137,31 @@ no hay ningún rol por encima de ti y del CEO dentro del pipeline al que escalar
   Architect", en la fila de roles centrales junto al CEO y el Integrador — el PM ocupa
   ahora la posición de arriba del todo, como puerta de entrada de `/factory` (ver
   `README.md` §4ter).
+
+---
+
+## Al escribir una regla que mande preguntar a un humano, fija el canal (2026-09-08)
+
+Decisión propia, escrita aquí porque aplica a **cómo redactas**, no a cómo se obedece.
+Detalle completo en `README.md` §2septies.
+
+**Ninguna regla que pueda dejar sorda a una sesión puede depender de un mensaje para
+corregirse.** Caso que lo motivó: una regla dejó al Integrador bloqueado en un selector
+interactivo (`AskUserQuestion`), y la corrección de esa misma regla entró en la cola que él
+ya no podía leer, donde se quedó 22 minutos. Lo desbloqueó Aitor a mano — el único canal
+que quedaba. "Si me equivoco, se lo digo y lo arregla" deja de ser una red de seguridad
+justo en el momento en que hace falta; es el análogo, en la mensajería, de un `close` que
+devuelve sin error.
+
+Al redactar cualquier regla que mande consultar a una persona:
+
+- **Di con qué mecanismo**, siempre. No lo dejes a elección de quien la obedece.
+- **Ese mecanismo no puede bloquear la cola de mensajes entrantes de la sesión.**
+- **Canal por defecto:** mensaje directo + alerta visible (`osascript ... display alert`).
+- **Prohibidos para esto en toda la fábrica:** `AskUserQuestion` y cualquier otro selector
+  interactivo. Es la forma más natural de pedir una decisión, así que cualquier rol la
+  elegirá y se quedará sordo **sin saber que eso es lo que ha hecho**.
+- **Escribe también el coste de la regla en la propia regla.** Ejemplo real: el modo
+  `confirmar` implica que una publicación queda esperando a un humano el tiempo que haga
+  falta. Ese es el precio correcto de algo irreversible — pero tiene que estar en la
+  decisión, no descubrirse ejecutándola.

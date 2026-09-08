@@ -541,7 +541,8 @@ que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
-| **`ListAgents` devuelve `busy`** | **No distingue "trabajando" de "bloqueada en un prompt interactivo".** Una sesión parada 38 minutos se ve exactamente igual que una ocupada | cruzar SIEMPRE el `busy` con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia: el Integrador, 2026-09-08, `busy` los 38 minutos que estuvo sordo (20:08:35 → 20:46:26) |
+| **El estado que devuelve `ListAgents`, sea `busy` o `waiting`** | **Ninguno distingue una sesión sana de una sorda.** `busy` no separa "trabajando" de "bloqueada en un prompt": el Integrador estuvo **`busy` y sordo a la vez** durante 38 minutos, indistinguible de `busy` y trabajando. Y `waiting` tampoco es tranquilizador: T3 apareció `waiting` bloqueada en `ExitPlanMode`, indistinguible de ociosa legítima | cruzar SIEMPRE el estado con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia del 2026-09-08: Integrador `busy` 38 min, T3 `waiting` ~30 min |
+| `grep <patrón> fichero \| head -1 && echo "APARECE"` | **Da positivo con CERO coincidencias.** En una tubería, `&&` evalúa el código de salida del ÚLTIMO comando (`head`, que devuelve 0 aunque grep no encuentre nada), no el del que te interesa | **cuenta ocurrencias y mira el número** (`grep -c`), nunca encadenes con `&&` sobre una tubería. Misma familia que `npm test \| tail`, con otro comando: la lección general es que **el código de salida de una tubería es el del último eslabón**. Hallazgo del Integrador, 2026-09-08, verificando AIT-76: estuvo a un paso de reportar un fallo inexistente y no cerrar una tarea correcta |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
 | `set w to make new window` | crea una ventana sin tab; el `do script ... in w` posterior revienta con -10000 | retirado (§4ter) — usar `do script` sin destino + comparación de conjuntos de ids |
 | `tty` desde la herramienta Bash | devuelve siempre "not a tty", no el tty real de la ventana | `ps -o tty= -p $PPID` |
@@ -565,6 +566,50 @@ momento**, aunque ya la haya rodeado y no le bloquee — mismo criterio que `CLA
 commitear lo que das por hecho. Las seis primeras salieron porque tres roles distintos las
 cazaron por separado en una sola tarde; la tabla existe para que la séptima no cueste otro
 incidente.
+
+---
+
+## 2septies. Una regla que manda preguntar a un humano tiene que fijar el CANAL (2026-09-08)
+
+Decisión 15 del Factory Architect. Nace del incidente más serio del día, que no fue el
+bloqueo en sí sino lo que reveló.
+
+**El bucle:** el Integrador abrió un selector interactivo a las 17:08 para pedir un visto
+bueno, siguiendo una regla que le había llegado. Eso lo dejó **sordo**. A las 17:24 se le
+mandó la corrección de esa misma regla — *"no te bloquees, el modo es `autonomo`, publica
+sin preguntar"* — y **entró en la cola que él ya no podía leer**, donde se quedó 22
+minutos. Lo desbloqueó un humano a mano, porque era el único canal que quedaba.
+
+> **Ninguna regla que pueda dejar sorda a una sesión puede depender de un mensaje para
+> corregirse.** "Si me equivoco, se lo digo y lo arregla" deja de ser una red de seguridad
+> justo en el momento en que hace falta. Es el análogo, en la mensajería, de un `close`
+> que devuelve sin error: el canal de corrección **parece** existir y no existe.
+
+**La regla, y aplica a toda la fábrica, no a un rol:** cuando un documento de proceso mande
+consultar a un humano, **especifica siempre con qué mecanismo — y ese mecanismo nunca
+puede bloquear el procesamiento de mensajes entrantes de la sesión.**
+
+- **Canal por defecto:** mensaje directo + alerta visible (`osascript ... display alert`).
+  Deja la sesión escuchando mientras espera.
+- **Prohibido para esto en toda la fábrica:** `AskUserQuestion` y cualquier otro selector
+  interactivo. No es una manía: es la forma más natural de pedir una decisión, así que
+  cualquier rol al que se le diga "pregúntale a Aitor" la elegirá y se quedará sordo **sin
+  saber que eso es lo que ha hecho**.
+- **Esto va donde se leen las reglas al ESCRIBIRLAS**, no solo donde se obedecen: `ceo.md`
+  y `factory-architect.md`, además de los documentos de rol.
+
+**Y el coste, que va escrito en la decisión y no se descubre ejecutándola:** el modo
+`confirmar` implica que **una publicación queda esperando a un humano**, con el tiempo que
+eso tarde. Ese es el precio correcto para algo irreversible. Lo que nunca fue el diseño es
+que la sesión se cayera del pipeline mientras espera — eso era la implementación, no la
+regla, y lo arregla fijar el canal.
+
+**Variante estructural, todavía abierta:** el gate de fase de plan garantiza que **todo
+desarrollador** acabe en la pantalla de aprobación de `ExitPlanMode`, y sordo mientras está
+ahí — no es mala suerte, lo produce el proceso. Paliativo aplicado por la Directora: avisar
+en el brief de que esa pantalla aparecerá, que es normal, y que la primera acción tras
+aprobarla **no es programar sino exportar el plan y esperar el GO** (los tres caminos que
+ofrece la pantalla llevan a programar; ninguno dice eso).
 
 ---
 
@@ -1331,6 +1376,7 @@ proyecto.
 | **Verificación de staleness de una terminal: red de tres niveles** | **Verificado como DEGRADADA — hoy solo funciona UNO** | Estado real al 2026-09-08: nivel 1 (transcript, con `queue-operation`) **funciona y es el único fiable**; nivel 2 (spinner del título) **intercambiado a propósito** por el bucle de titulado por rol, ya no es señal; nivel 3 (captura) **roto y en falso verde**, pendiente de que Aitor conceda Grabación de Pantalla. Declarado así por decisión 11 del Factory Architect: quien lea "tenemos tres niveles" tomaría decisiones contando con una red que no existe. |
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
+| `app/error.tsx` (pantalla de error de AIT-76) renderizada en producción | **NO VERIFICADO** | Declarado por el Integrador al publicar AIT-76 (2026-09-08). Entró en el mismo trabajo y tiene GO del auditor, pero **nadie la ha visto renderizada**: no se puede provocar un error real en producción sin romper algo, y la app apunta al Convex de producción. La 404 (`app/not-found.tsx`) sí está verificada en la app real — 404 con el texto en español y 0 ocurrencias de "This page could not be found". |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 
 Si encuentras un mecanismo documentado que no está en esta tabla, añádelo antes de asumir que "ya está verificado porque está escrito en alguna parte" — estar documentado y estar verificado son cosas distintas, y esa es justo la confusión que esta tabla existe para evitar.

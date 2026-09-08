@@ -488,6 +488,24 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
+
+Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y
+no solo en los documentos de rol (decisión 15 del Factory Architect, 2026-09-08; detalle
+completo en `README.md` §2septies).
+
+**Ninguna regla que pueda dejar sorda a una sesión puede depender de un mensaje para
+corregirse.** Caso real: una regla dejó al Integrador bloqueado en un selector interactivo,
+y la corrección de esa misma regla entró en la cola que él ya no podía leer, donde se quedó
+22 minutos. Lo desbloqueó un humano a mano, porque era el único canal que quedaba. "Si me
+equivoco, se lo digo y lo arregla" deja de ser red de seguridad justo cuando hace falta.
+
+Así que, al redactar: **si la regla manda consultar a una persona, di con qué mecanismo, y
+que ese mecanismo no bloquee la cola de mensajes entrantes.** Canal por defecto: mensaje
+directo + alerta visible. **`AskUserQuestion` y cualquier otro selector interactivo quedan
+prohibidos para esto en toda la fábrica** — es la forma más natural de pedir una decisión,
+así que cualquiera la elegirá y se quedará sordo sin saber que eso es lo que ha hecho.
+
 ### Lessons learned — el paso que no es opcional
 
 Resolver el problema puntual no es suficiente. Después de cada intervención:
