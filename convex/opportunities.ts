@@ -5,6 +5,10 @@ import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import type { Doc, Id } from "./_generated/dataModel";
 import { addBusinessMonths, startOfBusinessDay } from "../lib/businessTime";
 import { normalizePhone } from "../lib/phone";
+// AIT-81: el catálogo de canales y su primer paso, en un solo sitio. Antes el
+// mapa vivía aquí y el union se repetía a mano en `createQuick`.
+import { FIRST_STEP_BY_SOURCE } from "../lib/customerSource";
+import { customerSourceValidator } from "./model/customerSource";
 import { isAtRisk } from "../lib/risk";
 
 // AIT-30: sin catálogo de productos ni ciclo de recompra por interés
@@ -17,17 +21,6 @@ import { isAtRisk } from "../lib/risk";
 // por producto, este valor pasa a ser el fallback de esa tabla, no se
 // descarta.
 const DEFAULT_REPURCHASE_MONTHS = 6;
-
-// Primer próximo paso según el canal de origen (PRD: Alta rápida → "genera
-// la oportunidad y su primer próximo paso automático"). Mismos canales que
-// el Select de Design/pantallas/Alta rápida.dc.html.
-const FIRST_STEP_BY_SOURCE: Record<string, string> = {
-  Llamada: "Llamar para presentar la propuesta",
-  WhatsApp: "Enviar WhatsApp de presentación",
-  Recomendación: "Llamar para agradecer y presentar",
-  Web: "Responder la solicitud web",
-  Visita: "Agendar visita comercial",
-};
 
 // Próximo paso al cambiar de etapa (AIT-15). Distinto del de creación: ya
 // no es "primer contacto", depende de a qué fase entra la oportunidad.
@@ -74,13 +67,7 @@ export const createQuick = mutation({
     name: v.string(),
     phone: v.string(),
     email: v.optional(v.string()),
-    source: v.union(
-      v.literal("Llamada"),
-      v.literal("WhatsApp"),
-      v.literal("Recomendación"),
-      v.literal("Web"),
-      v.literal("Visita"),
-    ),
+    source: customerSourceValidator,
     interest: v.optional(v.string()),
     estimatedAmount: v.optional(v.number()),
     // AIT-35 (Post-MVP): si no se manda, se fija "media" — mismo default
@@ -340,14 +327,20 @@ export const createForCustomer = mutation({
     // En "contacto", el primer paso es el del canal por el que entró el
     // cliente, igual que en Alta rápida. Si nace ya en presupuesto o
     // negociación, "primer contacto" no aplica: se usa el mismo paso que
-    // daría changeStage al entrar en esa etapa. El fallback cubre a los
-    // clientes cuyo `source` no es uno de los cinco canales — el campo es
-    // `v.string()` libre en el schema, y sin él `action` quedaría undefined.
-    const firstStepBySource: string | undefined =
-      FIRST_STEP_BY_SOURCE[customer.source];
+    // daría changeStage al entrar en esa etapa.
+    //
+    // AIT-81: aquí había un fallback para "clientes cuyo `source` no es uno de
+    // los cinco canales", que existía porque el campo era `v.string()` libre.
+    // Con el union en el schema ese caso ya no puede darse —Convex valida los
+    // documentos existentes al desplegar y rechaza los nuevos en servidor—, así
+    // que la rama era inalcanzable. Se ha borrado en vez de conservarla:
+    // mantener una defensa que nunca puede ejecutarse esconde las regresiones
+    // del contrato (haría que un `source` inválido pasara desapercibido en vez
+    // de romper) y debilita la comprobación estática, que ahora sí garantiza
+    // que `FIRST_STEP_BY_SOURCE` es total sobre `CustomerSource`.
     const action =
       stage === "contacto"
-        ? firstStepBySource ?? NEXT_STEP_BY_STAGE.contacto
+        ? FIRST_STEP_BY_SOURCE[customer.source]
         : NEXT_STEP_BY_STAGE[stage];
 
     await ctx.db.insert("nextSteps", {

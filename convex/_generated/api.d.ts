@@ -17,6 +17,7 @@ import type * as http from "../http.js";
 import type * as interactions from "../interactions.js";
 import type * as migrations from "../migrations.js";
 import type * as model_access from "../model/access.js";
+import type * as model_customerSource from "../model/customerSource.js";
 import type * as nextSteps from "../nextSteps.js";
 import type * as opportunities from "../opportunities.js";
 import type * as products from "../products.js";
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   interactions: typeof interactions;
   migrations: typeof migrations;
   "model/access": typeof model_access;
+  "model/customerSource": typeof model_customerSource;
   nextSteps: typeof nextSteps;
   opportunities: typeof opportunities;
   products: typeof products;

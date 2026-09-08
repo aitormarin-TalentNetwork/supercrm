@@ -29,6 +29,11 @@ import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency } from "@/lib/format";
 import { formatPhone } from "@/lib/phone";
+import {
+  CUSTOMER_SOURCES,
+  isCustomerSource,
+  type CustomerSource,
+} from "@/lib/customerSource";
 
 export default function FichaClientePage({
   params,
@@ -296,11 +301,10 @@ export default function FichaClientePage({
   );
 }
 
-// AIT-77: mismos cinco canales que el Select del Alta rápida
-// (components/crm/AltaRapidaModal.tsx) y que el union que valida
-// convex/customers.ts::update en servidor. Tercera copia del catálogo, a
-// propósito y con fecha: AIT-81 lo centraliza y elimina las tres.
-const CANALES = ["Llamada", "WhatsApp", "Recomendación", "Web", "Visita"] as const;
+// AIT-81: esta era la tercera copia del catálogo. AIT-77 la dejó a propósito y
+// con fecha ("AIT-81 lo centraliza y elimina las tres"); aquí se cumple. El
+// desplegable, la guardia de canal desconocido y el union que valida el
+// servidor salen ahora todos de `lib/customerSource.ts`.
 
 // AIT-77: editar los datos del cliente desde su propia ficha. Diálogo local,
 // como DeleteCustomerDialog y DeleteInteractionDialog aquí mismo — este
@@ -365,7 +369,7 @@ function EditarClienteDialog({
   // valor: caería en la primera opción y guardar reescribiría el canal en
   // silencio. Se pinta el valor real como opción no seleccionable y se bloquea
   // el envío hasta elegir uno válido. AIT-81 cierra la causa.
-  const canalFueraDeCatalogo = !(CANALES as readonly string[]).includes(source);
+  const canalFueraDeCatalogo = !isCustomerSource(source);
 
   function handleClose() {
     if (loading) return;
@@ -422,7 +426,7 @@ function EditarClienteDialog({
         // Vacío significa vacío: se manda `undefined` y el servidor borra el
         // campo. Un email equivocado es peor que ninguno.
         email: email.trim() || undefined,
-        source: source as (typeof CANALES)[number],
+        source: source as CustomerSource,
       });
       onClose();
     } catch (err) {
@@ -513,7 +517,7 @@ function EditarClienteDialog({
               {source} (fuera del catálogo)
             </option>
           )}
-          {CANALES.map((canal) => (
+          {CUSTOMER_SOURCES.map((canal) => (
             <option key={canal} value={canal}>
               {canal}
             </option>

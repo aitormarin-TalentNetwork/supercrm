@@ -72,9 +72,16 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | `name` | string | |
 | `phone` | string | **Se almacena CANÓNICO** (normalizado), no como se teclea — ver abajo |
 | `email` | string? | Opcional (PRD: Alta rápida) |
-| `source` | string | Canal de origen: llamada, WhatsApp, recomendación, web… |
+| `source` | union | **Catálogo cerrado de canales** (AIT-81): `Llamada` · `WhatsApp` · `Recomendación` · `Web` · `Visita`. Ver abajo |
 | `ownerId` | id(`users`) | Comercial asignado — **se asigna solo** según quién ha iniciado sesión |
 | `storeId` | id(`stores`) | Igual: automático |
+
+**Contrato de `source` (AIT-81).** El canal de origen es un **catálogo cerrado**, no un string libre. Antes el schema declaraba `v.string()` mientras el código asumía cinco canales, y el catálogo estaba copiado en cuatro sitios (el `union` de `opportunities.createQuick`, el de `customers.update`, el mapa de primeros pasos, y los desplegables de Alta rápida y de la ficha de cliente) sin nada que obligara a que coincidieran.
+
+Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.ts) — es una lista de **producto**, no una constante técnica: dice qué vías contempla el CRM para que llegue un cliente. De ahí se derivan el validador de Convex (`convex/model/customerSource.ts`), el schema, los `args` de las dos mutations que escriben `source`, y los desplegables de la UI.
+
+- **Para añadir un canal** (p. ej. `Email`): se añade a `CUSTOMER_SOURCES` y el compilador exige su primer paso en `FIRST_STEP_BY_SOURCE`. No hay un tercer sitio que tocar.
+- **Para quitar uno**: ojo, no es simétrico. Convex valida los documentos **existentes** al desplegar el schema, así que si queda algún cliente guardado con ese canal, el push falla y con él el build. Primero migración, después el catálogo.
 
 Índice `by_store` (AIT-58, Post-MVP): permite a `customers.list` (pantalla "Clientes") resolver "todos los clientes de mi tienda" para owner/storeManager sin escanear la tabla entera — mismo criterio que `by_store_status` en `opportunities` (AIT-33).
 
@@ -264,7 +271,7 @@ export default defineSchema({
     name: v.string(),
     phone: v.string(),
     email: v.optional(v.string()),
-    source: v.string(),
+    source: customerSourceValidator,   // AIT-81: union derivado del catálogo
     ownerId: v.id("users"),
     storeId: v.id("stores"),
   })
