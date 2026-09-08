@@ -144,6 +144,9 @@ export default function FichaClientePage({
           <div className="mt-[18px] grid grid-cols-1 gap-x-[18px] gap-y-3 border-t border-border pt-[18px] sm:grid-cols-2">
             <div className="flex items-center gap-2 text-[13.5px] text-text-secondary">
               <Phone size={16} className="text-neutral-400" />
+              {/* PENDIENTE DEL MERGE DE AIT-80: en cuanto `phone` se guarde
+                  normalizado (solo dígitos), esto tiene que pintar con
+                  `formatPhone()` de lib/phone.ts o mostrará "600123456". */}
               <span className="whitespace-nowrap font-mono">{customer.phone}</span>
             </div>
             <div className="flex min-w-0 items-center gap-2 text-[13.5px] text-text-secondary">
@@ -313,6 +316,10 @@ function EditarClienteDialog({
 }) {
   const updateCustomer = useMutation(api.customers.update);
   const [name, setName] = useState(customer.name);
+  // PENDIENTE DEL MERGE DE AIT-80: cuando `phone` se guarde normalizado, esta
+  // precarga (y la de la reinicialización al abrir, más abajo) tiene que pasar
+  // por `formatPhone()`. Si no, el usuario abre el diálogo y ve su teléfono
+  // "estropeado" a dígitos pelados.
   const [phone, setPhone] = useState(customer.phone);
   const [email, setEmail] = useState(customer.email ?? "");
   const [source, setSource] = useState(customer.source);

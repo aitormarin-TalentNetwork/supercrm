@@ -175,15 +175,19 @@ export const update = mutation({
       throw new Error("El email no tiene un formato válido.");
     }
 
-    // AIT-80 (pendiente de integrar, mergea antes que esta tarea): esta mutation
-    // es el segundo escritor de `phone`. En cuanto exista `lib/phone.ts`, toda
-    // escritura de `phone` tiene que normalizarse con `normalizePhone()` en
-    // ESTE MISMO patch —nunca en una segunda escritura, que dejaría una ventana
-    // con el documento incoherente—. Si no, el cliente corregido deja de
-    // detectarse como duplicado en silencio, y justo el corregido es el que más
-    // probabilidad tiene de tener el teléfono bien. `phoneDigits` de arriba es
-    // ese valor: falta decidir en AIT-80 si va en un campo derivado aparte o si
-    // `phone` se guarda ya normalizado.
+    // PENDIENTE DEL MERGE DE AIT-80 — esta mutation es el segundo escritor de
+    // `phone` y ahora mismo lo guarda SIN normalizar, que es incorrecto.
+    //
+    // La decisión ya está tomada (PM, 2026-09-08): NO hay campo derivado —
+    // `phone` se guarda ya normalizado y se formatea al pintarlo. Así que aquí
+    // hay que escribir `phone: normalizePhone(phone)` en ESTE MISMO patch, y
+    // `phoneDigits` de arriba es exactamente ese valor. Nunca en una segunda
+    // escritura: dejaría una ventana con el documento incoherente.
+    //
+    // No se hace todavía porque `lib/phone.ts` lo crea AIT-80 y aún no está en
+    // esta rama; importarlo hoy no compila. Mientras tanto, un cliente al que se
+    // le corrija el teléfono deja de detectarse como duplicado, en silencio — y
+    // justo el corregido es el que más probabilidad tiene de tenerlo bien.
     await ctx.db.patch(args.customerId, {
       name,
       phone,
