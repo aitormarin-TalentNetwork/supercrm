@@ -40,7 +40,9 @@ test("dar de alta un teléfono que ya existe avisa y ofrece usar el cliente exis
   await createOpportunityViaAltaRapida(page, { name: customerName, phone });
 
   await page.goto("/hoy");
-  await page.getByRole("button", { name: "Alta rápida" }).click();
+  // AIT-78: mismo motivo que en helpers.ts — "Alta rápida" ya no identifica un
+  // solo botón en Hoy, así que se ancla al flotante por `data-testid`.
+  await page.getByTestId("alta-rapida-fab").click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Nombre del cliente").fill(uniqueCustomerName("E2E Otro"));
   // El MISMO teléfono, escrito con separadores: la detección compara la forma
