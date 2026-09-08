@@ -108,6 +108,16 @@ real exactamente igual que si nadie hubiera avisado nunca.
    antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
    escribirlo.
 3. La terminal desarrolla y exporta su trabajo para el auditor, y te avisa.
+3bis. **Antes de disparar nada, comprueba la cabecera del export de código: tiene que
+   nombrar el fichero del plan y la fecha de su GO** (añadido 2026-09-08). Si esa línea
+   falta, o dice "sin fase de plan", **devuelves el export a la terminal en vez de
+   mandarlo al auditor** — el GO al plan es un gate duro y no lo puede levantar ni el
+   desarrollador ni tú. Es una comprobación de un vistazo, no una revisión.
+   *Por qué existe:* hasta el 2026-09-08, un gate de plan saltado solo se detectaba si el
+   propio desarrollador lo declaraba (AIT-76 lo declaró; otro que no lo diga era
+   invisible). Y ojo con el argumento que lo acompaña siempre — "la tarea era trivial, no
+   había ambigüedad": eso es una **conclusión que produce la fase de plan**, no un
+   requisito previo para saltársela. El plan de una tarea trivial son cuatro líneas.
 4. Disparas al auditor. Si el proyecto le da al auditor una ventana visible propia
    (recomendado — ver Configuración para el mecanismo concreto de este proyecto),
    ejecútalo AHÍ, no escondido en tu propia sesión: así quien dirige el proyecto puede

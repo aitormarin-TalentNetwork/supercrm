@@ -37,6 +37,8 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
 | **Convex** | Deployment compartido `third-goldfinch-805` para desarrollo/test de las 3 terminales (dashboard en `README.md` de la raíz) + `stoic-impala-857` como deployment de producción (AIT-59 — ver §2 paso 4 más abajo y ADR-004 en `docs/01-arquitectura.md`; **activo desde 2026-08-24, Railway construye contra `stoic-impala-857` en cada push a `main`**) + un deployment de dev propio por terminal (objetivo de §3bis, migración distinta y todavía pendiente) | Hoy: `third-goldfinch-805` compartido por TODAS las terminales para dev/test, ver riesgo en §3. `stoic-impala-857` es el de producción, activado por AIT-59 (Tanda 1 y Tanda 2 completas). Objetivo de §3bis (aparte, no confundir): cada terminal desarrolla contra su propio deployment de dev aislado; `third-goldfinch-805` ya no tiene rol de publicación — el punto de publicación es el build de Railway contra `stoic-impala-857`, no un merge a `third-goldfinch-805`. |
 | **Cerrojo de turno de Convex** | `Sorfware Factory/_turno-convex.lock/` (directorio, reclamado con `mkdir` — atómico, sin ventana de carrera —, con `titular.txt` dentro; en `.gitignore`) | Rediseñado 2026-08-14, afinado 2026-08-15: mientras el deployment siga compartido, las terminales lo reclaman solas con `mkdir` y lo liberan con `rmdir`, en vez de pedírselo a la Directora — arbitrar cada petición no escalaba según crecía el número de terminales/células. El barrido periódico también comprueba si un cerrojo lleva demasiado tiempo abandonado. La Directora (o el Líder de célula) solo entra ante disputa genuina o cerrojo abandonado sin poder confirmarlo. Desaparece del todo en cuanto la migración de §3bis esté completa. |
 | **Registro de check-in de agentes** | `Sorfware Factory/_registro-agentes.txt` (fichero, una línea por check-in con `>>`; en `.gitignore`) | Añadido 2026-08-25/26 (pedido explícito de Aitor): `ListAgents` por sí solo no es fiable para saber quién existe de verdad, algunas terminales no se ven ni entre ellas. Cada rol (central o T<n>) escribe una línea aquí (`timestamp \| sesión \| rol \| terminal \| motivo`) al arrancar, reiniciarse o recrearse, ADEMÁS de presentarse por `SendMessage` al CEO (nunca en vez de) — segundo canal redundante contra el fallo de `ListAgents`. El CEO lo cruza con `ListAgents` en su barrido periódico (ver `ceo.md`) y trata cualquier discrepancia como hallazgo a investigar. |
+| **Registro de rondas de QA** | `Sorfware Factory/_registro-qa.txt` (fichero de solo-anexar; en `.gitignore`) | Añadido 2026-09-08 (decisión del Factory Architect, ejecutada por el CEO). Una línea por ronda: `timestamp \| sesión \| build/commit probado \| alcance \| hallazgos (ids) \| qué NO se pudo verificar`. **El último campo es obligatorio** — es §2ter(b) aplicado al rol donde nació. Cierra un hueco real: `qa.md` no decía dónde anotar una ronda, así que el histórico entero del QA anterior murió con su sesión y no quedó nada en disco. Ver `qa.md` y §2quinquies (c). |
+| **Modo de publicación** | `Sorfware Factory/_modo-publicacion.txt` (fichero de solo-anexar; en `.gitignore`) | Formato solo-anexar con procedencia desde 2026-09-08 (antes era una palabra suelta sin autor ni fecha, ver §2quinquies (b)). La vigente es la última línea que no empieza por `#`. **Este documento no dice cuánto vale el modo ahora** — se consulta ahí. Detalle en §4ter "Modo de publicación del Integrador" y en `integrador.md`. |
 | **GitHub** | `github.com/aitormarin-TalentNetwork/supercrm` (remoto `origin`) | Repo real. La sesión directora mergea a `main` y hace `git push` aquí. |
 | **Railway** | Cuenta personal `aitormarin@gmail.com` (cuenta de Railway nueva desde 2026-08-13 — la anterior agotó el trial), proyecto `fulfilling-vision`, servicio `supercrm` → `https://supercrm-production-bf48.up.railway.app` | Auto-despliega en cada push a `main`. Ver ADR-002 en `docs/01-arquitectura.md`. **Puede volver a estar en trial limitado — revisar que no haya caducado.** El proyecto viejo (`reasonable-creativity`, trial agotado) queda abandonado, no se usa. |
 
@@ -67,6 +69,11 @@ Si la máquina se reinicia, se pierde contexto, o simplemente abres una sesión 
      **NUNCA `npx convex deploy` a mano desde un worktree** — sigue siendo el mecanismo
      de publicación, pero solo lo ejecuta Railway; correrlo manualmente desde una
      terminal exige una confirmación interactiva y no tiene sentido fuera del pipeline.
+   - 📌 **Los dos avisos de este paso 4 (`codegen` que no publica, y `git push` que no
+     dice nada del build) son instancias de §2sexies "falso verde"** — comprobaciones que
+     devuelven un resultado tranquilizador sin haber hecho lo que se les pedía. Están en
+     el registro de comprobaciones desacreditadas de esa sección, con su sustituto. No los
+     dupliques ahí ni aquí: se explican aquí, se catalogan allí.
    - ⚠️ **`npx convex codegen` NO publica funciones nuevas al backend** — solo regenera tipos/bindings TypeScript (comprobado con `--help`: "Generate backend type definitions"). Incidente real (2026-08-12): varias tareas (AIT-33, AIT-35) se dieron por publicadas tras `codegen` sin que `changePriority`/`advanceBillingStatus` llegaran a desplegarse de verdad — el frontend compilaba bien y hasta parecía funcionar (un fallback de UI enmascaraba la ausencia del dato real), pero la mutation no existía en el backend. Tras cualquier merge que toque `convex/*.ts`, comprobar el build de Railway de verdad (`railway logs --build <deployment-id>`, confirmando que `npx convex deploy --cmd ...` corrió y terminó en `SUCCESS`) antes de dar la publicación por buena — no basta con que el dashboard salga en verde.
    - coge el código de esa rama y lo mergea a `main`,
    - hace `git push` (esto **ya dispara el deploy en Railway solo**, no hace falta nada más),
@@ -235,6 +242,21 @@ forma independiente — si la respuesta es "solo yo puedo verlo así", decláral
 parcial. Y antes de callar un límite de lo que pudiste comprobar, dilo explícitamente en
 vez de dejar que el silencio se lea como "todo bien".
 
+⚠️ **(c) Declarar un incumplimiento NO lo autoriza** (añadido 2026-09-08). El principio
+(b) cubre declarar una **limitación de lo que pudiste verificar** — no darte a ti mismo un
+**permiso**. Caso real que obliga a escribirlo: el export de AIT-76 declaró abiertamente
+que iba sin fase de plan, un gate duro. Declararlo estuvo bien —infinitamente mejor que
+ocultarlo— pero no convirtió el incumplimiento en una excepción válida. Sin esta línea, el
+principio más valioso que tenemos se lee como "declaro que me lo salto y sigo adelante", y
+se convierte en una vía de escape en vez de una salvaguarda.
+
+📌 **Dos relatos coincidentes que comparten origen no son verificación independiente.**
+(a) aplicado a una cadena de mensajes, no solo a un artefacto: si A te lo dice porque se
+lo dijo B, confirmarlo con A y con B es una sola fuente con dos voces. Caso real
+(2026-09-08): el CEO informó del modo de publicación apoyándose en el PM, y el PM se había
+equivocado en ese mismo dato una hora antes. De ahí el campo "quién lo oyó de primera
+mano" de §2quinquies (b).
+
 ## 2quater. Procedimiento de adopción de skills (2026-09-05)
 
 Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
@@ -262,6 +284,117 @@ misma pregunta ("¿esto se adopta como estándar de un rol?") se reinventa cada 
   dónde está instalada, y su estado de verificación (enlazado a la tabla de la sección
   7). Para que dentro de unos meses nadie se encuentre una skill obligatoria aparecida
   de la nada sin saber por qué ni desde cuándo.
+
+---
+
+## 2quinquies. Todo estado duradero se escribe con procedencia, donde lo lee quien actúa sobre él (2026-09-08)
+
+Decisión del Factory Architect, ejecutada por el CEO. Misma familia que §2ter: algo que se
+lee como otra cosa distinta de lo que es.
+
+**El principio:** un estado sin procedencia es indistinguible de un olvido, y el siguiente
+que lo lea decidirá con la mitad de la información. **Formato mínimo, igual para todos los
+casos: `timestamp | quién | qué | por qué | qué lo revierte`.** La condición de reversión
+no es opcional — sin ella, una parada deliberada no se distingue de un descuido.
+
+**Corolario, y es la mitad que más se olvida: ningún documento de proceso declara el VALOR
+ACTUAL de un estado mutable en tiempo de ejecución.** Declara dónde vive ese estado, quién
+lo puede cambiar y cómo se lee — nunca cuánto vale ahora. Un valor escrito en un `.md` se
+congela el día que se escribe y a partir de ahí compite con la fuente real, ganando
+siempre en visibilidad y perdiendo siempre en verdad.
+
+Cuatro instancias reales, todas del mismo día (2026-09-08), que es lo que motivó escribir
+esto:
+
+**(a) Estado de una tarea → vive en Linear.** Toda decisión que pare, bloquee, condicione
+o recorte una tarea se escribe en Linear **en el mismo momento en que se toma**: estado +
+comentario con qué se decidió, quién, cuándo y **qué tendría que pasar para reactivarla**.
+El fichero de `codigo para auditar/cola/` sigue siendo útil para la Directora, pero es
+copia de trabajo derivada, **nunca el hogar único del motivo** — está en `.gitignore`, no
+es fuente de verdad de nada. Si fichero y Linear discrepan, gana Linear, y quien detecte
+la discrepancia la corrige en Linear en ese momento, no la anota para luego. Es la
+jerarquía de fuentes de `CLAUDE.md` aplicada, no una regla nueva.
+- *Caso real:* AIT-32 llevaba parada por decisión explícita de Aitor desde el 2026-08-13
+  ("de momento no vamos a integrarnos a estos sistemas"), pero ese motivo vivía **solo**
+  en `PARADA_AIT-32_registro-automatico.txt`. En Linear era un Backlog normal. El PM la
+  leyó allí, propuso recortarla, y estuvimos a un paso de poner a alguien a construir una
+  integración descartada, sin credenciales y sin diseño. Lo cazó abrir el fichero de la
+  cola por casualidad.
+- **Mientras (a) no lleve tiempo suficiente en marcha:** quien vaya a mover una tarea
+  comprueba **los dos sitios** antes — el PM al priorizar, la Directora al repartir.
+  Cuesta un `ls cola/` y es literalmente lo que salvó AIT-32.
+
+**(b) Modo de publicación → `_modo-publicacion.txt`, solo-anexar.** Una línea por cambio,
+`timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó de
+Aitor de primera mano`, con cabecera de comentarios. La vigente es la última línea que no
+empieza por `#`. **Mientras la línea vigente no tenga procedencia, el modo efectivo es
+`confirmar`** — el conservador, no el que diga el fichero: equivocarse en ese sentido
+publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta de más.
+- **El último campo nombra a un rol concreto que habló con Aitor de primera mano;
+  "relayado" a secas no vale.** Sin él, quien escribe la línea sería también la única
+  prueba de que Aitor lo pidió, y una línea falsa sería indistinguible de una buena.
+  Añadido el 2026-09-08 a propuesta del Integrador tras un caso real: el CEO se apoyaba en
+  el PM y el PM se había equivocado en ese mismo campo una hora antes. **Dos relatos
+  coincidentes que comparten origen no son verificación independiente** — es §2ter(a)
+  aplicado a una cadena de mensajes, que no estaba contemplado.
+- ⚠️ **La regla de degradado se activa por AUSENCIA de procedencia, nunca por desacuerdo
+  entre fuentes.** Si el fichero y un documento discrepan pero la línea vigente sí tiene
+  procedencia, gana la línea vigente y no se degrada nada. Sin esta precisión la regla se
+  convierte en "ante cualquier duda, paramos", que no es lo decidido.
+
+**(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
+entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
+
+**(d) El defecto de documento que está detrás de (b).** El PM le dijo al CEO que el modo
+era `confirmar` leyendo este mismo README; el fichero decía `autonomo`. **El fallo no fue
+suyo, fue del documento:** el README describe **cómo arranca** la fábrica y se leyó como
+**cuál es su estado ahora**. Por eso existe el corolario de arriba. Al repasar este
+documento, cualquier frase que nombre el valor concreto de un estado mutable (el modo de
+publicación, el titular del cerrojo de Convex, qué terminal está migrada) se reescribe
+para decir *dónde se consulta*, no *cuánto vale*.
+
+---
+
+## 2sexies. Falso verde: comprobaciones que mienten en verde (2026-09-08)
+
+Decisión del Factory Architect, ejecutada por el CEO. Es **la otra mitad de §2ter**:
+
+> §2ter cubre al agente que **sabe** que no pudo verificar algo, y le exige declararlo.
+> §2sexies cubre al agente que **cree que sí verificó** porque la herramienta le devolvió
+> verde. La buena fe no protege del segundo.
+
+**Regla de diseño, que es la parte accionable: cuando una comprobación pueda mentir en
+verde, se verifica el EFECTO, no el código de retorno ni la ausencia de error.** "No
+falló" nunca es evidencia de "hizo lo que le pedí".
+
+**Y cuando destapes un falso verde, la pregunta que va detrás siempre es: ¿qué llevaba
+escondido, y quién se ocupa de eso?** Arreglar el indicador no es lo mismo que atender lo
+que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
+
+### Registro vivo de comprobaciones desacreditadas
+
+| Comprobación | Cómo miente | Sustituto correcto |
+|---|---|---|
+| `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
+| `set w to make new window` | crea una ventana sin tab; el `do script ... in w` posterior revienta con -10000 | retirado (§4ter) — usar `do script` sin destino + comparación de conjuntos de ids |
+| `tty` desde la herramienta Bash | devuelve siempre "not a tty", no el tty real de la ventana | `ps -o tty= -p $PPID` |
+| `git status` en una rama sin upstream | verde limpio, **sin** la línea `ahead N`, con commits sin subir | `git log origin/main..main` — y configurar el upstream (`git branch --set-upstream-to`) |
+| `npm test \| tail` | devuelve el exit code de `tail`, no el de los tests | leer la línea `N passed` / `N failed` de la salida |
+| `npx convex codegen` | regenera tipos/bindings; **no publica funciones al backend** | verificar el build de Railway — ver §2 paso 4 |
+| `git push` exitoso | no dice absolutamente nada del build que dispara | `railway logs --build <id>`, confirmando que `convex deploy` terminó en SUCCESS — ver §2 paso 4 |
+
+Las dos últimas ya estaban descritas en §2 paso 4 desde agosto, como incidentes
+independientes: **son las dos publicaciones más caras que ha tenido este proyecto** (AIT-33
+y AIT-35 dadas por publicadas sin que sus mutations existieran en el backend; cuatro horas
+de build roto en producción sin que nadie lo detectara). Llevaban semanas documentadas sin
+que nadie viera que eran la misma clase de fallo que las otras cinco. Esta sección no
+inventa un problema nuevo: le pone nombre a uno ya pagado dos veces.
+
+**Quien se tope con una comprobación que miente en verde la añade a esta tabla en ese
+momento**, aunque ya la haya rodeado y no le bloquee — mismo criterio que `CLAUDE.md` para
+commitear lo que das por hecho. Las seis primeras salieron porque tres roles distintos las
+cazaron por separado en una sola tarde; la tabla existe para que la séptima no cueste otro
+incidente.
 
 ---
 
@@ -571,10 +704,15 @@ hueco sin tarea independiente real (§3, "no adelantar fases").
 
 **El Integrador sí se crea automáticamente** (decidido 2026-08-15, ajustado sobre el
 diseño inicial que lo dejaba fuera): crear la sesión ya no activa por sí sola autoridad
-de publicar sin supervisión — el modo de publicación (ver más abajo) empieza siempre en
-"confirmar", así que cada publicación concreta sigue necesitando el visto bueno de
-Aitor hasta que él mismo decida pasar a modo autónomo. Esto separa "existe la sesión" de
-"publica sola", que es lo que de verdad hacía falta proteger.
+de publicar sin supervisión — quién publica y si pregunta antes lo decide **el modo de
+publicación vigente, que NO se consulta aquí**: vive en `_modo-publicacion.txt` y se lee
+como explica "Modo de publicación del Integrador" más abajo. Esto separa "existe la
+sesión" de "publica sola", que es lo que de verdad hacía falta proteger.
+
+⚠️ **Este párrafo describía antes el valor concreto del modo** ("empieza siempre en
+confirmar"), y eso causó un fallo real el 2026-09-08: el PM lo leyó como el estado
+presente y le informó al CEO de un modo que no era el vigente. Un documento no declara el
+valor actual de un estado mutable — ver §2quinquies, corolario.
 
 **Todo son ventanas separadas — nunca pestañas** (decidido definitivamente 2026-08-15,
 tras probarlo de verdad contra el entorno real: crear una pestaña en una ventana
@@ -613,46 +751,86 @@ Architect, ejecutados por el CEO):
    afectado (Claude Code no lo toca), así que ese sí sigue fijándose una sola vez.
 2. `do script "<cmd>"` sin ventana de destino explícita **reutiliza la ventana
    frontmost existente si está inactiva** (comportamiento documentado de Terminal.app,
-   no de Claude Code) en vez de abrir una ventana nueva de verdad — si ya había una
-   ventana suelta abierta e inactiva (de un intento anterior sin cerrar, por ejemplo),
-   la receta la reutilizaba en silencio: título previo sobreviviendo un momento antes de
-   que el nuevo lo pisara, y un `claude` huérfano de la ventana anterior quedando vivo
-   en paralelo sin que nadie lo notara. Se arregla creando la ventana explícitamente con
-   `make new window` en vez de dejar que `do script` decida.
+   no de Claude Code) en vez de abrir una ventana nueva de verdad. Ese riesgo es real y
+   sigue vivo — pero **no se resuelve con `make new window`, que está roto en este
+   entorno** (punto 3): se resuelve con la verificación anti-reutilización por conjuntos
+   de ids de la receta de abajo, que es obligatoria, no opcional.
+3. **`make new window` está RETIRADO** (decisión del Factory Architect, 2026-09-08, tras
+   9/9 fallos conocidos: 4/4 el 2026-09-03 y 5/5 el 2026-09-08). Diagnóstico del CEO:
+   `make new window` **sí crea la ventana, pero la crea SIN TAB** — `get count of tabs`
+   devuelve `0` y `tab 1 of window ...` da `Invalid index (-1719)`, así que el
+   `do script ... in w` siguiente revienta con `AppleEvent handler failed (-10000)` y el
+   bloque entero no devuelve `id`. Cada intento deja además una **ventana fantasma**
+   permanente (ver abajo). No lo uses ni como primaria ni como fallback.
 
-Se usa para **cada** ventana que arranca `claude` — los seis roles centrales y la
-ventana Desarrollador de cada worker (la ventana Auditor nunca arranca `claude`, no
-necesita este tratamiento):
+**Receta vigente**, para **cada** ventana que arranca `claude` — los seis roles centrales
+y la ventana Desarrollador de cada worker (la ventana Auditor nunca arranca `claude`, no
+necesita este tratamiento). Los cuatro pasos son obligatorios; el 1/3 y el 3bis son
+justamente lo que evita decorar una ventana ajena o un cadáver:
 ```bash
-osascript <<APPLESCRIPT
-tell application "Terminal"
-    activate
-    set w to make new window
-    set t to do script "cd '<ruta-worktree-o-raíz>' && claude --permission-mode auto" in w
-    delay 0.3
-    set custom title of t to "<Título>"
-    set background color of t to {R, G, B}
-    return id of w
-end tell
-APPLESCRIPT
-```
-**Fallback si `make new window` falla** (hallazgo del CEO, 2026-09-03: en al menos una
-sesión, `set w to make new window` falló de forma consistente con "AppleEvent handler
-failed" (-10000), mientras que las lecturas/escrituras de propiedades sobre ventanas ya
-existentes seguían funcionando con normalidad — no confirmado todavía como problema
-general del entorno, solo una observación puntual; `make new window` sigue siendo la
-receta primaria porque resuelve un riesgo real ya documentado más arriba, la
-reutilización silenciosa de una ventana inactiva). Si te pasa lo mismo, usa el idioma
-clásico sin ventana de destino explícita:
-```bash
+# 1. Conjunto de ids ANTES (conjuntos, nunca conteos — ver la nota de fantasmas)
+ids() { osascript -e 'tell application "Terminal" to get id of every window' \
+          | tr ',' '\n' | tr -d ' ' | grep -E '^[0-9]+$' | sort -n; }
+BEFORE=$(ids)
+
+# 2. Crear la ventana
 osascript -e 'tell application "Terminal" to do script "cd '"'"'<ruta>'"'"' && claude --permission-mode auto"'
+sleep 1
+
+# 3. La ventana nueva es el id que NO estaba antes. Si no aparece ninguno, reutilizó una
+#    inactiva o no creó nada — ABORTA, no sigas sobre una ventana que no es tuya.
+WINID=$(comm -13 <(echo "$BEFORE") <(ids) | head -1)
+[ -z "$WINID" ] && { echo "ABORTA: ninguna ventana nueva"; exit 1; }
+
+# 3bis. Guarda de sanidad: una ventana viva tiene exactamente 1 tab. Si da 0 es un
+#       fantasma, no hay nada corriendo dentro — aborta en vez de ponerle título y color.
+TABS=$(osascript -e "tell application \"Terminal\" to get count of tabs of (first window whose id is $WINID)")
+[ "$TABS" != "1" ] && { echo "ABORTA: ventana $WINID sin tab (fantasma)"; exit 1; }
+
+# 4. Título, color y posición, SIEMPRE apuntando por $WINID (nunca buscando por título)
+osascript -e "tell application \"Terminal\" to set custom title of tab 1 of (first window whose id is $WINID) to \"<Título>\""
+osascript -e "tell application \"Terminal\" to set background color of tab 1 of (first window whose id is $WINID) to {R, G, B}"
 ```
-**Advertencia:** esta forma es exactamente la que tenía el riesgo de reutilización que
-`make new window` vino a resolver — antes de seguir con el resto de la receta (título,
-color, `id`), comprueba explícitamente que la ventana devuelta es nueva de verdad
-(compara el número de ventanas antes/después con `get id of every window`, o confirma
-que su título no venía heredado de una sesión anterior) — no lo des por hecho solo
-porque no reutilizó ninguna esta vez.
+
+**Por qué conjuntos y no conteos** (corregido 2026-09-08): el texto anterior decía
+"compara el número de ventanas antes/después". Con las ventanas fantasma acumuladas, esa
+cuenta está falseada. Un conjunto no lo está: los fantasmas salen en el de antes y en el
+de después, se cancelan solos, y el único id nuevo sigue siendo el correcto.
+
+**Ventanas fantasma — residuo conocido, NO se intentan limpiar.** Cada fallo de `make new
+window` dejó una ventana sin tab, invisible en pantalla pero contada por `get id of every
+window`. Hay cinco a fecha de 2026-09-08 (ids 2385, 2387, 2500, 2518 y 2658 — esta última
+de la Directora, al crear las ventanas de T3) y **sobreviven entre sesiones y entre días**
+— la 2385 es anterior a la jornada en que se diagnosticaron, así que no las limpia nadie
+al cerrar. `close` sobre ellas devuelve exit 0 sin error y la
+ventana sigue en la lista (verificado dos veces: el CEO y el Factory Architect, sobre
+ventanas distintas) — es el mismo patrón de "osascript devuelve sin fallar aunque no haya
+hecho nada" que ya vigilamos. Son inofensivas: sin tab y sin proceso dentro. Lo único que
+estropean son los conteos de ventanas, y por eso la receta va por conjuntos.
+**NO VERIFICADO:** reiniciar Terminal.app es la única vía plausible para quitarlas, pero
+nadie lo ha probado — no lo escribas como si lo supiéramos.
+
+### Receta: saber qué ventana es cada sesión (mapeo tty ↔ id ↔ título)
+
+Cuando necesites que una sesión confirme en qué ventana está — al crear roles nuevos, o
+al diagnosticar cuál de varias terminales es la que falla.
+
+⚠️ **Nunca le pidas a una sesión "confírmame tu `tty`".** Desde la herramienta Bash, `tty`
+a secas devuelve siempre `not a tty`, así que esa comprobación falla el 100% de las veces
+sin decir nada útil (§2sexies). Ocurrió de verdad el 2026-09-08: el CEO se lo pidió a los
+cuatro roles que acababa de crear, y lo cazó el Integrador.
+
+La receta correcta, que además da el mapeo completo de una vez:
+```bash
+ps -o tty= -p $PPID   # el tty de la propia sesión que lo ejecuta
+
+# tabla tty ↔ id de ventana ↔ título (los fantasmas salen como error en `tab 1`)
+for id in $(osascript -e 'tell application "Terminal" to get id of every window' | tr ',' ' '); do
+  printf "win %s | tty: %s | title: %s\n" "$id" \
+    "$(osascript -e "tell application \"Terminal\" to get tty of tab 1 of (first window whose id is $id)" 2>&1)" \
+    "$(osascript -e "tell application \"Terminal\" to get custom title of tab 1 of (first window whose id is $id)" 2>&1)"
+done
+```
 
 El flag `--permission-mode auto` (verificado 2026-08-25, existe en `claude --help`) es
 la pieza clave: deja la sesión en modo auto desde el arranque, en vez de arrancar en
@@ -888,12 +1066,28 @@ sin esta mejora.
 
 ### Modo de publicación del Integrador
 
-`Sorfware Factory/_modo-publicacion.txt` (en `.gitignore`, se crea con `confirmar` la
-primera vez): mientras diga `confirmar`, el Integrador pregunta a Aitor antes de CADA
+**Dónde vive:** `Sorfware Factory/_modo-publicacion.txt` (en `.gitignore`). **Este
+documento no dice cuánto vale el modo ahora mismo** — se consulta siempre en ese fichero
+(§2quinquies, corolario).
+
+**Cómo se lee** (fichero de solo-anexar desde 2026-09-08; la vigente es la última línea
+que no empieza por `#`, y el modo es su segundo campo):
+```bash
+grep -v '^#' "Sorfware Factory/_modo-publicacion.txt" | grep -v '^[[:space:]]*$' \
+  | tail -1 | cut -d'|' -f2 | tr -d ' '
+```
+
+**Qué significa cada modo:** en `confirmar`, el Integrador pregunta a Aitor antes de CADA
 publicación concreta (con alerta visible si no responde a tiempo, marca en `/tmp`
-específica por tarea para no repetirla — ver `integrador.md`). Aitor cambia el modo
-diciéndoselo a cualquier rol ("publica sin preguntar" / "vuelve a preguntarme") —
-detalle completo en `integrador.md`.
+específica por tarea para no repetirla). En `autonomo`, publica con el GO del auditor y
+reporta después. Detalle completo en `integrador.md`.
+
+**Quién lo cambia:** Aitor, diciéndoselo a cualquier rol ("publica sin preguntar" /
+"vuelve a preguntarme"). Quien lo reciba **anexa una línea nueva** con su procedencia
+(`timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó de
+Aitor de primera mano`), nunca reescribe el fichero. **Si la línea vigente no trae procedencia, el modo efectivo es
+`confirmar`** — ver §2quinquies (b), incluida la precisión de que eso se activa por
+ausencia de procedencia, nunca por desacuerdo entre fuentes.
 
 ## 5. El prompt único para arrancar una sesión directora desde cero
 
@@ -936,14 +1130,26 @@ fecha) o **NO VERIFICADO** (en negrita, con el motivo) — nunca se deja implíc
 verificado" honesto vale más que un "funciona" sin comprobar (ver §2ter). Añade aquí
 cualquier mecanismo nuevo antes de darlo por bueno en el resto de documentos.
 
+⚠️ **Pregunta obligatoria antes de marcar nada como Verificado** (decisión del Factory
+Architect, 2026-09-08 — ver §2sexies): *"¿cómo podría esta verificación mentirme en
+verde?"* Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
+Verificado. Esto es lo que hace que §2sexies se aplique sola de aquí en adelante, en vez
+de quedarse en una lista que envejece: seis de las comprobaciones que usábamos a diario
+mentían en verde, y dos de ellas costaron los peores incidentes de publicación del
+proyecto.
+
 | Mecanismo/afirmación | Estado | Evidencia / motivo |
 |---|---|---|
 | Rol **Líder de célula** | **NO VERIFICADO** | Documentado por completo en `lider-celula.md` desde 2026-08-14, nunca activado — el proyecto no ha escalado a varias células todavía. Ningún paso de su flujo se ha ejecutado en vivo. |
 | Fallback `tee` para leer el log del auditor en vez del buffer de ventana | **NO VERIFICADO** | Propuesto 2026-09-04 (ver §"El auditor deja de ser invisible"), marcado explícitamente "no adoptar sin probarla primero" — riesgo conocido de que algunas CLIs dejen de renderizar prompts interactivos con la salida en tubería. Nadie lo ha probado todavía. |
-| Fallback `do script` para crear ventana nueva (cuando `make new window` falla) | Verificado, 2026-09-03 | Usado con éxito por el CEO tras 4 fallos consecutivos de `make new window` en la creación de la ventana del QA (entonces llamado "Tester") — funcionó de forma fiable las veces que se probó. |
-| `make new window` como receta primaria de creación de ventana | **NO VERIFICADO del todo** | Falló 4/4 en una investigación puntual (2026-09-03), causa nunca diagnosticada (podría ser específico de esa sesión). Se mantiene como primaria por decisión del Factory Architect porque normalmente funciona y resuelve un bug de reutilización real — pero su fiabilidad de fondo no está confirmada, solo asumida. |
+| `do script` sin ventana de destino como receta **PRIMARIA** de creación de ventana | Verificado, 11/11 | 4/4 el 2026-09-03 (CEO, ventana del QA) + 4/4 del CEO y 3/3 de la Directora el 2026-09-08 (roles centrales y ventanas de T3). Pasa de fallback a primaria por decisión del Factory Architect (2026-09-08). Su verificación anti-reutilización es OBLIGATORIA y va por **conjuntos de ids, nunca por conteos** — los fantasmas falsean la cuenta. La Directora llegó a la comparación por conjuntos **por su cuenta, antes de leer la corrección**, lo que es una validación independiente de que era el arreglo correcto y no una preferencia de quien lo escribió. |
+| `make new window` como receta de creación de ventana | **Verificado como ROTO en este entorno — RETIRADO** | 10/10 fallos (4/4 el 2026-09-03; 5/5 del CEO y 1/1 de la Directora el 2026-09-08, esta última con el mismo -10000 exacto y dejando el fantasma 2658). Causa diagnosticada por el CEO el 2026-09-08: la ventana nace **sin tab** (`get count of tabs` = 0, `tab 1 of window` → `Invalid index -1719`), por eso el `do script ... in w` siguiente revienta con -10000 y el bloque no devuelve `id`. Deja además una ventana fantasma por intento. Retirado por el Factory Architect (2026-09-08) — queda revocada la decisión anterior de mantenerlo como primaria. |
+| Ventanas fantasma eliminables reiniciando Terminal.app | **NO VERIFICADO** | Única vía plausible que se le ha ocurrido a nadie para quitar las 4 ventanas sin tab acumuladas (ids 2385, 2387, 2500, 2518). `close` sobre ellas está verificado ineficaz dos veces (CEO y Factory Architect, sobre ventanas distintas): exit 0 sin error, y la ventana sigue en la lista. Nadie ha probado el reinicio. |
+| `_modo-publicacion.txt` en formato solo-anexar con procedencia | Formato verificado, uso real **NO VERIFICADO** | Migrado por el CEO el 2026-09-08 (decisión del Factory Architect); la lectura de la línea vigente (`grep -v '^#' … \| tail -1 \| cut -d'\|' -f2`) se probó y devuelve `autonomo`. Pero ninguna publicación real lo ha leído todavía — el Integrador no ha publicado nada desde la migración. |
+| `_registro-qa.txt` (log de rondas de QA, solo-anexar) | Creado, **NO VERIFICADO en uso** | Creado por el CEO el 2026-09-08 (decisión del Factory Architect) para cerrar un hueco real: `qa.md` no decía dónde anotar una ronda, y el histórico entero del QA anterior (`crm-curso-vibe-coding-fa`) se perdió al morir su sesión. Aún sin ninguna ronda anotada por un QA en su flujo normal. |
+| `npm run test:e2e` como smoke-test de la app **publicada** | **Verificado FALSO** | Hallazgo del QA, 2026-09-08: `playwright.config.ts` levanta `npm run dev` y corre contra `http://localhost:3000`, con `.env.local` apuntando a `third-goldfinch-805` (Convex de dev/test). Prueba el working tree local contra el backend de dev, **no** el deploy de Railway contra `stoic-impala-857`. No ensucia producción, pero no es un smoke-test del deploy — no lo cuentes como tal. |
 | Mecanismo de **parpadeo de ventana** (fondo alternando color de rol/blanco cuando algo necesita a Aitor, con hook para pararlo al responder) | **NO VERIFICADO — nunca implementado** | Encargado por el Factory Architect el 2026-08-31. Repasado el historial de git y de documentos el 2026-09-05: no hay commit, no hay mención en ningún `.md`, no hay hook en `settings.local.json` relacionado. Se quedó sin construir, no solo sin verificar — el CEO no tenía constancia de este hueco hasta que el Factory Architect preguntó directamente. |
-| Patrón de aviso instantáneo (marker + `Bash run_in_background`) para saber cuándo termina el auditor | Verificado parcialmente, 2026-09-04 | El CEO probó el mecanismo genérico en vivo (marker de prueba + espera en segundo plano, notificación recibida al instante) antes de documentarlo. La Directora lo adoptó, pero su barrido de respaldo (no el aviso instantáneo) fue el que cazó el siguiente veredicto sin relayar — no hay confirmación todavía de que el aviso instantáneo en sí haya disparado con éxito en un ciclo real de auditor. |
+| Patrón de aviso instantáneo (marker + `Bash run_in_background`) para saber cuándo termina el auditor | **Verificado en un ciclo real, 2026-09-08** | El CEO había probado el mecanismo genérico en vivo el 2026-09-04, pero faltaba verlo disparar en una auditoría de verdad. Ya está: la Directora encadenó `touch /tmp/claude-crm-auditor-done-T1` al `codex exec` de **AIT-76**, armó la espera en segundo plano, y al terminar el auditor le llegó la notificación en su propia conversación — relayó el GO en el acto, sin esperar al barrido. Sigue siendo cinturón y tirantes: el barrido periódico no se elimina. |
 | `ScheduleWakeup` sin tope de caducidad (a diferencia de `CronCreate`, que caduca a los 7 días) | Verificado por observación, no por documentación oficial | Sin huecos ni caducidad a lo largo de más de 30h de uso continuo en esta sesión del CEO. El límite de 7 días de `CronCreate` sí está confirmado directamente en su documentación por el Factory Architect ("fire one final time, then are deleted"). |
 | `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El QA (entonces llamado "Tester") declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
 | Hook `PermissionRequest` (aviso de voz inmediato cuando una sesión se bloquea en una aprobación) | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). |

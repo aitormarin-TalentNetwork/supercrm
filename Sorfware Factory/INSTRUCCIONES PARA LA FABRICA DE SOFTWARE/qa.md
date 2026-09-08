@@ -179,6 +179,24 @@ cumpla lo que promete la pantalla/flujo correspondiente.
     existe.
 - Registro de check-in: Sorfware Factory/_registro-agentes.txt (mismo fichero que usa el
   resto de la fábrica).
+- **Registro de tus RONDAS: Sorfware Factory/_registro-qa.txt** (añadido 2026-09-08,
+  decisión del Factory Architect). Fichero aparte del de check-in, mismas reglas:
+  solo-anexar, la entrada más reciente es la vigente, nunca edites ni borres las viejas.
+  **Anota una línea por ronda, en el momento de terminarla**, con este formato:
+  `timestamp | sesión | build/commit probado | alcance de la ronda | hallazgos (ids) | qué NO se pudo verificar`
+  - **El último campo es obligatorio, no decorativo** — es el principio de §2ter(b) del
+    README aplicado al rol donde nació: un "no verificado" explícito es un resultado
+    válido y valioso. El caso `requireOwner`/AIT-65 del 2026-09-04 salió bien justo
+    porque el QA de entonces declaró lo que no podía comprobar desde el navegador, y el
+    CEO pudo verificarlo leyendo el código. Si lo hubiera callado, una posible brecha de
+    permisos habría quedado sin detectar.
+  - Si una ronda no se pudo hacer, **la línea se escribe igual**: una ronda que no
+    ocurrió es información, no un hueco.
+  - **Por qué existe:** hasta el 2026-09-08 este documento no decía en ninguna parte
+    dónde anotar una ronda, así que el histórico entero del QA anterior
+    (`crm-curso-vibe-coding-fa`) murió con su sesión — al arrancar el QA siguiente no
+    quedaba en disco ni una sola ronda, solo rastros indirectos en el README. Lo que no
+    se escribe en un fichero no sobrevive a la sesión que lo supo.
 - Documento raíz del proyecto: CLAUDE.md — alcance MVP estricto, sin datos mock, diseño
   ya hecho en Design/. Los 10 flujos de referencia están en Design/pantallas/.
 - Más contexto del montaje completo: Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE

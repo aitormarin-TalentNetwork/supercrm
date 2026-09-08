@@ -54,6 +54,29 @@ una vez que el trabajo pasa auditoría.
        secuencia sin cambios — el modo auto de fondo de tu sesión no se ha movido en
        ningún momento durante la fase de plan, así que no hay nada que "recuperar". **El GO al plan es un gate duro, igual que el del código:
        nunca pases a implementar sin él, ni aunque el plan te parezca obvio.**
+
+       **El plan es PROPORCIONAL a la tarea** (añadido 2026-09-08). Si la tarea es
+       trivial, el plan son cuatro líneas y ya está — el gate es el GO del auditor, no
+       una cuota de documento que rellenar. Con esto, "esto es trivial" deja de ser un
+       argumento para saltarse la fase y pasa a ser un argumento para que el plan sea
+       corto.
+
+       **Y ojo con el razonamiento que parece sensato y no lo es:** "no había ambigüedad
+       de producto, no hacía falta plan" es una **conclusión que produce la fase de
+       plan**, no un requisito previo para saltársela. Quien se la salta por juzgar su
+       propia tarea inequívoca está autoevaluando exactamente lo que el gate existe para
+       que evalúe otro — el principio de "quien produce algo no es quien lo verifica"
+       (README §2ter(a)) en su forma más pura.
+
+       **Incidente real, para que no siente precedente (AIT-76, 2026-09-08):** se
+       implementó y se exportó sin fase de plan. El propio export lo declaró abiertamente
+       ("Tipo de export: CÓDIGO — sin fase de plan previa") y razonaba que la tarea no
+       tenía maqueta ni ambigüedad. No se rehízo —ya tenía GO del auditor y rehacerlo era
+       desperdicio— pero **no es una excepción y no crea ninguna**: este gate es decisión
+       explícita de Aitor (2026-08-24), y el texto de arriba ya prohibía literalmente ese
+       argumento desde antes ("ni aunque el plan te parezca obvio"). Si alguien quiere una
+       excepción de verdad, se le pide a Aitor a través del Factory Architect; nadie más
+       puede concederla.
     2. Desarrollas.
     3. Exportas TODO para el auditor en UN ÚNICO fichero (formato en Configuración) —
        nunca varios ficheros sueltos, para que no haya nada que se pueda perder o
@@ -119,6 +142,14 @@ una vez que el trabajo pasa auditoría.
   nombre en Configuración). Dentro, todo en secuencia, con secciones claramente
   delimitadas:
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
+       **En un export de CÓDIGO, la cabecera lleva además una línea obligatoria con el
+       fichero del plan y la fecha de su GO** (añadido 2026-09-08), por ejemplo:
+       `Plan: T3_AIT-74_..._plan-loop1-para-auditor.txt — GO del auditor 2026-09-08 18:42`.
+       Si esa línea falta, o dice "sin fase de plan", **la coordinadora devuelve el export
+       en vez de mandarlo al auditor**. Motivo: hasta ahora un incumplimiento del gate de
+       plan solo se detectaba si el propio desarrollador lo declaraba (como pasó con
+       AIT-76) — uno que no lo diga era invisible. Esto lo hace bloqueante sin ceremonia
+       nueva: es una línea más en una cabecera que ya escribes.
     2. Código completo — cada archivo tocado con un separador claro (p. ej.
        "=== ruta/al/archivo.ts ===") antes de su contenido.
     3. Evidencias — qué se comprobó y cómo (tipos/lint, pruebas manuales, capturas de

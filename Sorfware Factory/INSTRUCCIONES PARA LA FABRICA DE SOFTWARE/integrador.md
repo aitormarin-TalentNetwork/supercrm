@@ -171,11 +171,36 @@ de este proyecto).
   Si por lo que sea no se creó con `/factory` (comprueba con `ListAgents`), la Directora
   sigue publicando ella misma mientras tanto, igual que siempre.
 - **Modo de publicación — pregunta por defecto, cambiable a autónomo:** el fichero
-  `Sorfware Factory/_modo-publicacion.txt` (en `.gitignore`) contiene `confirmar` o
-  `autonomo` — léelo antes de cada publicación (paso 3 del checklist). Empieza siempre
-  en `confirmar` la primera vez que se crea. Aitor puede decírselo a cualquier rol en
-  cualquier momento ("deja de preguntarme, publica sin preguntar" / "vuelve a
-  preguntarme antes de publicar") — quien lo reciba actualiza el fichero.
+  `Sorfware Factory/_modo-publicacion.txt` (en `.gitignore`) — léelo antes de cada
+  publicación (paso 3 del checklist). Empieza siempre en `confirmar` la primera vez que
+  se crea. Aitor puede decírselo a cualquier rol en cualquier momento ("deja de
+  preguntarme, publica sin preguntar" / "vuelve a preguntarme antes de publicar") — quien
+  lo reciba **anexa una línea nueva**, nunca reescribe el fichero.
+  - **Formato (solo-anexar desde 2026-09-08, decisión del Factory Architect — ver
+    `README.md` §2quinquies):** una línea por cambio,
+    `timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó
+    de Aitor de primera mano`, con cabecera de comentarios (`#`). **La vigente es la
+    ÚLTIMA línea que no empieza por `#`**; el modo es su segundo campo. Nunca edites ni
+    borres las viejas — el historial es justamente lo que hace que el modo tenga
+    procedencia.
+  - **El último campo nombra a un rol concreto que habló con Aitor de primera mano.**
+    "Relayado" a secas no vale. Sin ese campo, quien escribe la línea sería también la
+    única prueba de que Aitor lo pidió, y una línea falsa resultaría indistinguible de
+    una buena. Nace de un caso real del 2026-09-08 (observación tuya, adoptada por el
+    Factory Architect): el CEO se apoyaba en el PM y el PM se había equivocado en ese
+    mismo campo una hora antes — **dos relatos coincidentes que comparten origen no son
+    verificación independiente**, que es §2ter(a) aplicado a una cadena de mensajes.
+    ```bash
+    grep -v '^#' "Sorfware Factory/_modo-publicacion.txt" | grep -v '^[[:space:]]*$' \
+      | tail -1 | cut -d'|' -f2 | tr -d ' '
+    ```
+  - ⚠️ **Si la línea vigente NO trae procedencia** (sin quién lo pidió, o marcada
+    explícitamente como reconstruida), **el modo efectivo es `confirmar`**, no lo que
+    diga el campo — el conservador siempre. Motivo real (2026-09-08): el fichero decía
+    `autonomo` con cuatro días de antigüedad, sin autor ni fecha de la decisión, y nadie
+    en la fábrica podía distinguir "Aitor lo decidió" de "quedó ahí de un residuo".
+    Equivocarse en este sentido concreto publica sin permiso, que no se deshace;
+    equivocarse en el otro solo cuesta una pregunta de más.
   - **En modo confirmar:** manda el aviso a Aitor y, si no responde en un margen
     razonable, dispara una alerta visible (`osascript -e 'display alert ... as
     critical'`, igual que la de acceso a la IA caído) — con una marca en `/tmp`

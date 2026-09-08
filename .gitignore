@@ -63,3 +63,7 @@ next-env.d.ts
 # registro de check-in de agentes (quién se presentó, cuándo, con qué rol) — estado
 # efímero de coordinación, no config del proyecto
 /Sorfware Factory/_registro-agentes.txt
+
+# registro de rondas de QA (qué se probó, contra qué build, qué no se pudo verificar) —
+# mismo carácter que el anterior: histórico de ejecución, no config del proyecto
+/Sorfware Factory/_registro-qa.txt
