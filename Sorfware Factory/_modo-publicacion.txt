@@ -1,0 +1,19 @@
+# Modo de publicación del Integrador — fichero de SOLO ANEXAR (como _registro-agentes.txt).
+# La ÚLTIMA línea que no empieza por '#' es la vigente. Nunca edites ni borres las viejas.
+#
+# Formato: timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó de Aitor de primera mano
+#
+# REGLA (Factory Architect, 2026-09-08): mientras la línea vigente NO tenga procedencia,
+# el modo efectivo es `confirmar` — el conservador, no el que diga el fichero. Un estado
+# sin procedencia es indistinguible de un olvido, y equivocarse aquí publica sin permiso,
+# que es irreversible.
+#
+# El ÚLTIMO campo nombra a un rol concreto que habló con Aitor de primera mano.
+# "Relayado" a secas no vale: quien escribe la línea no puede ser también la única prueba
+# de que Aitor lo pidió, o una línea falsa sería indistinguible de una buena. Si nadie
+# puede nombrarse ahí de primera mano, NO hay procedencia y se degrada a `confirmar`.
+#
+# El degradado se activa por AUSENCIA de procedencia, nunca por desacuerdo entre fuentes:
+# si la línea vigente tiene procedencia y un documento dice otra cosa, gana la línea.
+2026-09-04 00:10:26 | autonomo | autor desconocido | desconocido | NINGUNO — línea reconstruida a posteriori desde el mtime del fichero, antes de que este formato existiera (CEO, 2026-09-08). Es el ejemplo de por qué existe este campo.
+2026-09-08 17:24:00 | autonomo | CEO (crm-curso-vibe-coding-b2) | Aitor | PM (crm-curso-vibe-coding-78), que se lo preguntó a Aitor hoy y le respondió "vale lo que dice el fichero" — lo dejó en autonomo el 4-sep a conciencia. Revierte: Aitor le dice a cualquier rol "vuelve a preguntarme antes de publicar" y ese rol anexa una línea nueva.
