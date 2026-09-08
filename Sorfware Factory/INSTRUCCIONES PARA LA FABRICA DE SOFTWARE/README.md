@@ -415,6 +415,52 @@ No hay que inventar ningún mecanismo nuevo.
   de proceso (decisión 7). Si no, se arregla la procedencia y se crea el problema de la
   divergencia.
 
+**(g) Dos condiciones sin las cuales versionar un registro hace más daño que bien**
+(decisión 13, 2026-09-08, ambas levantadas por el PM):
+
+**13.1 — Escritor único, desde la raíz, nunca desde una rama de tarea.** Un fichero de
+solo-anexar que crece por el final es material clásico de conflicto en cada merge, y este
+proyecto ya conoce ese dolor: es la razón del turno de Convex y del criterio de no
+paralelizar tareas que tocan el mismo archivo. Así que estos ficheros se escriben **solo
+desde el checkout de la raíz, directamente sobre `main`** — nunca desde un worktree.
+Fuera del flujo de ramas, el conflicto no se mitiga: **no puede existir**. Escritor
+designado: el QA para su registro; quien haya hablado con Aitor, para el modo. Si una
+terminal de worktree cree que necesita anexar una línea, no lo hace — se lo pide al rol
+que escribe desde la raíz. Va escrito en la cabecera de cada fichero, no solo aquí: es
+donde lo lee quien está a punto de escribir.
+
+**13.2 — Los registros de la fábrica anotan REFERENCIAS por defecto, no contenido.** Id de
+cliente en vez de nombre y teléfono; "importe fuera de rango" en vez de la cifra; id de
+oportunidad en vez de su descripción. **Aplica desde hoy aunque hoy no haga falta**, y a
+**cualquier** registro de la fábrica que pueda tocar datos de producción, presente o
+futuro — es más barato como norma general que ir descubriéndolo caso por caso.
+
+⚠️ **La excepción, porque a veces el contenido ES el fallo:** un nombre con un carácter que
+rompe el render, un email con mayúsculas que no empareja, un importe con un separador raro
+que descuadra un total. Ahí "id de cliente `k17bp…`, campo nombre" no permite reproducir
+nada, y la regla obligaría a elegir entre incumplirla o reportar algo irreproducible.
+
+- **El literal se incluye solo cuando es el objeto del hallazgo**, y el criterio es
+  estrecho a propósito: **entra si sin él el hallazgo no es reproducible.** No "si es
+  cómodo", no "por si acaso".
+- **Y va precedido del token fijo `[LITERAL]`**, siempre escrito igual. La marca vale
+  tanto como la regla: el día del salto a datos reales, el barrido del
+  `checklist-produccion-real.md` no tiene que releer el registro entero buscando PII a
+  ojo — corre `grep -n "\[LITERAL\]"` y revisa esas líneas, que serán pocas. Convierte una
+  auditoría inviable en una de dos minutos. Sin un token fijo, la marca se escribiría de
+  quince formas distintas y el barrido no encontraría nada.
+- *Por qué:* el QA prueba contra la app de Railway, que apunta al Convex de **producción**.
+  Hoy es inocuo porque ahí solo hay datos de prueba. Pero el día que este CRM lleve
+  clientes reales, ese registro pasaría a ser un fichero con datos personales — y
+  versionado, se quedarían en el historial de git **para siempre**, aunque después se
+  borren. Sacar PII de un historial es una operación fea que nadie debería tener que hacer
+  aquí. Escribirlo bien cuesta exactamente lo mismo.
+- *Comprobado al adoptarlo (2026-09-08):* lo ya versionado no contiene PII — ni teléfonos,
+  ni emails, ni importes, ni nombres reales; los clientes citados son datos de prueba
+  creados por el propio QA. La regla llega a tiempo, no tarde.
+- Enlazado desde `checklist-produccion-real.md`, que es lo que se dispara al acercarse el
+  salto a datos reales.
+
 **(e) Qué versión está desplegada tiene que poder responderlo cualquiera, no ser un
 privilegio de rol** (formulación del QA, 2026-09-08). Es la misma familia vista desde otro
 ángulo: la procedencia que falta aquí no es el autor de una nota, sino **la versión del
@@ -500,6 +546,7 @@ que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 | `tty` desde la herramienta Bash | devuelve siempre "not a tty", no el tty real de la ventana | `ps -o tty= -p $PPID` |
 | `git status` en una rama sin upstream | verde limpio, **sin** la línea `ahead N`, con commits sin subir | `git log origin/main..main` — y configurar el upstream (`git branch --set-upstream-to`) |
 | `git commit` OK | se lee como "guardado", pero el trabajo existe **en un solo disco**, sin publicar | confirmar que `git log origin/main..main` está vacío. **Misma trampa que la fila anterior por otro camino**, y juntas explican las dos veces que pasó el 2026-09-08: 11 commits de PRD y luego 3 más, todos commiteados "correctamente" y ninguno subido |
+| "Worktree limpio + sin fichero `plan-loop<N>`" como señal de que un desarrollador está parado | **Es el estado ESPERADO durante la fase de plan, no un bloqueo.** `EnterPlanMode` es de solo lectura: impide crear ningún fichero fuera del plan interno del harness, así que mientras dura la fase no hay nada que ver en disco. La Directora dio por parada a T3 por esto el 2026-09-08 | comprobar si la sesión aparece `busy` en `ListAgents`, y el transcript (nivel 1). **Con el gate de plan ya obligatorio esto va a pasar con CADA desarrollador**, así que no es un caso aislado: hallazgo de T3, añadido por el CEO el mismo día |
 | `screencapture -l <id>` sin permiso de Grabación de Pantalla | **exit 0 y un fichero PNG creado**, pero la imagen es un rectángulo en blanco de 80×116 px, no la ventana (verificado por el CEO sobre su propia ventana, 2026-09-08). A la Directora, sobre otra ventana, le dio error explícito — o sea que **el mismo comando falla de dos formas distintas según el caso, y una de ellas en verde** | abrir la imagen y mirarla, **nunca fiarse del exit code ni de que el fichero exista**. Comprobar tamaño/dimensiones plausibles antes de concluir nada de una captura |
 | `npm test \| tail` | devuelve el exit code de `tail`, no el de los tests | leer la línea `N passed` / `N failed` de la salida |
 | `npx convex codegen` | regenera tipos/bindings; **no publica funciones al backend** | verificar el build de Railway — ver §2 paso 4 |

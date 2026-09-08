@@ -56,6 +56,19 @@ de alcance/producto, no se asume silencio como aprobación.
 - Cualquier otra decisión que el proyecto haya documentado explícitamente como "válida
   solo mientras no haya datos reales" (buscar ese tipo de nota en `docs/`, ADRs, y
   comentarios de diseño) — se revisa una a una, no se asume que ya no aplica.
+- **Qué ficheros VERSIONADOS de la fábrica pueden haber capturado contenido de
+  producción** (añadido 2026-09-08, decisión 13.2). Los registros de la fábrica anotan
+  referencias por defecto, pero se permite el contenido literal cuando **es** el objeto
+  del hallazgo. Ese literal va siempre precedido del token fijo `[LITERAL]`, así que la
+  revisión es esto y no una relectura a ojo:
+  ```bash
+  grep -rn "\[LITERAL\]" "Sorfware Factory/"
+  ```
+  Revisa esas líneas una a una. **Ojo con por qué esto importa aquí y no en otro sitio:**
+  estos ficheros están versionados en git, así que cualquier dato personal que entre se
+  queda en el historial **para siempre**, aunque después se borre el fichero — y sacarlo
+  exige reescribir historial. Si el barrido encuentra PII real, se decide qué hacer
+  **antes** del salto a datos reales, no después.
 
 ---
 

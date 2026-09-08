@@ -1,6 +1,14 @@
 # Modo de publicación del Integrador — fichero de SOLO ANEXAR (como _registro-agentes.txt).
 # La ÚLTIMA línea que no empieza por '#' es la vigente. Nunca edites ni borres las viejas.
 #
+# ⚠️ ESCRITOR ÚNICO, DESDE LA RAÍZ (decisión 13.1, 2026-09-08): este fichero se escribe
+# SOLO desde el checkout de la raíz, directamente sobre `main` — nunca desde un worktree
+# ni desde una rama de tarea. Está versionado en git (decisión 12), y un fichero de
+# solo-anexar que crece por el final da conflicto en cada merge; fuera del flujo de ramas,
+# ese conflicto no puede existir. Lo escribe quien haya hablado con Aitor del modo. Si una
+# terminal de worktree cree que necesita anexar aquí, NO lo hace: se lo pide a un rol de
+# la raíz.
+#
 # Formato: timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó de Aitor de primera mano
 #
 # REGLA (Factory Architect, 2026-09-08): mientras la línea vigente NO tenga procedencia,

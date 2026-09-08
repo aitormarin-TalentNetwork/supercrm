@@ -1,6 +1,34 @@
 # Registro de rondas de QA — fichero de SOLO ANEXAR (mismas reglas que _registro-agentes.txt).
 # La entrada más reciente es la vigente. NUNCA edites ni borres líneas viejas.
 #
+# ⚠️ DOS REGLAS QUE HAY QUE LEER ANTES DE ESCRIBIR AQUÍ (decisión 13, 2026-09-08):
+#
+# 1. ESCRITOR ÚNICO, DESDE LA RAÍZ. Este fichero se escribe SOLO desde el checkout de la
+#    raíz del proyecto, directamente sobre `main` — nunca desde un worktree ni desde una
+#    rama de tarea. Un fichero de solo-anexar que crece por el final es material clásico
+#    de conflicto en cada merge; manteniéndolo fuera del flujo de ramas, el conflicto no
+#    se mitiga: no puede existir. El escritor designado es el QA. Si una terminal de
+#    worktree cree que necesita anexar una línea, NO lo hace: se lo pide al QA.
+#
+# 2. REFERENCIAS POR DEFECTO, NO CONTENIDO. Anota identificadores, no datos: id de cliente
+#    en vez de nombre y teléfono, "importe fuera de rango" en vez de la cifra, id de
+#    oportunidad en vez de su descripción.
+#
+#    EXCEPCIÓN, porque a veces el contenido ES el fallo (un nombre con un carácter que
+#    rompe el render, un email con mayúsculas que no empareja, un importe con un separador
+#    raro): el literal se incluye SOLO cuando es el objeto del hallazgo — el criterio es
+#    "sin él, el hallazgo no es reproducible", no "es más cómodo". Y va precedido del
+#    token fijo [LITERAL], siempre escrito igual, para que sea grepeable: el día del salto
+#    a datos reales, el checklist corre `grep -n "\[LITERAL\]"` y revisa solo esas líneas
+#    en vez de releer el registro entero a ojo.
+#
+#    Motivo: el QA prueba contra la app de Railway, que apunta
+#    al Convex de PRODUCCIÓN. Hoy ahí solo hay datos de prueba, pero el día que este CRM
+#    lleve clientes reales, este fichero pasaría a contener datos personales — y está
+#    versionado en git, así que se quedarían en el historial para siempre aunque luego se
+#    borren. Sacar PII de un historial de git es una operación fea que nadie debería tener
+#    que hacer aquí. Cuesta lo mismo escribirlo bien hoy.
+#
 # Formato: timestamp | sesión | build/commit probado | alcance de la ronda | hallazgos (ids) | qué NO se pudo verificar
 #
 # El ÚLTIMO campo es OBLIGATORIO, no decorativo — es §2ter(b) del README aplicado al rol
