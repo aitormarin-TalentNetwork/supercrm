@@ -291,11 +291,20 @@ tiene bloqueada, que es lo accionable — porque cada uno se resuelve distinto:
   muerta.
 
 *Verificado en vivo el 2026-09-08:* T2 apareció congelada con 10 mensajes sin drenar y su
-último `tool_use` era `ExitPlanMode` — diagnóstico completo, con su remedio, **sin leer su
-pantalla**. Esto cierra buena parte del hueco que dejó renunciar al nivel 3: el transcript
-da el QUÉ (cola sin drenar) y el POR QUÉ (qué prompt) a la vez. La Directora llegó al mismo
-sitio por otra vía —T2 había anunciado en su propio turno que iba a quedarse
-incomunicada—, pero esta no depende de que la sesión se acuerde de avisar.
+último `tool_use` era `ExitPlanMode` — diagnóstico completo, con su remedio, sin leer su
+pantalla.
+
+⚠️ **PERO NO TE FÍES DE ESTO COMO SUFICIENTE — corregido el mismo día, y el dato es duro:
+el atajo falló 2 de 2 veces cuando de verdad hizo falta.** T3 apareció parada dos veces con
+su último `tool_use` en `Edit`, no en `ExitPlanMode`, y estaba bloqueada en la pantalla de
+aprobación las dos. Quien se quede en el transcript concluye *"está en un Edit largo"* y la
+deja quince minutos más — pasó exactamente así. **La pantalla fue la única fuente que lo
+dijo.**
+
+Así que el orden correcto, y la razón: **el `tool_use` va primero porque es más RÁPIDO, no
+porque baste.** Si en 3 minutos no tienes diagnóstico claro, se mira la pantalla (ver
+`director.md`, decisión 24 — instrucción directa de Aitor). No lo escribas como si el
+transcript cerrara el hueco: no lo cierra, lo abarata.
 
 📌 **Dentro del transcript, la señal PRIMARIA son las entradas `queue-operation` /
 `enqueue`** (hallazgo de la Directora, 2026-09-08; promovido a señal principal por la

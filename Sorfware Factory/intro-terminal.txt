@@ -39,27 +39,38 @@ una vez que el trabajo pasa auditoría.
 
 - **La secuencia es fija y no se salta ningún paso (fase de plan añadida 2026-08-24,
   gate duro — decisión de Aitor, ver `director.md`):**
-    1. **Fase de plan, antes de tocar código.** Nada más coger la tarea, entra en modo
-       plan de Claude Code (herramienta `EnterPlanMode` — sin escribir ni tocar
-       código; convive sin conflicto con el modo auto de fondo de tu sesión, ver más
-       abajo): lee la issue de Linear, la
-       pantalla correspondiente en `Design/pantallas/` y la entidad en
+    1. **Fase de plan, antes de tocar código.** Nada más coger la tarea: lee la issue de
+       Linear, la pantalla correspondiente en `Design/pantallas/` y la entidad en
        `docs/02-modelo-de-datos.md`, y redacta un plan de implementación. Expórtalo a un
        único fichero activo (convención de nombre `plan-loop<N>` en Configuración) y
        avisa por el mismo canal de siempre (punto de control + mensaje directo a la
        coordinadora) de "plan listo para auditar". Mismo contrato GO/NO-GO que el audit
        de código de más abajo, mismo bucle: si NO-GO, revisa el plan y vuelve a exportar
        con ronda+1 (borra el fichero de la ronda anterior, nunca dejes más de uno
-       activo); si GO, sal de modo plan (`ExitPlanMode`) y sigue con el resto de la
-       secuencia sin cambios — el modo auto de fondo de tu sesión no se ha movido en
-       ningún momento durante la fase de plan, así que no hay nada que "recuperar". **El GO al plan es un gate duro, igual que el del código:
-       nunca pases a implementar sin él, ni aunque el plan te parezca obvio.**
+       activo). **El GO al plan es un gate duro, igual que el del código: nunca pases a
+       implementar sin él, ni aunque el plan te parezca obvio.**
+
+       ⚠️ **NO uses `EnterPlanMode`** (decisión 23, 2026-09-08 — autorizada por Aitor,
+       revierte su propia política del 2026-08-25). Trabajas la fase de plan en modo auto
+       normal, como el resto de la secuencia.
+       *Por qué se retiró:* salir del modo plan disparaba una pantalla de aprobación que
+       **dejaba la sesión sorda** —sin poder recibir mensajes— hasta que un humano la
+       respondía a mano. Lo garantizaba el propio proceso: todo desarrollador acababa ahí
+       en cada tarea. El 2026-09-08 costó ~85 minutos repartidos en tres sesiones, y Aitor
+       tuvo que destrabar terminales a mano varias veces.
+       ⚠️ **El gate NO se relaja, y esto va sin suavizar:** sigue siendo duro y sin
+       excepciones. **Lo único que se pierde es la garantía mecánica** de que no puedas
+       tocar código mientras planificas — pasa de imposibilidad técnica a **regla
+       vigilada**. La sostienen dos comprobaciones independientes: el auditor no da GO a
+       código sin plan aprobado, y la coordinadora **devuelve** cualquier export cuya
+       cabecera no nombre el fichero del plan y la fecha de su GO.
 
        ⚠️ **AVISA ANTES DE QUEDARTE SORDO** (decisión 16, 2026-09-08 — esto no es opcional).
-       Al salir de la fase de plan aparece una **pantalla de aprobación** (`ExitPlanMode`).
-       Mientras esté ahí, tu sesión está **SORDA**: los mensajes directos que te manden se
-       encolan y NO se te entregan hasta que alguien la responde a mano. No lo sabes tú, y
-       tampoco lo sabe quien te escribe.
+       **Ya no aplica a la fase de plan** —desde la decisión 23 no hay pantalla de
+       aprobación ahí— pero **sigue vigente para cualquier otro prompt interactivo** que
+       abras (un selector, una confirmación). Mientras uno esté abierto, tu sesión está
+       **SORDA**: los mensajes directos que te manden se encolan y NO se te entregan hasta
+       que alguien lo responde a mano. No lo sabes tú, y tampoco lo sabe quien te escribe.
        Así que, **justo ANTES de llamar a `ExitPlanMode`, manda un mensaje a la
        coordinadora**: "entro en la pantalla de aprobación, quedo sordo hasta que alguien
        la responda". Eso convierte un atasco invisible de 30 minutos en una espera conocida
@@ -135,8 +146,13 @@ una vez que el trabajo pasa auditoría.
 - **Modo de la sesión — AUTO por defecto, fijado al arrancar con `--permission-mode
   auto` (README §4ter), no algo que gestiones tú** (pedido explícito de Aitor,
   2026-08-25, aplica a cualquier fábrica de este montaje): tu sesión ya nace en modo
-  auto. La fase de plan del paso 1 (`EnterPlanMode`/`ExitPlanMode`) es un mecanismo
-  aparte que no lo pisa ni depende de él. Si te encuentras pidiendo aprobación en cada
+  auto. ⚠️ **REVISADO 2026-09-08, también por Aitor:** la política del 2026-08-25 dejaba
+  al Desarrollador fuera del modo auto durante la fase de planificación. **Eso queda
+  revertido** — ya no se usa `EnterPlanMode`, así que la fase de plan corre en modo auto
+  como todo lo demás (ver paso 1). Motivo, que en agosto no se conocía porque no estaba
+  medido: **cada desarrollador se quedaba sordo en cada tarea**, sin que nadie lo
+  detectara hasta verlo a ojo. No es que la política nunca existiera; es que su coste
+  apareció después. Si te encuentras pidiendo aprobación en cada
   paso fuera de la fase de plan, no es un estado tuyo que puedas o debas cambiarte a ti
   misma, ni algo que debas pedirle a otra sesión que te cambie — repórtalo a la
   coordinadora como cualquier otra cosa operativa (caso real: T2 en SuperCRM,

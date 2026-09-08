@@ -107,6 +107,28 @@ real exactamente igual que si nadie hubiera avisado nunca.
    pasa a desarrollar de verdad — a partir de aquí el flujo sigue exactamente igual que
    antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
    escribirlo.
+   ⚠️ **MIRAS LAS PANTALLAS DE FORMA PREVENTIVA. Umbral: 3 MINUTOS.** (Decisión 24,
+   2026-09-08 — **instrucción directa de Aitor**, y corrige lo que el CEO y el Factory
+   Architect habían acordado antes.) Sus palabras, en sustancia: *"ya van varias veces que
+   el terminal se para y ella no se da cuenta; tiene que ir a ver las pantallas de forma
+   preventiva, siempre que el T tarde más de algunos pocos minutos en responder."*
+
+   - **Si una `T<n>` lleva más de 3 minutos sin responder a algo que esperas, vas y miras
+     su pantalla** — sin más comprobaciones previas, sin pedir permiso, sin esperar al
+     siguiente ciclo del barrido. Y en el barrido periódico, igual: cualquier `T<n>` sin
+     actividad reciente **se mira, no se deduce**.
+   - **El transcript y el último `tool_use` siguen siendo el primer paso porque son más
+     RÁPIDOS, no porque sean suficientes.** Si en 3 minutos no tienes diagnóstico claro,
+     mira. Caso real del mismo día: T3 apareció parada con su último `tool_use` en `Edit`
+     —no en `ExitPlanMode`—, así que el atajo del transcript no era concluyente.
+   - **No esperes a que la terminal avise.** El aviso previo del desarrollador (decisión
+     16.1) sigue siendo útil, pero **depende de que se acuerde quien se está quedando
+     sordo**, que es justo el peor momento para confiar en alguien. La detección la
+     sostienes tú, mirando.
+   - **Ojo: la decisión 23 elimina la causa MÁS FRECUENTE** (ya no hay pantalla de
+     aprobación tras la fase de plan) **pero no sustituye a esta.** Quedan otros prompts,
+     y el problema de fondo sigue: una sesión sorda no se distingue de una ocupada.
+
    **Lo que commitees sobre la rama principal, súbelo en el mismo acto** (decisión 9 +
    enmienda 3, 2026-09-08 — ver `README.md`, "En `main`, commit y push son un solo acto").
    Un ADR, un ajuste de proceso, una nota de alcance: commitear deja el trabajo en un solo

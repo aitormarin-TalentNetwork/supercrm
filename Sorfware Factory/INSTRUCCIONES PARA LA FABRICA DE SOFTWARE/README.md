@@ -396,6 +396,29 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
 
+**(h) Una respuesta de granularidad baja no autoriza puntos concretos** (decisión 25,
+2026-09-08, formulación de la Directora). Es un **eje distinto** del que cubren (b) y la
+decisión 21: aquellos miran **por cuántas manos ha pasado** la autorización; este mira **si
+la respuesta tiene resolución suficiente para lo que se le atribuye**. Una respuesta puede
+ser de primera mano y aun así no autorizar nada concreto.
+
+*El caso:* un mensaje que enumeraba dos decisiones pendientes recibió un **"ok a todo"**.
+Aunque llegue directo, eso no distingue *"autorizo estas dos cosas"* de *"vale, sigue con
+lo que estés haciendo"*.
+
+- **Regla:** cuando una respuesta humana tenga menos granularidad que la pregunta, **no
+  cuenta como autorización de los puntos individuales**.
+- Quien la recibe **escribe en su respuesta qué está tomando por aprobado y pide
+  corrección** — es el máximo que se puede hacer sin volver a preguntar.
+- **Pero eso no convierte su interpretación en confirmación para terceros.** Lo accionable:
+  **quien la recibe de rebote no construye sobre la interpretación de otro.**
+
+Y la razón por la que esto se sostiene, en palabras de la Directora al decidir no ejercer
+una capacidad que ya tenía autorizada mientras el CEO esperaba su propia confirmación: *"si
+tú no la adoptas por prudencia y yo la uso igual, la regla se convierte en algo que cumple
+quien puede permitírselo"*. **Eso no es una regla de proceso: es la razón por la que las
+reglas de proceso significan algo.**
+
 **(f) El estado cuyo valor es HISTÓRICO se versiona en git; el que solo vale en el momento
 se queda local** (decisión 12, 2026-09-08). Escribir la procedencia no basta si la
 procedencia vive en un solo disco y es autodeclarada — quien escribe la línea es también
