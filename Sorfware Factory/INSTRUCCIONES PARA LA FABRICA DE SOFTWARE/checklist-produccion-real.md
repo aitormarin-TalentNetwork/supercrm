@@ -89,6 +89,18 @@ de alcance/producto, no se asume silencio como aprobación.
     autorrelleno incluido). Aitor confirmó explícitamente dejarlo así por ahora
     (2026-08-20) — pero esta es exactamente la decisión que este checklist tiene que
     volver a poner sobre la mesa antes del salto a real, no una aprobación permanente.
+    El código lo declara en su propio comentario ("decisión explícita del proyecto, es un
+    entorno de pruebas sin datos reales"), así que **quien se lo encuentre no está ante un
+    descuido**: está ante una decisión con fecha de caducidad, y la fecha es este
+    checklist. Verificado el 2026-09-08 que el bloque **sigue vivo en producción**.
+    ⚠️ **Y el remedio NO es solo quitar el bloque de la UI** (hallazgo de la Directora,
+    2026-09-08, a raíz de que T1 lo levantara): las contraseñas vienen de variables con
+    prefijo `NEXT_PUBLIC_`, que **Next.js incrusta en el bundle de JavaScript en tiempo de
+    build**. Si están definidas al construir, el valor ya está dentro del JS que se sirve
+    al navegador — ocultar el bloque lo quita de la vista, **no del bundle**. Así que
+    cuando llegue el momento son tres cosas y en este orden: **rotar** las contraseñas
+    semilla, **quitar** las variables del entorno de build, y **después** condicionar el
+    bloque. Hacer solo lo tercero da una falsa sensación de arreglo.
   - **Entorno de Convex compartido entre desarrollo y producción** (mismo deployment que
     usa Railway en producción). AIT-59 creada en Backlog para no perderlo.
     **🟢 Resuelto (2026-08-24, AIT-59):** Railway ahora despliega en cada build contra
