@@ -1,7 +1,7 @@
 ---
 decision: atribucion-con-varias-oportunidades
 tipo: grilling
-estado: abierta
+estado: resuelta
 bloqueos: []
 ---
 
@@ -34,3 +34,24 @@ oportunidad abierta a la vez: si son casi ninguno, la respuesta barata (a) basta
 
 ## Resolucion
 
+**(d) El contexto del clic, con (a) de respaldo.**
+
+**Quien y cuando**: Aitor, 2026-09-08. Su comentario en Notion se quedo a medias
+(*"esta au"*, *"esta aui"*) sobre la opcion (c); al preguntarle de nuevo con las cuatro
+opciones y su precio delante, eligio (d) con (a) de respaldo.
+
+**La regla, en orden**:
+1. Si el clic traia una oportunidad en contexto ("Escribir"/"Responder" pulsado dentro
+   de una oportunidad), la actividad es de **esa**. El CRM usa lo que el vendedor ya le
+   dijo al pulsar; no adivina.
+2. Si no hubo contexto y el cliente tiene **exactamente una** oportunidad abierta, esa.
+   Es la regla que ya tenia el PRD, conservada como desempate.
+3. En cualquier otro caso, **ninguna**.
+
+**Limite conocido y aceptado**: los emails escritos directamente en Gmail no llevan
+contexto, asi que con varias oportunidades abiertas siguen sin actualizar ninguna. Es el
+precio de no inventar atribuciones, y es preferible a marcar como activa una venta que
+nadie ha atendido.
+
+**Que cambia en el PRD**: seccion 21 (modelo de entidades), criterio H8 de la 6, paso 9
+de la 14, CU4 de la 19, fase 5 de la 8, y fila nueva en la 17.

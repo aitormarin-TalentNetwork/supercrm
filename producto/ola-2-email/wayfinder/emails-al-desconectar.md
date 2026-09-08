@@ -1,7 +1,7 @@
 ---
 decision: emails-al-desconectar
 tipo: grilling
-estado: abierta
+estado: resuelta
 bloqueos: []
 ---
 
@@ -27,3 +27,18 @@ consentimiento, pero la ficha del cliente pierde su historia cuando un vendedor 
 
 ## Resolucion
 
+**(a) Conservar.** Los emails ya sincronizados **no se borran** al desconectar la
+cuenta de Gmail; solo se borran los tokens y se cierra el canal push.
+
+**Quien y cuando**: Aitor, 2026-09-08, comentando en la pagina de Notion.
+
+**Su razonamiento, literal**: *"no se borran los correos historicos. Ni siquiera cuando
+se desconecte el usuario de la cuenta Gmail... pues estos emails son parte del historial
+de las oportunidades"*. Es decir: el correo pertenece al historial de la **oportunidad**,
+no al vendedor que lo envio, y por eso tiene que sobrevivir a la rotacion de vendedores.
+
+**Precio aceptado**: el CRM sigue guardando correo de una cuenta que retiro su
+consentimiento. Queda declarado en el PRD, no disimulado. Una via de borrado a peticion
+no se descarta, pero se abriria como decision propia.
+
+**Que cambia en el PRD**: seccion 24 (seguridad y privacidad) y fila nueva en la 17.

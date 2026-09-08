@@ -1,7 +1,7 @@
 ---
 decision: borrado-de-cliente-con-emails
 tipo: research
-estado: abierta
+estado: resuelta
 bloqueos: []
 ---
 
@@ -29,3 +29,20 @@ coherencia del patron y hay que decirlo en el mensaje de confirmacion).
 
 ## Resolucion
 
+**(b) Los emails se borran con el cliente**, pero **solo tras una confirmacion que dice
+cuantos son**.
+
+**Quien y cuando**: Aitor, 2026-09-08, comentando en la pagina de Notion.
+
+**Su razonamiento, literal**: *"Hay que permitir que se borre. pero antes de borrar hay
+que mostrar dialogo indicando: esta a punto de borrar el cliente y los 200 emails
+relacionados"*. El numero del dialogo es el real, no un texto generico: lo que hace
+segura la operacion es que la persona vea el tamaño de lo que se lleva por delante.
+
+**Consecuencia que hay que decir en voz alta**: es una **excepcion declarada al patron
+de AIT-65**, que hoy bloquea el borrado cuando el registro tiene hijos. Se aparta a
+proposito, porque un cliente con cientos de emails seria imborrable en la practica.
+**Afecta a codigo ya publicado**: `convex/customers.ts`.
+
+**Que cambia en el PRD**: seccion 23 (estados y errores), referencia en la 28, y fila
+nueva en la 17.

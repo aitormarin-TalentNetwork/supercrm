@@ -1,12 +1,12 @@
-<!-- prd: estado=DRAFT version=0.2 supersedes=- appetite=completo -->
+<!-- prd: estado=DRAFT version=0.3 supersedes=- appetite=completo -->
 
 # PRD — SuperCRM Ola 2: Email de clientes dentro del CRM
 
 | Campo | Valor |
 |---|---|
 | Estado | DRAFT |
-| Version | 0.2 |
-| Supersedes | — (sigue en DRAFT; 0.1 corregida, no superseded) |
+| Version | 0.3 |
+| Supersedes | — (sigue en DRAFT; 0.1 y 0.2 corregidas, no superseded) |
 | Appetite | completo |
 | Espejo en Notion | [CRM — Ola 2 · Email en el CRM (Gmail)](https://app.notion.com/p/3d52e4a27d388105998fd037a7d162a5) |
 
@@ -23,6 +23,15 @@
 > tiempo real** con notificaciones push de Gmail en vez de esperar a la
 > sincronizacion (peticion de Aitor). El as-is esta en la seccion 28; conviene leerlo
 > antes que el resto.
+
+> **Cambios de 0.2 → 0.3 (2026-09-08).** Se cierran las **cuatro decisiones abiertas**
+> con las respuestas de Aitor comentadas en Notion. El wayfinder queda a cero. (a) Al
+> desconectar Gmail **los emails se conservan** (§24). (b) Un cliente con emails **se
+> puede borrar**, con dialogo que dice cuantos se lleva (§23, excepcion declarada a
+> AIT-65). (c) La actividad se atribuye por **contexto del clic**, con desempate por
+> oportunidad unica (§21). (d) El historico se baja **desde la oportunidad mas antigua
+> del vendedor, sin tope** (§15) — lo que deja el coste de Convex abierto a proposito
+> (§9 y §26).
 
 ## 1. Resumen y pitch
 
@@ -94,8 +103,9 @@ siguiente, el modelo de entidades (21) decide si esa ola se construye o se rehac
 - Conexion de la cuenta de Gmail de cada usuario, con consentimiento explicito.
 - Sincronizacion de emails **solo con direcciones que ya son contactos del CRM de la
   tienda del usuario**.
-- Historico acotado en la primera sincronizacion (el limite exacto es decision abierta
-  del wayfinder; lo decidido es que HAY limite y esta en el rango de 6-12 meses).
+- Historico desde la fecha de la oportunidad **mas antigua a la que el vendedor tiene
+  acceso**, **sin tope superior** (decision de Aitor, 2026-09-08). Ya no es un numero
+  de meses: la fecha la fijan los datos de cada vendedor.
 - Visualizacion en la ficha del cliente y en cada oportunidad de ese cliente.
 - Abrir Gmail desde el CRM con el destinatario cargado (escribir) o en el hilo
   (responder), sin construir editor.
@@ -187,12 +197,15 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
   recibio — ver seccion 7.)
 
 **Actividad de la oportunidad (H8)**
-- PASA si: al registrarse un email **saliente** a un cliente que tiene **exactamente
-  una** oportunidad abierta, el campo `lastActivityAt` de esa oportunidad pasa a ser la
+- PASA si: al registrarse un email **saliente** nacido de un clic que traia una
+  oportunidad en contexto, el `lastActivityAt` de **esa** oportunidad pasa a ser la
   fecha del email, y la oportunidad deja de figurar en la lista de "en riesgo" si solo
   estaba ahi por inactividad.
-- FALLA si: cambia `lastActivityAt` de una oportunidad cuando el cliente tiene dos o
-  mas abiertas; si lo cambia un email **entrante**; o si se crea algun documento en
+- PASA si: al registrarse un email **saliente** sin oportunidad en contexto a un
+  cliente con **exactamente una** oportunidad abierta, se actualiza esa.
+- FALLA si: cambia el `lastActivityAt` de una oportunidad **distinta** de la que traia
+  el clic en contexto; si cambia alguna cuando no hay contexto y el cliente tiene dos
+  o mas abiertas; si lo cambia un email **entrante**; o si se crea algun documento en
   `nextSteps` a raiz de un email.
 
 **Vias de registro que no se solapan**
@@ -251,7 +264,8 @@ exacto esta acotado en la seccion 21 tras el hallazgo H4 de la review.
    (responder), desde ficha de cliente y desde oportunidad.
 5. **Ensanchar la vista y la actividad**: emails en las oportunidades del cliente
    (vista derivada), integrados en el historial cronologico, y el enganche de
-   `lastActivityAt` acotado de H8.
+   `lastActivityAt` de H8 con su atribucion por contexto del clic (el contexto ya se
+   registra en la fase 4).
 6. **Operacion**: estados de error visibles (token revocado, canal push caducado,
    sincronizacion caida), reconexion, y la pantalla de estado completa.
 
@@ -279,7 +293,13 @@ criterio de H1 la necesita desde el principio.
   lo esta oficialmente. Si falla, H5 se degrada a abrir Gmail buscando por asunto.
 - **Premisa**: el volumen de correo por vendedor cabe en el plan de Convex sin
   disparar el coste. · **Como se verifica**: medir el tamaño medio de un email real y
-  extrapolarlo al historico que se decida.
+  extrapolarlo al historico completo de cada vendedor, en la fase 1. **NO VERIFICADO**,
+  y desde 2026-09-08 sin red de seguridad: al quitarse el tope del historico
+  (seccion 15) ya no hay limite que bajar si la medicion sale cara — habria que
+  reabrir la decision con Aitor.
+- **Riesgo aceptado**: el historico sin tope deja el coste de Convex **abierto** hasta
+  que se mida. Aitor lo acepto explicitamente el 2026-09-08, con la consecuencia
+  delante, prefiriendo el historial completo a un limite arbitrario.
 - **Riesgo aceptado**: la app deja de ser vendible a terceros mientras el email este
   dentro. Aitor lo acepto explicitamente al elegir la via Interna.
 - **Riesgo aceptado**: si un vendedor revoca el permiso, el CRM deja de sincronizar
@@ -420,9 +440,10 @@ review). Los plazos se cuentan desde la publicacion de la fase 4.
 8. Gmail publica el cambio; el webhook lo recibe en segundos; el CRM pide solo lo que
    cambio y guarda el email saliente. Estado: email registrado, historial actualizado
    sin recargar.
-9. Como ese cliente tiene exactamente una oportunidad abierta, su `lastActivityAt`
-   pasa a la fecha del email y deja de figurar como parada. Si tuviera dos, no se
-   toca ninguna (seccion 21).
+9. Como Carlos respondio **desde una oportunidad concreta**, el CRM sabe a cual
+   atribuir el email: su `lastActivityAt` pasa a la fecha del email y deja de figurar
+   como parada. Si hubiera escrito desde la ficha del cliente y ese cliente tuviera
+   dos oportunidades abiertas, no se tocaria ninguna (seccion 21).
 10. A partir de ahi todo llega solo, sin que Carlos vuelva a hacer nada.
 
 ## 15. Requisitos no funcionales
@@ -432,9 +453,12 @@ review). Los plazos se cuentan desde la publicacion de la fase 4.
   `docs/01-arquitectura.md` al que remitirse (hallazgo H12 de la review).
 - **Frescura**: con el canal push activo, un email aparece en < 60 s sin recargar. Si
   el canal cae, la sincronizacion periodica garantiza < 15 min como suelo degradado.
-- **Volumen**: soportar el historico que fije la decision abierta del wayfinder (rango
-  6-12 meses) por vendedor sin degradar el resto de la aplicacion. **Provisional**: se
-  cierra cuando se cierre esa decision (hallazgo H16 de la review).
+- **Volumen**: soportar el historico completo desde la oportunidad mas antigua a la
+  que el vendedor tiene acceso, **sin tope**, sin degradar el resto de la aplicacion
+  (decision de Aitor 2026-09-08; cierra el hallazgo H16 de la review). **El volumen no
+  esta acotado por diseño**: un vendedor veterano puede arrastrar años de correo, y ese
+  es el riesgo aceptado de la seccion 9. La medicion de la fase 1 ya no fija un limite
+  — sirve para conocer el coste, no para recortarlo.
 - **Almacenamiento**: se guarda el cuerpo en texto plano, no el HTML del correo —
   suficiente para leerlo y para que la IA de la ola siguiente lo analice, y varias
   veces mas barato.
@@ -477,7 +501,10 @@ review). Los plazos se cuentan desde la publicacion de la fase 4.
 | **No construir editor de correo**: escribir y responder abren Gmail | taste | Elimina el componente mas caro de la ola (adjuntos, copia, formato, firma) y el resultado seria peor que Gmail. Cuesta una metrica mas debil (§13.2) y un clic mas al responder | Aitor lo propuso, PM lo evaluo, 2026-09-07 |
 | **Avisos push** (`users.watch` + Pub/Sub) en vez de solo sondeo | taste | Sin ellos, delegar el envio en Gmail dejaria al CRM sin saber que se envio hasta 15 min despues. Con ellos, segundos. Cuesta una dependencia nueva que caduca y hay que renovar | Aitor lo pidio, 2026-09-07 |
 | Persistir los emails en el CRM en vez de leerlos en vivo | taste | La ola siguiente pone una IA a analizar la relacion; leer en vivo obligaria a rehacerlo. Es la unica decision que se toma mirando a la ola siguiente, y se declara como tal | PM, 2026-09-07 |
-| Historico acotado en vez de todo o nada | taste | Sin historico la IA no puede analizar una relacion; con todo, la sincronizacion inicial y el coste son impredecibles | Aitor, 2026-09-07 |
+| Historico **sin tope**, desde la oportunidad mas antigua del vendedor | taste | Supera la decision del 2026-09-07 ("acotado, 6-12 meses"): el limite deja de ser un numero arbitrario y lo fijan los datos de cada vendedor. Cuesta que el coste de Convex quede abierto hasta medirlo — aceptado con la consecuencia delante | Aitor, 2026-09-08 |
+| **Conservar** los emails cuando el vendedor desconecta su Gmail | taste | Los emails son historial de la **oportunidad**, no del vendedor: el historial del cliente tiene que sobrevivir a la rotacion. Cuesta guardar correo de una cuenta que retiro el consentimiento | Aitor, 2026-09-08 |
+| **Permitir borrar** un cliente con emails, con dialogo que dice cuantos | taste | Mantener el bloqueo de AIT-65 haria imborrable en la practica a un cliente con cientos de emails. Cuesta apartarse a proposito de un patron ya construido, y obliga a tocar codigo publicado | Aitor, 2026-09-08 |
+| Atribuir la actividad por **contexto del clic**, con desempate por oportunidad unica | taste | Es la unica via que usa lo que el CRM ya sabe sin inventar una asignacion; el desempate conserva la regla vigente. Cuesta que los emails escritos directamente en Gmail sigan sin atribuirse | Aitor, 2026-09-08 |
 | Marta ve el contenido completo de los emails de su tienda | taste | Es correspondencia comercial de la empresa, el filtro ya excluye lo personal, y es coherente con la supervision que ya tiene sobre el resto de interacciones | Aitor, 2026-09-07 |
 | Un `sales` ve solo los emails de **sus** clientes | mechanical | Es exactamente el modelo de permisos que ya rige hoy ("solo sus propias oportunidades y clientes, dentro de su tienda"). No inventar un modelo distinto para el email | PM, 2026-09-07 |
 | El email pertenece al **cliente**; las oportunidades lo muestran como vista derivada | mechanical | Unica respuesta que resuelve un cliente con varias oportunidades sin inventar una asignacion, y es lo que Aitor describio literalmente | PM, 2026-09-07 |
@@ -498,7 +525,9 @@ review). Los plazos se cuentan desde la publicacion de la fase 4.
   pocos, la fase siguiente no es sincronizar mas: es conseguir que los contactos
   tengan email.
 - **Durante la fase 1**: medir el tamaño real de los emails de un vendedor y
-  extrapolar, para cerrar la decision abierta del historico con un numero.
+  extrapolar. Ya no sirve para fijar un limite (no lo hay), sino para saber cuanto
+  cuesta el historico completo **antes de conectar al segundo vendedor**. Si el numero
+  asusta, se reabre con Aitor la decision del tope.
 - **Antes de la fase 5**: probar con correos automaticos reales (respuestas de
   ausencia, acuses de recibo) que el enganche de `lastActivityAt` no marca como activa
   una oportunidad que nadie ha atendido.
@@ -541,8 +570,9 @@ review). Los plazos se cuentan desde la publicacion de la fase 4.
 - Disparador: pulsa "Escribir email", o pulsa sobre un email recibido.
 - Flujo principal: el CRM registra el clic (con cliente y, si lo hay, oportunidad en
   contexto) y abre Gmail —con destinatario cargado, o en el hilo— → Carlos escribe y
-  envia en Gmail → Gmail avisa por push → el CRM guarda el email saliente → si el
-  cliente tiene exactamente una oportunidad abierta, actualiza su `lastActivityAt`.
+  envia en Gmail → Gmail avisa por push → el CRM guarda el email saliente → si el clic
+  traia una oportunidad en contexto, actualiza el `lastActivityAt` de esa; si no la
+  traia, solo lo actualiza cuando el cliente tiene exactamente una oportunidad abierta.
 - Alternativos: Carlos cierra Gmail sin enviar → no llega aviso y **no se registra
   nada**; el clic queda como intento, no como actividad. El canal push esta caido →
   el email aparece en la siguiente sincronizacion periodica.
@@ -617,16 +647,23 @@ review, que demostro que la version 0.1 describia una logica inexistente):
 - **NUNCA crea un `nextStep`.** El codigo real exige que el usuario escriba la accion
   y la fecha del proximo paso; un email no aporta ninguna de las dos. Inventarlas
   seria meter basura en la lista de "Hoy" de Carlos.
-- **Un email SALIENTE actualiza `lastActivityAt`** de la oportunidad **solo si el
-  cliente tiene exactamente una oportunidad abierta**. Con dos o mas no se toca
-  ninguna: no hay forma honesta de saber a cual pertenece, y la vista derivada
-  (decision sellada) existe justamente para no inventarlo.
+- **Un email SALIENTE actualiza `lastActivityAt`** de **una sola** oportunidad, elegida
+  en este orden (decision de Aitor, 2026-09-08):
+  1. **La oportunidad que traia el clic en contexto**: si Carlos pulso "Escribir" o
+     "Responder" estando dentro de una oportunidad, esa es. El CRM no adivina — usa lo
+     que el vendedor ya le dijo al pulsar. El contexto del clic se registra en CU4.
+  2. **Si no hubo contexto** (el clic salio de la ficha del cliente) y el cliente tiene
+     **exactamente una** oportunidad abierta, esa.
+  3. **En cualquier otro caso, ninguna**: varias abiertas sin contexto, o un email
+     escrito directamente en Gmail sin pasar por el CRM. No hay forma honesta de saber
+     a cual pertenece, y la vista derivada existe justamente para no inventarlo.
+  **Limite conocido y aceptado**: los emails que nacen fuera del CRM no llevan contexto,
+  asi que con varias oportunidades abiertas siguen sin actualizar ninguna. Es el precio
+  de no inventar atribuciones.
 - **Un email ENTRANTE no actualiza nada.** Que el cliente escriba no significa que
   Carlos haya hecho seguimiento; marcar la oportunidad como activa la sacaria de la
   lista de riesgo justo cuando hay algo pendiente de atender. Es lo contrario de lo
   que el producto promete.
-- Como atribuir la actividad cuando el cliente tiene varias oportunidades abiertas
-  queda como **decision abierta en el wayfinder**, no resuelta aqui.
 
 **Pensado para la ola siguiente**: cuerpo en texto plano + cliente + fecha + direccion
 es exactamente el material que una IA necesita para analizar la relacion con un
@@ -676,9 +713,14 @@ Errores y que ve el usuario:
   H2 de la review, que describia el patron al reves.**
 - **Clic sin envio**: si el vendedor abre Gmail y cierra sin enviar, no llega aviso y
   no se registra nada. El CRM nunca da por enviado lo que no confirmo Gmail.
-- **Borrado de un cliente con emails**: **decision abierta** en el wayfinder. El
-  patron vigente (AIT-65) bloquea el borrado si hay hijos; los emails son hijos que
-  esa decision no contemplaba. No se declara resuelto aqui ni en la seccion 24.
+- **Borrado de un cliente con emails**: **se permite borrar** (decision de Aitor,
+  2026-09-08). Antes de borrar, el CRM muestra un dialogo que dice **cuantos emails se
+  van con el cliente**, con el numero real y no un texto generico ("estas a punto de
+  borrar este cliente y los 200 emails relacionados"). Es una **excepcion declarada al
+  patron de AIT-65**, que hoy bloquea el borrado cuando hay hijos: se aparta a
+  proposito, porque un cliente con cientos de emails seria imborrable en la practica y
+  borrarlos a mano no es trabajo razonable. **Afecta a codigo ya publicado** —
+  `convex/customers.ts` hay que tocarlo (seccion 28).
 
 ## 24. Seguridad y privacidad
 
@@ -702,9 +744,13 @@ reales en la base de datos del CRM.
   modificacion o borrado del buzon.
 - **App Interna**: la exencion de CASA depende de que la app siga siendo Interna. Si
   algun dia se abre a terceros, esta seccion y la 12 se reabren ANTES, no despues.
-- **Al desconectar la cuenta**: los tokens se borran siempre y el canal push se cierra.
-  Si se borran o no los emails ya sincronizados es **decision abierta** del wayfinder,
-  no algo decidido aqui.
+- **Al desconectar la cuenta**: los tokens se borran siempre y el canal push se cierra,
+  pero **los emails ya sincronizados se conservan** (decision de Aitor, 2026-09-08).
+  El razonamiento es del producto, no tecnico: esos correos son parte del historial de
+  la **oportunidad**, no del vendedor, y el historial de un cliente tiene que sobrevivir
+  a la rotacion de vendedores. **Precio aceptado y declarado**: el CRM sigue guardando
+  correo de una cuenta que retiro su consentimiento. Si algun dia hace falta una via de
+  borrado a peticion, se abre esa decision entonces — aqui no se supone resuelta.
 
 ## 25. Operacion y despliegue
 
@@ -739,10 +785,12 @@ reales en la base de datos del CRM.
   (un puñado de mensajes por vendedor y dia, dentro de la capa gratuita). **NO
   VERIFICADO**: no se ha consultado el precio ni el limite gratuito vigente; se
   comprueba antes de la fase 3.
-- **Convex**: el coste variable de la ola. Depende del volumen de correo por vendedor,
-  y por eso se guarda texto plano y no HTML. **NO VERIFICADO**: no hay medicion real
-  del tamaño medio de un email en este contexto; es la premisa que se mide en la fase
-  1, antes de ensanchar el historico.
+- **Convex**: el coste variable de la ola, y **el unico que queda abierto a proposito**.
+  Depende del volumen de correo por vendedor, y por eso se guarda texto plano y no
+  HTML. **NO VERIFICADO**: no hay medicion real del tamaño medio de un email en este
+  contexto. Al quitarse el tope del historico (seccion 15, decision de Aitor
+  2026-09-08), este coste ya **no tiene techo por diseño**: la fase 1 lo mide para
+  saberlo, no para limitarlo.
 - **Resend**: sin coste adicional — no se usa en esta ola. Queda como plan B.
 - **Ahorro respecto a la version 0.1**: no construir editor de correo elimina el
   trabajo mas caro de la ola (adjuntos con su almacenamiento, copia, formato, firma,
@@ -835,8 +883,9 @@ fichero; los fragmentos literales de codigo van citados como bloque.
 - `convex/customers.ts` — el borrado de un cliente **se bloquea** si tiene
   oportunidades. Su comentario razona que no hacen falta mas comprobaciones porque
   interacciones y recordatorios cuelgan de una oportunidad — **premisa que los emails
-  rompen**, porque colgarian del cliente directamente. De ahi la decision abierta del
-  wayfinder.
+  rompen**, porque colgarian del cliente directamente. Es el fichero que hay que tocar
+  para la excepcion declarada en la seccion 23: permitir el borrado tras confirmar
+  cuantos emails se van con el cliente.
 
 - `docs/01-arquitectura.md` — el patron de la cabecera (AIT-66) establece que
   "+ Registrar interaccion" **nunca queda deshabilitado**, porque un boton
