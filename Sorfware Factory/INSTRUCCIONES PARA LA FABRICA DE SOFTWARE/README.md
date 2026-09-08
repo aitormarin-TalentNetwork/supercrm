@@ -643,9 +643,24 @@ horneado. **No necesita producción, no necesita ganar ninguna carrera, y discri
 — porque aísla la propiedad que se quiere probar en vez de esperar a que el mundo la
 exhiba.
 
+📌 **Matiz del PM al resolver el caso, y afina la regla: el problema no era observar
+producción, era hacerlo BLOQUEANTE.** La observación en producción sigue teniendo valor —
+dice que además está bien desplegado. Lo que no puede ser es **condición para cerrar cuando
+su ocurrencia no está bajo control de nadie**.
+
 ⚠️ **Y el límite de esta decisión, que su propio autor marcó:** esto es **proceso de
 verificación, no alcance**. Si el gate de una tarea se da por cumplido con la prueba
 aislada **lo deciden el PM y el auditor**, no el Factory Architect ni el CEO.
+
+**Cómo se resolvió el caso, porque enseña a leer un criterio de aceptación:** el PM
+comprobó que **nunca había pedido dos deployments** — su criterio decía que el
+identificador *"cambia cuando se publica algo nuevo **y** coincide con el commit realmente
+desplegado"*, o sea **dos propiedades**, cada una mejor demostrada por un camino distinto:
+que el valor no está horneado lo prueba la prueba aislada (y mejor que producción); que lo
+mostrado coincide con lo desplegado **basta comprobarlo contra un solo deployment**. Ver un
+segundo despliegue en vivo era una **tercera propiedad que nadie había pedido**, añadida por
+una lectura más estricta que el propio criterio. **Antes de organizar una carrera para
+satisfacer un gate, releer qué pide el gate exactamente.**
 
 📌 **Si la aplicación nunca llegó a decir su identidad, NO se infiere desde Railway.** Un
 "no pude capturarlo" es un resultado válido; inferirlo sería responder la pregunta del gate
