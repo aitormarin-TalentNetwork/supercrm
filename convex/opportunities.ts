@@ -180,6 +180,131 @@ export const createQuick = mutation({
   },
 });
 
+// AIT-74: oportunidad nueva para un cliente que YA existe (segunda venta,
+// recompra, otro producto). Función aparte y no un `customerId` opcional en
+// createQuick: aquella exige `name` y `phone` y los valida, y relajarlos a
+// opcionales para dar cabida a este caso debilitaría la única vía de alta que
+// hoy funciona. Aquí el cliente no se toca — ni se inserta ni se actualiza —,
+// que es justo lo que evita el duplicado que motivó la tarea.
+export const createForCustomer = mutation({
+  args: {
+    // Misma idempotencia y misma tabla que createQuick: una clave por
+    // apertura del modal, no por click.
+    clientRequestId: v.string(),
+    customerId: v.id("customers"),
+    interest: v.string(),
+    estimatedAmount: v.optional(v.number()),
+    stage: v.optional(
+      v.union(
+        v.literal("contacto"),
+        v.literal("presupuesto"),
+        v.literal("negociacion"),
+      ),
+    ),
+    priority: v.optional(
+      v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx);
+
+    const existingRequests = await ctx.db
+      .query("opportunityRequests")
+      .withIndex("by_client_request_id", (q) =>
+        q.eq("clientRequestId", args.clientRequestId),
+      )
+      .collect();
+    const ownRequest = existingRequests.find((r) => r.userId === user._id);
+    if (ownRequest) return ownRequest.opportunityId;
+
+    // Mismo criterio de acceso que customers.getFicha: misma tienda, y quien
+    // no ve toda la tienda solo alcanza lo suyo. Se comprueba aquí y no solo
+    // en la UI porque la mutation es llamable directamente. El mismo mensaje
+    // en los tres casos a propósito: distinguir "no existe" de "no es tuyo"
+    // filtraría qué clientes tiene otra tienda.
+    const customer = await ctx.db.get(args.customerId);
+    if (
+      customer === null ||
+      customer.storeId !== user.storeId ||
+      (!isStoreWideRole(user) && customer.ownerId !== user._id)
+    ) {
+      throw new Error("Cliente no encontrado.");
+    }
+
+    const interest = args.interest.trim();
+    if (interest.length === 0) {
+      throw new Error("El producto o interés es obligatorio.");
+    }
+
+    // Mismo saneado en servidor que createQuick: el formulario manda 0-2
+    // decimales, una llamada directa puede mandar cualquier float.
+    let estimatedAmount: number | undefined;
+    if (args.estimatedAmount !== undefined) {
+      if (
+        !Number.isFinite(args.estimatedAmount) ||
+        args.estimatedAmount < 0 ||
+        args.estimatedAmount > MAX_AMOUNT
+      ) {
+        throw new Error("El importe estimado no es válido.");
+      }
+      estimatedAmount = Math.round(args.estimatedAmount * 100) / 100;
+    }
+
+    const stage = args.stage ?? "contacto";
+    const now = Date.now();
+
+    // La oportunidad es del comercial que YA lleva al cliente, no de quien
+    // pulsa el botón (decisión de producto, AIT-74). Si cayera en el pipeline
+    // de quien la crea, el comercial con la relación no la vería en su "Hoy"
+    // y, sin rol store-wide, no podría ni encontrarla: reasignar una venta
+    // tiene que ser un acto explícito, no un efecto colateral de quién tenía
+    // la pantalla abierta. Es además lo que ya hacen changeStage e
+    // interactions.create con `assigneeId`; createQuick usa `user._id` solo
+    // porque allí el cliente acaba de nacer y ambos coinciden por
+    // construcción.
+    const opportunityId = await ctx.db.insert("opportunities", {
+      customerId: customer._id,
+      stage,
+      status: "open",
+      priority: args.priority ?? "media",
+      interest,
+      estimatedAmount,
+      lastActivityAt: now,
+      ownerId: customer.ownerId,
+      storeId: customer.storeId,
+    });
+
+    // En "contacto", el primer paso es el del canal por el que entró el
+    // cliente, igual que en Alta rápida. Si nace ya en presupuesto o
+    // negociación, "primer contacto" no aplica: se usa el mismo paso que
+    // daría changeStage al entrar en esa etapa. El fallback cubre a los
+    // clientes cuyo `source` no es uno de los cinco canales — el campo es
+    // `v.string()` libre en el schema, y sin él `action` quedaría undefined.
+    const firstStepBySource: string | undefined =
+      FIRST_STEP_BY_SOURCE[customer.source];
+    const action =
+      stage === "contacto"
+        ? firstStepBySource ?? NEXT_STEP_BY_STAGE.contacto
+        : NEXT_STEP_BY_STAGE[stage];
+
+    await ctx.db.insert("nextSteps", {
+      opportunityId,
+      action,
+      dueDate: now,
+      status: "pending",
+      assigneeId: customer.ownerId,
+    });
+
+    await ctx.db.insert("opportunityRequests", {
+      clientRequestId: args.clientRequestId,
+      userId: user._id,
+      opportunityId,
+    });
+
+    return opportunityId;
+  },
+});
+
 // Todo lo que pide la cabecera + próximo paso del Detalle de oportunidad
 // (AIT-13), además del resumen mínimo que ya usaba la ficha de confirmación
 // de Alta rápida (AIT-10). No basta con comprobar la oportunidad: el
