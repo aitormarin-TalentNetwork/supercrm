@@ -969,6 +969,16 @@ reales en la base de datos del CRM.
     una hipotesis;
   - ningun usuario ve nada de otra tienda.
   **Se aplica en el servidor**, en cada funcion de Convex, no ocultando en la interfaz.
+  **Verificado por los dos lados el 2026-09-08**, y conviene decir como porque es la
+  premisa sobre la que descansa toda la privacidad de esta ola: (a) en el codigo,
+  `opportunities.ts:203-204` devuelve `null` desde la query cuando el `storeId` no
+  coincide o cuando un rol no-tienda pide algo que no es suyo; (b) en la app publicada, un
+  `sales` que entra **por URL directa** a un registro que demostrablemente existe recibe
+  "Esta oportunidad ya no existe" — una pantalla no puede ocultar lo que la query nunca le
+  entrego. Ademas `requireUser` corta el acceso de una cuenta desactivada en la siguiente
+  llamada, incluidas las queries reactivas ya abiertas (leccion de AIT-52), y
+  `requireStoreAccess` **falla cerrado** a la tienda propia si alguien olvida comprobar el
+  rol. Es un modelo que ya aguanta peso real: la ola lo replica, no lo reinventa.
   El patron a replicar es el de las **lecturas** ya existentes —`requireUser` + filtro
   por `storeId` + `isStoreWideRole(user)` o `ownerId`, tal como hacen
   `customers.getFicha` e `interactions.listByCustomer`— y **no** `requireOwner`, que es
