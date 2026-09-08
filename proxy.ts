@@ -5,8 +5,10 @@ import {
   createRouteMatcher,
   nextjsMiddlewareRedirect,
 } from "@convex-dev/auth/nextjs/server";
+import { NextResponse } from "next/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "./convex/_generated/api";
+import { getDeployedVersion } from "./lib/version";
 
 // AIT-23: /supervision es owner-only igual que /panel — se añade al mismo
 // matcher (renombrado de "isPanelRoute" porque ya cubre más de un sitio).
@@ -40,11 +42,44 @@ const isProtectedRoute = createRouteMatcher([
   "/ajustes(.*)",
 ]);
 
+// AIT-79: el commit que sirve la respuesta, en la propia respuesta.
+//
+// Va aquí y no solo en /version por el caso que motivó la tarea: cuando lo que
+// falla es una pantalla, la app puede estar demasiado rota como para renderizar
+// un dato que viva dentro de React. La cabecera viaja en la MISMA respuesta que
+// se está inspeccionando, incluidas las páginas de error de la app.
+//
+// COBERTURA REAL, sin generalizar: se emite en lo que pasa por este handler
+// (navegación normal, redirects de ruta protegida, y páginas de error de la app
+// como el 404). NO está garantizada en las rutas donde el proxy no corre
+// (`_next`, ficheros con punto; ver el matcher de abajo), ni en las salidas
+// tempranas de Convex Auth — el proxy de `/api/auth` y su propio redirect de
+// refresco retornan antes de llamar a este handler. Para esos casos está
+// /version, que es una vía independiente.
+const VERSION_HEADER = "x-supercrm-commit";
+
+function withVersionHeader<T extends Response>(response: T): T {
+  try {
+    const { commit } = getDeployedVersion();
+    // Si no hay commit verificable no se emite nada. Una cabecera con un valor
+    // inventado o viejo sería peor que su ausencia: es justo el fallo que
+    // AIT-79 viene a cerrar.
+    if (commit) {
+      response.headers.set(VERSION_HEADER, commit);
+    }
+  } catch {
+    // Un dato informativo no puede tumbar el sitio. Este handler corre en
+    // TODAS las rutas, así que una excepción aquí sería una caída total a
+    // cambio de nada.
+  }
+  return response;
+}
+
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   const isAuthed = await convexAuth.isAuthenticated();
 
   if (isProtectedRoute(request) && !isAuthed) {
-    return nextjsMiddlewareRedirect(request, "/login");
+    return withVersionHeader(nextjsMiddlewareRedirect(request, "/login"));
   }
 
   if (isOwnerOnlyRoute(request) && isAuthed) {
@@ -58,9 +93,17 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
     // todas — mismas rutas, el aislamiento por tienda ya lo resuelve
     // requireStoreAccess en cada query.
     if (role !== "owner" && role !== "storeManager") {
-      return nextjsMiddlewareRedirect(request, "/hoy");
+      return withVersionHeader(nextjsMiddlewareRedirect(request, "/hoy"));
     }
   }
+
+  // Antes se devolvía undefined y el paquete de auth construía él mismo esta
+  // misma respuesta. Se explicita para poder ponerle la cabecera, replicando
+  // el reenvío de `request.headers`: ahí viajan las cookies ya refrescadas por
+  // el middleware de auth, y omitirlo rompería el refresco de sesión.
+  return withVersionHeader(
+    NextResponse.next({ request: { headers: request.headers } }),
+  );
 });
 
 export const config = {

@@ -56,6 +56,13 @@ de alcance/producto, no se asume silencio como aprobación.
 - Cualquier otra decisión que el proyecto haya documentado explícitamente como "válida
   solo mientras no haya datos reales" (buscar ese tipo de nota en `docs/`, ADRs, y
   comentarios de diseño) — se revisa una a una, no se asume que ya no aplica.
+- **Los tres niveles de escritura en producción del QA caducan aquí** (añadido 2026-09-08,
+  decisión 21 — ver `qa.md`). Mientras producción solo tiene datos de prueba, el criterio
+  es la reversibilidad: *"¿con qué acción concreta lo devuelvo a como estaba, y puedo
+  ejecutarla ahora mismo?"*. **Con clientes reales eso deja de bastar por sí solo** — una
+  escritura perfectamente reversible sigue tocando el negocio de alguien mientras existe.
+  Revisar los tres niveles con Aitor antes del salto y decidir qué se permite entonces; no
+  heredarlos por inercia.
 - **Qué ficheros VERSIONADOS de la fábrica pueden haber capturado contenido de
   producción** (añadido 2026-09-08, decisión 13.2). Los registros de la fábrica anotan
   referencias por defecto, pero se permite el contenido literal cuando **es** el objeto
@@ -82,6 +89,18 @@ de alcance/producto, no se asume silencio como aprobación.
     autorrelleno incluido). Aitor confirmó explícitamente dejarlo así por ahora
     (2026-08-20) — pero esta es exactamente la decisión que este checklist tiene que
     volver a poner sobre la mesa antes del salto a real, no una aprobación permanente.
+    El código lo declara en su propio comentario ("decisión explícita del proyecto, es un
+    entorno de pruebas sin datos reales"), así que **quien se lo encuentre no está ante un
+    descuido**: está ante una decisión con fecha de caducidad, y la fecha es este
+    checklist. Verificado el 2026-09-08 que el bloque **sigue vivo en producción**.
+    ⚠️ **Y el remedio NO es solo quitar el bloque de la UI** (hallazgo de la Directora,
+    2026-09-08, a raíz de que T1 lo levantara): las contraseñas vienen de variables con
+    prefijo `NEXT_PUBLIC_`, que **Next.js incrusta en el bundle de JavaScript en tiempo de
+    build**. Si están definidas al construir, el valor ya está dentro del JS que se sirve
+    al navegador — ocultar el bloque lo quita de la vista, **no del bundle**. Así que
+    cuando llegue el momento son tres cosas y en este orden: **rotar** las contraseñas
+    semilla, **quitar** las variables del entorno de build, y **después** condicionar el
+    bloque. Hacer solo lo tercero da una falsa sensación de arreglo.
   - **Entorno de Convex compartido entre desarrollo y producción** (mismo deployment que
     usa Railway en producción). AIT-59 creada en Backlog para no perderlo.
     **🟢 Resuelto (2026-08-24, AIT-59):** Railway ahora despliega en cada build contra

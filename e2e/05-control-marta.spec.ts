@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName } from "./helpers";
+import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName, uniquePhone } from "./helpers";
 
 // PRD §7, Proceso 5 — Control de Marta:
 // desde "Panel" ve el estado del negocio (KPIs, oportunidades en riesgo);
@@ -15,7 +15,7 @@ test("Marta filtra Supervisión por comercial y llega al Detalle de una oportuni
   const customerName = uniqueCustomerName("E2E Supervisión");
   await createOpportunityViaAltaRapida(salesPage, {
     name: customerName,
-    phone: "600666777",
+    phone: uniquePhone(),
   });
   await salesContext.close();
 

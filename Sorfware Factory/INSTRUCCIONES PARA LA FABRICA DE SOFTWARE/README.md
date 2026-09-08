@@ -340,6 +340,31 @@ misma pregunta ("¿esto se adopta como estándar de un rol?") se reinventa cada 
 
 ## 2quinquies. Todo estado duradero se escribe con procedencia, donde lo lee quien actúa sobre él (2026-09-08)
 
+> ## La forma común, en palabras de la Directora
+>
+> **Estado escrito una vez que sobrevive al hecho que describía, en un sitio donde alguien
+> va a actuar sobre él.**
+>
+> Las cinco instancias de abajo son la misma cosa, y **las cinco se cazan igual: yendo a
+> mirar el mundo en vez de leer lo escrito.** Lo único que cambia entre ellas es **quién
+> tiene que acordarse**.
+
+**Las cinco, por orden de aparición el 2026-09-08:**
+
+1. **La parada de AIT-32** — el motivo vivía solo en un `.txt` de la cola; en Linear parecía
+   backlog normal. *(a)*
+2. **El modo de publicación** — una palabra suelta sin autor ni fecha, imposible de
+   distinguir de un residuo. *(b)*
+3. **El comentario de código de T1** — cierto al escribirse, falso al leerse.
+4. **Las condiciones de desbloqueo cumplidas** — no envejecen mal: **envejecen bien, y por
+   eso engañan**. *(i)*
+5. **El nombre de sesión en `titular.txt`** — y esta es la peor, porque **el dato podrido
+   está justo donde lo consulta el procedimiento que existe para cazarlo**: no produce una
+   duda, produce una **confirmación falsa** de que el cerrojo está huérfano. Las otras
+   cuatro engañan a quien lee; **esta arma a quien actúa**. *(j)*
+
+---
+
 Decisión del Factory Architect, ejecutada por el CEO. Misma familia que §2ter: algo que se
 lee como otra cosa distinta de lo que es.
 
@@ -395,6 +420,110 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
+
+**(j) Un identificador escrito en estado duradero tiene que ser uno que NO caduque**
+(decisión 34, 2026-09-08, del hallazgo de la Directora).
+
+> **Enunciado corto: *el nombre de una sesión caduca; la terminal y la tarea no.***
+
+*El caso:* el `titular.txt` del cerrojo de Convex nombraba a
+`fix-duplicate-customer-creation` — la sesión de T3 **anterior a su relanzamiento**, ya
+muerta. El cerrojo era legítimo y su dueña estaba trabajando; lo podrido era solo el
+nombre. **Y el procedimiento de "cerrojo abandonado" consiste precisamente en buscar ese
+nombre en `ListAgents`**, así que un lector diligente habría obtenido una confirmación
+falsa de orfandad — y al final de ese camino está el incidente del 2026-08-09 que motivó el
+cerrojo entero: reclamar un turno ajeno, desplegar con rama vieja, borrar funciones de otra
+terminal.
+
+- **34.1 — `titular.txt` se identifica por lo que no cambia: terminal, tarea y hora.**
+  `T3 / AIT-80 / 19:25`, y nada más. **El nombre de sesión no se escribe** — el 2026-09-08
+  cambió dos veces en una tarde. Quien necesite resolver la sesión concreta va a
+  `_registro-agentes.txt`, que es donde vive ese mapeo y se actualiza en cada
+  relanzamiento: **un solo hogar para ese dato.**
+- **34.2 —** cuando un dato volátil sea genuinamente útil, se escribe **junto** al estable y
+  **marcado como pista**, nunca como la clave que el procedimiento resuelve.
+- **34.3 — La regla que llega más lejos: cuando un procedimiento de detección resuelve un
+  identificador escrito para decidir, ese identificador ES PARTE DEL DETECTOR** — y tiene
+  que ser al menos tan duradero como el procedimiento. **Un detector que consulta un dato
+  perecedero no es un detector: es una fuente de falsos negativos con apariencia de
+  comprobación.**
+- ⚠️ **34.4 — LA SEGUNDA MITAD, Y ES CONDICIÓN DE ADOPCIÓN, NO UNA NOTA** (enmienda 5): la
+  comprobación de *"¿sigue vivo el titular?"* **deja de pasar por `ListAgents`** y pasa a
+  mirar si hay una sesión **produciendo** en el worktree de esa terminal:
+  ```bash
+  ls -t ~/.claude/projects/*Sorfware-Factory--worktrees-T3/*.jsonl | head -1
+  # y leer su último evento `assistant` — NUNCA el mtime (§2sexies)
+  ```
+  No depende de nombres, sobrevive a cualquier relanzamiento —que es justo lo que falló—, y
+  **no es mecanismo nuevo**: es el mismo método del barrido diario.
+
+  🚫 **Si solo se pudiera hacer una de las dos mitades, NO SE HACE NINGUNA.** El formato
+  actual, con su nombre podrido, **al menos falla de una forma que ya sabemos reconocer**;
+  cambiar solo el identificador movería el fallo de *"el dato caduca"* a *"el dato no se
+  puede comprobar"*, **que es peor porque no da señal**.
+
+  > **La regla general, que es lo que más vale de todo esto: un identificador y el
+  > procedimiento que lo resuelve son UNA SOLA PIEZA — no se puede cambiar uno sin el otro.**
+  >
+  > **Enunciado corto: *un identificador sin su procedimiento de resolución no es un
+  > identificador.***
+- **Aplicar hacia atrás:** *cualquier sitio donde un procedimiento nuestro busque un nombre
+  de sesión escrito en disco es candidato al mismo fallo.*
+
+📌 **Y una conducta que va aquí y no como nota de cortesía, porque es la que hace que el
+cerrojo signifique algo:** ni el CEO ni la Directora **corrigieron el `titular.txt` ajeno**,
+aunque la corrección era benigna y evidente. Se lo pidieron a T3, que fue quien lo escribió.
+Respetar que un cerrojo no se toca desde fuera **cuando la corrección parece inofensiva** es
+justo cuando cuesta — y es lo único que impide que "solo lo arreglo un poco" se convierta en
+el gesto que ya costó un incidente.
+
+**(i) Una condición de desbloqueo CUMPLIDA se vuelve una afirmación falsa** (hallazgo de la
+Directora, 2026-09-08). Es la forma más peligrosa de dato caducado que hemos encontrado,
+porque **no envejece mal: envejece bien, y por eso engaña.**
+
+*El caso:* cuatro fichas de la cola decían *"condición de desbloqueo: AIT-74 mergeada a
+`main`"*. AIT-74 se mergeó. Desde ese instante, cualquiera que leyera esas fichas —la
+propia Directora una hora después, o una Directora nueva— concluiría que estaban **listas
+para repartir**, y habría lanzado dos terminales a chocar de frente con las dos que ya
+estaban trabajando. Dos estaban además marcadas como `SIGUIENTE-`, o sea reclamables por
+cualquier terminal libre. El motivo real del bloqueo había cambiado mientras tanto: el
+alcance de otra tarea creció durante su planificación y ocupó ficheros que antes estaban
+libres.
+
+**Lo que lo hace distinto de un dato viejo cualquiera: no hay nada que lo marque como
+sospechoso.** Un dato desactualizado suele chirriar; este **da tranquilidad al leerlo**,
+porque dice exactamente lo que esperabas comprobar.
+
+> **Al reactivar una tarea de la cola, no basta con comprobar que su condición escrita se
+> cumple — hay que REHACER el análisis de solapes con el estado del momento.** Una
+> condición de desbloqueo describe el mundo de cuando se escribió, no el de ahora.
+
+Es además la **cuarta forma distinta** que aparece el mismo día de que dos tareas se toquen
+sin compartir un fichero — y la única que **no necesita dos tareas**: basta con que pase el
+tiempo.
+
+**(h) Una respuesta de granularidad baja no autoriza puntos concretos** (decisión 25,
+2026-09-08, formulación de la Directora). Es un **eje distinto** del que cubren (b) y la
+decisión 21: aquellos miran **por cuántas manos ha pasado** la autorización; este mira **si
+la respuesta tiene resolución suficiente para lo que se le atribuye**. Una respuesta puede
+ser de primera mano y aun así no autorizar nada concreto.
+
+*El caso:* un mensaje que enumeraba dos decisiones pendientes recibió un **"ok a todo"**.
+Aunque llegue directo, eso no distingue *"autorizo estas dos cosas"* de *"vale, sigue con
+lo que estés haciendo"*.
+
+- **Regla:** cuando una respuesta humana tenga menos granularidad que la pregunta, **no
+  cuenta como autorización de los puntos individuales**.
+- Quien la recibe **escribe en su respuesta qué está tomando por aprobado y pide
+  corrección** — es el máximo que se puede hacer sin volver a preguntar.
+- **Pero eso no convierte su interpretación en confirmación para terceros.** Lo accionable:
+  **quien la recibe de rebote no construye sobre la interpretación de otro.**
+
+Y la razón por la que esto se sostiene, en palabras de la Directora al decidir no ejercer
+una capacidad que ya tenía autorizada mientras el CEO esperaba su propia confirmación: *"si
+tú no la adoptas por prudencia y yo la uso igual, la regla se convierte en algo que cumple
+quien puede permitírselo"*. **Eso no es una regla de proceso: es la razón por la que las
+reglas de proceso significan algo.**
 
 **(f) El estado cuyo valor es HISTÓRICO se versiona en git; el que solo vale en el momento
 se queda local** (decisión 12, 2026-09-08). Escribir la procedencia no basta si la
@@ -557,16 +686,120 @@ comprobación, *"¿esto fallaría si el diseño fuera el equivocado?"*. Si la re
 **la prueba no vale aunque salga verde**. Son las dos caras: *"¿cómo podría esta
 verificación mentirme en verde?"* mira a la herramienta; esta mira al experimento.
 
+### La tercera categoría: la distancia entre medir y afirmar (decisión 22, 2026-09-08)
+
+De T2, y no es una fila más de la tabla — es un tipo de fallo distinto de los otros dos:
+
+- En el registro de abajo, **la herramienta miente**.
+- En la decisión 19, la herramienta funciona pero **la prueba no discrimina**.
+- Aquí **la comprobación fue correcta y su resultado también**. Lo que falla es tratar la
+  salida de una medición puntual como si fuera una propiedad estable.
+
+> **El problema no es medir mal, es la distancia entre medir y afirmar.** (T2.)
+
+**El caso:** a las 17:48 T2 midió que su copia de `intro-terminal.txt` y la de la raíz eran
+idénticas. Cuarenta y cinco minutos después: **63 líneas de diferencia**, y de 6 commits por
+detrás de `origin/main` a 23. La medición fue correcta las dos veces. Es además **el mejor
+argumento para la decisión 7** de todos los que tenemos: en T1 y T3 la divergencia ya
+existía; aquí **se creó bajo los pies de alguien que acababa de comprobar que no la había**.
+
+**La regla, en dos partes:**
+
+1. **Se mide inmediatamente antes de afirmar, no al principio del razonamiento.** Es
+   exactamente la misma regla a la que llegó la Directora por otro camino —hacer `git
+   fetch` antes de comparar, o comparas contra una foto vieja de `origin`—; el mismo
+   principio por dos rutas, no dos reglas sueltas.
+2. **Toda medición de algo mutable se reporta con su marca de tiempo.** Una medición sin
+   hora **no se puede evaluar como caducada, así que se lee como permanente** — que es
+   justo lo que pasó aquí.
+
+**Lo que estuvo a punto de costar, y es de manual:** entre los commits que le faltaban a T2
+está el que añade comprobar con `lsof` que el servidor del puerto es el suyo. Su prueba de
+AIT-79 arranca dos servidores y compara respuestas — si el segundo hubiera fallado por
+puerto ocupado y `curl` siguiera contestando al primero, habría concluido **"el valor está
+congelado" con el diseño correcto delante**. Un NO-GO fantasma y convincente, en la tarea
+que existe precisamente para cerrar un falso verde.
+
+### Una verificación que depende de ganar una carrera está mal diseñada (decisión 30, 2026-09-08)
+
+**El caso:** el Integrador publicó AIT-79 y **63 segundos después** entró un push de
+documentación —haciendo exactamente lo que la enmienda 3 le manda hacer—, así que los dos
+builds de Railway arrancaron casi en paralelo. El deployment del primero **puede no llegar
+a servir nunca**, y el gate de esa tarea exige observar dos deployments concretos por
+separado. Resultado: sondear cada 20 segundos para cazar algo que quizá no exista.
+
+Son **dos decisiones correctas colisionando en un caso que ninguna contemplaba**. Y la
+lista de verificaciones que observan un deployment concreto va a crecer.
+
+**Lo que NO se hace: una ventana de silencio o un cerrojo de publicaciones.** Ya hay un
+cerrojo con problema de abandono en §3 y no interesa un segundo primitivo de coordinación;
+además reintroduciría por la puerta de atrás justo lo que la enmienda 3 le quitó al
+Integrador. **Un lock para arreglar una prueba mal diseñada es pagar en coordinación lo que
+se ahorra en diseño.**
+
+> **La regla: cuando una verificación exija observar un estado transitorio de producción,
+> primero hay que preguntarse si la propiedad se puede AISLAR y probar sin producción.**
+> La observación en producción queda como **confirmación no bloqueante**: se intenta, y si
+> se pierde la ventana **no es un fallo — se reintenta o se declara no capturada**.
+
+**El medio ya existe y lo construyó T2 esa misma tarde:** su prueba discriminante de AIT-79
+es *construir una vez y arrancar dos veces con valores distintos sobre el mismo artefacto
+de build, sin reconstruir*. Si el valor cambia sin rebuild, queda demostrado que no está
+horneado. **No necesita producción, no necesita ganar ninguna carrera, y discrimina mejor**
+— porque aísla la propiedad que se quiere probar en vez de esperar a que el mundo la
+exhiba.
+
+📌 **Matiz del PM al resolver el caso, y afina la regla: el problema no era observar
+producción, era hacerlo BLOQUEANTE.** La observación en producción sigue teniendo valor —
+dice que además está bien desplegado. Lo que no puede ser es **condición para cerrar cuando
+su ocurrencia no está bajo control de nadie**.
+
+⚠️ **Y el límite de esta decisión, que su propio autor marcó:** esto es **proceso de
+verificación, no alcance**. Si el gate de una tarea se da por cumplido con la prueba
+aislada **lo deciden el PM y el auditor**, no el Factory Architect ni el CEO.
+
+**Cómo se resolvió el caso, y dónde estaba de verdad el fallo:** el PM comprobó que **nunca
+había pedido dos deployments** — su criterio decía que el identificador *"cambia cuando se
+publica algo nuevo **y** coincide con el commit realmente desplegado"*, o sea **dos
+propiedades**, cada una mejor demostrada por un camino distinto: que el valor no está
+horneado lo prueba la prueba aislada (y mejor que producción); que lo mostrado coincide con
+lo desplegado **basta comprobarlo contra un solo deployment**.
+
+⚠️ **La tercera propiedad —ver dos deployments distintos— NO la añadió quien ejecutaba el
+gate.** Estaba **en el gate del auditor**, literal: *"para cada uno de los dos deployments
+por separado… y entre A y B, IDs y commits distintos. No hay degradación aceptable"*. El
+Integrador ejecutó el gate que se le entregó; **degradarlo por su cuenta habría sido
+relajar un criterio que explícitamente decía no admitir degradación**, y eso sí habría sido
+una decisión suya indebida. *(Corregido a petición suya: la primera redacción de este
+párrafo decía "una lectura más estricta que el propio criterio", lo que apuntaba a él y
+además dejaba el hallazgo real fuera.)*
+
+> **El hallazgo real, que sí puede repetirse: un gate derivado exigía más que el criterio
+> de aceptación del que derivaba, y nadie cruzó los dos hasta que la ejecución lo destapó.**
+> Eso no se arregla pidiéndole a quien ejecuta que lea más suelto — se arregla **cruzando
+> el gate contra su criterio de origen antes de entregarlo**, que es un paso que hoy no
+> existe. La brecha aparece cuando un rol traduce un criterio de producto a una lista de
+> comprobaciones: cada endurecimiento parece prudente por separado, y nadie compara el
+> resultado con lo que se pedía.
+
+📌 **Si la aplicación nunca llegó a decir su identidad, NO se infiere desde Railway.** Un
+"no pude capturarlo" es un resultado válido; inferirlo sería responder la pregunta del gate
+desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta saltárselo.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
 | **El estado que devuelve `ListAgents` — `busy`, `waiting`, o que la sesión no aparezca** | **Ningún estado de `ListAgents` es evidencia de que una sesión está viva y escuchando.** `busy` no separa "trabajando" de "bloqueada en un prompt": el Integrador estuvo **`busy` y sordo a la vez** durante 38 minutos, indistinguible de `busy` y trabajando. Y `waiting` tampoco es tranquilizador: T3 apareció `waiting` bloqueada en `ExitPlanMode`, indistinguible de ociosa legítima | cruzar SIEMPRE el estado con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia del 2026-09-08: Integrador `busy` 38 min, T3 `waiting` ~30 min |
+| El `mtime` (o el tamaño) del `.jsonl` como señal de que una sesión está viva | **Crece al ENCOLAR mensajes entrantes**, no solo cuando la sesión produce algo. O sea: **una sesión sorda parece activa precisamente cuando alguien intenta hablarle** — y eso es lo que pasa siempre, porque en cuanto una terminal se atasca, los demás roles empiezan a escribirle. Un vigilante montado sobre esta señal **se queda mudo justo en el caso para el que se montó, y sin dar ninguna señal de estar fallando** | avance de la marca de tiempo del último evento **`assistant`** — lo último que la sesión ha **producido**, no lo último que le ha pasado. En una sesión que trabaja, `mtime` y último `assistant` van juntos; **en una atascada se separan, y esa separación ES el diagnóstico** |
+| Una alarma automática que da falsos positivos | **Es PEOR que no tener alarma.** La primera vez avisa, la segunda la ignoras, y la tercera te has acostumbrado a ignorarla — justo cuando es real. El fallo no se nota porque el mecanismo *parece* funcionar: sigue emitiendo | validar la alarma contra una fuente independiente **antes** de que avise a nadie, y descartarla sin contemplaciones si falla. Caso real, 2026-09-08: el watchdog del Factory Architect necesitó **cuatro versiones**; la v3 disparó **19 falsos positivos** (incluidas sesiones de hace 24 días) porque marcaba una sesión como viva **la primera vez que la veía, no cuando la veía moverse** — inferir liveness de una observación que no la establece. Las tres versiones malas se cazaron cruzando con `ListAgents` **antes** de avisar a Aitor; sin ese cruce le habrían llegado 19 avisos falsos en una tarde |
 | `find <dir> -name "*.jsonl" -newermt "<hora>"` en macOS | **Devuelve vacío sin error** si el flag no se comporta como se espera — y "no hay coincidencias" es indistinguible de "el flag no hizo nada". Hallazgo del Factory Architect, 2026-09-08: seis ficheros cumplían la condición y `find` no devolvió ninguno. **Habría concluido que ninguna sesión estaba activa, o sea que la fábrica entera estaba muerta** | `stat -f '%Sm' -t '%H:%M:%S'` sobre los ficheros y comparar las horas a mano |
-| Contar `"ScheduleWakeup"` o `"CronCreate"` como texto en un transcript | cuenta también la **prosa** — mensajes donde se habla de la herramienta sin llamarla. El CEO midió 2 `CronCreate` en tres sesiones que en realidad tenían **cero** | parsear el `.jsonl` y contar solo los bloques `tool_use` cuyo `name` sea la herramienta |
+| `grep <nombre de herramienta>` sobre un transcript | **Cuenta menciones en conversación como si fueran usos.** El CEO midió 2 `CronCreate` en tres sesiones que tenían **cero**: lo que contaba eran los mensajes de los propios roles discutiendo por qué no usarlo. **Y es estructural, no un despiste:** el transcript contiene los eventos **y además las conversaciones sobre los eventos**, y en esta fábrica la conversación supera con mucho a los eventos. **Cuanto más se discute un mecanismo, menos fiable se vuelve medirlo por texto** — o sea, el método se degrada justo cuando más se usa. Eso no se arregla teniendo cuidado | parsear el `.jsonl` y contar solo los bloques `tool_use` cuyo `name` sea la herramienta — ver `ceo.md`, "El transcript se parsea, nunca se grepea", con el código concreto |
 | `npm run dev` responde en `localhost:3000`, luego el servidor es el tuyo | **Puede ser el de OTRA terminal ocupando el puerto.** Responde en 2 segundos y todo parece normal — pero estarías validando el worktree de otra rama y reportándolo como tuyo. Agravante: `reuseExistingServer: true` en `playwright.config.ts` hace que Playwright **se enganche a lo que haya escuchando sin preguntar de quién es**. Con varias terminales en paralelo no es hipotético | `lsof -nP -iTCP:3000 -sTCP:LISTEN -t` y mirar el `cwd` del proceso: tiene que ser TU worktree. Hallazgo de T3, 2026-09-08 — comprobó que el suyo sí lo era y **lo reportó igual en vez de callárselo**. También en `intro-terminal.txt`, porque es paso previo de cualquier verificación en navegador |
 | "La mutation devolvió error, luego no escribió nada" | **Un error devuelto no prueba que no se escribiera.** Es el mismo "comprueba el efecto, no el retorno" del resto de la tabla, aplicado **al caso denegado**, que es donde menos se mira | volver a entrar como el otro usuario y comprobar el estado real (que la ficha siga con el mismo número de registros). Hallazgo de T3 probando autorización, 2026-09-08 |
 | Leer `process.env.X` en el **middleware Edge de Next.js** y creer que lee el entorno | **Se sustituye por un literal en tiempo de build.** El código *parece* leer el entorno y no lo hace — sobrevive a cualquier revisión de código, y solo falla **al segundo deploy**, cuando ya nadie lo relaciona con el cambio | verificar el valor **sobre el artefacto ya construido**, no leyendo el código: una build, dos arranques con valores distintos. Hallazgo de T2 el 2026-09-08, construyendo AIT-79 — que es justamente la tarea que existe para cerrar un falso verde, y estuvo a punto de nacer con uno dentro |
+| `npx tsc --noEmit` limpio **tras cambiar el tipo de retorno de una función** | **No protege un contrato que desemboca en un template literal.** `` router.push(`/oportunidades/${result}`) `` **compila con cualquier cosa** — si `result` pasa de ser un id a ser un objeto, el typecheck sigue en verde y la app navega a `/oportunidades/[object Object]`. Por el mismo camino se puede romper el contrato de una función de **otra tarea** sin que nada lo señale | **"el typecheck pasa" no dice NADA sobre un cambio de forma de retorno.** Hay que ejercitar el camino: lo cazó la suite e2e, no el compilador. Hallazgo de T3, 2026-09-08, implementando AIT-80 — y le rompió además, sin darse cuenta, una función de AIT-74 |
+| La ruta que le pasas a una herramienta para que escriba un fichero | **Puede resolverla contra otro directorio sin avisar.** Verificado en vivo el 2026-09-08: el MCP de Playwright **ignoró una ruta absoluta** y resolvió relativo a la raíz del proyecto. El fichero —un volcado de sesión con tokens de autenticación— apareció suelto en la raíz, untracked y sin ignorar, a un `git add -A` de entrar en el repo | **comprobar dónde apareció el fichero, no dónde lo pediste.** Pedir una ruta no es lo mismo que obtenerla |
 | `git add -A` en un checkout compartido | **No falla, no avisa, y se lleva lo que encuentre** — incluido trabajo en curso de otro rol que casualmente use la misma carpeta | **commitear por ruta explícita**; `git add -A` queda prohibido en la raíz (decisión 18.2). **La historia entera, porque la regla sola no enseña:** el 2026-09-08 el CEO hizo `add -A` desde la raíz para commitear documentación y arrastró un `throw new Error` que el QA había inyectado en `app/login/page.tsx` para poder ver renderizada `app/error.tsx` — una prueba legítima, bien marcada como temporal y revertida por él dos minutos después. El commit llegó a crearse. **Lo único que lo paró fue la comprobación de la decisión 9** (`git diff --name-only origin/main..main \| grep -E '^(app\|convex\|…)'`), escrita tres horas antes para algo completamente distinto: no arrastrar código en un push de documentación. Si llega a `main`, Railway despliega un login que revienta al cargar |
 | `grep <patrón> fichero \| head -1 && echo "APARECE"` | **Da positivo con CERO coincidencias.** En una tubería, `&&` evalúa el código de salida del ÚLTIMO comando (`head`, que devuelve 0 aunque grep no encuentre nada), no el del que te interesa | **cuenta ocurrencias y mira el número** (`grep -c`), nunca encadenes con `&&` sobre una tubería. Misma familia que `npm test \| tail`, con otro comando: la lección general es que **el código de salida de una tubería es el del último eslabón**. Hallazgo del Integrador, 2026-09-08, verificando AIT-76: estuvo a un paso de reportar un fallo inexistente y no cerrar una tarea correcta |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
@@ -635,6 +868,91 @@ el primer turno que termine, sea de quien sea**: no es solo una etiqueta mal pue
 desaparece sin que nadie lo note. Pendiente de arreglo (decisión 17.1/17.2: identidad por
 variable de entorno fijada al arrancar la ventana, y marcador por rol) — **es configuración
 de `settings.local.json`, así que lo decide Aitor.**
+
+## 2sexies-bis. Lo que se ejecuta se cumple; lo que se recuerda, no (2026-09-08)
+
+Decisión 29. Sale de una pregunta del Factory Architect después de incumplir una regla que
+él mismo había escrito dos horas antes: *"la regla existía, estaba escrita, y aun así la
+incumplí — así que escribirla no basta. ¿Cómo hacer que se aplique en el momento de
+concluir y no solo en el de revisar?"*
+
+**La observación que lo sostiene, y es incómoda:** el 2026-09-08 los roles de esta fábrica
+se corrigieron mutuamente **siete veces**. **Ninguna la provocó la regla escrita. Todas las
+provocó otro rol mirando el dato.** Las reglas no se aplicaron solas ni una sola vez.
+
+**Y el patrón que separa las que sí funcionaron de las que no:**
+
+- **Las que se convirtieron en una comprobación ejecutable se cumplieron sin esfuerzo.** El
+  `git add -A` que estuvo a punto de publicar un login roto lo frenó un `grep` que corría
+  antes del push — no un principio recordado. El autotest del watchdog cazó tres versiones
+  defectuosas por el mismo motivo.
+- **Las que se quedaron en principio se incumplieron el mismo día que se escribieron.** El
+  Factory Architect concluyó desde `ListAgents` habiendo prohibido eso él mismo; el CEO
+  afirmó que una sesión producía usando un dato de cinco minutos antes, habiendo escrito la
+  regla de la distancia entre medir y afirmar.
+
+> **La pregunta obligatoria al escribir una regla nueva: *"¿esto puede convertirse en algo
+> que se ejecute antes de la conclusión, o se queda en algo que hay que recordar?"***
+>
+> **Si se queda en principio, decláralo.** Es una regla de segunda categoría y hay que
+> asumir que se incumplirá — no por descuido de nadie, sino porque hoy no tenemos ninguna
+> evidencia de que un principio escrito haya cambiado una conclusión en el momento de
+> tomarla.
+
+**Y la segunda mitad, que la afina y viene del QA — el rol que menos toca proceso:** *lo que
+hay que recordar **tiene que caber en una frase**, y si no cabe, hay que ejecutarlo.*
+
+Su ejemplo lo demuestra mejor que el argumento: de toda la decisión 32.1, lo que le sirve
+es ***"pedir una ruta no es lo mismo que obtenerla"***. Esa frase la va a tener presente la
+próxima vez que una herramienta escriba un fichero; **el párrafo entero, no.**
+
+> **Cada regla que se quede en principio necesita SU ENUNCIADO CORTO, o no es una regla: es
+> un párrafo.** Y una regla que **no admite** enunciado corto es una **candidata a control
+> ejecutable**, no a documento.
+
+Aplica también hacia atrás, junto con el repaso ya pendiente: al revisar las decisiones
+anteriores, a cada una que se quede en principio hay que darle su frase — o reconocer que
+pide código en vez de prosa.
+
+**El patrón en miniatura, y es el ejemplo a imitar:** en vez de *"no concluyas que una
+sesión está parada desde un dato viejo"* —que es un principio y se incumple—, la versión
+ejecutable es **"antes de afirmar que una sesión está parada, imprime su último `assistant`
+y la hora actual"**. No impide equivocarse; **pone el dato caducado delante de los ojos en
+el instante de concluir**, que es exactamente donde fallaron los dos. Ya está aplicado en
+el barrido del CEO y en las alertas del watchdog, que imprimen la hora junto a la medición
+para que la distancia se vea sin calcularla.
+
+⚠️ **Y esta decisión, a diferencia del resto, hay que aplicarla HACIA ATRÁS:** repasar las
+demás y separar cuáles admiten volverse comprobación y cuáles se quedan en principio
+declarado. Queda pendiente y escrito para que no se pierda.
+
+### Manda la tabla, no la conclusión (decisión 31)
+
+La forma más útil que ha tomado lo anterior, y sale de un error del CEO: reportó *"cero
+sesiones con cola pendiente"* mientras su propia tabla decía `PM … pendientes 1`. Miró la
+columna, vio ceros en siete filas y generalizó sin leer la octava.
+
+**El daño no fue el dato erróneo: fue que el Factory Architect estuvo a punto de registrar
+un límite inexistente en su propio instrumento** —y de cambiarlo— porque la discrepancia
+que veía no existía. **Hacer desconfiar a alguien de una herramienta que funciona es peor
+que darle un dato suelto equivocado.**
+
+> **Un resumen es un artefacto degradado.** Cuando la medición es **lo que el otro rol va a
+> usar para decidir**, manda **las filas**, y que la conclusión **acompañe** a los datos en
+> vez de sustituirlos.
+
+**Alcance, para que no se convierta en volcar datos por sistema:** aplica cuando el otro va
+a decidir sobre esa medición. Para lo demás, un resumen sigue estando bien.
+
+**Es la decisión 22 desplazada un paso:** aquella cubre la distancia entre **medir y
+afirmar**; esta, la distancia entre **medir y transmitir**. En los dos casos el dato existía
+y era correcto — lo que falló fue el paso siguiente.
+
+📌 **Y el fallo era de los dos lados, que es lo que lo hace regla y no anécdota:** uno mandó
+un resumen, y el otro **lo usó como si fuera una medición**. Quien pide artefacto para un
+`/loop` no puede aceptar una conclusión agregada para un censo.
+
+---
 
 ## 2septies. Una regla que manda preguntar a un humano tiene que fijar el CANAL (2026-09-08)
 
@@ -732,6 +1050,84 @@ que es otra cosa distinta de editar un fichero local. El QA no saltó ninguna re
 marcó su prueba como temporal, con condición de reversión escrita, y la revirtió en dos
 minutos. La regla no existía porque nadie la había escrito.
 
+### Decisión 32 — Dónde escriben tus HERRAMIENTAS, no solo dónde trabajas tú
+
+La 18 cubre **dónde experimentas**. No cubría el caso que apareció después, y que destapó el
+QA: **él no experimentaba en la raíz** — le dio a una herramienta una ruta absoluta fuera
+del repo, y **la herramienta la ignoró y escribió donde le dio la gana**. El fichero era un
+volcado de sesión **con tokens de autenticación dentro**, y quedó suelto en la raíz,
+untracked y sin ignorar.
+
+- **32.1 — Toda herramienta que escriba ficheros recibe un destino explícito fuera del
+  repo, Y SE COMPRUEBA DÓNDE ESCRIBIÓ DE VERDAD.** La segunda mitad es la que importa:
+  **pedir una ruta no es lo mismo que obtenerla.** Verificado en vivo — el MCP de Playwright
+  ignoró una ruta absoluta y resolvió relativo a la raíz del proyecto.
+- **32.2 — El destino por defecto de cualquier fichero que una herramienta produzca y no
+  sea un entregable es el scratchpad de la sesión**, nunca el repo ni un `/tmp` improvisado.
+
+⚠️ **32.3 — Y el límite, declarado y no maquillado: las dos anteriores son PRINCIPIOS, no
+comprobaciones.** Por la decisión 29 eso significa que **hay que asumir que se
+incumplirán** — igual que se incumplieron la de `ListAgents` y la del timestamp el mismo día
+que se escribieron. **Que existan estas dos reglas NO cierra el problema.**
+
+**Lo que lo cerraría es un control ejecutable** —algo que corra antes del commit y se niegue
+a incluir un fichero con pinta de credencial—, **y no lo tenemos**.
+
+⚠️ **Pero el obstáculo estaba mal descrito, y corregirlo cambia la decisión** (aportación
+del QA, verificada por el CEO el 2026-09-08). La primera redacción decía *"un hook de git
+vive en `.git/hooks`, que no viaja"*. **Eso es cierto por defecto y falso como límite:**
+
+- **`git config core.hooksPath .githooks`** mueve los hooks a un directorio **dentro del
+  repo**, que sí se trackea, sí viaja en el clon y sí se revisa en un diff. Es un mecanismo
+  estándar de git, no un truco. Verificado disponible en esta máquina (git 2.54.0), y
+  **hoy no está configurado en ninguna parte**.
+- **Y el coste es aún menor de lo que parecía:** los tres worktrees **comparten el
+  `.git/config` de la raíz** (`git-common-dir` apunta ahí y `extensions.worktreeConfig` no
+  está activada, ambos comprobados). Así que **no son cuatro pasos manuales, es uno**.
+- **El residuo real, que sí sigue en pie:** un clon nuevo en otra máquina necesitaría
+  ejecutar ese comando una vez, y **quien no lo ejecute no tiene control y no se entera** —
+  un fallo silencioso, que es la peor clase.
+
+**Así que 32.3 sigue siendo verdad en su fondo** —asumir que se incumplirá— **pero por un
+motivo mucho más pequeño y atacable que "no se puede".** La distinción importa: llevamos
+todo el día separando *"no se puede"* de *"no se ha hecho"*, y esto era lo segundo
+disfrazado de lo primero.
+
+### Decisión 33 — El control ejecutable: qué comprueba y qué NO
+
+**Decidido que merece existir. Autorizarlo sigue siendo de Aitor** — es configuración del
+repo que hace ejecutar comandos solos, así que ningún rol lo crea por su cuenta.
+
+**Un único trabajo, y estrecho: impedir que un secreto entre en un commit.** No se convierte
+en un validador de todo — **un hook que comprueba cinco cosas se desactiva el día que falla
+por la quinta.**
+
+**Qué mira**, sobre el contenido **staged** (no el working tree):
+- Formas de credencial: `-----BEGIN … PRIVATE KEY-----`, tokens con forma de JWT, y las
+  variables de semilla que ya nombra `CLAUDE.md` (`SEED_*_PASSWORD`, `JWT_PRIVATE_KEY`).
+- Nombres de fichero sospechosos que no estén ya ignorados: `*token*`, `*session*`,
+  `*.pem`, `.env*`.
+
+**Qué NO mira: cualquier otra cosa.** Si mañana hace falta más, se decide entonces.
+
+⚠️ **Condición sin la que no se adopta: el hook se entrega CON SU TEST, y el test tiene que
+DISCRIMINAR** — un fichero con forma de secreto **bloqueado**, y un commit normal
+**permitido**. **Si solo prueba lo segundo, no prueba nada** (decisión 19). El test vive en
+el mismo `.githooks/`, corre a mano, y su resultado se declara en §7. **Sin ese test es
+preferible no tener el hook: un control no verificado es peor que ninguno, porque se
+confía en él.**
+
+**El residuo —un clon nuevo sin el comando no tiene control y no se entera— se cierra
+haciéndolo DETECTABLE, no recordable:** el barrido del CEO comprueba
+`git config core.hooksPath` y **reporta si no está**. Eso convierte un fallo silencioso en
+uno visible, que es lo máximo posible sin poder ejecutar el comando en la máquina de otro.
+
+📌 **Y el problema estructural, que ninguna de estas reglas ataca:** los tres episodios del
+2026-09-08 —el `throw` de prueba que casi se publica, el `git add -A` que lo arrastró, y
+este volcado de credenciales— **salen todos de que cuatro roles commitean desde el mismo
+checkout**. `.gitignore` es la red y el scratchpad la disciplina; **ninguno toca la causa**.
+Queda escrito como el problema estructural que es, para que no se disuelva en tres parches.
+
 ---
 
 ## 3. Reglas que la sesión directora tiene que respetar
@@ -807,6 +1203,12 @@ minutos. La regla no existía porque nadie la había escrito.
   señal suficiente de que algo necesita a Aitor. No confundir con `PermissionDenied` —
   ese se resuelve solo en modo auto y no necesita aviso.
 - **No paralelizar tareas que toquen el mismo archivo.** Van juntas, secuenciales, en la misma rama/terminal (ejemplo real: AIT-14 y AIT-15 comparten `convex/opportunities.ts` → se dieron a la misma terminal).
+- 📌 **El cerrojo de Convex solo le aplica a las terminales NO migradas** (aclarado
+  2026-09-08). Está escrito en genérico —"las terminales"— y eso envejece mal: a fecha de
+  hoy la mayoría ya tiene deployment propio y el cerrojo afecta a menos de las que el texto
+  sugiere. **No se nombra aquí cuáles son** (§2quinquies, corolario): la condición es
+  `CONVEX_DEPLOYMENT` = el compartido `third-goldfinch-805` en el `.env.local` de ese
+  worktree. Si es otro, esa terminal ignora todo lo que sigue sobre turno y cerrojo.
 - **Mientras una terminal no esté migrada a deployment propio (ver §3bis), el turno de
   Convex se organiza con un cerrojo — ya NO se pide a la Directora** (rediseñado
   2026-08-14, tras detectar que arbitrar cada petición no escala según crece el número
@@ -869,7 +1271,24 @@ minutos. La regla no existía porque nadie la había escrito.
 
 ## 3bis. Rediseño del turno de Convex: deployments aislados por terminal (decidido 2026-08-12, MIGRACIÓN PENDIENTE)
 
-⚠️ **Diseño objetivo documentado, no aplicado todavía.** Ninguna terminal tiene hoy su
+⚠️ **CORREGIDO 2026-09-08: la migración YA EMPEZÓ, y este apartado llevaba tiempo diciendo
+lo contrario.** Comprobado ese día leyendo el `CONVEX_DEPLOYMENT` de cada worktree: **T1 y
+T2 ya tienen deployment propio** (`supercrm-t1` y `vibecrm-t2`), **T3 sigue en el
+compartido** `third-goldfinch-805`. O sea que hoy **conviven los dos regímenes**, que es
+justo el escenario que este apartado anticipaba al final.
+
+📌 **Este apartado ya no declara quién está migrada, y no debe volver a hacerlo** — es el
+corolario de §2quinquies: un documento no dice el valor actual de un estado mutable, dice
+dónde consultarlo. **Se consulta así, y la respuesta tarda dos segundos:**
+```bash
+grep CONVEX_DEPLOYMENT "Sorfware Factory/_worktrees/T<n>/.env.local"
+```
+Si dice `third-goldfinch-805`, esa terminal **NO** está migrada y le aplica el cerrojo de
+§3. Si dice otra cosa, tiene deployment propio y puede ignorarlo.
+
+⚠️ **Lo que sigue, del párrafo original, describe el diseño objetivo y su porqué** — no el
+estado de hoy. Se conserva porque el razonamiento sigue siendo válido para las terminales
+que falten. El texto decía: *"Ninguna terminal tiene hoy su
 propio deployment — las tres siguen en el compartido `third-goldfinch-805`, así que los
 bullets de §3 sobre turno arbitrado siguen aplicando a las tres. Este apartado existe
 para que, cuando se ejecute la migración, cualquier sesión sepa exactamente qué hacer sin
@@ -1469,15 +1888,25 @@ fecha) o **NO VERIFICADO** (en negrita, con el motivo) — nunca se deja implíc
 verificado" honesto vale más que un "funciona" sin comprobar (ver §2ter). Añade aquí
 cualquier mecanismo nuevo antes de darlo por bueno en el resto de documentos.
 
-⚠️ **DOS preguntas obligatorias antes de marcar nada como Verificado** (decisiones del
-Factory Architect, 2026-09-08 — ver §2sexies). Son las dos caras: la primera mira a la
-herramienta, la segunda al experimento.
+⚠️ **TRES preguntas obligatorias antes de marcar nada como Verificado** (decisiones del
+Factory Architect, 2026-09-08 — ver §2sexies). En este orden, que es el de la secuencia
+completa: **¿mido el sujeto correcto? → ¿discrimina mi prueba? → ¿puede la herramienta
+mentirme en verde?**
+
+**(1) *"¿estoy midiendo lo que creo que estoy midiendo?"*** (T2, decisión 22.) Va primera
+porque es anterior a las otras dos: la prueba puede estar bien elegida y la herramienta ser
+honesta, y aun así **el sujeto ser el equivocado** — o el mismo sujeto haber cambiado entre
+que lo mediste y que lo afirmas. Toda medición de algo mutable se reporta **con su marca de
+tiempo**; una medición sin hora se lee como permanente.
 
 **(2) *"¿esto fallaría si el diseño fuera el equivocado?"*** Si la respuesta es no, la
 prueba no vale **aunque salga verde**: una comprobación que da verde tanto con el diseño
-bueno como con el malo no está comprobando nada (formulación de T2).
+bueno como con el malo no está comprobando nada. *(Atribución, corregida a petición del
+propio T2: el caso concreto y la pregunta "¿esto fallaría si el diseño fuera el
+equivocado?" son suyos; la generalización a categoría la trabajó con el Factory Architect,
+que fue quien la colocó junto a las otras dos.)*
 
-**(1) *"¿cómo podría esta verificación mentirme en verde?"*** — Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
+**(3) *"¿cómo podría esta verificación mentirme en verde?"*** — Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
 Verificado. Esto es lo que hace que §2sexies se aplique sola de aquí en adelante, en vez
 de quedarse en una lista que envejece: seis de las comprobaciones que usábamos a diario
 mentían en verde, y dos de ellas costaron los peores incidentes de publicación del
@@ -1499,12 +1928,21 @@ proyecto.
 | `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El QA (entonces llamado "Tester") declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
 | Hook `PermissionRequest` para un `PermissionRequest` genérico | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). El hook sigue presente en las cuatro copias (verificado por el Factory Architect, 2026-09-08). |
 | Hook `PermissionRequest` **para la pantalla de aprobación de `ExitPlanMode`** | **NO VERIFICADO** | Es un caso distinto del anterior, y llevábamos desde el 2026-09-04 asumiendo que estaba cubierto — **que funcione para un caso no lo verifica para el otro**, que es justo la confusión que esta tabla existe para evitar. El 2026-09-08 tres sesiones se quedaron sordas (~85 min sumados) y **nadie mencionó haber oído ninguna alerta de voz**. ⚠️ **Corregido el mismo día (decisión 17.4): de esos tres bloqueos, como mucho DOS podían sonar, no tres** — el del Integrador era un `AskUserQuestion`, que no pasa por el sistema de permisos y por diseño no puede disparar ningún hook. Se había asumido que los tres bloqueos eran del mismo tipo sin comprobarlo. La corrección importa porque cambia lo que significaría un "no oí nada" de Aitor. Explicaciones posibles para los dos que sí podían sonar, sin distinguir todavía: (a) `ExitPlanMode` no dispara `PermissionRequest` — sería el hueco real; (b) sonó y no había nadie delante; (c) el hook está roto. **Y una cuarta, que no es hipótesis sino OBSERVADA:** el marcador del hook de `Stop` es compartido entre los seis roles centrales. El CEO puso el marcador al detectar al Integrador atascado y **poco después ya no existía** — se lo llevó el primer turno que terminó, de quien fuera. No es "podría pasar": pasó ese mismo día, y confirma el robo de alertas con un caso real en vez de con la lectura del código (ver "Los tres bloqueos" arriba). **Cómo se resuelve, gratis:** T2 y T3 van a pasar por esa pantalla igualmente — la siguiente que lo haga reporta si sonó. Y preguntárselo a Aitor, que es quien ya lo sabría. Si resulta que sí dispara, el problema estructural se encoge de "30 minutos invisibles" a "30 segundos hasta que alguien lo oye". |
-| Copias de `intro-terminal.txt` y documentos de proceso dentro de cada worktree | **Verificado como TRAMPA — no se leen** | Medido el 2026-09-08 por el Factory Architect y confirmado por el CEO: la copia de cada worktree diverge de la raíz **31 líneas en T1, 38 en T2, 31 en T3**. No es un riesgo teórico: las terminales estaban leyendo instrucciones desactualizadas en ese momento. Los documentos de proceso se leen **siempre desde la raíz, por ruta absoluta**; el permiso ya existe (`additionalDirectories` de los tres worktrees ya apunta a la raíz absoluta, verificado). Excluido `docs/`, que sí se quiere en la versión de la rama. |
+| Copias de `intro-terminal.txt` y documentos de proceso dentro de cada worktree | **Verificado como TRAMPA — no se leen** | Medido el 2026-09-08 por el Factory Architect y confirmado por el CEO: la copia de cada worktree diverge de la raíz **31 líneas en T1, 38 en T2, 31 en T3**. No es un riesgo teórico: las terminales estaban leyendo instrucciones desactualizadas en ese momento. Los documentos de proceso se leen **siempre desde la raíz, por ruta absoluta**; el permiso ya existe (`additionalDirectories` de los tres worktrees ya apunta a la raíz absoluta, verificado). **Y hay un tercer modo de fallo, aportado por T1: una rama NACE desfasada.** La suya se creó 6 commits por detrás de `origin/main`, los seis de documentos de proceso, con 27 líneas de diferencia en `intro-terminal.txt` — o sea que quien lee sus instrucciones desde el worktree las lee **congeladas el día que nació su rama, y sin forma de saberlo**. No hace falta que pase el tiempo: el desfase existe desde el primer minuto. Excluido `docs/`, que sí se quiere en la versión de la rama. |
 | Propagación de `CLAUDE.md`/`AGENTS.md` a los worktrees | **NO VERIFICADO — sigue siendo manual, y no tiene arreglo técnico** | La herramienta los carga sola desde el worktree; no hay forma de redirigirlos a la raíz. La mitigación no es técnica sino de contenido: **que no contengan detalle de proceso que cambie a menudo**, solo el selector de rol y punteros a la raíz. Hoy `CLAUDE.md` ya está casi así — mantenerlo así a propósito, no por casualidad. |
 | **Verificación de staleness de una terminal: red de tres niveles** | **Verificado como DEGRADADA — hoy solo funciona UNO** | Estado real al 2026-09-08: nivel 1 (transcript, con `queue-operation`) **funciona y es el único fiable**; nivel 2 (spinner del título) **intercambiado a propósito** por el bucle de titulado por rol, ya no es señal; nivel 3 (captura) **roto y en falso verde**, pendiente de que Aitor conceda Grabación de Pantalla. Declarado así por decisión 11 del Factory Architect: quien lea "tenemos tres niveles" tomaría decisiones contando con una red que no existe. |
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
 | `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
+| Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bzckke1ho` (v9), armado 19:04:18. ⚠️ SUS DOS RAMAS ESTÁN EN ESTADOS DISTINTOS — no se resumen en una sola casilla.**
+
+**Rama A — cola pendiente + 3 min sin producir: VERIFICADA EN VIVO, 2026-09-08, en sus dos caras y por instrumentos independientes.** Positiva: alertó a las 19:08:04 sobre la sesión `829c22a4` con `cola=1`, y el censo del CEO de las 22:15:30 UTC registró para el PM `pendientes 1` — **misma sesión, mismo número, dos mediciones separadas**; se resolvió sola, que era la primera hipótesis. Negativa: **silencio durante los 17 minutos que T2 estuvo ociosa con cero pendientes**, que es justo lo que las versiones anteriores a la doble condición habrían convertido en un aviso inútil a Aitor.
+
+**Rama B — herramienta sin `tool_result` + 5 min sin producir: NO VERIFICADA, sin un solo caso positivo.** Es la que cubre **la terminal que se para sola sin que nadie le escriba** — el punto ciego que hace que la rama A no baste, porque la cola pendiente es la consecuencia de que alguien ya detectó la parada, no su causa. Medidas las nueve sesiones: **todas dan cero herramientas colgadas**, así que consta que la señal computa y que no da falsos positivos con lo que hay, **no que se encienda cuando debe**. No se resuelve con más tests: hace falta una parada real. ⚠️ **Que la rama A funcione no dice nada de esta**, y la buena noticia de una no puede difuminar el estado de la otra.
+
+*Falso positivo asumido a propósito en la rama B:* un comando legítimo de más de 5 minutos es indistinguible de uno bloqueado esperando permiso — está en el autotest como caso esperado, no como fallo; se prefiere ese ruido a la ceguera. De ahí que su umbral sea 5 min y no 3. La v9 cierra el punto ciego que el CEO encontró en la v8: **la cola pendiente no es la causa de la sordera, es la consecuencia de que alguien ya la detectó** — así que una terminal que se para sola, de noche, sin nadie escribiéndole, tiene la cola a cero y la v8 callaría indefinidamente. **La asimetría que sí funciona sin depender de terceros: una sesión ociosa terminó su turno limpiamente; una sorda se quedó a mitad de una llamada de herramienta** (último `assistant` pidió herramientas cuyo `tool_result` nunca llegó). La v9 tiene **dos ramas**, no una sustituyendo a la otra: *cola pendiente + 3 min sin producir* (segunda fase del incidente) y *herramienta sin resultado + 5 min sin producir* (**primera fase**). ⚠️ **La rama nueva está sin verificar de una forma particular: no hay ni un caso positivo.** Medidas las nueve sesiones, **todas dan cero herramientas colgadas** — sanas y ociosas por igual —, así que consta que la señal computa y que no da falsos positivos con lo que hay hoy, pero **no que se encienda cuando debe**. Es una prueba que todavía no discrimina (§2sexies, decisión 19, aplicada por su autor a sí mismo), y esta vez no se resuelve con más tests: hace falta una parada real. ⚠️ **Falso positivo asumido a propósito:** un comando legítimo de más de 5 minutos es indistinguible de uno bloqueado esperando permiso; está en el autotest como caso esperado, no como fallo — se prefiere ese ruido a la ceguera de la v8, y de ahí que el umbral de esa rama sea 5 min y no 3. La v8 adopta la señal del censo del CEO y pasa a **condición doble: no produce Y tiene mensajes sin drenar**. Eso elimina el ruido que arrastraba desde la v1: una sesión **ociosa legítima** (el Integrador sin nada con GO, el QA entre rondas de 60 min) tiene la cola a cero y **ya no dispara**; una **sorda** los acumula, porque en cuanto se atasca los demás roles empiezan a escribirle. Seis casos de autotest, y los que discriminan de verdad son los dos nuevos —ociosa con cola vacía → silencio, sorda con cola pendiente → alerta—: con la lógica de la v7, el primero fallaba. ⚠️ **El autotest no es evidencia de funcionamiento, es evidencia de que la lógica hace lo que su autor cree.** Que no se convierta en "funciona" por inercia. *(Versión anterior: `b1a6bken3` v7, que corregía el punto ciego de no ver una sesión ya parada al armarse; su caso de prueba nunca llegó a ejercitarse porque T3 produjo cuatro segundos después de armarla.)* La v7 corrige el punto ciego de la v6 (no veía a una sesión **que ya estuviera parada al armarse** — justo cuando más probable es que haya alguien atascado de antes). Su prueba iba a ser cazar a T3 en el siguiente ciclo, y **el caso nunca llegó a ejercitarse**: se armó a las 18:55:33 y T3 produjo a las 18:55:37, cuatro segundos después, así que el vigilante la vio moverse y la marcó viva — correcto por su parte, pero la situación se resolvió antes de que la alarma pudiera dispararse. **Evidencia disponible: un autotest de cinco casos, incluido uno que reproduce el de T3. Evidencia ausente: una sola parada real cazada en vivo.** No se apunta como funcionando por no haber fallado — no ha tenido ocasión. ⚠️ **Seis versiones, y lo que enseña no es que costara seis: es QUÉ cambió en la última.** Las cinco primeras se escribieron y se armaron a ojo; fallaron por turnos con falsos positivos (avisar de sesiones terminadas, 19 de golpe en la v3), un falso negativo (la v4, mirando `mtime`, habría callado ante una terminal atascada a la que le escribíamos) y una **regresión** (la v5 reintrodujo al reescribirse en Python la condición de "haber visto un cambio real" que la v4 ya tenía). **La v6 es la primera cuya lógica de decisión se sacó a una función aparte y se sometió a cuatro casos ANTES de armarla** —sesión muerta, sesión produciendo, parada real, control de reaviso— comprobando además que **discriminan**: con la lógica de la v5, el caso "sesión muerta" falla. Si no fallara, el test no probaría nada. Es la decisión 19 aplicada por el Factory Architect a su propia herramienta, después de exigírsela a T2 el mismo día e incumplirla él cinco veces seguidas. **La diferencia no fue tener más cuidado.** Umbral 3 min, reaviso cada 10 mientras siga parada, aviso a Aitor por `PushNotification` con ventana y tecla; detecta *que* una sesión se paró, no *cuál rol es* — se cruza con `ListAgents` en el mismo minuto. **Tres versiones descartadas antes de esta**, y el historial es la evidencia más valiosa que tiene esta tabla: `bv8zvxumv` y `b323vg1af` avisaban de sesiones **terminadas** (por antigüedad de fichero no se distingue "quieta" de "muerta"), y `bs1sy5rxs` (v3) **disparó 19 falsos positivos**, algunos de sesiones de hace 24 días, porque marcaba una sesión como viva **la primera vez que la veía, no cuando la veía moverse** — confundir "la he observado" con "la he visto trabajar". La v4 solo toma línea base en la primera pasada y alerta tras un cambio real de mtime seguido de quietud; una sesión terminada nunca cambia, así que no puede alertar. ⚠️ **Precio a conocer:** necesita ver moverse a una sesión antes de poder vigilarla, así que **el primer aviso posible tarda hasta ~4 min**, no 3. ⚠️ **Punto ciego que obliga a vigilarlo:** es la alarma de la fábrica — **si su sesión se para, la alarma se para con él**. El CEO le pide **id + hora del último evento** en cada ciclo; un "sigue armado" sin id no se acepta, y **un id caducado es peor que ninguno**. |
+| `SendMessage` con `notify_when_idle: true` como aviso de "terminal libre" | **VERIFICADO, 2026-09-08 — el aviso llega** | Ejercido por la Directora sobre la sesión vieja de T3. Aviso recibido literal: *"[Cross-session idle notice] «fix-duplicate-customer-creation» … has exited (at 19:01) before going idle"*. **Dos datos que amplían el mecanismo más allá de lo que la 26.1 pedía:** (a) **cubre también la SALIDA de la sesión, no solo el idle**, y con la hora exacta — o sea que si una terminal muere, el coordinador se entera igual; (b) **funcionó pese a la clase de permisos**: era el riesgo declarado —el contrato avisa de que si la clase difiere, el notice se le muestra al usuario en vez de a quien lo pidió— y esa sesión estaba en `acceptEdits`, no en `auto`, y **llegó igualmente**. ⚠️ **Alcance exacto de lo verificado, y no más:** probado con una sesión en `acceptEdits`. **No probado con otras clases de permiso.** No se sabe si `acceptEdits` y `auto` cuentan como la misma clase o si la condición es más laxa que el texto — se declara que **el punto ciego no se materializó en este caso**, no que no exista. *(Antes de esto: suscripción verificada y entrega no verificada; la distinción la marcó la propia Directora al ejercerlo.)* |
+ Ejercido por primera vez por la Directora el 2026-09-08. El tool devolvió confirmación literal de la suscripción, así que **el mecanismo existe y se acepta** — pero eso no prueba que el aviso llegue, que solo se sabrá cuando esa sesión termine su turno. Es la distinción que ella misma marcó, y es la correcta. ⚠️ **Letra pequeña del contrato, que puede mordernos:** el aviso llega *"provided that session runs in the same permission class as this one (or is one this session spawned) or asserts none; otherwise it is shown to your user"*. La terminal a la que se lo armó **salió de su bloqueo en `manual mode`**, no en auto. Si el aviso no llega, esa es la primera hipótesis — y significaría que el mecanismo tiene un punto ciego **justo con las terminales en modo distinto, que son las más propensas a atascarse**. ⚠️ Y lo que sí está claro por diseño: **no dispara con una sesión atascada en un prompt**, porque esa sesión no está ociosa — de ahí que el caso lo cubra el watchdog. |
 | Railway inyecta `RAILWAY_GIT_COMMIT_SHA` en el build | **NO VERIFICADO** | Pista, no dato — así se marcó al pasársela al PM, y sigue igual. T2 lo declaró explícitamente al construir AIT-79: **el clasificador le bloqueó el comando con el que iba a comprobarlo, y no lo rodeó** — dejó el modo degradado devolviendo `commit: null` en vez de rellenar con algo plausible, sin que nadie se lo recordara. Es §2ter(b) funcionando dentro de una sesión de desarrollo. **Que no se cuele como supuesto en la implementación de AIT-79.** |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 

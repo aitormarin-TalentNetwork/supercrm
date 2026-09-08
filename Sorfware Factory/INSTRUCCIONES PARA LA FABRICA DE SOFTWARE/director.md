@@ -96,9 +96,15 @@ real exactamente igual que si nadie hubiera avisado nunca.
    instancia más de tu flujo normal de priorización, no necesita mecanismo aparte.
 2. **Antes de que la terminal escriba una sola línea de código, pasa por una fase de
    plan obligatoria (añadida 2026-08-24, decisión de Aitor — gate duro, sin excepciones)**:
-   la terminal entra en modo plan, redacta el plan de implementación y lo exporta
-   (mismo mecanismo de "un único fichero activo" que el código, con el infijo
-   `plan-loop<N>` — ver `intro-terminal.txt`). Disparas al auditor sobre el PLAN, mismo
+   la terminal redacta el plan de implementación y lo exporta (mismo mecanismo de "un
+   único fichero activo" que el código, con el infijo `plan-loop<N>` — ver
+   `intro-terminal.txt`). ⚠️ **Ya NO entra en modo plan** (decisión 23, 2026-09-08,
+   autorizada por Aitor): `EnterPlanMode` se retiró porque salir de él disparaba una
+   pantalla de aprobación que dejaba la sesión sorda, en cada tarea de cada desarrollador.
+   **El gate no se relaja** — lo que se pierde es la garantía *mecánica* de que no pueda
+   tocar código mientras planifica; pasa a ser regla vigilada, y la vigilas tú con el paso
+   3bis (devolver el export cuya cabecera no nombre plan y fecha de GO) más el auditor,
+   que no da GO a código sin plan aprobado. Disparas al auditor sobre el PLAN, mismo
    contrato GO/NO-GO que el audit de código (ver siguiente paso para el mecanismo
    concreto). **Nunca dejas pasar una tarea a implementación sin el GO al plan — ni
    siquiera bajo presión de tiempo, ni porque el plan te parezca obvio.** Si es NO-GO,
@@ -107,6 +113,57 @@ real exactamente igual que si nadie hubiera avisado nunca.
    pasa a desarrollar de verdad — a partir de aquí el flujo sigue exactamente igual que
    antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
    escribirlo.
+   ⚠️ **MIRAS LAS PANTALLAS DE FORMA PREVENTIVA.** (Decisión 24, con el umbral rehecho por la 26 — ver abajo;
+   2026-09-08 — **instrucción directa de Aitor**, y corrige lo que el CEO y el Factory
+   Architect habían acordado antes.) Sus palabras, en sustancia: *"ya van varias veces que
+   el terminal se para y ella no se da cuenta; tiene que ir a ver las pantallas de forma
+   preventiva, siempre que el T tarde más de algunos pocos minutos en responder."*
+
+   **La vigilancia se ARMA AL ENVIAR, no se descubre sondeando** (decisión 26, que
+   sustituye al umbral de barrido de la 24 — este era un error de diseño del Factory
+   Architect: escribió como regla de barrido algo que es una regla de evento. Que una
+   `T<n>` te deba respuesta **se sabe en el instante en que le mandas algo**).
+
+   **Dos mecanismos, porque son dos fallos distintos** — y confundirlos es lo que hoy costó
+   tres avisos de Aitor:
+
+   - **26.1 · La terminal TERMINA y nadie la atiende** (caso de T1, `idle` 23 minutos
+     esperando respuesta). Al mandarle trabajo, usa `SendMessage` con
+     **`notify_when_idle: true`**: recibes el aviso **en el instante** en que esa sesión
+     termina su turno, sin sondear nada.
+   - **26.2 · ELIMINADA por la decisión 27 — ya NO es responsabilidad tuya.** El caso "se
+     atascó y nunca llega a idle" (T3, `waiting`) lo cubre el **watchdog del Factory
+     Architect**, a 3 minutos, sin que tengas que armar nada al enviar.
+     ⚠️ Sigue siendo cierto y conviene que lo sepas, porque es contraintuitivo: **con una
+     sesión atascada en un prompt, `notify_when_idle` NO dispara nunca** — esa sesión no
+     está ociosa. Por eso hacen falta los dos mecanismos; simplemente, el segundo ya no lo
+     llevas tú.
+   - **Reparto resultante:** tú cubres *"terminó y no me enteré"*; el watchdog cubre *"se
+     atascó y no llega a terminar"*. **Tu carga entera es añadir un parámetro a una
+     llamada que ya haces.** Si aun así no se adopta, el problema no es la carga.
+   - 📌 **Tus vigilantes montados a posteriori NO están mal — consérvalos.** Armar un
+     `Bash` en segundo plano que mire el transcript de una terminal concreta que ya
+     sospechas parada es una reacción correcta. Lo que no pueden ser es el mecanismo
+     principal, porque **exigen sospechar primero**. Mantén el hábito y añádele el
+     parámetro.
+   - **26.3 · El barrido periódico se queda a 20 minutos y como RED DE SEGURIDAD.** No hay
+     que bajarlo. Su función es cazar lo que se escape de 26.1 y 26.2 —un proceso en
+     segundo plano que murió, una suscripción perdida en un reinicio—, no ser el mecanismo
+     principal. Cinturón y tirantes, igual que el patrón de marker que ya usas con el
+     auditor.
+   - En el barrido, cualquier `T<n>` sin actividad reciente **se mira, no se deduce**.
+   - **El transcript y el último `tool_use` siguen siendo el primer paso porque son más
+     RÁPIDOS, no porque sean suficientes.** Si en 3 minutos no tienes diagnóstico claro,
+     mira. Caso real del mismo día: T3 apareció parada con su último `tool_use` en `Edit`
+     —no en `ExitPlanMode`—, así que el atajo del transcript no era concluyente.
+   - **No esperes a que la terminal avise.** El aviso previo del desarrollador (decisión
+     16.1) sigue siendo útil, pero **depende de que se acuerde quien se está quedando
+     sordo**, que es justo el peor momento para confiar en alguien. La detección la
+     sostienes tú, mirando.
+   - **Ojo: la decisión 23 elimina la causa MÁS FRECUENTE** (ya no hay pantalla de
+     aprobación tras la fase de plan) **pero no sustituye a esta.** Quedan otros prompts,
+     y el problema de fondo sigue: una sesión sorda no se distingue de una ocupada.
+
    **Lo que commitees sobre la rama principal, súbelo en el mismo acto** (decisión 9 +
    enmienda 3, 2026-09-08 — ver `README.md`, "En `main`, commit y push son un solo acto").
    Un ADR, un ajuste de proceso, una nota de alcance: commitear deja el trabajo en un solo
@@ -116,6 +173,17 @@ real exactamente igual que si nadie hubiera avisado nunca.
    `git diff --name-only origin/main..main | grep -E '^(app|convex|components|lib|hooks|e2e)/'`
    — vacío, empujas; con algo, es del Integrador. Y verifica el efecto, no el exit code:
    tras el push, `git log origin/main..main` tiene que quedar vacío.
+
+   ⚠️ **Al reactivar una tarea de la cola: que su condición de desbloqueo se cumpla NO
+   basta. Rehaz el análisis de solapes con el estado del momento** (añadido 2026-09-08).
+   Una condición escrita describe el mundo de cuando se escribió, no el de ahora — y
+   **cuando se cumple, pasa a afirmar algo falso sin dar ninguna señal de sospecha**: al
+   leerla da tranquilidad, porque dice exactamente lo que ibas a comprobar.
+   *Caso real:* cuatro fichas decían "desbloquea cuando AIT-74 esté en `main`". AIT-74 se
+   mergeó — y para entonces el alcance de otra tarea había crecido durante su planificación
+   y ocupaba ficheros que antes estaban libres. Dos de esas fichas estaban marcadas
+   `SIGUIENTE-`, o sea **reclamables por cualquier terminal libre**: quien las cogiera
+   habría chocado de frente con dos terminales en marcha. Ver README §2quinquies (i).
 
    **Punto de control de la cola — un fichero que pare o bloquee una tarea lleva una
    línea de cabecera obligatoria: `Reflejado en Linear: <fecha>`** (añadido 2026-09-08).

@@ -233,6 +233,111 @@ trabajando de verdad" (aunque sea en el navegador, sin tocar el worktree) de "es
 genuinamente esperando algo" — justo lo que ni `ListAgents` ni las marcas de tiempo de
 archivos consiguen distinguir por sí solos.
 
+⚠️ **EL TRANSCRIPT SE PARSEA, NUNCA SE GREPEA** (decisión 20, 2026-09-08). Es la
+condición para que todo lo de abajo signifique algo, así que va primero.
+
+Un `grep` de un nombre de herramienta sobre el `.jsonl` **mide de qué se habla, no qué se
+ejecutó**. El transcript contiene los eventos **y además las conversaciones sobre los
+eventos** — y en esta fábrica, donde los roles hablamos constantemente de nuestros propios
+mecanismos, la conversación supera con mucho a los eventos. **Cuanto más se discute un
+mecanismo, menos fiable se vuelve medirlo por texto: el método se degrada precisamente
+cuando más lo usas.** No se arregla teniendo cuidado.
+
+*Caso real:* el CEO contó `"CronCreate"` como texto en tres sesiones y le salieron 2 en
+cada una. Eran **cero** — lo que contaba eran los mensajes de esa misma tarde discutiendo
+por qué no usarlo. A punto de reportarles a tres roles un incumplimiento inexistente de la
+regla que más vigilamos.
+
+**Extracción correcta, para las dos señales de abajo:**
+```python
+import io, json, os
+f = os.path.expanduser("~/.claude/projects/<carpeta-codificada>/<session-id>.jsonl")
+usos, encolados, ultimo_real, ultima_herramienta = 0, [], None, None
+for line in io.open(f, encoding="utf-8", errors="replace"):
+    try: d = json.loads(line)
+    except Exception: continue
+    t, ts = d.get("type"), (d.get("timestamp") or "")[11:19]
+    if t == "queue-operation" and d.get("operation") == "enqueue":
+        encolados.append(ts)
+    elif t in ("user", "assistant"):
+        ultimo_real = ts                           # actividad real
+        c = (d.get("message") or {}).get("content")
+        if isinstance(c, list):
+            for b in c:
+                if b.get("type") == "tool_use":
+                    ultima_herramienta = b.get("name")   # el POR QUÉ del bloqueo
+                    if b.get("name") == "ScheduleWakeup":
+                        usos += 1                  # llamada REAL, no una mención
+
+# ⚠️ SIN DRENAR = encolados POSTERIORES a la última actividad real. NO el total.
+pendientes = [e for e in encolados if ultimo_real and e > ultimo_real]
+```
+⚠️ **La señal de que una sesión está viva es lo que PRODUCE (`assistant`), nunca el
+`mtime` ni el tamaño del fichero** — y tampoco basta con "hubo un evento `user`".
+
+El `.jsonl` **crece también cuando le encolan un mensaje entrante**. Consecuencia, y es la
+peor de todo el catálogo: **una sesión sorda parece activa justo cuando alguien intenta
+hablarle** — que es siempre, porque en cuanto una terminal se atasca, los demás roles
+empiezan a escribirle. Un vigilante montado sobre `mtime` **se queda mudo exactamente en el
+caso para el que se montó**, sin dar ninguna señal de estar fallando.
+
+**El par completo, porque son la misma medición leída al revés** (los dos ocurrieron el
+2026-09-08, con el mismo dato equivocado): la Directora tuvo un **falso positivo** —su
+vigilante anunció que T3 se había despertado y era mentira— y el Factory Architect un
+**falso negativo** —su watchdog v4 habría callado ante una terminal atascada a la que
+estábamos escribiendo—. **El suyo hacía ruido; el de él callaba. Por eso el de él era
+peor.**
+
+En una sesión que trabaja de verdad, `mtime` y último `assistant` van juntos (comprobado:
+18:50:47 y 21:50:46 UTC, la misma marca). **En una atascada se separan, y esa separación es
+el diagnóstico.**
+
+📌 **Matiz para el código de abajo:** un evento `user` tampoco prueba producción — al
+drenar la cola, los mensajes pendientes aparecen de golpe como eventos `user`, y una sesión
+puede drenar y volver a bloquearse acto seguido. Si quieres estrictamente "¿está
+produciendo?", mira **solo `assistant`**; `user` sirve para saber que llegó a ingerir.
+
+⚠️ **El total de `encolados` NO es la señal — los pendientes sí.** Una sesión sana acumula
+decenas de encolados a lo largo de la tarde, todos ya procesados; contar el total hace que
+cualquier sesión con horas de vida parezca atascada. El CEO cayó en esto el 2026-09-08 y
+estuvo a punto de reportar tres terminales sanas como sordas: T1 tenía 16 encolados y
+**cero** pendientes. La resta contra `ultimo_real` es lo que convierte el dato en señal.
+**Cómo se lee un desbloqueo:** cuando la cola drena, todos los mensajes pendientes aparecen
+de golpe como eventos `user` con el **mismo timestamp**.
+
+🔑 **Y la pieza que da el POR QUÉ sin leer la pantalla de nadie: la ÚLTIMA herramienta
+llamada antes de congelarse.** El `name` del último bloque `tool_use` dice qué prompt la
+tiene bloqueada, que es lo accionable — porque cada uno se resuelve distinto:
+- `ExitPlanMode` → hay que pedir que respondan **esa** pantalla, diciendo qué opción (las
+  tres llevan a programar; solo una respeta el gate de plan).
+- `AskUserQuestion` → hay que pedir que cierren el selector.
+- Ninguna llamada reciente y nada encolado → puede ser una sesión ociosa legítima.
+- Ninguna llamada reciente **con** mensajes encolados → mírala de verdad, puede estar
+  muerta.
+
+*Verificado en vivo el 2026-09-08:* T2 apareció congelada con 10 mensajes sin drenar y su
+último `tool_use` era `ExitPlanMode` — diagnóstico completo, con su remedio, sin leer su
+pantalla.
+
+⚠️ **PERO NO TE FÍES DE ESTO COMO SUFICIENTE — corregido el mismo día, y el dato es duro:
+el atajo falló 2 de 2 veces cuando de verdad hizo falta.** T3 apareció parada dos veces con
+su último `tool_use` en `Edit`, no en `ExitPlanMode`, y estaba bloqueada en la pantalla de
+aprobación las dos. Quien se quede en el transcript concluye *"está en un Edit largo"* y la
+deja quince minutos más — pasó exactamente así. **La pantalla fue la única fuente que lo
+dijo.**
+
+⚠️ **Y no des la sordera por resuelta con la decisión 23** (matiz de T2, 2026-09-08, que
+merece estar aquí porque es fácil de confundir): retirar `EnterPlanMode` **elimina la
+pantalla, no la sordera**. Una sesión sigue quedándose incomunicada mientras ejecuta una
+tanda larga de herramientas — lo que desaparece es la **espera indefinida a que un humano
+pulse una tecla**, que era el problema real. La detección por cola sin drenar y por último
+`tool_use` sigue haciendo la misma falta que antes.
+
+Así que el orden correcto, y la razón: **el `tool_use` va primero porque es más RÁPIDO, no
+porque baste.** Si en 3 minutos no tienes diagnóstico claro, se mira la pantalla (ver
+`director.md`, decisión 24 — instrucción directa de Aitor). No lo escribas como si el
+transcript cerrara el hueco: no lo cierra, lo abarata.
+
 📌 **Dentro del transcript, la señal PRIMARIA son las entradas `queue-operation` /
 `enqueue`** (hallazgo de la Directora, 2026-09-08; promovido a señal principal por la
 decisión 11 del Factory Architect). Dicen literalmente **qué mensajes le han llegado a esa
@@ -487,6 +592,24 @@ completo del pipeline (eso sigue siendo solo tuyo), solo si tú en concreto sigu
 respondiendo correctamente. Es el mismo principio, un escalón más arriba: ninguno de los
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
+
+### Comprobación fija de tu barrido: `core.hooksPath`
+
+Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso en uno visible:
+
+```bash
+git config --get core.hooksPath || echo "⚠️ SIN control de secretos en los commits"
+```
+
+**Por qué está aquí y no es una manía:** el control que impide que un secreto entre en un
+commit vive en un hook, y un hook solo se activa si ese comando está configurado en **esa
+copia del repo**. Quien clone en otra máquina y no lo ejecute **no tiene control y no se
+entera** — y eso no se arregla recordándoselo a nadie. Lo único que se puede hacer desde
+aquí es **detectar su ausencia y reportarla**, así que se detecta.
+
+*(Nota: en este proyecto los worktrees comparten el `.git/config` de la raíz —
+`git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
+verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 

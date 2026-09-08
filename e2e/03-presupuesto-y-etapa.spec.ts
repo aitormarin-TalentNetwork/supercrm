@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName } from "./helpers";
+import { loginAs, createOpportunityViaAltaRapida, uniqueCustomerName, uniquePhone } from "./helpers";
 
 // PRD §7, Proceso 3 — Presupuesto y avance de etapa:
 // en "Detalle" se registra el presupuesto (importe + estado) y se cambia
@@ -32,7 +32,7 @@ test("registrar presupuesto y cambiar etapa mueve la oportunidad en Pipeline", a
   const customerName = uniqueCustomerName("E2E Presupuesto");
   await createOpportunityViaAltaRapida(page, {
     name: customerName,
-    phone: "600333444",
+    phone: uniquePhone(),
   });
 
   // Registrar el presupuesto: importe (líneas de catálogo) + estado.

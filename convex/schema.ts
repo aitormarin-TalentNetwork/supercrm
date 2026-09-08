@@ -65,7 +65,22 @@ export default defineSchema({
     // exigiría un scan completo de la tabla filtrado en memoria, igual que
     // el problema ya corregido en opportunities (ver by_store_status más
     // abajo, AIT-33 ronda 2).
-    .index("by_store", ["storeId"]),
+    .index("by_store", ["storeId"])
+    // AIT-80: "¿hay ya un cliente de esta tienda con este teléfono?" en el
+    // alta rápida. Sin el índice habría que traerse la tienda entera y
+    // filtrar en memoria, que es justo el scan que la issue prohíbe.
+    //
+    // CONTRATO: `phone` se guarda CANÓNICO (normalizado con
+    // `lib/phone.ts::normalizePhone`), no como se teclea — ver
+    // docs/02-modelo-de-datos.md §customers. El índice solo encuentra lo que
+    // esté normalizado; un escritor que guarde el valor crudo deja al cliente
+    // invisible para la detección de duplicados y para el buscador.
+    //
+    // La clave NO es única: Convex no tiene UNIQUE, y esta tabla contiene por
+    // definición duplicados previos a AIT-80 (son su motivo). Quien consulte
+    // este índice usa `.collect()`; `.unique()` reventaría en cuanto el
+    // backfill normalice dos duplicados al mismo valor.
+    .index("by_store_phone", ["storeId", "phone"]),
 
   opportunities: defineTable({
     customerId: v.id("customers"),

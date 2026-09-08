@@ -35,6 +35,7 @@ import { BillingStatusBadge, type BillingStatus } from "@/components/crm/Billing
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency, formatDate, formatDateTime, parseEuroAmount } from "@/lib/format";
+import { formatPhone } from "@/lib/phone";
 import { computeQuoteTotals, roundTaxRate } from "@/lib/quoteMath";
 import { downloadQuotePdf } from "@/lib/quotePdf";
 
@@ -197,7 +198,10 @@ export default function OportunidadPage({
               </Link>
               <div className="mt-0.5 text-xs text-text-muted">Ver ficha del cliente</div>
               <div className="mt-1.5 font-mono text-sm text-text-secondary">
-                {summary.customerPhone}
+                {/* AIT-80: el teléfono se almacena canónico (dígitos). El
+                    `href="tel:"` de arriba SÍ usa el valor crudo — para
+                    marcar es válido y mejor. */}
+                {formatPhone(summary.customerPhone)}
               </div>
             </div>
             <div className="flex flex-none flex-col items-end gap-2">

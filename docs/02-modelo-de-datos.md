@@ -70,13 +70,22 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 | Campo | Tipo | Notas |
 |---|---|---|
 | `name` | string | |
-| `phone` | string | |
+| `phone` | string | **Se almacena CANÓNICO** (normalizado), no como se teclea — ver abajo |
 | `email` | string? | Opcional (PRD: Alta rápida) |
 | `source` | string | Canal de origen: llamada, WhatsApp, recomendación, web… |
 | `ownerId` | id(`users`) | Comercial asignado — **se asigna solo** según quién ha iniciado sesión |
 | `storeId` | id(`stores`) | Igual: automático |
 
 Índice `by_store` (AIT-58, Post-MVP): permite a `customers.list` (pantalla "Clientes") resolver "todos los clientes de mi tienda" para owner/storeManager sin escanear la tabla entera — mismo criterio que `by_store_status` en `opportunities` (AIT-33).
+
+Índice `by_store_phone` (AIT-80): responde "¿hay ya un cliente de esta tienda con este teléfono?" en el alta rápida, sin lo cual habría que traerse la tienda entera y filtrar en memoria.
+
+**Contrato de `phone` (AIT-80) — es un cambio de contrato del campo, no solo un índice más.** `phone` se guarda en forma canónica: solo dígitos, y sin el prefijo `+34`/`0034` cuando se ha escrito explícitamente como prefijo. Un código de país extranjero se conserva (`+49 30 1234` → `49301234`), porque un número extranjero sí es un número distinto; y un `34…` sin `+` se conserva entero, porque recortarlo por parecerse a un prefijo corrompería un número legítimo que empezara por 34.
+
+- **Se escribe** siempre pasando por `normalizePhone()` (`lib/phone.ts`). Escritores actuales: `opportunities.createQuick` y la migración `migrations.backfillPhoneNormalized`; AIT-77 (editar cliente) es el tercero. Un escritor que guarde el valor crudo deja al cliente fuera del índice: no se detectará su duplicado y el buscador no lo encontrará por teléfono.
+- **Se busca** comparando contra `normalizePhone(consulta)`. La misma función en escritura, búsqueda y migración es lo que hace que las tres coincidan.
+- **Se muestra** pasando por `formatPhone()` en el último paso antes de pintarlo. Un `href="tel:"` no se formatea: los dígitos pelados son válidos y mejores para marcar.
+- **La clave no es única.** Convex no tiene `UNIQUE`, y esta tabla contiene por definición duplicados anteriores a AIT-80 (son su motivo), que el backfill normaliza al mismo valor. Quien consulte el índice usa `.collect()`: `.unique()` reventaría y `.first()` escogería arbitrariamente.
 
 ### `opportunities`
 | Campo | Tipo | Notas |
@@ -260,7 +269,8 @@ export default defineSchema({
     storeId: v.id("stores"),
   })
     .index("by_owner", ["ownerId"])
-    .index("by_store", ["storeId"]),
+    .index("by_store", ["storeId"])
+    .index("by_store_phone", ["storeId", "phone"]),
 
   opportunities: defineTable({
     customerId: v.id("customers"),

@@ -177,6 +177,40 @@ cumpla lo que promete la pantalla/flujo correspondiente.
     `[QA] Prueba Tester 03-09`, que tuvo que limpiar Aitor a mano). Ya no hace falta que
     escales al CEO/Aitor para esto — resuélvelo tú misma con la herramienta que ya
     existe.
+- ⚠️ **ESCRIBIR EN PRODUCCIÓN: tres niveles y un test, no un juicio** (decisión 21,
+  2026-09-08). El criterio funcionó hoy, pero vivía solo en la cabeza del QA de turno y en
+  un hilo de mensajes — si esa sesión se cae, se va con él. Aquí queda:
+
+  1. **Crear datos permanentes nuevos en producción por primera vez → se pregunta a
+     AITOR.** Y si la autorización te llega **de segunda mano** (por ejemplo, el PM te dice
+     que Aitor dijo que sí), **la confirmas con él de primera mano antes de tocar nada.**
+     Es el mismo principio que el campo `canal` de `_modo-publicacion.txt` (README
+     §2quinquies (b)): *una autorización relayada sobre algo irreversible se confirma con
+     la fuente*. No son dos reglas parecidas, es una sola aplicada a dos sitios.
+  2. **Ejercitar una función existente sobre un registro de QA, de forma reversible →
+     basta el PM.**
+  3. **Lo que solo se puede comprobar destruyendo algo → en local, contra el Convex de
+     dev.** Nunca contra producción.
+
+  **La regla que los separa: *destructivo* no es "cambia un dato", es "no puedo devolverlo
+  a como estaba".** Una operación que se deshace con la misma función que estás probando no
+  es destructiva y va contra producción.
+
+  **Y el test que lo vuelve comprobable en vez de opinable** — antes de escribir, responde:
+  > *"¿con qué acción concreta lo devuelvo a como estaba, y puedo ejecutarla ahora mismo?"*
+
+  **Si no puedes nombrar la acción de deshacer, es destructivo** — aunque *sientas* que es
+  reversible. Mismo movimiento que en las decisiones 9 y 13: convertir un juicio en una
+  comprobación, para que no dependa de lo prudente que esté cada uno ese día.
+
+  ⏳ **Los tres niveles caducan con el salto a datos reales.** Hoy producción solo tiene
+  datos de prueba; el día que haya clientes de verdad, "reversible → adelante" deja de
+  bastar por sí solo. Está enlazado desde `checklist-produccion-real.md`.
+
+  ↔️ **No confundir con la decisión 18** (el bullet siguiente): la 18 va sobre **ficheros
+  del repo** —dónde experimentas—, la 21 sobre **datos de producción** —qué escribes. Se
+  parecen y son cosas distintas; las dos aplican a la vez.
+
 - ⚠️ **Vives en la raíz, pero NO experimentas en la raíz** (decisión 18, 2026-09-08). Eres
   rol central y corres en el checkout de la raíz — pero ese checkout lo comparten cuatro
   roles (Directora, Integrador, CEO y tú), y **cualquiera de ellos puede barrer tus

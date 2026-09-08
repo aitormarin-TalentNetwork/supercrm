@@ -77,6 +77,10 @@ function AltaRapidaBlancoModal({
   const router = useRouter();
   const userInfo = useQuery(api.users.getCurrentUserInfo, open ? {} : "skip");
   const createQuick = useMutation(api.opportunities.createQuick);
+  // AIT-80: el camino "usa el cliente que ya existe" es exactamente el que
+  // construyó AIT-74 — permisos en servidor, idempotencia, titularidad
+  // heredada. No se reimplementa aquí: se llama.
+  const createForCustomer = useMutation(api.opportunities.createForCustomer);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -90,6 +94,14 @@ function AltaRapidaBlancoModal({
   const [amountError, setAmountError] = useState("");
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
+  // AIT-80: resultado de la detección de duplicado. `matches` son los
+  // clientes que ESTE usuario puede ver (puede haber varios: la tabla
+  // contiene duplicados anteriores a la issue); `otherOwnerMatch` dice solo
+  // que existe alguno que no puede ver, sin decir cuántos ni de quién.
+  const [duplicate, setDuplicate] = useState<{
+    matches: { customerId: Id<"customers">; name: string }[];
+    otherOwnerMatch: boolean;
+  } | null>(null);
   // Clave de idempotencia: una por cada apertura del modal, no por click.
   // Un reintento de red del MISMO envío reutiliza la misma clave (el
   // backend lo deduplica); abrir el modal de nuevo para otra oportunidad
@@ -116,6 +128,7 @@ function AltaRapidaBlancoModal({
     setPhoneError("");
     setAmountError("");
     setFormError("");
+    setDuplicate(null);
   }
 
   function handleClose() {
@@ -160,10 +173,20 @@ function AltaRapidaBlancoModal({
     }
     if (hasError) return;
 
+    await submitQuick(parsedAmount ?? undefined, false);
+  }
+
+  // AIT-80. `confirmDuplicate` viaja al servidor: si la comprobación viviera
+  // solo aquí, una llamada directa a la mutation crearía el duplicado
+  // igualmente. La decisión la toma el backend; esto solo la muestra.
+  async function submitQuick(
+    estimatedAmount: number | undefined,
+    confirmDuplicate: boolean,
+  ) {
     setFormError("");
     setLoading(true);
     try {
-      const opportunityId = await createQuick({
+      const result = await createQuick({
         clientRequestId,
         name: name.trim(),
         phone: phone.trim(),
@@ -171,11 +194,19 @@ function AltaRapidaBlancoModal({
         source,
         priority,
         interest: interest.trim() || undefined,
-        estimatedAmount: parsedAmount ?? undefined,
+        estimatedAmount,
+        confirmDuplicate: confirmDuplicate ? true : undefined,
       });
+      if (result.status === "duplicate") {
+        setDuplicate({
+          matches: result.matches,
+          otherOwnerMatch: result.otherOwnerMatch,
+        });
+        return;
+      }
       reset();
       onClose();
-      router.push(`/oportunidades/${opportunityId}`);
+      router.push(`/oportunidades/${result.opportunityId}`);
     } catch (err) {
       // Mensaje genérico al usuario a propósito (ronda de auditoría 1,
       // mayor #3): no exponer err.message, que puede filtrar detalles
@@ -183,6 +214,36 @@ function AltaRapidaBlancoModal({
       // consola, y solo fuera de producción.
       if (process.env.NODE_ENV !== "production") {
         console.error("Fallo creando oportunidad:", err);
+      }
+      setFormError("No se ha podido crear la oportunidad. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // "Usar este cliente": la oportunidad se cuelga del cliente que ya existe y
+  // NO se toca la tabla de clientes. Reutiliza el mismo `clientRequestId`
+  // porque el intento anterior no llegó a escribir nada (createQuick devolvió
+  // el aviso antes de insertar), así que la clave sigue libre y este camino
+  // hereda la misma idempotencia.
+  async function createOnExistingCustomer(customerId: Id<"customers">) {
+    if (loading) return;
+    setFormError("");
+    setLoading(true);
+    try {
+      const opportunityId = await createForCustomer({
+        clientRequestId,
+        customerId,
+        interest: interest.trim() || undefined,
+        estimatedAmount: parseEuroAmount(amount) ?? undefined,
+        priority,
+      });
+      reset();
+      onClose();
+      router.push(`/oportunidades/${opportunityId}`);
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo creando oportunidad sobre cliente existente:", err);
       }
       setFormError("No se ha podido crear la oportunidad. Inténtalo de nuevo.");
     } finally {
@@ -221,6 +282,76 @@ function AltaRapidaBlancoModal({
           </div>
         )}
 
+        {/* AIT-80: aviso INLINE, no un diálogo encima de otro. Es un aviso y
+            nunca un bloqueo — dos personas pueden compartir teléfono (una
+            pareja, una centralita), así que siempre queda la salida de crear
+            uno nuevo igualmente. */}
+        {duplicate && (
+          <div className="flex flex-col gap-2.5 rounded-md bg-[var(--color-warning-subtle)] p-3 text-sm">
+            <p className="font-semibold text-[#B45309]">
+              Ya hay un cliente con este teléfono
+            </p>
+
+            {duplicate.matches.length > 0 && (
+              <>
+                <p className="text-text-secondary">
+                  Si es la misma persona, añade la oportunidad a su ficha en vez
+                  de crear otra: así su historial no queda partido en dos.
+                </p>
+                {/* Se listan TODOS los accesibles, del más antiguo al más
+                    reciente. El orden es una ayuda visual, no una elección
+                    hecha por nosotros: quien sabe cuál es la ficha buena para
+                    seguir el historial es quien conoce el caso. */}
+                <ul className="flex flex-col gap-1.5">
+                  {duplicate.matches.map((match) => (
+                    <li
+                      key={match.customerId}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-surface px-3 py-2"
+                    >
+                      <span className="font-medium text-text-primary">
+                        {match.name}
+                      </span>
+                      <Button
+                        variant="secondary"
+                        onClick={() => createOnExistingCustomer(match.customerId)}
+                        disabled={loading}
+                      >
+                        Usar este cliente
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {/* Texto CONSTANTE: ni plural, ni recuento, ni de quién es. Un
+                comercial no puede ver los clientes de otro, así que de un
+                match ajeno no sale nada más que su existencia — y ese
+                teléfono ya lo conocía, lo acaba de teclear. Sin este aviso,
+                dos comerciales trabajarían al mismo cliente sin saberlo. */}
+            {duplicate.otherOwnerMatch && (
+              <p className="text-text-secondary">
+                Ese teléfono ya está registrado en la tienda, en una ficha que
+                no gestionas tú. No podemos mostrártela ni asignarte su
+                oportunidad. Si crees que es la misma persona, coméntalo con la
+                dueña antes de seguir.
+              </p>
+            )}
+
+            <div>
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  submitQuick(parseEuroAmount(amount) ?? undefined, true)
+                }
+                disabled={loading}
+              >
+                Crear uno nuevo igualmente
+              </Button>
+            </div>
+          </div>
+        )}
+
         <Input
           label="Nombre del cliente"
           placeholder="p.ej. Café Aroma"
@@ -241,7 +372,13 @@ function AltaRapidaBlancoModal({
               error={phoneError}
               required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                // El aviso es sobre el teléfono anterior: al cambiarlo deja
+                // de ser cierto, y dejarlo puesto haría que el usuario
+                // decidiera sobre datos viejos.
+                setDuplicate(null);
+              }}
             />
           </div>
           <div className="min-w-[160px] flex-1">

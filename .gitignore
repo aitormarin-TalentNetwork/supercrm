@@ -79,3 +79,12 @@ next-env.d.ts
 #     contra qué se probó. Si vive en un solo disco, ese valor no existe.
 # Los dos se leen SIEMPRE desde la raíz por ruta absoluta, nunca desde la copia del
 # worktree (decisión 7) — al trackearlos, cada worktree tiene su copia congelada.
+
+# Directorios de volcado de herramientas en la raíz (añadido 2026-09-08).
+# Motivo real: el MCP de Playwright ignora las rutas absolutas y resuelve relativo a la
+# raíz del proyecto, así que un fichero que se creía en .playwright-mcp/ acabó suelto en la
+# raíz — untracked y NO ignorado. Era un volcado de sesión con tokens de autenticación, y
+# cualquier `git add -A` de los cuatro roles que commitean desde aquí lo habría metido en
+# el repo. Lo cazó el QA en el mismo minuto. Esto cierra el hueco por defecto.
+/tmp/
+/.tmp/
