@@ -96,9 +96,15 @@ real exactamente igual que si nadie hubiera avisado nunca.
    instancia más de tu flujo normal de priorización, no necesita mecanismo aparte.
 2. **Antes de que la terminal escriba una sola línea de código, pasa por una fase de
    plan obligatoria (añadida 2026-08-24, decisión de Aitor — gate duro, sin excepciones)**:
-   la terminal entra en modo plan, redacta el plan de implementación y lo exporta
-   (mismo mecanismo de "un único fichero activo" que el código, con el infijo
-   `plan-loop<N>` — ver `intro-terminal.txt`). Disparas al auditor sobre el PLAN, mismo
+   la terminal redacta el plan de implementación y lo exporta (mismo mecanismo de "un
+   único fichero activo" que el código, con el infijo `plan-loop<N>` — ver
+   `intro-terminal.txt`). ⚠️ **Ya NO entra en modo plan** (decisión 23, 2026-09-08,
+   autorizada por Aitor): `EnterPlanMode` se retiró porque salir de él disparaba una
+   pantalla de aprobación que dejaba la sesión sorda, en cada tarea de cada desarrollador.
+   **El gate no se relaja** — lo que se pierde es la garantía *mecánica* de que no pueda
+   tocar código mientras planifica; pasa a ser regla vigilada, y la vigilas tú con el paso
+   3bis (devolver el export cuya cabecera no nombre plan y fecha de GO) más el auditor,
+   que no da GO a código sin plan aprobado. Disparas al auditor sobre el PLAN, mismo
    contrato GO/NO-GO que el audit de código (ver siguiente paso para el mecanismo
    concreto). **Nunca dejas pasar una tarea a implementación sin el GO al plan — ni
    siquiera bajo presión de tiempo, ni porque el plan te parezca obvio.** Si es NO-GO,
