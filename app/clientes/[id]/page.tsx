@@ -1,16 +1,18 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import {
   ArrowLeft,
   Mail,
+  Pencil,
   Phone,
   Plus,
   Store,
   Trash2,
+  User,
   UserCheck,
 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -19,6 +21,8 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
@@ -36,6 +40,7 @@ export default function FichaClientePage({
   const role = useQuery(api.users.getCurrentUserRole);
   const ficha = useQuery(api.customers.getFicha, { customerId });
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
+  const [editarClienteOpen, setEditarClienteOpen] = useState(false);
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
   const [nuevaOportunidadOpen, setNuevaOportunidadOpen] = useState(false);
   const [deleteInteractionId, setDeleteInteractionId] =
@@ -170,6 +175,19 @@ export default function FichaClientePage({
             >
               Nueva oportunidad para este cliente
             </Button>
+            {/* AIT-77: sin condición de rol, a diferencia de "Eliminar
+                cliente". `customers.update` comparte guarda con
+                `customers.getFicha`, así que quien está viendo esta ficha es
+                exactamente quien puede editarla — filtrar por rol aquí dejaría
+                fuera a `sales` sobre sus propios clientes, que es el caso de uso
+                que origina la tarea. */}
+            <Button
+              variant="ghost"
+              leftIcon={<Pencil size={16} />}
+              onClick={() => setEditarClienteOpen(true)}
+            >
+              Editar
+            </Button>
             {role === "owner" && (
               <>
                 <span className="flex-1" />
@@ -251,6 +269,12 @@ export default function FichaClientePage({
         onClose={() => setNuevaOportunidadOpen(false)}
         customer={{ id: customerId, name: customer.name }}
       />
+      <EditarClienteDialog
+        open={editarClienteOpen}
+        onClose={() => setEditarClienteOpen(false)}
+        customerId={customerId}
+        customer={customer}
+      />
       <DeleteCustomerDialog
         open={deleteCustomerOpen}
         onClose={() => setDeleteCustomerOpen(false)}
@@ -262,6 +286,229 @@ export default function FichaClientePage({
         onClose={() => setDeleteInteractionId(null)}
       />
     </main>
+  );
+}
+
+// AIT-77: mismos cinco canales que el Select del Alta rápida
+// (components/crm/AltaRapidaModal.tsx) y que el union que valida
+// convex/customers.ts::update en servidor. Tercera copia del catálogo, a
+// propósito y con fecha: AIT-81 lo centraliza y elimina las tres.
+const CANALES = ["Llamada", "WhatsApp", "Recomendación", "Web", "Visita"] as const;
+
+// AIT-77: editar los datos del cliente desde su propia ficha. Diálogo local,
+// como DeleteCustomerDialog y DeleteInteractionDialog aquí mismo — este
+// proyecto define los diálogos en la página que los usa y no los comparte.
+// La validación de aquí es un espejo de la del servidor para dar el error al
+// lado del campo; la que manda es la de convex/customers.ts::update.
+function EditarClienteDialog({
+  open,
+  onClose,
+  customerId,
+  customer,
+}: {
+  open: boolean;
+  onClose: () => void;
+  customerId: Id<"customers">;
+  customer: { name: string; phone: string; email: string | null; source: string };
+}) {
+  const updateCustomer = useMutation(api.customers.update);
+  const [name, setName] = useState(customer.name);
+  const [phone, setPhone] = useState(customer.phone);
+  const [email, setEmail] = useState(customer.email ?? "");
+  const [source, setSource] = useState(customer.source);
+  const [nameError, setNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [sourceError, setSourceError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // El diálogo NO se desmonta al cerrarse: la página lo renderiza siempre y es
+  // Dialog quien devuelve null por dentro. Sin esto, un borrador que el usuario
+  // canceló seguiría en el estado local y se enviaría en la siguiente edición
+  // —modificaría datos que nadie pidió cambiar, justo lo contrario de lo que
+  // esta pantalla viene a arreglar—, y además taparía cualquier cambio llegado
+  // por la query reactiva mientras estaba cerrado. Se ajusta durante el render
+  // y no en un efecto, mismo patrón y misma razón que el clientRequestId de
+  // AltaRapidaModal: https://react.dev/learn/you-might-not-need-an-effect
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setName(customer.name);
+      setPhone(customer.phone);
+      setEmail(customer.email ?? "");
+      setSource(customer.source);
+      setNameError("");
+      setPhoneError("");
+      setEmailError("");
+      setSourceError("");
+      setFormError("");
+    }
+  }
+
+  // Un cliente con un canal fuera del catálogo no debería existir (el schema lo
+  // declara `v.string()` libre, pero los dos escritores validan el union), y si
+  // existiera, un <select> sin la <option> correspondiente NO mostraría ese
+  // valor: caería en la primera opción y guardar reescribiría el canal en
+  // silencio. Se pinta el valor real como opción no seleccionable y se bloquea
+  // el envío hasta elegir uno válido. AIT-81 cierra la causa.
+  const canalFueraDeCatalogo = !(CANALES as readonly string[]).includes(source);
+
+  function handleClose() {
+    if (loading) return;
+    onClose();
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (loading) return;
+
+    let hasError = false;
+    if (!name.trim()) {
+      setNameError("El nombre es obligatorio.");
+      hasError = true;
+    } else {
+      setNameError("");
+    }
+    if (!phone.trim()) {
+      setPhoneError("El teléfono es obligatorio.");
+      hasError = true;
+    } else if (!/^[\d\s+()-]+$/.test(phone.trim())) {
+      setPhoneError("El teléfono solo puede tener números y separadores.");
+      hasError = true;
+    } else if (phone.replace(/\D/g, "").length < 9) {
+      setPhoneError("Introduce un teléfono válido (9 dígitos).");
+      hasError = true;
+    } else if (phone.replace(/\D/g, "").length > 15) {
+      setPhoneError("El teléfono es demasiado largo.");
+      hasError = true;
+    } else {
+      setPhoneError("");
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setEmailError("El email no tiene un formato válido.");
+      hasError = true;
+    } else {
+      setEmailError("");
+    }
+    if (canalFueraDeCatalogo) {
+      setSourceError("Este canal ya no está en el catálogo. Elige uno de la lista.");
+      hasError = true;
+    } else {
+      setSourceError("");
+    }
+    if (hasError) return;
+
+    setFormError("");
+    setLoading(true);
+    try {
+      await updateCustomer({
+        customerId,
+        name: name.trim(),
+        phone: phone.trim(),
+        // Vacío significa vacío: se manda `undefined` y el servidor borra el
+        // campo. Un email equivocado es peor que ninguno.
+        email: email.trim() || undefined,
+        source: source as (typeof CANALES)[number],
+      });
+      onClose();
+    } catch (err) {
+      // Mensaje genérico al usuario, mismo criterio que el resto de modales: no
+      // exponer err.message, que puede filtrar detalles internos de Convex.
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo editando cliente:", err);
+      }
+      setFormError("No se han podido guardar los cambios. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const footer = (
+    <>
+      <Button variant="secondary" onClick={handleClose} disabled={loading}>
+        Cancelar
+      </Button>
+      <Button type="submit" form="editar-cliente-form" disabled={loading}>
+        {loading ? "Guardando…" : "Guardar cambios"}
+      </Button>
+    </>
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Editar cliente"
+      description="Corrige los datos de contacto. Sus oportunidades e interacciones no se tocan."
+      width={480}
+      footer={footer}
+    >
+      <form
+        id="editar-cliente-form"
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-3.5"
+      >
+        {formError && (
+          <div className="rounded-md bg-error-subtle p-3 text-sm text-error">
+            {formError}
+          </div>
+        )}
+
+        <Input
+          label="Nombre del cliente"
+          leftIcon={<User size={16} />}
+          error={nameError}
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+
+        <div className="flex flex-wrap gap-3">
+          <div className="min-w-[160px] flex-1">
+            <Input
+              type="tel"
+              label="Teléfono"
+              leftIcon={<Phone size={16} />}
+              error={phoneError}
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div className="min-w-[160px] flex-1">
+            <Input
+              type="email"
+              label="Email"
+              hint="Puedes dejarlo vacío para quitarlo."
+              leftIcon={<Mail size={16} />}
+              error={emailError}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <Select
+          label="Canal de origen"
+          error={sourceError}
+          value={source}
+          onChange={(e) => setSource(e.target.value)}
+        >
+          {canalFueraDeCatalogo && (
+            <option value={source} disabled>
+              {source} (fuera del catálogo)
+            </option>
+          )}
+          {CANALES.map((canal) => (
+            <option key={canal} value={canal}>
+              {canal}
+            </option>
+          ))}
+        </Select>
+      </form>
+    </Dialog>
   );
 }
 

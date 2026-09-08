@@ -91,6 +91,108 @@ export const list = query({
   },
 });
 
+// AIT-77: mismas reglas de validación que `opportunities.ts::createQuick`, la
+// otra puerta de escritura a esta tabla. Duplicadas a mano porque allí no están
+// exportadas y exportarlas chocaba con AIT-80, en vuelo sobre ese fichero.
+// AIT-82 las centraliza y elimina esta copia; hasta entonces, si se cambia una
+// regla hay que cambiarla en los dos sitios o un valor que el alta rechaza se
+// cuela editando.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^[\d\s+()-]+$/;
+
+// AIT-77: editar un cliente ya existente. Hasta aquí no había forma de corregir
+// un teléfono mal escrito, ni de darle un email a un cliente creado sin él
+// (`createQuick` era el único escritor de la tabla).
+//
+// Guarda de acceso: la de `getFicha`, NO la de `remove`. `requireOwner` es la
+// guarda del borrado (AIT-65) y dejaría fuera a `sales`, que es justo quien da
+// de alta a sus clientes y quien necesita corregirlos.
+//
+// `ownerId` y `storeId` no están entre los argumentos a propósito: reasignar un
+// cliente a otro comercial, o moverlo de tienda, tiene que ser un acto
+// explícito y no un efecto colateral de abrir el formulario de edición
+// (criterio de fallo de la issue). Al no existir como entrada, los rechaza el
+// validador de Convex — no depende de que el handler se acuerde de ignorarlos.
+export const update = mutation({
+  args: {
+    customerId: v.id("customers"),
+    name: v.string(),
+    phone: v.string(),
+    email: v.optional(v.string()),
+    // El union va en los args y no en el handler para que lo rechace el
+    // validador de Convex en servidor, que es el mismo mecanismo por el que hoy
+    // no hay ningún `source` inválido en la base: `schema.ts` lo declara
+    // `v.string()` libre, y es `createQuick` quien lo acota. Esta mutation es el
+    // SEGUNDO escritor de `source`; sin esta validación, un canal fuera del
+    // catálogo no rompería aquí sino al indexar `FIRST_STEP_BY_SOURCE`
+    // (`Record<string, string>`, así que TypeScript no avisa), lejos de la
+    // causa. Duplicado mientras AIT-81 centraliza el catálogo.
+    source: v.union(
+      v.literal("Llamada"),
+      v.literal("WhatsApp"),
+      v.literal("Recomendación"),
+      v.literal("Web"),
+      v.literal("Visita"),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx);
+    const customer = await ctx.db.get(args.customerId);
+    // Mismo mensaje para "no existe" y "no es tuyo", igual que `remove`: no
+    // confirma la existencia de clientes ajenos a quien no puede verlos.
+    if (customer === null || customer.storeId !== user.storeId) {
+      throw new Error("Cliente no encontrado.");
+    }
+    if (!isStoreWideRole(user) && customer.ownerId !== user._id) {
+      throw new Error("Cliente no encontrado.");
+    }
+
+    const name = args.name.trim();
+    if (name.length === 0) throw new Error("El nombre es obligatorio.");
+
+    const phone = args.phone.trim();
+    if (!PHONE_RE.test(phone)) {
+      throw new Error("El teléfono solo puede tener números y separadores.");
+    }
+    // Una sola normalización para todo el handler: cuenta los dígitos aquí y
+    // será la que se persista cuando AIT-80 aterrice (ver el patch más abajo).
+    // Dos expresiones distintas de "quitar lo que no sea dígito" en la misma
+    // función es exactamente la divergencia que AIT-82 viene a cerrar.
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 9) {
+      throw new Error("Introduce un teléfono válido (9 dígitos).");
+    }
+    if (phoneDigits.length > 15) {
+      throw new Error("El teléfono es demasiado largo.");
+    }
+
+    // `|| undefined` (no `?? undefined`): un email en blanco se vacía a
+    // propósito — un email equivocado empareja correspondencia ajena con esta
+    // ficha, así que tiene que poder quitarse. `email` es opcional en el
+    // schema y `patch` con `undefined` BORRA el campo, no guarda "".
+    const email = args.email?.trim().toLowerCase() || undefined;
+    if (email !== undefined && !EMAIL_RE.test(email)) {
+      throw new Error("El email no tiene un formato válido.");
+    }
+
+    // AIT-80 (pendiente de integrar, mergea antes que esta tarea): esta mutation
+    // es el segundo escritor de `phone`. En cuanto exista `lib/phone.ts`, toda
+    // escritura de `phone` tiene que normalizarse con `normalizePhone()` en
+    // ESTE MISMO patch —nunca en una segunda escritura, que dejaría una ventana
+    // con el documento incoherente—. Si no, el cliente corregido deja de
+    // detectarse como duplicado en silencio, y justo el corregido es el que más
+    // probabilidad tiene de tener el teléfono bien. `phoneDigits` de arriba es
+    // ese valor: falta decidir en AIT-80 si va en un campo derivado aparte o si
+    // `phone` se guarda ya normalizado.
+    await ctx.db.patch(args.customerId, {
+      name,
+      phone,
+      email,
+      source: args.source,
+    });
+  },
+});
+
 // AIT-65: eliminar un cliente — solo `owner`. Bloquea (no cascada) si
 // tiene oportunidades. Sin comprobación adicional de interacciones/
 // recordatorios: ambos exigen una oportunidad existente para crearse, así
