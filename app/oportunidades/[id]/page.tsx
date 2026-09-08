@@ -72,7 +72,7 @@ export default function OportunidadPage({
   const summary = useQuery(api.opportunities.getSummary, { opportunityId });
   const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
   const [modal, setModal] = useState<
-    "stage" | "priority" | "won" | "lost" | "delete" | null
+    "stage" | "priority" | "won" | "lost" | "delete" | "cannot-delete" | null
   >(null);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
@@ -277,16 +277,18 @@ export default function OportunidadPage({
             {role === "owner" && (
               <>
                 {!isOpen && <span className="flex-1" />}
+                {/* AIT-75: activo aunque no se pueda borrar. Deshabilitarlo
+                    con la razón en un `title` no explicaba nada a nadie: el
+                    botón no recibe foco, así que con teclado no hay forma de
+                    provocar el tooltip, y en táctil el tooltip no existe. El
+                    motivo se cuenta en un diálogo (patrón de AIT-66,
+                    docs/01-arquitectura.md §2). */}
                 <Button
                   variant="danger"
                   leftIcon={<Trash2 size={16} />}
-                  disabled={interactions.length > 0}
-                  title={
-                    interactions.length > 0
-                      ? "No se puede eliminar: tiene interacciones registradas. Bórralas primero."
-                      : undefined
+                  onClick={() =>
+                    setModal(interactions.length > 0 ? "cannot-delete" : "delete")
                   }
-                  onClick={() => setModal("delete")}
                 >
                   Eliminar oportunidad
                 </Button>
@@ -371,6 +373,20 @@ export default function OportunidadPage({
         opportunityId={opportunityId}
         customerId={summary.customerId}
       />
+      {/* AIT-75: el texto es el que vivía en el `title` del botón. No se
+          reescribe — ya estaba redactado y decía lo que había que decir;
+          lo único que cambia es que ahora se lee. */}
+      <Dialog
+        open={modal === "cannot-delete"}
+        onClose={() => setModal(null)}
+        title="Eliminar oportunidad"
+        footer={<Button onClick={() => setModal(null)}>Entendido</Button>}
+      >
+        <p className="text-sm text-text-secondary">
+          No se puede eliminar: tiene interacciones registradas. Bórralas
+          primero.
+        </p>
+      </Dialog>
       <DeleteInteractionDialog
         interactionId={deleteInteractionId}
         onClose={() => setDeleteInteractionId(null)}
@@ -548,6 +564,10 @@ function QuoteSection({
   const current = versions ? versions[0] : versions; // undefined=cargando, null=sin presupuesto
   const history = versions ? versions.slice(1) : [];
   const [editorOpen, setEditorOpen] = useState(false);
+  // AIT-75: un único diálogo para los DOS botones de esta sección ("Crear
+  // presupuesto" y "Nueva versión"), porque comparten motivo exacto. Un
+  // diálogo por MOTIVO, no por botón.
+  const [closedInfoOpen, setClosedInfoOpen] = useState(false);
   // AIT-61: descargar el PDF pasó a ser async (hace falta un fetch del
   // logo antes de incrustarlo) — estado de carga por número de versión,
   // no un único booleano, porque hay un botón por versión (vigente +
@@ -611,13 +631,14 @@ function QuoteSection({
           </p>
           {/* AIT-71: sin `size="sm"` (36px) — cae al `md` por defecto
               (44px, --tap-min), mismo fix ya aplicado en AIT-68. */}
+          {/* AIT-75: activo aunque la oportunidad esté cerrada; el motivo
+              se cuenta en un diálogo en vez de en un `title` que no llega ni
+              con teclado ni en táctil. */}
           <Button
             variant="secondary"
             className="mt-3"
             leftIcon={<Plus size={14} />}
-            disabled={!isOpen}
-            title={isOpen ? undefined : "La oportunidad está cerrada."}
-            onClick={() => setEditorOpen(true)}
+            onClick={() => (isOpen ? setEditorOpen(true) : setClosedInfoOpen(true))}
           >
             Crear presupuesto
           </Button>
@@ -653,13 +674,13 @@ function QuoteSection({
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
+            {/* AIT-75: mismo criterio que "Crear presupuesto", y mismo
+                diálogo — el motivo es idéntico. */}
             <Button
               variant="secondary"
               size="sm"
               leftIcon={<Pencil size={14} />}
-              disabled={!isOpen}
-              title={isOpen ? undefined : "La oportunidad está cerrada."}
-              onClick={() => setEditorOpen(true)}
+              onClick={() => (isOpen ? setEditorOpen(true) : setClosedInfoOpen(true))}
             >
               Nueva versión
             </Button>
@@ -719,6 +740,20 @@ function QuoteSection({
         opportunityId={opportunityId}
         existingQuote={current ?? null}
       />
+      {/* AIT-75: compartido por los dos botones de la sección. El texto es el
+          que vivía en sus `title`. */}
+      <Dialog
+        open={closedInfoOpen}
+        onClose={() => setClosedInfoOpen(false)}
+        title="Presupuesto"
+        footer={
+          <Button onClick={() => setClosedInfoOpen(false)}>Entendido</Button>
+        }
+      >
+        <p className="text-sm text-text-secondary">
+          La oportunidad está cerrada.
+        </p>
+      </Dialog>
     </section>
   );
 }
