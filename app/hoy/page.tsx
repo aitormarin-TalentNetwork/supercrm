@@ -458,11 +458,16 @@ export default function HoyPage() {
                 captar una nueva oportunidad.
               </p>
             </div>
+            {/* AIT-78: "Alta rápida", igual que el botón flotante de esta
+                misma pantalla — abren el mismo modal en blanco, así que se
+                llaman igual. Que en Hoy queden dos controles con este nombre es
+                deliberado (decisión del PM): el "+" de la cabecera se va con el
+                scroll y el flotante no, así que no son redundantes. */}
             <Button
               leftIcon={<Plus size={16} />}
               onClick={() => setAltaRapidaOpen(true)}
             >
-              Nueva oportunidad
+              Alta rápida
             </Button>
           </div>
         )}
@@ -518,6 +523,15 @@ export default function HoyPage() {
         <button
           type="button"
           aria-label="Alta rápida"
+          // AIT-78: identidad para pruebas, NO nomenclatura. Desde AIT-78 hay
+          // varios botones "Alta rápida" en esta pantalla (a propósito), así que
+          // localizarlos por nombre accesible es ambiguo: `getByRole` resolvería
+          // a 2, o a 3 en estado vacío. Los e2e anclan aquí para accionar
+          // exactamente este. Único `data-testid` del proyecto, y excepción
+          // deliberada: no sustituye al `aria-label`, que se conserva — el FAB
+          // no está dentro de ningún landmark (vive fuera de <main> y de
+          // <header>), y acotarlo por clases de Tailwind sería más frágil.
+          data-testid="alta-rapida-fab"
           onClick={() => setAltaRapidaOpen(true)}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-hover"
         >

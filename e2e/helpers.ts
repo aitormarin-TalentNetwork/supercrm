@@ -59,7 +59,12 @@ export async function createOpportunityViaAltaRapida(
   page: Page,
   { name, phone }: { name: string; phone: string },
 ): Promise<string> {
-  await page.getByRole("button", { name: "Alta rápida" }).click();
+  // AIT-78: por `data-testid` y no por nombre accesible. Desde AIT-78 hay más
+  // de un botón "Alta rápida" en Hoy —dos con lista, tres en estado vacío—, así
+  // que `getByRole("button", { name: "Alta rápida" })` resolvería a varios y
+  // fallaría por modo estricto. Esto ancla al flotante, que es el que el
+  // comentario de arriba ya decía que se acciona.
+  await page.getByTestId("alta-rapida-fab").click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Nombre del cliente").fill(name);
   await dialog.getByLabel("Teléfono").fill(phone);

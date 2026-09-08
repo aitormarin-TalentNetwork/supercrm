@@ -54,8 +54,17 @@ export function QuickActions({
       <button
         type="button"
         onClick={() => setAltaOpen(true)}
-        aria-label="Nueva oportunidad"
-        title="Nueva oportunidad"
+        // AIT-78: "Alta rápida", no "Nueva oportunidad". Este botón abre el
+        // modal EN BLANCO, o sea que lo que produce es un CLIENTE nuevo (con su
+        // primera oportunidad). La etiqueta describe el resultado, no el objeto.
+        // Es además el nombre que ya le da el diseño (Design/pantallas/UI
+        // Kit.dc.html:352, "Alta rápida y Registrar interacción").
+        // Las DOS a la vez: es un botón de icono sin texto, así que `aria-label`
+        // es su único nombre para un lector de pantalla y `title` el único para
+        // el ratón. Cambiar solo una lo dejaría llamándose distinto según quién
+        // lo mire.
+        aria-label="Alta rápida"
+        title="Alta rápida"
         className={ICON_BUTTON_CLASS}
       >
         <Plus size={18} />
