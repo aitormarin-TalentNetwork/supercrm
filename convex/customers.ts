@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import { normalizePhone } from "../lib/phone";
+import { customerSourceValidator } from "./model/customerSource";
 
 // Datos del cliente y sus oportunidades para la Ficha de cliente (AIT-11).
 // El historial de interacciones es una query aparte (convex/interactions.ts),
@@ -120,21 +121,14 @@ export const update = mutation({
     name: v.string(),
     phone: v.string(),
     email: v.optional(v.string()),
-    // El union va en los args y no en el handler para que lo rechace el
-    // validador de Convex en servidor, que es el mismo mecanismo por el que hoy
-    // no hay ningún `source` inválido en la base: `schema.ts` lo declara
-    // `v.string()` libre, y es `createQuick` quien lo acota. Esta mutation es el
-    // SEGUNDO escritor de `source`; sin esta validación, un canal fuera del
-    // catálogo no rompería aquí sino al indexar `FIRST_STEP_BY_SOURCE`
-    // (`Record<string, string>`, así que TypeScript no avisa), lejos de la
-    // causa. Duplicado mientras AIT-81 centraliza el catálogo.
-    source: v.union(
-      v.literal("Llamada"),
-      v.literal("WhatsApp"),
-      v.literal("Recomendación"),
-      v.literal("Web"),
-      v.literal("Visita"),
-    ),
+    // El union sigue yendo en los args y no en el handler, que es la propiedad
+    // que puso aquí AIT-77 y hay que conservar: así lo rechaza el validador de
+    // Convex en servidor ANTES de entrar al handler. AIT-81 solo cambia de
+    // dónde sale el union — ya no es una copia escrita a mano, sino el mismo
+    // validador que usan el schema y `createQuick`, derivado del catálogo de
+    // `lib/customerSource.ts`. La razón por la que T1 lo duplicó ("mientras
+    // AIT-81 centraliza el catálogo") ya no aplica.
+    source: customerSourceValidator,
   },
   handler: async (ctx, args) => {
     const user = await requireUser(ctx);
