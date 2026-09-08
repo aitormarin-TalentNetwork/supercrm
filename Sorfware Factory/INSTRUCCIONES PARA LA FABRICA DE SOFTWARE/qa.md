@@ -184,6 +184,17 @@ cumpla lo que promete la pantalla/flujo correspondiente.
   solo-anexar, la entrada más reciente es la vigente, nunca edites ni borres las viejas.
   **Anota una línea por ronda, en el momento de terminarla**, con este formato:
   `timestamp | sesión | build/commit probado | alcance de la ronda | hallazgos (ids) | qué NO se pudo verificar`
+  - **El campo `build/commit probado` NO admite "NO DETERMINADO"** (decisión del Factory
+    Architect, 2026-09-08). Se rellena con el SHA que devuelve
+    `git ls-remote origin refs/heads/main` más la coletilla literal **"esperado, no
+    confirmado en el servidor"**. Funciona sin permisos especiales, y como Railway
+    construye en cada push a `main`, acota la ventana a un commit concreto mientras la
+    coletilla declara exactamente qué no se sabe — que es §2ter(b) al pie de la letra y
+    muy superior a dejar un hueco. Cuando la diferencia entre "esperado" y "real" importe
+    para un hallazgo concreto, ahí sí se le pregunta al Integrador (que tiene
+    `railway logs --build`), pero no en cada ronda.
+    - Esto es un **paliativo**, no la solución: que la app exponga su propio commit es
+      desarrollo real y lo decide el PM (ver README §2quinquies (e)).
   - **El último campo es obligatorio, no decorativo** — es el principio de §2ter(b) del
     README aplicado al rol donde nació: un "no verificado" explícito es un resultado
     válido y valioso. El caso `requireOwner`/AIT-65 del 2026-09-04 salió bien justo

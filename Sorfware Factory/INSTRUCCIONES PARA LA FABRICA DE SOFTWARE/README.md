@@ -278,6 +278,14 @@ verificar en vez de propagar, que es exactamente lo que esta sección pide. **La
 concreta: al reenviar algo que te dijeron, comprueba a qué se refería, no solo que te lo
 dijeron.**
 
+**Y la segunda mitad, que es la que casi se pierde: un dato mal propagado no se detiene
+donde lo corriges.** El CEO corrigió su error en cuanto la Directora se lo señaló, pero
+para entonces el QA ya había gastado una ronda entera comprobando una pantalla no
+desplegada, y estuvo a punto de reportarle al PM un bug inexistente — un segundo coste,
+río abajo, que no se veía desde el punto donde se corrigió. Al registrar un caso así,
+cuenta **todas** las consecuencias, no solo la primera: es lo único que enseña cuánto
+cuesta de verdad un eslabón que no verifica.
+
 ## 2quater. Procedimiento de adopción de skills (2026-09-05)
 
 Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
@@ -366,6 +374,20 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
 
+**(e) Qué versión está desplegada tiene que poder responderlo cualquiera, no ser un
+privilegio de rol** (formulación del QA, 2026-09-08). Es la misma familia vista desde otro
+ángulo: la procedencia que falta aquí no es el autor de una nota, sino **la versión del
+artefacto que se está probando**. Hoy nadie puede responder "¿qué commit sirve Railway
+ahora mismo?" desde la propia app — ni buildId expuesto ni cabecera — así que toda
+verificación contra producción se hace a ciegas sobre qué se está verificando.
+- **Paliativo vigente, no solución:** ver `qa.md`, campo `build/commit probado`.
+- **La solución permanente toca el build**, o sea es desarrollo real con issue y alcance:
+  la decide el PM, no el Factory Architect ni el CEO. Ya está en su mano.
+- *Coste real ya pagado:* el 2026-09-08 el QA comprobó la pantalla 404 de AIT-76 contra
+  producción sin poder saber si el deploy estaba vivo. Si hubiera dado por buena la
+  versión desplegada, habría reportado al PM un bug de una pantalla que ni siquiera
+  estaba mergeada.
+
 **(d) El defecto de documento que está detrás de (b).** El PM le dijo al CEO que el modo
 era `confirmar` leyendo este mismo README; el fichero decía `autonomo`. **El fallo no fue
 suyo, fue del documento:** el README describe **cómo arranca** la fábrica y se leyó como
@@ -401,6 +423,7 @@ que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 | `tty` desde la herramienta Bash | devuelve siempre "not a tty", no el tty real de la ventana | `ps -o tty= -p $PPID` |
 | `git status` en una rama sin upstream | verde limpio, **sin** la línea `ahead N`, con commits sin subir | `git log origin/main..main` — y configurar el upstream (`git branch --set-upstream-to`) |
 | `git commit` OK | se lee como "guardado", pero el trabajo existe **en un solo disco**, sin publicar | confirmar que `git log origin/main..main` está vacío. **Misma trampa que la fila anterior por otro camino**, y juntas explican las dos veces que pasó el 2026-09-08: 11 commits de PRD y luego 3 más, todos commiteados "correctamente" y ninguno subido |
+| `screencapture -l <id>` sin permiso de Grabación de Pantalla | **exit 0 y un fichero PNG creado**, pero la imagen es un rectángulo en blanco de 80×116 px, no la ventana (verificado por el CEO sobre su propia ventana, 2026-09-08). A la Directora, sobre otra ventana, le dio error explícito — o sea que **el mismo comando falla de dos formas distintas según el caso, y una de ellas en verde** | abrir la imagen y mirarla, **nunca fiarse del exit code ni de que el fichero exista**. Comprobar tamaño/dimensiones plausibles antes de concluir nada de una captura |
 | `npm test \| tail` | devuelve el exit code de `tail`, no el de los tests | leer la línea `N passed` / `N failed` de la salida |
 | `npx convex codegen` | regenera tipos/bindings; **no publica funciones al backend** | verificar el build de Railway — ver §2 paso 4 |
 | `git push` exitoso | no dice absolutamente nada del build que dispara | `railway logs --build <id>`, confirmando que `convex deploy` terminó en SUCCESS — ver §2 paso 4 |
