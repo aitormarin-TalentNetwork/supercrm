@@ -399,6 +399,16 @@ jerarquía de fuentes de `CLAUDE.md` aplicada, no una regla nueva.
 - **Mientras (a) no lleve tiempo suficiente en marcha:** quien vaya a mover una tarea
   comprueba **los dos sitios** antes — el PM al priorizar, la Directora al repartir.
   Cuesta un `ls cola/` y es literalmente lo que salvó AIT-32.
+- ⚠️ **Y la dirección que faltaba, que es PEOR de detectar: una copia puede decir DE MENOS.**
+  Las instancias anteriores eran datos que sobrevivían a su hecho — decían algo **falso**.
+  Esta dice algo **incompleto**: la Directora contó **dos** tareas en backlog leyendo sus
+  ficheros de `cola/` cuando en Linear había **cinco**, y concluyó que el backlog estaba
+  agotado. La corrigió el PM.
+  > **Una copia incompleta no se contradice con nada.** Una copia errónea choca con la
+  > fuente en cuanto alguien mira las dos; **una incompleta cuadra perfectamente con lo poco
+  > que contiene.**
+  Coste real: durante veinte minutos la fábrica creyó que se quedaba sin trabajo, cuando
+  tenía **dos tareas empezables de inmediato**.
 
 **(b) Modo de publicación → `_modo-publicacion.txt`, solo-anexar.** Una línea por cambio,
 `timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó de
@@ -1529,6 +1539,12 @@ migrada, precisamente lo que se buscaba al pasar el turno a un cerrojo autoservi
       **Y no hay que esperar parado:** se agrupa provisionalmente con la huella post-plan
       **como cota superior declarada como provisional**, y se consolida al llegar cada GO.
       Así el reparto no se detiene y **nadie confunde una estimación con un permiso**.
+      ⚠️ **REQUISITO DE FORMATO, no sugerencia:** un reparto provisional **lleva la marca de
+      tiempo DENTRO de la propia línea**, con *"es una foto, no un permiso"* al lado.
+      Motivo, y ya se ha visto cuatro veces: **un "provisional" escrito en una ficha deja de
+      leerse como provisional a las pocas horas.** Se obliga por formato porque **un campo
+      que se puede omitir se omite el día que hay prisa** — y la prisa es exactamente cuando
+      un reparto provisional se vuelve permanente sin que nadie lo decida.
     - **40.2 — La disjunción se reverifica AL ASIGNAR, no una sola vez al hacer el mapa.**
       **El mapa es una foto, no un permiso permanente** (decisión 22 aplicada al reparto):
       ese mismo día se autorizó un fichero libre al mirarlo y ocupado veinte minutos
@@ -1539,9 +1555,26 @@ migrada, precisamente lo que se buscaba al pasar el turno a un cerrojo autoservi
       **sobra antes de auditar y falta después de repartir, y los dos sesgos NO se
       cancelan** — de ahí que hagan falta dos puntos de control, no uno.
     - **40.3 — Vértice de corte: la regla que cambia la estrategia.**
-      > **Cuando el mapa muestre una tarea que toca la mayoría de los ficheros disputados y
-      > de la que dependen las demás, esa tarea SE PRIORIZA; no se paraleliza a su
-      > alrededor.**
+      > **Cuando el mapa muestre un VÉRTICE DE CORTE —una tarea que toca la mayoría de los
+      > ficheros disputados y de la que dependen las demás—, esa tarea SE PRIORIZA y no se
+      > buscan disjuntos DENTRO DE SU COMPONENTE**: ahí no los hay, y lo que parece
+      > paralelismo es espera repartida. **Trabajo en OTRO COMPONENTE CONEXO sí es trabajo**,
+      > y se reparte con normalidad.
+
+      ⚠️ **La redacción original decía *"no se buscan disjuntos a su alrededor"*, y eso
+      descartaba trabajo que la propia razón de la regla autorizaba** (enmienda 7, corregida
+      por la Directora horas después de proponer ella misma el hallazgo). **"Alrededor" no
+      es un término del grafo**: dos tareas que no tocaban ninguno de los ficheros
+      disputados —una solo `Design/pantallas/*.dc.html`, otra `app/layout.tsx` libre— **no
+      están alrededor del vértice, están en otro componente conexo**, y no reparten su
+      espera porque no esperan nada suyo. Con la redacción vieja se habrían descartado
+      **las dos únicas tareas empezables de esa noche**.
+
+      📌 **Y el vocabulario es la parte que hay que conservar, no adornarla:** con
+      *"alrededor"* el error era invisible; con **vértice de corte** y **componente conexo**
+      salta a la vista. Es un caso donde la precisión técnica **es** el mecanismo de
+      detección. Y es la decisión 36 otra vez — *una regla ambigua cuesta lo mismo que una
+      regla ausente*, aquí con el coste medido en una noche de reparto.
       *El caso:* AIT-81 tocaba **cuatro de los cinco** ficheros disputados y las otras tres
       dependían de ella. **No eran cuatro tareas bloqueadas por dos ficheros: era un lote
       entero bloqueado por una tarea.** Buscar trabajo disjunto alrededor era la estrategia
