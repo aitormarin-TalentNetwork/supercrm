@@ -28,6 +28,7 @@ import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
 import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency } from "@/lib/format";
+import { formatPhone } from "@/lib/phone";
 
 export default function FichaClientePage({
   params,
@@ -144,10 +145,13 @@ export default function FichaClientePage({
           <div className="mt-[18px] grid grid-cols-1 gap-x-[18px] gap-y-3 border-t border-border pt-[18px] sm:grid-cols-2">
             <div className="flex items-center gap-2 text-[13.5px] text-text-secondary">
               <Phone size={16} className="text-neutral-400" />
-              {/* PENDIENTE DEL MERGE DE AIT-80: en cuanto `phone` se guarde
-                  normalizado (solo dígitos), esto tiene que pintar con
-                  `formatPhone()` de lib/phone.ts o mostrará "600123456". */}
-              <span className="whitespace-nowrap font-mono">{customer.phone}</span>
+              {/* AIT-80: `phone` se almacena canónico, así que se formatea en
+                  el último paso antes de pintarlo. El `tel:` de la cabecera NO
+                  se formatea a propósito (docs/02-modelo-de-datos.md): los
+                  dígitos pelados son válidos y mejores para marcar. */}
+              <span className="whitespace-nowrap font-mono">
+                {formatPhone(customer.phone)}
+              </span>
             </div>
             <div className="flex min-w-0 items-center gap-2 text-[13.5px] text-text-secondary">
               <Mail size={16} className="flex-none text-neutral-400" />
@@ -316,11 +320,12 @@ function EditarClienteDialog({
 }) {
   const updateCustomer = useMutation(api.customers.update);
   const [name, setName] = useState(customer.name);
-  // PENDIENTE DEL MERGE DE AIT-80: cuando `phone` se guarde normalizado, esta
-  // precarga (y la de la reinicialización al abrir, más abajo) tiene que pasar
-  // por `formatPhone()`. Si no, el usuario abre el diálogo y ve su teléfono
-  // "estropeado" a dígitos pelados.
-  const [phone, setPhone] = useState(customer.phone);
+  // AIT-80: `customer.phone` viene canónico (solo dígitos). Se precarga
+  // formateado, aquí y en la reinicialización al abrir — las DOS, o el diálogo
+  // se comportaría distinto la primera vez que las siguientes. Sin esto, el
+  // usuario abre el formulario y ve su teléfono "estropeado" a dígitos pelados.
+  // El viaje de vuelta es estable: la mutation vuelve a normalizar al guardar.
+  const [phone, setPhone] = useState(formatPhone(customer.phone));
   const [email, setEmail] = useState(customer.email ?? "");
   const [source, setSource] = useState(customer.source);
   const [nameError, setNameError] = useState("");
@@ -343,7 +348,7 @@ function EditarClienteDialog({
     setPrevOpen(open);
     if (open) {
       setName(customer.name);
-      setPhone(customer.phone);
+      setPhone(formatPhone(customer.phone));
       setEmail(customer.email ?? "");
       setSource(customer.source);
       setNameError("");

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
+import { normalizePhone } from "../lib/phone";
 
 // Datos del cliente y sus oportunidades para la Ficha de cliente (AIT-11).
 // El historial de interacciones es una query aparte (convex/interactions.ts),
@@ -154,10 +155,14 @@ export const update = mutation({
     if (!PHONE_RE.test(phone)) {
       throw new Error("El teléfono solo puede tener números y separadores.");
     }
-    // Una sola normalización para todo el handler: cuenta los dígitos aquí y
-    // será la que se persista cuando AIT-80 aterrice (ver el patch más abajo).
-    // Dos expresiones distintas de "quitar lo que no sea dígito" en la misma
-    // función es exactamente la divergencia que AIT-82 viene a cerrar.
+    // Cuenta los dígitos TAL COMO SE TECLEARON, igual que
+    // `opportunities.ts::createQuick` (que valida así en :126 y almacena
+    // `normalizePhone` en :149). No se usa `normalizePhone` para contar: al
+    // recortar un `+34` tecleado, un número con prefijo y 14 dígitos pasaría
+    // aquí y lo rechazaría el alta rápida — dos puertas a la misma tabla con
+    // criterios distintos, que es justo lo que hay que evitar. La longitud
+    // medida sobre el crudo y el valor guardado canónico conviven a propósito;
+    // unificar los dos criterios es alcance de AIT-82, no de aquí.
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 9) {
       throw new Error("Introduce un teléfono válido (9 dígitos).");
@@ -175,22 +180,17 @@ export const update = mutation({
       throw new Error("El email no tiene un formato válido.");
     }
 
-    // PENDIENTE DEL MERGE DE AIT-80 — esta mutation es el segundo escritor de
-    // `phone` y ahora mismo lo guarda SIN normalizar, que es incorrecto.
-    //
-    // La decisión ya está tomada (PM, 2026-09-08): NO hay campo derivado —
-    // `phone` se guarda ya normalizado y se formatea al pintarlo. Así que aquí
-    // hay que escribir `phone: normalizePhone(phone)` en ESTE MISMO patch, y
-    // `phoneDigits` de arriba es exactamente ese valor. Nunca en una segunda
-    // escritura: dejaría una ventana con el documento incoherente.
-    //
-    // No se hace todavía porque `lib/phone.ts` lo crea AIT-80 y aún no está en
-    // esta rama; importarlo hoy no compila. Mientras tanto, un cliente al que se
-    // le corrija el teléfono deja de detectarse como duplicado, en silencio — y
-    // justo el corregido es el que más probabilidad tiene de tenerlo bien.
+    // Contrato de `phone` (AIT-80, docs/02-modelo-de-datos.md): se almacena
+    // SIEMPRE canónico, nunca como se teclea. Esta mutation es el tercer
+    // escritor. Un escritor que guarde el crudo deja al cliente fuera del
+    // índice `by_store_phone`: su duplicado no se detecta y el buscador no lo
+    // encuentra por teléfono — en silencio, y justo en el cliente que alguien
+    // acaba de corregir, que es el que más probabilidad tiene de tenerlo bien.
+    // Va en ESTE patch y no en una segunda escritura, que dejaría una ventana
+    // con el documento incoherente.
     await ctx.db.patch(args.customerId, {
       name,
-      phone,
+      phone: normalizePhone(phone),
       email,
       source: args.source,
     });
