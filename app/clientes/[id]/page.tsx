@@ -48,6 +48,10 @@ export default function FichaClientePage({
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
   const [editarClienteOpen, setEditarClienteOpen] = useState(false);
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
+  // AIT-75: el aviso de por qué no se puede eliminar. Estado propio y no un
+  // modo del diálogo de borrado: son dos diálogos con propósito distinto y
+  // mezclarlos haría que uno tuviera que saber del otro.
+  const [cannotDeleteOpen, setCannotDeleteOpen] = useState(false);
   const [nuevaOportunidadOpen, setNuevaOportunidadOpen] = useState(false);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
@@ -203,16 +207,24 @@ export default function FichaClientePage({
             {role === "owner" && (
               <>
                 <span className="flex-1" />
+                {/* AIT-75: activo aunque no se pueda borrar. Con la razón en
+                    un `title`, el botón no recibía foco —así que con teclado
+                    no había forma de provocar el tooltip— y en táctil el
+                    tooltip no existe: la explicación no llegaba a nadie. El
+                    motivo se cuenta en un diálogo (patrón de AIT-66,
+                    docs/01-arquitectura.md §2).
+                    La barrera real nunca fue este `disabled`: está en
+                    `convex/customers.ts::remove`, que lanza si el cliente
+                    tiene oportunidades. Dejar el botón activo no abre ninguna
+                    puerta. */}
                 <Button
                   variant="danger"
                   leftIcon={<Trash2 size={16} />}
-                  disabled={opportunities.length > 0}
-                  title={
+                  onClick={() =>
                     opportunities.length > 0
-                      ? "No se puede eliminar: tiene oportunidades asociadas. Bórralas o reasígnalas primero."
-                      : undefined
+                      ? setCannotDeleteOpen(true)
+                      : setDeleteCustomerOpen(true)
                   }
-                  onClick={() => setDeleteCustomerOpen(true)}
                 >
                   Eliminar cliente
                 </Button>
@@ -293,6 +305,22 @@ export default function FichaClientePage({
         customerId={customerId}
         customerName={customer.name}
       />
+      {/* AIT-75: el texto es el que vivía en el `title` del botón. No se
+          reescribe — ya estaba redactado y decía lo que había que decir; lo
+          único que cambia es que ahora se lee. */}
+      <Dialog
+        open={cannotDeleteOpen}
+        onClose={() => setCannotDeleteOpen(false)}
+        title="Eliminar cliente"
+        footer={
+          <Button onClick={() => setCannotDeleteOpen(false)}>Entendido</Button>
+        }
+      >
+        <p className="text-sm text-text-secondary">
+          No se puede eliminar: tiene oportunidades asociadas. Bórralas o
+          reasígnalas primero.
+        </p>
+      </Dialog>
       <DeleteInteractionDialog
         interactionId={deleteInteractionId}
         onClose={() => setDeleteInteractionId(null)}
