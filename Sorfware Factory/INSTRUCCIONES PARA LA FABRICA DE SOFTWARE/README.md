@@ -541,6 +541,7 @@ que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **`ListAgents` devuelve `busy`** | **No distingue "trabajando" de "bloqueada en un prompt interactivo".** Una sesión parada 38 minutos se ve exactamente igual que una ocupada | cruzar SIEMPRE el `busy` con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia: el Integrador, 2026-09-08, `busy` los 38 minutos que estuvo sordo (20:08:35 → 20:46:26) |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
 | `set w to make new window` | crea una ventana sin tab; el `do script ... in w` posterior revienta con -10000 | retirado (§4ter) — usar `do script` sin destino + comparación de conjuntos de ids |
 | `tty` desde la herramienta Bash | devuelve siempre "not a tty", no el tty real de la ventana | `ps -o tty= -p $PPID` |
@@ -583,9 +584,12 @@ incidente.
   días seguidos sin que nadie lo notara) que recorra el **roster esperado** — el registro
   de check-in (`_registro-agentes.txt`) más lo que tú misma sabes que has creado
   (T1/T2/T3, el Integrador si está activo) — **no lo que `ListAgents` decida devolver**.
-  Para cada sesión del roster, comprueba `ListAgents`, pero si no la reconoce o la marca
-  dudosa eso no es tranquilizador: cae directo al método de verificación de staleness ya
-  documentado (transcript → título de ventana vía `osascript` → captura de pantalla si
+  Para cada sesión del roster, comprueba `ListAgents`, pero **ni "no la reconoce", ni "la
+  marca dudosa", ni `busy` son tranquilizadores** (extendido 2026-09-08): `busy` no
+  distingue una sesión trabajando de una bloqueada en un prompt interactivo — ver §2sexies,
+  primera fila. Ese día el roster estaba completo y todo parecía normal mientras una
+  terminal llevaba media hora sorda. En cualquiera de los tres casos, cae directo al
+  método de verificación de staleness ya documentado (transcript → título de ventana vía `osascript` → captura de pantalla si
   hace falta, ver `ceo.md` §2 para el detalle técnico) antes de concluir nada — no un "me
   suena que va bien" ni un "no aparece, sigo" (una sesión bloqueada en una pantalla de
   aprobación humana, como `ExitPlanMode` en fase de plan, no aparece EN ABSOLUTO en

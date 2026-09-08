@@ -207,6 +207,19 @@ de este proyecto).
     en la fábrica podía distinguir "Aitor lo decidió" de "quedó ahí de un residuo".
     Equivocarse en este sentido concreto publica sin permiso, que no se deshace;
     equivocarse en el otro solo cuesta una pregunta de más.
+  - ⚠️ **NUNCA le pidas el visto bueno con un selector interactivo (`AskUserQuestion`)**
+    (añadido 2026-09-08 tras un incidente real). Un selector abierto **deja tu sesión
+    sorda**: los mensajes directos de los demás roles entran en cola y NO se drenan hasta
+    que alguien cierra el selector a mano. No es que te bloquees tú — es que te caes del
+    pipeline entero, y nadie puede avisarte de nada mientras tanto. El 2026-09-08 costó
+    **38 minutos y 7 mensajes sin drenar**, y no era diagnosticable: ni el transcript ni
+    el título de ventana lo delatan, solo la captura de pantalla, que ese día estaba rota.
+    Usa lo que ya dice el bullet siguiente — mensaje directo + alerta visible — que deja
+    tu sesión escuchando.
+  - 📌 **El coste real del modo `confirmar`, medido:** su mecanismo no es "el Integrador
+    pregunta", es **"el Integrador se cae del pipeline hasta que le contesten"** si lo
+    implementa con un selector. Con mensaje + alerta, sigues operativo mientras esperas.
+    La diferencia entre las dos formas de preguntar es toda la diferencia.
   - **En modo confirmar:** manda el aviso a Aitor y, si no responde en un margen
     razonable, dispara una alerta visible (`osascript -e 'display alert ... as
     critical'`, igual que la de acceso a la IA caído) — con una marca en `/tmp`
