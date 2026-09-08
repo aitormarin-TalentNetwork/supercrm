@@ -131,14 +131,21 @@ real exactamente igual que si nadie hubiera avisado nunca.
      esperando respuesta). Al mandarle trabajo, usa `SendMessage` con
      **`notify_when_idle: true`**: recibes el aviso **en el instante** en que esa sesión
      termina su turno, sin sondear nada.
-   - **26.2 · La terminal se ATASCA y nunca llega a idle** (caso de T3, `waiting`).
-     ⚠️ **Aquí `notify_when_idle` NO dispara nunca, y es contraintuitivo:** una sesión
-     parada en un prompt **no está ociosa**, así que ese aviso no llega. Por eso, junto a
-     la suscripción, arma un **temporizador**: un `Bash` en segundo plano con un `until` y
-     un `sleep` que te avise a los **5 minutos**. Si para entonces no ha llegado ni
-     respuesta ni aviso de idle, **vas y miras su pantalla**.
-     (5 y no 3: el 3 era un número pensado para un barrido; aquí el temporizador es exacto
-     y no depende de cuándo toque mirar.)
+   - **26.2 · ELIMINADA por la decisión 27 — ya NO es responsabilidad tuya.** El caso "se
+     atascó y nunca llega a idle" (T3, `waiting`) lo cubre el **watchdog del Factory
+     Architect**, a 3 minutos, sin que tengas que armar nada al enviar.
+     ⚠️ Sigue siendo cierto y conviene que lo sepas, porque es contraintuitivo: **con una
+     sesión atascada en un prompt, `notify_when_idle` NO dispara nunca** — esa sesión no
+     está ociosa. Por eso hacen falta los dos mecanismos; simplemente, el segundo ya no lo
+     llevas tú.
+   - **Reparto resultante:** tú cubres *"terminó y no me enteré"*; el watchdog cubre *"se
+     atascó y no llega a terminar"*. **Tu carga entera es añadir un parámetro a una
+     llamada que ya haces.** Si aun así no se adopta, el problema no es la carga.
+   - 📌 **Tus vigilantes montados a posteriori NO están mal — consérvalos.** Armar un
+     `Bash` en segundo plano que mire el transcript de una terminal concreta que ya
+     sospechas parada es una reacción correcta. Lo que no pueden ser es el mecanismo
+     principal, porque **exigen sospechar primero**. Mantén el hábito y añádele el
+     parámetro.
    - **26.3 · El barrido periódico se queda a 20 minutos y como RED DE SEGURIDAD.** No hay
      que bajarlo. Su función es cazar lo que se escape de 26.1 y 26.2 —un proceso en
      segundo plano que murió, una suscripción perdida en un reinicio—, no ser el mecanismo

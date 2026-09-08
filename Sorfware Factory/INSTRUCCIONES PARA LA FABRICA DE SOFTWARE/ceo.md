@@ -272,6 +272,14 @@ for line in io.open(f, encoding="utf-8", errors="replace"):
 # ⚠️ SIN DRENAR = encolados POSTERIORES a la última actividad real. NO el total.
 pendientes = [e for e in encolados if ultimo_real and e > ultimo_real]
 ```
+⚠️ **Para saber si una sesión DESPERTÓ, la señal es el avance del último evento
+`assistant`, nunca el tamaño ni el `mtime` del fichero** (hallazgo de la Directora,
+2026-09-08, tras un falso positivo propio). El `.jsonl` **crece también cuando le encolan
+un mensaje**, no solo cuando la sesión procesa algo — así que un vigilante que mire bytes o
+fecha de modificación anuncia un desbloqueo que no ha ocurrido. Le pasó: su vigilante le
+dijo que T3 se había despertado y era mentira. Si armas un temporizador que vigile a otra
+sesión, que mire **actividad del asistente**.
+
 ⚠️ **El total de `encolados` NO es la señal — los pendientes sí.** Una sesión sana acumula
 decenas de encolados a lo largo de la tarde, todos ya procesados; contar el total hace que
 cualquier sesión con horas de vida parezca atascada. El CEO cayó en esto el 2026-09-08 y
