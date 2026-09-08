@@ -537,11 +537,32 @@ falló" nunca es evidencia de "hizo lo que le pedí".
 escondido, y quién se ocupa de eso?** Arreglar el indicador no es lo mismo que atender lo
 que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 
+### La otra mitad: la prueba que no discrimina (decisión 19, 2026-09-08)
+
+Todo lo anterior cubre **herramientas que devuelven verde habiendo fallado**. Falta el caso
+simétrico, que aporta T2 desde AIT-79: **la herramienta funciona perfectamente y la prueba
+está mal elegida.** El resultado es el mismo —confianza infundada— pero se detecta de otra
+forma.
+
+> **Una comprobación que da verde tanto con el diseño bueno como con el malo no está
+> comprobando nada.** (Formulación de T2.)
+
+Su caso: para verificar que la app expone el commit desplegado, mirar *"¿se ve un SHA en
+pantalla?"* habría dado verde con el diseño correcto **y con el roto**. Lo que sí
+discrimina es construir **una vez** y arrancar **dos** con valores distintos sobre el mismo
+artefacto de build — solo el diseño bueno puede cambiar el valor sin reconstruir.
+
+**La pregunta que se añade al protocolo, al lado de la de §7:** antes de ejecutar una
+comprobación, *"¿esto fallaría si el diseño fuera el equivocado?"*. Si la respuesta es no,
+**la prueba no vale aunque salga verde**. Son las dos caras: *"¿cómo podría esta
+verificación mentirme en verde?"* mira a la herramienta; esta mira al experimento.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
 | **El estado que devuelve `ListAgents` — `busy`, `waiting`, o que la sesión no aparezca** | **Ningún estado de `ListAgents` es evidencia de que una sesión está viva y escuchando.** `busy` no separa "trabajando" de "bloqueada en un prompt": el Integrador estuvo **`busy` y sordo a la vez** durante 38 minutos, indistinguible de `busy` y trabajando. Y `waiting` tampoco es tranquilizador: T3 apareció `waiting` bloqueada en `ExitPlanMode`, indistinguible de ociosa legítima | cruzar SIEMPRE el estado con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia del 2026-09-08: Integrador `busy` 38 min, T3 `waiting` ~30 min |
+| Leer `process.env.X` en el **middleware Edge de Next.js** y creer que lee el entorno | **Se sustituye por un literal en tiempo de build.** El código *parece* leer el entorno y no lo hace — sobrevive a cualquier revisión de código, y solo falla **al segundo deploy**, cuando ya nadie lo relaciona con el cambio | verificar el valor **sobre el artefacto ya construido**, no leyendo el código: una build, dos arranques con valores distintos. Hallazgo de T2 el 2026-09-08, construyendo AIT-79 — que es justamente la tarea que existe para cerrar un falso verde, y estuvo a punto de nacer con uno dentro |
 | `git add -A` en un checkout compartido | **No falla, no avisa, y se lleva lo que encuentre** — incluido trabajo en curso de otro rol que casualmente use la misma carpeta | **commitear por ruta explícita**; `git add -A` queda prohibido en la raíz (decisión 18.2). **La historia entera, porque la regla sola no enseña:** el 2026-09-08 el CEO hizo `add -A` desde la raíz para commitear documentación y arrastró un `throw new Error` que el QA había inyectado en `app/login/page.tsx` para poder ver renderizada `app/error.tsx` — una prueba legítima, bien marcada como temporal y revertida por él dos minutos después. El commit llegó a crearse. **Lo único que lo paró fue la comprobación de la decisión 9** (`git diff --name-only origin/main..main \| grep -E '^(app\|convex\|…)'`), escrita tres horas antes para algo completamente distinto: no arrastrar código en un push de documentación. Si llega a `main`, Railway despliega un login que revienta al cargar |
 | `grep <patrón> fichero \| head -1 && echo "APARECE"` | **Da positivo con CERO coincidencias.** En una tubería, `&&` evalúa el código de salida del ÚLTIMO comando (`head`, que devuelve 0 aunque grep no encuentre nada), no el del que te interesa | **cuenta ocurrencias y mira el número** (`grep -c`), nunca encadenes con `&&` sobre una tubería. Misma familia que `npm test \| tail`, con otro comando: la lección general es que **el código de salida de una tubería es el del último eslabón**. Hallazgo del Integrador, 2026-09-08, verificando AIT-76: estuvo a un paso de reportar un fallo inexistente y no cerrar una tarea correcta |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
@@ -1437,9 +1458,15 @@ fecha) o **NO VERIFICADO** (en negrita, con el motivo) — nunca se deja implíc
 verificado" honesto vale más que un "funciona" sin comprobar (ver §2ter). Añade aquí
 cualquier mecanismo nuevo antes de darlo por bueno en el resto de documentos.
 
-⚠️ **Pregunta obligatoria antes de marcar nada como Verificado** (decisión del Factory
-Architect, 2026-09-08 — ver §2sexies): *"¿cómo podría esta verificación mentirme en
-verde?"* Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
+⚠️ **DOS preguntas obligatorias antes de marcar nada como Verificado** (decisiones del
+Factory Architect, 2026-09-08 — ver §2sexies). Son las dos caras: la primera mira a la
+herramienta, la segunda al experimento.
+
+**(2) *"¿esto fallaría si el diseño fuera el equivocado?"*** Si la respuesta es no, la
+prueba no vale **aunque salga verde**: una comprobación que da verde tanto con el diseño
+bueno como con el malo no está comprobando nada (formulación de T2).
+
+**(1) *"¿cómo podría esta verificación mentirme en verde?"*** — Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
 Verificado. Esto es lo que hace que §2sexies se aplique sola de aquí en adelante, en vez
 de quedarse en una lista que envejece: seis de las comprobaciones que usábamos a diario
 mentían en verde, y dos de ellas costaron los peores incidentes de publicación del
@@ -1467,6 +1494,7 @@ proyecto.
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
 | `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
+| Railway inyecta `RAILWAY_GIT_COMMIT_SHA` en el build | **NO VERIFICADO** | Pista, no dato — así se marcó al pasársela al PM, y sigue igual. T2 lo declaró explícitamente al construir AIT-79: **el clasificador le bloqueó el comando con el que iba a comprobarlo, y no lo rodeó** — dejó el modo degradado devolviendo `commit: null` en vez de rellenar con algo plausible, sin que nadie se lo recordara. Es §2ter(b) funcionando dentro de una sesión de desarrollo. **Que no se cuele como supuesto en la implementación de AIT-79.** |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 
 Si encuentras un mecanismo documentado que no está en esta tabla, añádelo antes de asumir que "ya está verificado porque está escrito en alguna parte" — estar documentado y estar verificado son cosas distintas, y esa es justo la confusión que esta tabla existe para evitar.
