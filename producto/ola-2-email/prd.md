@@ -1,12 +1,13 @@
-<!-- prd: estado=DRAFT version=0.4 supersedes=- appetite=completo -->
+<!-- prd: estado=DRAFT version=0.5 supersedes=- appetite=completo -->
 
 # PRD — SuperCRM Ola 2: Email de clientes dentro del CRM
 
 | Campo | Valor |
 |---|---|
 | Estado | DRAFT |
-| Version | 0.4 |
-| Supersedes | — (sigue en DRAFT; 0.1, 0.2 y 0.3 corregidas, no superseded) |
+| Version | 0.5 |
+| Supersedes | — (sigue en DRAFT; 0.1 a 0.4 corregidas, no superseded) |
+| Fase actual | **3 — premisas y landscape** (se retrocedio tras agotar las 3 rondas de review) |
 | Appetite | completo |
 | Espejo en Notion | [CRM — Ola 2 · Email en el CRM (Gmail)](https://app.notion.com/p/3d52e4a27d388105998fd037a7d162a5) |
 
@@ -33,6 +34,16 @@
 > oportunidad unica (§21). (d) El historico se baja **desde la oportunidad mas antigua
 > del vendedor, sin tope** (§15) — lo que deja el coste de Convex abierto a proposito
 > (§9 y §26).
+
+> **⚠️ Este documento ha RETROCEDIDO A LA FASE 3 (premisas y landscape), 2026-09-08.**
+> Las tres rondas de review adversarial que permite el procedimiento estan agotadas y
+> ninguna aprobo: **6.4 → 6.4 → 6.6**. La media no sube, y los errores de hecho sobre el
+> codigo si se corrigieron — la ronda 3 verifico una a una las citas de la §28 y estan
+> todas bien. Lo que queda no son fallos de redaccion sino **premisas que el documento
+> daba por resueltas sin estarlo**. Por eso no se escribe una v0.5 de retoques: se
+> reabren las premisas. La v0.5 recoge, de momento, la primera que Aitor ha cerrado (el
+> alcance de quien puede conectar). **El documento NO esta listo para desgranar en
+> tareas.**
 
 > **Cambios de 0.3 → 0.4 (2026-09-08).** Corrige los **13 hallazgos de la review
 > adversarial de la ronda 2** (media 6.4, DEVUELVE), incluidos **tres errores de hecho
@@ -127,6 +138,19 @@ siguiente, el modelo de entidades (21) decide si esa ola se construye o se rehac
 correo propio, correo que no sea de un contacto del CRM, creacion automatica de
 contactos, adjuntos guardados en el CRM, analisis con IA (es la ola siguiente), y
 cualquier proveedor de correo que no sea Gmail.
+
+**Para quien es esta ola — piloto interno** (decision de Aitor, 2026-09-08, al cerrar la
+premisa madre nº2 de la seccion 9): la Ola 2 se construye **solo para cuentas del
+Workspace de `talent-network.org`**. Es lo que hace viable la via Interna y lo que evita
+la auditoria CASA.
+
+**Queda explicitamente fuera**: los vendedores de un negocio cliente, con su propio
+dominio de correo — incluidas las cuentas de prueba `marta@supercrm.es` y
+`carlos@supercrm.es` tal como existen hoy. **Consecuencia declarada**: esta ola **todavia
+no sirve** al caso de uso del PRD fundacional ("CRM para pequeños negocios"); es el
+peldaño que prueba el mecanismo con correo real antes de decidir como se abre a terceros.
+Cuando se abra, la via Interna deja de valer y se reabre la decision (seccion 12,
+alternativa A).
 
 **Modo de alcance elegido**: alternativa B' (ver seccion 12).
 
@@ -349,6 +373,18 @@ seccion 23). Quien implemente una fase parte de su maqueta, no de la descripcion
   **Sostiene la ola entera**: si cae, se detiene y se reabre la decision pasando a la
   **alternativa A** (buzon de reenvio con Resend Inbound, seccion 12) — que es el plan
   B vivo. La alternativa C (CASA) esta descartada por Aitor y no vuelve.
+- **Premisa madre nº2, la que faltaba** (hallazgo H1 de la ronda 3): **quien conecta su
+  Gmail tiene una cuenta del Workspace de `talent-network.org`**. Una app **Interna**
+  solo permite consentir a cuentas de la organizacion propietaria, asi que esta premisa
+  no es un detalle de configuracion: decide **para quien existe la ola**. · **Como se
+  verifica**: listar los usuarios reales de `users` y comprobar el dominio de cada uno.
+  **Hoy conviven dos dominios** (`convex/users.ts`, `docs/03-setup.md`): las cuentas de
+  contraseña `marta@supercrm.es` / `carlos@supercrm.es`, que **NO podrian consentir**, y
+  las cuentas Google `admin@talent-network.org` / `aitor.marin@talent-network.org`, que
+  si. · **Resuelto por Aitor, 2026-09-08**: esta ola es un **piloto interno** — ver
+  seccion 4. Los vendedores de un negocio cliente, con su propio dominio, quedan
+  explicitamente fuera de esta ola; el dia que entren, la via Interna deja de valer y se
+  pasa a la **alternativa A** (buzon de reenvio con Resend Inbound, seccion 12).
 - **Premisa**: los contactos del CRM tienen email. · **Como se verifica**: contar
   cuantos documentos de `customers` tienen el campo `email` relleno. Hoy es opcional
   (seccion 28) y la base de produccion esta practicamente vacia. Si la mayoria no
