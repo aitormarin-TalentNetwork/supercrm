@@ -974,9 +974,31 @@ incumplirán** — igual que se incumplieron la de `ListAgents` y la del timesta
 que se escribieron. **Que existan estas dos reglas NO cierra el problema.**
 
 **Lo que lo cerraría es un control ejecutable** —algo que corra antes del commit y se niegue
-a incluir un fichero con pinta de credencial—, **y no lo tenemos**. Y no es casualidad: un
-hook de git vive en `.git/hooks`, que **no viaja** — el mismo problema que `settings.local.json`.
-**Queda encadenado a la decisión de Aitor sobre un `settings.json` trackeado.**
+a incluir un fichero con pinta de credencial—, **y no lo tenemos**.
+
+⚠️ **Pero el obstáculo estaba mal descrito, y corregirlo cambia la decisión** (aportación
+del QA, verificada por el CEO el 2026-09-08). La primera redacción decía *"un hook de git
+vive en `.git/hooks`, que no viaja"*. **Eso es cierto por defecto y falso como límite:**
+
+- **`git config core.hooksPath .githooks`** mueve los hooks a un directorio **dentro del
+  repo**, que sí se trackea, sí viaja en el clon y sí se revisa en un diff. Es un mecanismo
+  estándar de git, no un truco. Verificado disponible en esta máquina (git 2.54.0), y
+  **hoy no está configurado en ninguna parte**.
+- **Y el coste es aún menor de lo que parecía:** los tres worktrees **comparten el
+  `.git/config` de la raíz** (`git-common-dir` apunta ahí y `extensions.worktreeConfig` no
+  está activada, ambos comprobados). Así que **no son cuatro pasos manuales, es uno**.
+- **El residuo real, que sí sigue en pie:** un clon nuevo en otra máquina necesitaría
+  ejecutar ese comando una vez, y **quien no lo ejecute no tiene control y no se entera** —
+  un fallo silencioso, que es la peor clase.
+
+**Así que 32.3 sigue siendo verdad en su fondo** —asumir que se incumplirá— **pero por un
+motivo mucho más pequeño y atacable que "no se puede".** La distinción importa: llevamos
+todo el día separando *"no se puede"* de *"no se ha hecho"*, y esto era lo segundo
+disfrazado de lo primero.
+
+**Qué comprueba el control, si merece existir, y quién lo mantiene: del Factory Architect.
+Autorizarlo: de Aitor.** El CEO no lo crea por su cuenta — sigue siendo configuración del
+repo que ejecuta comandos solos.
 
 📌 **Y el problema estructural, que ninguna de estas reglas ataca:** los tres episodios del
 2026-09-08 —el `throw` de prueba que casi se publica, el `git add -A` que lo arrastró, y
