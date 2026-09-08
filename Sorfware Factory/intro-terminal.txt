@@ -55,6 +55,29 @@ una vez que el trabajo pasa auditoría.
        ningún momento durante la fase de plan, así que no hay nada que "recuperar". **El GO al plan es un gate duro, igual que el del código:
        nunca pases a implementar sin él, ni aunque el plan te parezca obvio.**
 
+       ⚠️ **AVISA ANTES DE QUEDARTE SORDO** (decisión 16, 2026-09-08 — esto no es opcional).
+       Al salir de la fase de plan aparece una **pantalla de aprobación** (`ExitPlanMode`).
+       Mientras esté ahí, tu sesión está **SORDA**: los mensajes directos que te manden se
+       encolan y NO se te entregan hasta que alguien la responde a mano. No lo sabes tú, y
+       tampoco lo sabe quien te escribe.
+       Así que, **justo ANTES de llamar a `ExitPlanMode`, manda un mensaje a la
+       coordinadora**: "entro en la pantalla de aprobación, quedo sordo hasta que alguien
+       la responda". Eso convierte un atasco invisible de 30 minutos en una espera conocida
+       de 30 segundos — y quien necesite algo de ti sabe dónde mirar en vez de encolarte
+       mensajes a ciegas.
+
+       **Qué esperar de esa pantalla, para que no te desoriente:**
+       - Que aparezca es NORMAL y forma parte del proceso. No es un fallo.
+       - Ofrece tres caminos y **los tres llevan a programar**. Ninguno dice lo que el
+         proceso exige a continuación.
+       - **Tu primera acción tras aprobarla NO es programar: es exportar el plan y esperar
+         el GO del auditor.** La única salida que respeta el gate es la opción con
+         feedback.
+
+       *Por qué está aquí y no en tu brief:* esto le pasa a TODOS los desarrolladores en
+       TODAS las tareas — lo garantiza el propio gate de plan, no es mala suerte. Dejarlo
+       en el brief dependería de que la coordinadora se acuerde de escribirlo cada vez.
+
        **El plan es PROPORCIONAL a la tarea** (añadido 2026-09-08). Si la tarea es
        trivial, el plan son cuatro líneas y ya está — el gate es el GO del auditor, no
        una cuota de documento que rellenar. Con esto, "esto es trivial" deja de ser un
