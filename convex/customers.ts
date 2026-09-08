@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
+import { normalizePhone } from "../lib/phone";
 
 // Datos del cliente y sus oportunidades para la Ficha de cliente (AIT-11).
 // El historial de interacciones es una query aparte (convex/interactions.ts),
@@ -88,6 +89,111 @@ export const list = query({
         ownerName: ownerNameById.get(c.ownerId) ?? null,
       }))
       .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  },
+});
+
+// AIT-77: mismas reglas de validación que `opportunities.ts::createQuick`, la
+// otra puerta de escritura a esta tabla. Duplicadas a mano porque allí no están
+// exportadas y exportarlas chocaba con AIT-80, en vuelo sobre ese fichero.
+// AIT-82 las centraliza y elimina esta copia; hasta entonces, si se cambia una
+// regla hay que cambiarla en los dos sitios o un valor que el alta rechaza se
+// cuela editando.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^[\d\s+()-]+$/;
+
+// AIT-77: editar un cliente ya existente. Hasta aquí no había forma de corregir
+// un teléfono mal escrito, ni de darle un email a un cliente creado sin él
+// (`createQuick` era el único escritor de la tabla).
+//
+// Guarda de acceso: la de `getFicha`, NO la de `remove`. `requireOwner` es la
+// guarda del borrado (AIT-65) y dejaría fuera a `sales`, que es justo quien da
+// de alta a sus clientes y quien necesita corregirlos.
+//
+// `ownerId` y `storeId` no están entre los argumentos a propósito: reasignar un
+// cliente a otro comercial, o moverlo de tienda, tiene que ser un acto
+// explícito y no un efecto colateral de abrir el formulario de edición
+// (criterio de fallo de la issue). Al no existir como entrada, los rechaza el
+// validador de Convex — no depende de que el handler se acuerde de ignorarlos.
+export const update = mutation({
+  args: {
+    customerId: v.id("customers"),
+    name: v.string(),
+    phone: v.string(),
+    email: v.optional(v.string()),
+    // El union va en los args y no en el handler para que lo rechace el
+    // validador de Convex en servidor, que es el mismo mecanismo por el que hoy
+    // no hay ningún `source` inválido en la base: `schema.ts` lo declara
+    // `v.string()` libre, y es `createQuick` quien lo acota. Esta mutation es el
+    // SEGUNDO escritor de `source`; sin esta validación, un canal fuera del
+    // catálogo no rompería aquí sino al indexar `FIRST_STEP_BY_SOURCE`
+    // (`Record<string, string>`, así que TypeScript no avisa), lejos de la
+    // causa. Duplicado mientras AIT-81 centraliza el catálogo.
+    source: v.union(
+      v.literal("Llamada"),
+      v.literal("WhatsApp"),
+      v.literal("Recomendación"),
+      v.literal("Web"),
+      v.literal("Visita"),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx);
+    const customer = await ctx.db.get(args.customerId);
+    // Mismo mensaje para "no existe" y "no es tuyo", igual que `remove`: no
+    // confirma la existencia de clientes ajenos a quien no puede verlos.
+    if (customer === null || customer.storeId !== user.storeId) {
+      throw new Error("Cliente no encontrado.");
+    }
+    if (!isStoreWideRole(user) && customer.ownerId !== user._id) {
+      throw new Error("Cliente no encontrado.");
+    }
+
+    const name = args.name.trim();
+    if (name.length === 0) throw new Error("El nombre es obligatorio.");
+
+    const phone = args.phone.trim();
+    if (!PHONE_RE.test(phone)) {
+      throw new Error("El teléfono solo puede tener números y separadores.");
+    }
+    // Cuenta los dígitos TAL COMO SE TECLEARON, igual que
+    // `opportunities.ts::createQuick` (que valida así en :126 y almacena
+    // `normalizePhone` en :149). No se usa `normalizePhone` para contar: al
+    // recortar un `+34` tecleado, un número con prefijo y 14 dígitos pasaría
+    // aquí y lo rechazaría el alta rápida — dos puertas a la misma tabla con
+    // criterios distintos, que es justo lo que hay que evitar. La longitud
+    // medida sobre el crudo y el valor guardado canónico conviven a propósito;
+    // unificar los dos criterios es alcance de AIT-82, no de aquí.
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phoneDigits.length < 9) {
+      throw new Error("Introduce un teléfono válido (9 dígitos).");
+    }
+    if (phoneDigits.length > 15) {
+      throw new Error("El teléfono es demasiado largo.");
+    }
+
+    // `|| undefined` (no `?? undefined`): un email en blanco se vacía a
+    // propósito — un email equivocado empareja correspondencia ajena con esta
+    // ficha, así que tiene que poder quitarse. `email` es opcional en el
+    // schema y `patch` con `undefined` BORRA el campo, no guarda "".
+    const email = args.email?.trim().toLowerCase() || undefined;
+    if (email !== undefined && !EMAIL_RE.test(email)) {
+      throw new Error("El email no tiene un formato válido.");
+    }
+
+    // Contrato de `phone` (AIT-80, docs/02-modelo-de-datos.md): se almacena
+    // SIEMPRE canónico, nunca como se teclea. Esta mutation es el tercer
+    // escritor. Un escritor que guarde el crudo deja al cliente fuera del
+    // índice `by_store_phone`: su duplicado no se detecta y el buscador no lo
+    // encuentra por teléfono — en silencio, y justo en el cliente que alguien
+    // acaba de corregir, que es el que más probabilidad tiene de tenerlo bien.
+    // Va en ESTE patch y no en una segunda escritura, que dejaría una ventana
+    // con el documento incoherente.
+    await ctx.db.patch(args.customerId, {
+      name,
+      phone: normalizePhone(phone),
+      email,
+      source: args.source,
+    });
   },
 });
 
