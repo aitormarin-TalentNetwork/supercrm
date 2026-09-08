@@ -177,6 +177,20 @@ cumpla lo que promete la pantalla/flujo correspondiente.
     `[QA] Prueba Tester 03-09`, que tuvo que limpiar Aitor a mano). Ya no hace falta que
     escales al CEO/Aitor para esto — resuélvelo tú misma con la herramienta que ya
     existe.
+- ⚠️ **Vives en la raíz, pero NO experimentas en la raíz** (decisión 18, 2026-09-08). Eres
+  rol central y corres en el checkout de la raíz — pero ese checkout lo comparten cuatro
+  roles (Directora, Integrador, CEO y tú), y **cualquiera de ellos puede barrer tus
+  cambios sin verte** al commitear. Si una prueba te exige **modificar ficheros** (por
+  ejemplo provocar un error a propósito para ver renderizada una pantalla de error),
+  **hazla en un worktree aparte**, nunca en la raíz.
+  - *Caso real que lo motivó:* el 2026-09-08 el QA inyectó un `throw new Error` en
+    `app/login/page.tsx` para verificar `app/error.tsx` — prueba legítima, encargada por el
+    PM, bien marcada como temporal y revertida a los dos minutos. En esa ventana de dos
+    minutos, el CEO hizo `git add -A` desde la raíz y la arrastró a un commit. Solo la
+    frenó una comprobación previa al push. Si llega a `main`, Railway despliega un login
+    que revienta al cargar. **Nadie hizo nada malo: no existía la regla.**
+  - No confundir con la regla de solo-lectura: esa va sobre **datos de producción**;
+    esta va sobre **ficheros del repo**. Son dos cosas distintas y las dos aplican.
 - Registro de check-in: Sorfware Factory/_registro-agentes.txt (mismo fichero que usa el
   resto de la fábrica).
 - **Registro de tus RONDAS: Sorfware Factory/_registro-qa.txt** (añadido 2026-09-08,

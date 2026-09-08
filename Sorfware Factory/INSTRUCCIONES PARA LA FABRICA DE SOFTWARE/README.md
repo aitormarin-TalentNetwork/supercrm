@@ -542,6 +542,7 @@ que el indicador tapaba — son dos trabajos, y el segundo es el que importaba.
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
 | **El estado que devuelve `ListAgents` — `busy`, `waiting`, o que la sesión no aparezca** | **Ningún estado de `ListAgents` es evidencia de que una sesión está viva y escuchando.** `busy` no separa "trabajando" de "bloqueada en un prompt": el Integrador estuvo **`busy` y sordo a la vez** durante 38 minutos, indistinguible de `busy` y trabajando. Y `waiting` tampoco es tranquilizador: T3 apareció `waiting` bloqueada en `ExitPlanMode`, indistinguible de ociosa legítima | cruzar SIEMPRE el estado con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia del 2026-09-08: Integrador `busy` 38 min, T3 `waiting` ~30 min |
+| `git add -A` en un checkout compartido | **No falla, no avisa, y se lleva lo que encuentre** — incluido trabajo en curso de otro rol que casualmente use la misma carpeta | **commitear por ruta explícita**; `git add -A` queda prohibido en la raíz (decisión 18.2). **La historia entera, porque la regla sola no enseña:** el 2026-09-08 el CEO hizo `add -A` desde la raíz para commitear documentación y arrastró un `throw new Error` que el QA había inyectado en `app/login/page.tsx` para poder ver renderizada `app/error.tsx` — una prueba legítima, bien marcada como temporal y revertida por él dos minutos después. El commit llegó a crearse. **Lo único que lo paró fue la comprobación de la decisión 9** (`git diff --name-only origin/main..main \| grep -E '^(app\|convex\|…)'`), escrita tres horas antes para algo completamente distinto: no arrastrar código en un push de documentación. Si llega a `main`, Railway despliega un login que revienta al cargar |
 | `grep <patrón> fichero \| head -1 && echo "APARECE"` | **Da positivo con CERO coincidencias.** En una tubería, `&&` evalúa el código de salida del ÚLTIMO comando (`head`, que devuelve 0 aunque grep no encuentre nada), no el del que te interesa | **cuenta ocurrencias y mira el número** (`grep -c`), nunca encadenes con `&&` sobre una tubería. Misma familia que `npm test \| tail`, con otro comando: la lección general es que **el código de salida de una tubería es el del último eslabón**. Hallazgo del Integrador, 2026-09-08, verificando AIT-76: estuvo a un paso de reportar un fallo inexistente y no cerrar una tarea correcta |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
 | `set w to make new window` | crea una ventana sin tab; el `do script ... in w` posterior revienta con -10000 | retirado (§4ter) — usar `do script` sin destino + comparación de conjuntos de ids |
@@ -569,6 +570,40 @@ incidente.
 
 ---
 
+### Los tres bloqueos, y cuál se puede oír (2026-09-08)
+
+Tabla del Integrador, adoptada por el Factory Architect (decisión 17.3). Los tres congelan
+la cola de mensajes entrantes de la sesión; **lo que los diferencia es si alguien puede
+enterarse**:
+
+| Bloqueo | ¿congela la cola? | ¿suena el aviso de voz? |
+|---|---|---|
+| `PermissionRequest` | sí | **sí** — verificado en vivo 2026-09-04 |
+| Pantalla de aprobación de `ExitPlanMode` | sí | **NO VERIFICADO** — ver §7 |
+| `AskUserQuestion` (selector interactivo) | sí | **no, y no puede** |
+
+**La última fila es el argumento definitivo de §2septies**, y llega desde otro ángulo: el
+selector no está prohibido solo por bloquear — está prohibido porque **es el único de los
+tres bloqueos que nadie puede oír, ni ahora ni nunca**. `AskUserQuestion` no pasa por el
+sistema de permisos, así que **ningún hook puede cubrirlo por diseño**. Aunque mañana se
+verifique el de `ExitPlanMode` y funcione, esa fila seguiría muda para siempre.
+
+⚠️ **Y el aviso de voz que existe hoy no dice quién lo pide.** Los dos hooks
+(`Stop` y `PermissionRequest`) derivan la identidad del rol de `basename "$PWD"`, con un
+`case` que solo contempla `T1|T2|T3` y manda todo lo demás a un comodín que dice *"la
+terminal directora"*. Desde que `/factory` puso **seis roles centrales en la misma
+carpeta**, cinco de los seis se anuncian con el nombre de otro — en una fábrica de seis
+ventanas, eso manda a mirar al sitio equivocado, que es peor que no avisar.
+
+**Peor todavía, y es lo que casi nadie ve:** el marcador del hook de `Stop` es
+`/tmp/claude-crm-notify-$d`, con el mismo `$d`. Para los seis roles centrales **es el mismo
+fichero**, y el hook lo borra al sonar. O sea que **el marcador que pone un rol se lo lleva
+el primer turno que termine, sea de quien sea**: no es solo una etiqueta mal puesta, es que
+**las alertas se roban entre sesiones** y la del rol que de verdad necesitaba atención
+desaparece sin que nadie lo note. Pendiente de arreglo (decisión 17.1/17.2: identidad por
+variable de entorno fijada al arrancar la ventana, y marcador por rol) — **es configuración
+de `settings.local.json`, así que lo decide Aitor.**
+
 ## 2septies. Una regla que manda preguntar a un humano tiene que fijar el CANAL (2026-09-08)
 
 Decisión 15 del Factory Architect. Nace del incidente más serio del día, que no fue el
@@ -589,12 +624,43 @@ minutos. Lo desbloqueó un humano a mano, porque era el único canal que quedaba
 consultar a un humano, **especifica siempre con qué mecanismo — y ese mecanismo nunca
 puede bloquear el procesamiento de mensajes entrantes de la sesión.**
 
-- **Canal por defecto:** mensaje directo + alerta visible (`osascript ... display alert`).
-  Deja la sesión escuchando mientras espera.
-- **Prohibido para esto en toda la fábrica:** `AskUserQuestion` y cualquier otro selector
-  interactivo. No es una manía: es la forma más natural de pedir una decisión, así que
-  cualquier rol al que se le diga "pregúntale a Aitor" la elegirá y se quedará sordo **sin
-  saber que eso es lo que ha hecho**.
+**⚠️ La primera versión de esta regla prohibía el selector en toda la fábrica. Era
+demasiado ancha y se corrigió el mismo día (enmienda 4), con evidencia del PM:** él lo usó
+una docena de veces esa tarde y **los mensajes de los demás roles le llegaron igual** —
+encolados y entregados junto con la respuesta, sin pérdida y sin que nadie desbloqueara
+nada. Eso desmonta la premisa: se había generalizado desde un solo caso asumiendo que la
+causa era la herramienta. **La variable no es la herramienta, es si alguien está mirando
+esa ventana.** El PM obtiene respuesta en segundos porque es la sesión con la que Aitor
+está conversando; el Integrador esperó 27 minutos porque nadie miraba la suya. La
+prohibición universal habría destruido la herramienta con la que se tomaron **nueve o diez
+decisiones de producto** ese día, para arreglar un problema que no era suyo.
+
+**El criterio vigente, autoevaluable por quien va a preguntar:**
+
+> Antes de abrir un selector, pregúntate: **"si me quedo sordo treinta minutos ahora mismo,
+> ¿se para algo o alguien?"**
+> - **No** (una consulta de producto, una duda que no bloquea a nadie): el selector está
+>   **permitido**, y además es la mejor herramienta — da opciones estructuradas, con su
+>   coste y una recomendación.
+> - **Sí** (tienes trabajo con GO en la mano, estás en el camino crítico, alguien espera
+>   algo tuyo): **nada de selector** — mensaje directo + alerta visible.
+
+El Integrador cae claramente en el segundo caso: es el único rol que puede publicar, y
+quedó fuera de alcance con una tarea aprobada esperando. El PM cae en el primero.
+
+**Condición para los dos casos, venga de donde venga: quien vaya a abrir un selector avisa
+ANTES de quedarse sordo** (la 16.1, generalizada a cualquier rol y no solo a
+desarrolladores en fase de plan). Así, aunque nadie mire esa ventana, la sordera es
+**conocida** en vez de un misterio de treinta minutos.
+
+**Lo que no cambia:** `AskUserQuestion` sigue siendo el único de los tres bloqueos que
+**ningún hook puede oír, por diseño** (ver la tabla de arriba). Que el PM no lo sufra no lo
+hace menos cierto — lo hace irrelevante *para él*, que es distinto. Por eso el criterio va
+sobre consecuencias, no sobre si te ha ido bien hasta ahora.
+
+📌 **Y esta parte la decide Aitor, no la fábrica:** todo esto toca **cómo quiere él que se
+le pregunte**. Lo de arriba es una recomendación en esa dimensión; si prefiere otra cosa,
+manda él.
 - **Esto va donde se leen las reglas al ESCRIBIRLAS**, no solo donde se obedecen: `ceo.md`
   y `factory-architect.md`, además de los documentos de rol.
 
@@ -610,6 +676,29 @@ ahí — no es mala suerte, lo produce el proceso. Paliativo aplicado por la Dir
 en el brief de que esa pantalla aparecerá, que es normal, y que la primera acción tras
 aprobarla **no es programar sino exportar el plan y esperar el GO** (los tres caminos que
 ofrece la pantalla llevan a programar; ninguno dice eso).
+
+---
+
+## 2octies. La raíz no es banco de pruebas de código (2026-09-08)
+
+Decisión 18. La raíz es **checkout compartido de cuatro roles** (Directora, Integrador, QA,
+CEO) y no había ninguna regla sobre dejar ahí cambios de código sin commitear. El hueco no
+es de nadie en concreto: **"necesito tocar código para probar algo" no tenía sitio
+asignado, y por defecto acaba en la raíz.**
+
+- **18.1 — Cualquier rol que necesite modificar código para probar algo lo hace en un
+  worktree, nunca en la raíz.** La raíz es para coordinar y publicar, no para experimentar.
+  Esto aplica **aunque el rol viva en la raíz** (el QA es rol central y `qa.md` le dice que
+  corre ahí): el sitio donde vives y el sitio donde experimentas son cosas distintas.
+- **18.2 — En un checkout compartido se commitea por ruta explícita. `git add -A` queda
+  prohibido.** Ver su fila en §2sexies, con el caso real que casi lo paga.
+- **18.3 — Si aun así alguien deja cambios sin commitear en la raíz, lo anuncia en
+  `_registro-agentes.txt` con su condición de reversión.** Cinturón, por si 18.1 se olvida.
+
+**Matiz que conviene tener claro:** `qa.md` pide solo-lectura sobre **datos de producción**,
+que es otra cosa distinta de editar un fichero local. El QA no saltó ninguna regla —
+marcó su prueba como temporal, con condición de reversión escrita, y la revirtió en dos
+minutos. La regla no existía porque nadie la había escrito.
 
 ---
 
@@ -1371,13 +1460,13 @@ proyecto.
 | `ScheduleWakeup` sin tope de caducidad (a diferencia de `CronCreate`, que caduca a los 7 días) | Verificado por observación, no por documentación oficial | Sin huecos ni caducidad a lo largo de más de 30h de uso continuo en esta sesión del CEO. El límite de 7 días de `CronCreate` sí está confirmado directamente en su documentación por el Factory Architect ("fire one final time, then are deleted"). |
 | `requireOwner` rechaza server-side a un `sales` que invoque directamente la mutation de borrado (AIT-65) | Verificado, 2026-09-04 | El QA (entonces llamado "Tester") declaró explícitamente que no podía comprobarlo desde el navegador (solo veía el botón oculto en la UI); el CEO leyó `convex/model/access.ts` y confirmó que lanza `throw new Error(...)` si `user.role !== "owner"`. |
 | Hook `PermissionRequest` para un `PermissionRequest` genérico | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). El hook sigue presente en las cuatro copias (verificado por el Factory Architect, 2026-09-08). |
-| Hook `PermissionRequest` **para la pantalla de aprobación de `ExitPlanMode`** | **NO VERIFICADO** | Es un caso distinto del anterior, y llevábamos desde el 2026-09-04 asumiendo que estaba cubierto — **que funcione para un caso no lo verifica para el otro**, que es justo la confusión que esta tabla existe para evitar. El 2026-09-08 tres sesiones se quedaron sordas en pantallas de aprobación (~85 min sumados) y **nadie mencionó haber oído ninguna alerta de voz**. Tres explicaciones posibles, sin distinguir todavía: (a) `ExitPlanMode` no dispara `PermissionRequest` — sería el hueco real y explicaría los tres casos; (b) sonó y no había nadie delante de la máquina; (c) el hook está roto. **Cómo se resuelve, gratis:** T2 y T3 van a pasar por esa pantalla igualmente — la siguiente que lo haga reporta si sonó. Y preguntárselo a Aitor, que es quien ya lo sabría. Si resulta que sí dispara, el problema estructural se encoge de "30 minutos invisibles" a "30 segundos hasta que alguien lo oye". |
+| Hook `PermissionRequest` **para la pantalla de aprobación de `ExitPlanMode`** | **NO VERIFICADO** | Es un caso distinto del anterior, y llevábamos desde el 2026-09-04 asumiendo que estaba cubierto — **que funcione para un caso no lo verifica para el otro**, que es justo la confusión que esta tabla existe para evitar. El 2026-09-08 tres sesiones se quedaron sordas (~85 min sumados) y **nadie mencionó haber oído ninguna alerta de voz**. ⚠️ **Corregido el mismo día (decisión 17.4): de esos tres bloqueos, como mucho DOS podían sonar, no tres** — el del Integrador era un `AskUserQuestion`, que no pasa por el sistema de permisos y por diseño no puede disparar ningún hook. Se había asumido que los tres bloqueos eran del mismo tipo sin comprobarlo. La corrección importa porque cambia lo que significaría un "no oí nada" de Aitor. Explicaciones posibles para los dos que sí podían sonar, sin distinguir todavía: (a) `ExitPlanMode` no dispara `PermissionRequest` — sería el hueco real; (b) sonó y no había nadie delante; (c) el hook está roto. **Y una cuarta, descubierta después:** el marcador del hook de `Stop` es compartido entre los seis roles centrales, así que un aviso puede habérselo llevado el turno de otro (ver "Los tres bloqueos" arriba). **Cómo se resuelve, gratis:** T2 y T3 van a pasar por esa pantalla igualmente — la siguiente que lo haga reporta si sonó. Y preguntárselo a Aitor, que es quien ya lo sabría. Si resulta que sí dispara, el problema estructural se encoge de "30 minutos invisibles" a "30 segundos hasta que alguien lo oye". |
 | Copias de `intro-terminal.txt` y documentos de proceso dentro de cada worktree | **Verificado como TRAMPA — no se leen** | Medido el 2026-09-08 por el Factory Architect y confirmado por el CEO: la copia de cada worktree diverge de la raíz **31 líneas en T1, 38 en T2, 31 en T3**. No es un riesgo teórico: las terminales estaban leyendo instrucciones desactualizadas en ese momento. Los documentos de proceso se leen **siempre desde la raíz, por ruta absoluta**; el permiso ya existe (`additionalDirectories` de los tres worktrees ya apunta a la raíz absoluta, verificado). Excluido `docs/`, que sí se quiere en la versión de la rama. |
 | Propagación de `CLAUDE.md`/`AGENTS.md` a los worktrees | **NO VERIFICADO — sigue siendo manual, y no tiene arreglo técnico** | La herramienta los carga sola desde el worktree; no hay forma de redirigirlos a la raíz. La mitigación no es técnica sino de contenido: **que no contengan detalle de proceso que cambie a menudo**, solo el selector de rol y punteros a la raíz. Hoy `CLAUDE.md` ya está casi así — mantenerlo así a propósito, no por casualidad. |
 | **Verificación de staleness de una terminal: red de tres niveles** | **Verificado como DEGRADADA — hoy solo funciona UNO** | Estado real al 2026-09-08: nivel 1 (transcript, con `queue-operation`) **funciona y es el único fiable**; nivel 2 (spinner del título) **intercambiado a propósito** por el bucle de titulado por rol, ya no es señal; nivel 3 (captura) **roto y en falso verde**, pendiente de que Aitor conceda Grabación de Pantalla. Declarado así por decisión 11 del Factory Architect: quien lea "tenemos tres niveles" tomaría decisiones contando con una red que no existe. |
 | `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
 | Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
-| `app/error.tsx` (pantalla de error de AIT-76) renderizada en producción | **NO VERIFICADO** | Declarado por el Integrador al publicar AIT-76 (2026-09-08). Entró en el mismo trabajo y tiene GO del auditor, pero **nadie la ha visto renderizada**: no se puede provocar un error real en producción sin romper algo, y la app apunta al Convex de producción. La 404 (`app/not-found.tsx`) sí está verificada en la app real — 404 con el texto en español y 0 ocurrencias de "This page could not be found". |
+| `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 
 Si encuentras un mecanismo documentado que no está en esta tabla, añádelo antes de asumir que "ya está verificado porque está escrito en alguna parte" — estar documentado y estar verificado son cosas distintas, y esa es justo la confusión que esta tabla existe para evitar.
