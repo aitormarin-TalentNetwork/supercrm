@@ -95,17 +95,39 @@ Aitor mientras ese rol no lo esté.
 **Antes de escalar una terminal por "no responde" o "parece atascada": comprobarlo de
 verdad, no asumirlo** (pedido explícito de Aitor, 2026-08-12). Orden de comprobación,
 de más a menos informativo:
+⚠️ **Estado degradado desde el 2026-09-08 (decisión 11 del Factory Architect): de los tres
+niveles de abajo, hoy solo el 1 funciona.** El 3 está roto en esta máquina y el 2 quedó
+inservible por un intercambio deliberado. Si lees esta lista y crees que tienes una red de
+tres niveles, no la tienes: tienes uno. Está dicho así a propósito, no maquillado.
+
 1. Transcript real de su sesión (`~/.claude/projects/<carpeta-codificada>/<session>.jsonl`,
    ver la memoria de orquestación de terminales) — dice literalmente qué está haciendo.
    Comparar tamaño Y timestamp del último mensaje contra el minuto/ciclo anterior, no
    solo el mtime del fichero (da falsos positivos).
-2. Título de su ventana/pestaña de Terminal.app, sin permisos especiales:
-   `osascript -e 'tell application "Terminal" to get name of every window'` — el símbolo
-   `✳`/spinner al principio del título de una pestaña de Claude Code significa que sigue
-   pensando/procesando; su ausencia sugiere que espera input. **Ojo: esto también da
-   falsos positivos** (spinner activo con la sesión realmente parada) — no basta por sí
-   solo si el transcript lleva varios minutos sin crecer.
-3. **Si el transcript lleva un rato sin crecer, capturar la pantalla REAL de esa ventana
+   📌 **La señal primaria son las entradas `queue-operation` / `enqueue`**: dicen qué
+   mensajes le han llegado a esa sesión y **no ha procesado todavía**, con su hora. Es lo
+   único que distingue *"le han escrito y no lo atiende"* (atascada) de *"nadie le ha
+   escrito"* (ociosa legítima) — la pregunta que "el fichero no crece" nunca respondió.
+   Hallazgo de la Directora, 2026-09-08, validado el mismo día con T3: aparecía `waiting`
+   en fase de plan (la combinación del incidente de las 5 horas) y tenía 3 mensajes
+   encolados sin drenar; despertó al insistir.
+2. Título de su ventana/pestaña de Terminal.app. **⚠️ El spinner ya NO es una señal
+   válida aquí:** el bucle que reafirma el título del rol cada 2s (§4ter) sobrescribe el
+   `✳`, y ese bucle corre en toda la fábrica. Es un intercambio deliberado (el spinner ya
+   daba falsos positivos; la identificación visual por rol la pidió Aitor expresamente),
+   no un bug pendiente — pero significa que **ni la ausencia ni la presencia de spinner
+   prueban nada**. El título sirve para saber qué ventana es cuál, no si está viva.
+3. ⚠️ **ESTE NIVEL ESTÁ ROTO HOY Y FALLA EN VERDE — lee esto antes de usarlo.** Sin
+   permiso de Grabación de Pantalla para Terminal.app, `screencapture -l <id>` miente, y
+   de dos formas distintas según el caso (verificado 2026-09-08): a la Directora le dio
+   error explícito (`could not create image from window`); al CEO, sobre otra ventana, le
+   devolvió **exit 0, creó el PNG, y la imagen era un rectángulo en blanco de 80×116 px**.
+   **Guarda obligatoria: si haces una captura, estás obligado a ABRIR la imagen. Una
+   captura en blanco o de tamaño ridículo es una captura FALLIDA, nunca "una ventana
+   vacía".** Ver §2sexies. Recuperar este nivel depende de que Aitor conceda ese permiso.
+   Lo que sigue describe el método **para cuando vuelva a funcionar** — y por qué importa
+   tanto que hoy no lo haga:
+3bis. **Si el transcript lleva un rato sin crecer, capturar la pantalla REAL de esa ventana
    antes de mandar ningún mensaje** (pedido explícito de Aitor, 2026-08-14, tras un
    incidente real: T1 llevaba 30+ min "sin responder" mensajes — no estaba colgada, tenía
    un `AskUserQuestion`/prompt interactivo abierto en pantalla esperando que alguien
@@ -1200,6 +1222,9 @@ proyecto.
 | Hook `PermissionRequest` (aviso de voz inmediato cuando una sesión se bloquea en una aprobación) | Verificado en vivo, 2026-09-04 | Comando pipe-testeado directamente por el CEO; Aitor confirmó haber oído el sonido y la voz antes de propagarlo a los 4 `settings.local.json` (raíz + T1/T2/T3). |
 | Copias de `intro-terminal.txt` y documentos de proceso dentro de cada worktree | **Verificado como TRAMPA — no se leen** | Medido el 2026-09-08 por el Factory Architect y confirmado por el CEO: la copia de cada worktree diverge de la raíz **31 líneas en T1, 38 en T2, 31 en T3**. No es un riesgo teórico: las terminales estaban leyendo instrucciones desactualizadas en ese momento. Los documentos de proceso se leen **siempre desde la raíz, por ruta absoluta**; el permiso ya existe (`additionalDirectories` de los tres worktrees ya apunta a la raíz absoluta, verificado). Excluido `docs/`, que sí se quiere en la versión de la rama. |
 | Propagación de `CLAUDE.md`/`AGENTS.md` a los worktrees | **NO VERIFICADO — sigue siendo manual, y no tiene arreglo técnico** | La herramienta los carga sola desde el worktree; no hay forma de redirigirlos a la raíz. La mitigación no es técnica sino de contenido: **que no contengan detalle de proceso que cambie a menudo**, solo el selector de rol y punteros a la raíz. Hoy `CLAUDE.md` ya está casi así — mantenerlo así a propósito, no por casualidad. |
+| **Verificación de staleness de una terminal: red de tres niveles** | **Verificado como DEGRADADA — hoy solo funciona UNO** | Estado real al 2026-09-08: nivel 1 (transcript, con `queue-operation`) **funciona y es el único fiable**; nivel 2 (spinner del título) **intercambiado a propósito** por el bucle de titulado por rol, ya no es señal; nivel 3 (captura) **roto y en falso verde**, pendiente de que Aitor conceda Grabación de Pantalla. Declarado así por decisión 11 del Factory Architect: quien lea "tenemos tres niveles" tomaría decisiones contando con una red que no existe. |
+| `osascript ... get contents of tab 1 of window <id>` como sustituto del nivel 3 | **NO VERIFICADO fuera de la propia ventana — pendiente de decisión de Aitor** | Verificado por el Factory Architect **solo sobre su propia ventana**: devuelve el buffer de texto, incluida la línea de estado interactiva (`⏵⏵ auto mode on · esc to interrupt`), o sea revelaría un `AskUserQuestion` abierto — que es justo para lo que existía el nivel 3, y además en texto grepeable y sin permisos del sistema. **Al intentarlo sobre la ventana de otro rol, el clasificador de su sesión lo bloqueó:** leer el buffer de otra ventana es leer la sesión de otro, y se trata como capacidad sensible. No se ha adoptado ni probado sobre ventanas ajenas, y no debe hacerse por indicación de otro agente — que a un rol se lo bloqueen y se lo pida a otro es el patrón que la fábrica rechaza. Decide Aitor. |
+| Decisiones 7 y 9 (rutas absolutas a documentos de proceso; commit+push como un solo acto) | **PARCIALMENTE APLICADAS — no "hechas"** | Todo lo que va en `intro-terminal.txt`, `director.md`, `qa.md` y este README está escrito. **Falta la parte de `CLAUDE.md` en ambas**, que el CEO declinó ejecutar a petición de otro agente (y que el Factory Architect declinó hacer en su lugar, por la misma razón). Pendiente del visto bueno de Aitor. Mientras tanto, un worktree que lea sus punteros relativos seguirá leyendo su copia congelada. |
 | Suite de autotests de la skill `talent-prd` en esta máquina | **NO VERIFICADO — falla** | Usa `sed -i` en su variante GNU; esta máquina (macOS) tiene la variante BSD, incompatible. La skill se adoptó de todas formas (decisión del PM/Aitor) pero con este estado declarado, no en silencio. |
 
 Si encuentras un mecanismo documentado que no está en esta tabla, añádelo antes de asumir que "ya está verificado porque está escrito en alguna parte" — estar documentado y estar verificado son cosas distintas, y esa es justo la confusión que esta tabla existe para evitar.

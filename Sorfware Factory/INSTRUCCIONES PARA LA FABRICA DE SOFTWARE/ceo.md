@@ -216,8 +216,13 @@ A diferencia del coordinador (que solo puede inferir el estado de una terminal p
 estado de la sesión, mensajes, y marcas de tiempo de archivos en disco), tú puedes mirar
 directamente qué está pasando. Tres niveles, de más a menos fiable en la práctica:
 
-**Nivel 1 — leer el transcript real de la sesión (el más fiable de los tres; empieza
-aquí, no lo dejes para el final):** cada sesión de Claude Code escribe su transcript en
+⚠️ **Estado degradado, 2026-09-08 — hoy el transcript NO es "el más fiable de los tres",
+es el ÚNICO fiable.** El nivel 3 está roto en esta máquina y el nivel 2 ha quedado
+inservible por un intercambio deliberado (ver cada uno abajo). Si lees esto y crees que
+tienes una red de tres niveles, no la tienes: tienes uno. Decisión 11 del Factory
+Architect — no está maquillado a propósito.
+
+**Nivel 1 — leer el transcript real de la sesión (hoy, el único método fiable):** cada sesión de Claude Code escribe su transcript en
 `~/.claude/projects/<carpeta-codificada-de-su-cwd>/<session-id>.jsonl` (la carpeta es la
 ruta de trabajo con `/` sustituidos por `-`; si hay varios `.jsonl`, el activo es el de
 `mtime` más reciente). Lee las últimas líneas (`tail -c N archivo.jsonl`) y parséalas
@@ -228,21 +233,53 @@ trabajando de verdad" (aunque sea en el navegador, sin tocar el worktree) de "es
 genuinamente esperando algo" — justo lo que ni `ListAgents` ni las marcas de tiempo de
 archivos consiguen distinguir por sí solos.
 
-**Nivel 2 — título de ventana/pestaña (sin permisos especiales, rápido cuando no hace
-falta tanto detalle):**
+📌 **Dentro del transcript, la señal PRIMARIA son las entradas `queue-operation` /
+`enqueue`** (hallazgo de la Directora, 2026-09-08; promovido a señal principal por la
+decisión 11 del Factory Architect). Dicen literalmente **qué mensajes le han llegado a esa
+sesión y todavía no ha procesado**, con su hora exacta. Eso responde la pregunta que de
+verdad importa — *"¿le han escrito y no lo atiende?"* — y la separa de *"nadie le ha
+escrito, por eso está quieta"*. No es un paso más de una lista: es la única señal que
+distingue una sesión ociosa legítima de una atascada. **"El fichero no crece" nunca
+respondió esa pregunta**, y de ahí sus falsos positivos.
+
+Caso real que la validó el mismo día: T3 aparecía como `waiting` estando en fase de plan
+—la combinación exacta del incidente de las 5 horas— y tenía 3 mensajes encolados sin
+drenar. Se despertó al insistir, y su transcript volvió a crecer a los 13 segundos.
+
+**Nivel 2 — título de ventana/pestaña. ⚠️ HOY CASI INSERVIBLE, no lo uses como prueba:**
 ```bash
 osascript -e 'tell application "Terminal" to get name of every window'
 ```
-(en macOS con Terminal.app — adapta la herramienta concreta si el proyecto usa otro SO o
-emulador). El título de cada pestaña de una sesión de Claude Code incluye su indicador
-de estado en vivo — un símbolo tipo `✳`/spinner al principio significa
-"pensando/procesando activamente"; su ausencia sugiere que está esperando input. Esto ya
-responde "¿está viva de verdad?" sin necesitar leer el transcript entero.
+El título incluía un indicador de estado en vivo — un `✳`/spinner al principio significaba
+"procesando activamente". **Esa señal ya no existe en esta fábrica:** el bucle que reafirma
+el título del rol cada 2 segundos (README §4ter, para que la ventana se identifique pese a
+que Claude Code lo pisa) **sobrescribe también el spinner**. Y ese bucle corre en todas las
+ventanas centrales.
 
-**Nivel 3 — captura de pantalla completa (cuando ninguno de los dos anteriores basta):**
+Es un **intercambio deliberado, no un bug pendiente** (decisión 11.3): el spinner ya estaba
+documentado como poco fiable —daba falsos positivos, spinner activo con la sesión
+realmente parada— y el título persistente por rol es identificación visual que Aitor pidió
+expresamente. Se cambió un método débil por uno que funciona. Lo que no vale es dejar los
+dos peleándose en silencio: **la ausencia de spinner no prueba nada**, ni su presencia.
+El título sigue sirviendo para saber qué ventana es cuál, no para saber si está viva.
+
+**Nivel 3 — captura de pantalla. ⚠️ HOY ROTA, Y FALLA EN VERDE:**
 ```bash
 screencapture -x /ruta/captura.png
 ```
+**Sin permiso de Grabación de Pantalla para Terminal.app, este comando miente** (verificado
+2026-09-08, ver README §2sexies). Y miente de dos formas distintas según el caso: a la
+Directora, sobre una ventana, le dio error explícito (`could not create image from
+window`); al CEO, sobre otra, le devolvió **exit 0, creó el PNG, y la imagen era un
+rectángulo en blanco de 80×116 px**.
+
+**Guarda obligatoria: si haces una captura, estás obligado a ABRIR la imagen.** Una captura
+en blanco, o de dimensiones ridículas, es una **captura fallida** — nunca "una ventana
+vacía". No concluyas jamás nada de una captura que no has mirado, ni del exit code, ni de
+que el fichero exista.
+
+Recuperar este nivel depende de que Aitor conceda Grabación de Pantalla a Terminal.app en
+Ajustes del Sistema → Privacidad y Seguridad. No es algo que puedas concederte tú.
 Sin permiso de Accesibilidad no siempre se puede traer una ventana concreta al frente de
 forma fiable — la captura completa solo enseña lo que ya esté visible en pantalla en ese
 momento. Útil sobre todo para contenido que el transcript no captura bien (un diálogo de
