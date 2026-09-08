@@ -178,6 +178,19 @@ una vez que el trabajo pasa auditoría.
    NO aplica a `docs/`: esas son decisiones técnicas versionadas con el código a
    propósito, y ahí sí quieres la versión de TU rama.
 
+⚠️ ANTES DE VERIFICAR NADA EN EL NAVEGADOR: COMPRUEBA QUE EL SERVIDOR ES EL TUYO
+   (añadido 2026-09-08, hallazgo de T3). Que `npm run dev` responda en
+   `localhost:3000` NO prueba que el servidor sea el tuyo: puede ser el de otra
+   terminal que ya tenía el puerto ocupado. Si es así, estarías validando el
+   worktree de OTRA rama y reportándolo como tuyo. Y `playwright.config.ts` tiene
+   `reuseExistingServer: true`, así que Playwright se engancha a lo que haya
+   escuchando sin preguntar de quién es.
+   Compruébalo antes, siempre:
+     lsof -nP -iTCP:3000 -sTCP:LISTEN -t     # PID del que tiene el puerto
+     lsof -a -p <PID> -d cwd -Fn             # su directorio de trabajo
+   El `cwd` tiene que ser TU worktree. Si es el de otra terminal, no arranques
+   encima: usa otro puerto o coordínalo con la coordinadora.
+
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        **En un export de CÓDIGO, la cabecera lleva además una línea obligatoria con el
        fichero del plan y la fecha de su GO** (añadido 2026-09-08), por ejemplo:
