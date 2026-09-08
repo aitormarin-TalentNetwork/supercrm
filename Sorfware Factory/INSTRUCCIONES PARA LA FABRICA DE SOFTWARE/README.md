@@ -869,7 +869,24 @@ minutos. La regla no existía porque nadie la había escrito.
 
 ## 3bis. Rediseño del turno de Convex: deployments aislados por terminal (decidido 2026-08-12, MIGRACIÓN PENDIENTE)
 
-⚠️ **Diseño objetivo documentado, no aplicado todavía.** Ninguna terminal tiene hoy su
+⚠️ **CORREGIDO 2026-09-08: la migración YA EMPEZÓ, y este apartado llevaba tiempo diciendo
+lo contrario.** Comprobado ese día leyendo el `CONVEX_DEPLOYMENT` de cada worktree: **T1 y
+T2 ya tienen deployment propio** (`supercrm-t1` y `vibecrm-t2`), **T3 sigue en el
+compartido** `third-goldfinch-805`. O sea que hoy **conviven los dos regímenes**, que es
+justo el escenario que este apartado anticipaba al final.
+
+📌 **Este apartado ya no declara quién está migrada, y no debe volver a hacerlo** — es el
+corolario de §2quinquies: un documento no dice el valor actual de un estado mutable, dice
+dónde consultarlo. **Se consulta así, y la respuesta tarda dos segundos:**
+```bash
+grep CONVEX_DEPLOYMENT "Sorfware Factory/_worktrees/T<n>/.env.local"
+```
+Si dice `third-goldfinch-805`, esa terminal **NO** está migrada y le aplica el cerrojo de
+§3. Si dice otra cosa, tiene deployment propio y puede ignorarlo.
+
+⚠️ **Lo que sigue, del párrafo original, describe el diseño objetivo y su porqué** — no el
+estado de hoy. Se conserva porque el razonamiento sigue siendo válido para las terminales
+que falten. El texto decía: *"Ninguna terminal tiene hoy su
 propio deployment — las tres siguen en el compartido `third-goldfinch-805`, así que los
 bullets de §3 sobre turno arbitrado siguen aplicando a las tres. Este apartado existe
 para que, cuando se ejecute la migración, cualquier sesión sepa exactamente qué hacer sin

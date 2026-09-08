@@ -270,6 +270,23 @@ for line in io.open(f, encoding="utf-8", errors="replace"):
 **Cómo se lee un desbloqueo:** cuando la cola drena, todos los mensajes pendientes aparecen
 de golpe como eventos `user` con el **mismo timestamp**.
 
+🔑 **Y la pieza que da el POR QUÉ sin leer la pantalla de nadie: la ÚLTIMA herramienta
+llamada antes de congelarse.** El `name` del último bloque `tool_use` dice qué prompt la
+tiene bloqueada, que es lo accionable — porque cada uno se resuelve distinto:
+- `ExitPlanMode` → hay que pedir que respondan **esa** pantalla, diciendo qué opción (las
+  tres llevan a programar; solo una respeta el gate de plan).
+- `AskUserQuestion` → hay que pedir que cierren el selector.
+- Ninguna llamada reciente y nada encolado → puede ser una sesión ociosa legítima.
+- Ninguna llamada reciente **con** mensajes encolados → mírala de verdad, puede estar
+  muerta.
+
+*Verificado en vivo el 2026-09-08:* T2 apareció congelada con 10 mensajes sin drenar y su
+último `tool_use` era `ExitPlanMode` — diagnóstico completo, con su remedio, **sin leer su
+pantalla**. Esto cierra buena parte del hueco que dejó renunciar al nivel 3: el transcript
+da el QUÉ (cola sin drenar) y el POR QUÉ (qué prompt) a la vez. La Directora llegó al mismo
+sitio por otra vía —T2 había anunciado en su propio turno que iba a quedarse
+incomunicada—, pero esta no depende de que la sesión se acuerde de avisar.
+
 📌 **Dentro del transcript, la señal PRIMARIA son las entradas `queue-operation` /
 `enqueue`** (hallazgo de la Directora, 2026-09-08; promovido a señal principal por la
 decisión 11 del Factory Architect). Dicen literalmente **qué mensajes le han llegado a esa

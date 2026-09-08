@@ -307,8 +307,18 @@ una vez que el trabajo pasa auditoría.
       Y antes de lanzarlo, haz siempre `git merge main` primero (aunque no sepas si main
       se movió) — si no, tu propio `convex dev` puede borrar del deployment funciones ya
       mergeadas por otra terminal que tu copia local no tiene.
-- **Convención de nombre del export para el auditor**, dentro de "Sorfware Factory/
-  codigo para auditar/":
+⚠️ RUTA ABSOLUTA, SIEMPRE, PARA TODO LO DE "codigo para auditar/" Y "cola/"
+   (corregido 2026-09-08, hallazgo de T1). Esa carpeta está en `.gitignore`, así que
+   **NO EXISTE dentro de tu worktree** — comprobado en T1, T2 y T3. Si la buscas por
+   ruta relativa desde tu carpeta, no encontrarás nada, y "no encuentro mi fichero de
+   tarea" se lee igual que "no tengo tarea asignada": una ausencia silenciosa que
+   parece un estado. Usa siempre esta base:
+     /Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/
+   Vale para tu fichero de tarea, para tus exports, para la cola y para el cerrojo de
+   Convex. Ya tienes permiso de lectura ahí; no hace falta pedir nada.
+
+- **Convención de nombre del export para el auditor**, dentro de
+  "<RAÍZ>/Sorfware Factory/codigo para auditar/" (ruta absoluta, ver aviso de arriba):
     T<n>_AIT-<id>_<slug-de-la-feature>_loop<N>-para-auditor.txt
   Ejemplo real: T2_AIT-11_ficha-cliente_loop1-para-auditor.txt
   <n> = el número de esta terminal (te lo dice el nombre de tu carpeta de worktree:
@@ -325,9 +335,10 @@ una vez que el trabajo pasa auditoría.
   Ejemplos de <mensaje>: "AIT-18 lista para auditar" / "AIT-18 con GO, lista para
   publicar". Si el comando falla (voz no instalada), no es bloqueante — sigue con el
   aviso de texto normal, no lo intentes arreglar.
-- **Cola de tareas preparadas:** "Sorfware Factory/codigo para auditar/cola/", ficheros
+- **Cola de tareas preparadas:** "<RAÍZ>/Sorfware Factory/codigo para auditar/cola/"
+  (ruta absoluta — esa carpeta no existe en tu worktree), ficheros
   "SIGUIENTE-1_AIT-<id>_<slug>.txt", "SIGUIENTE-2_...", etc. — coge el número más bajo
-  que siga existiendo y renómbralo (muévelo) a "Sorfware Factory/codigo para
+  que siga existiendo y renómbralo (muévelo) a "<RAÍZ>/Sorfware Factory/codigo para
   auditar/T<n>_AIT-<id>_<slug>.txt" con TU número de terminal para reclamarla.
 - **Documento raíz del proyecto:** `CLAUDE.md` (ya deberías tenerlo cargado) — alcance
   MVP estricto, sin datos mock, permisos por rol en servidor, diseño ya hecho en
