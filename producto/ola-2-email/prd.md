@@ -8,6 +8,13 @@
 | Version | 0.2 |
 | Supersedes | — (sigue en DRAFT; 0.1 corregida, no superseded) |
 | Appetite | completo |
+| Espejo en Notion | [CRM — Ola 2 · Email en el CRM (Gmail)](https://app.notion.com/p/3d52e4a27d388105998fd037a7d162a5) |
+
+> **Donde se revisa (decision de Aitor, 2026-09-07).** Aitor lee y **comenta** en la
+> pagina de Notion; el PM aplica los comentarios y mantiene los dos sitios iguales.
+> Este fichero es la copia verificable (`verificar-prd.sh`, `auditar-gaps.sh`). Nadie
+> escribe en el cuerpo de Notion salvo el PM: si eso cambia, se invierte la direccion
+> y se anota aqui.
 
 > **Cambios de 0.1 → 0.2.** (a) Corregidos los 16 hallazgos de la review adversarial
 > de la ronda 1 (media 6.4, DEVUELVE), incluidos tres errores de hecho sobre el propio

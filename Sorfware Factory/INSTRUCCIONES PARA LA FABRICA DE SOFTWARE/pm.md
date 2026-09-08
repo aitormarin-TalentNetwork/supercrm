@@ -306,10 +306,31 @@ te la saltes ni cambies el orden — cada paso depende del anterior:
    **Dónde vive el PRD** (decidido por Aitor, 2026-09-05, tras plantearle el conflicto
    entre la skill y la convención previa del proyecto): **manda el `prd.md` del repo**.
    Ahí se escribe, se versiona (DRAFT→APPROVED, `supersedes=` para reescrituras) y se
-   verifica con los scripts. **Notion solo recibe una copia cuando el PRD queda
-   APPROVED**, marcada explícitamente como espejo de lectura y no editable — si alguna
-   vez discrepan, gana el fichero del repo y el espejo se regenera. Nunca se edita el
-   PRD en Notion: hacerlo crea la segunda fuente de verdad que esta decisión evita.
+   verifica con los scripts. Si alguna vez discrepan, gana el fichero del repo.
+
+   **Cuándo sube a Notion** (ajustado por Aitor, 2026-09-07, sobre la decisión
+   anterior): **el PRD sube a Notion en cuanto está listo para que él lo revise, sin
+   esperar a APPROVED.** El motivo es concreto: en Notion puede comentar párrafo a
+   párrafo, y un PRD en revisión es exactamente lo que necesita comentarios anclados al
+   sitio exacto. Esperar a APPROVED le dejaba sin la herramienta justo en la fase en la
+   que hace falta.
+
+   La regla que evita la segunda fuente de verdad **no desaparece, cambia de forma**:
+   ya no es "un solo sitio", es **un solo escritor**. Aitor comenta; el PM aplica los
+   comentarios y mantiene las dos copias iguales en el mismo movimiento. Nadie más
+   escribe en el cuerpo de la página de Notion. Si en algún proyecto Aitor prefiere
+   escribir él directamente, se invierte la dirección (Notion manda, el PM recoge) y se
+   anota en la cabecera del `prd.md` — pero es una cosa o la otra, nunca las dos.
+
+   Anota en la cabecera del `prd.md` el enlace a la página de Notion y quién escribe,
+   para que cualquier sesión que abra el fichero sepa dónde está la otra copia y en qué
+   dirección fluye.
+
+   **Y el fichero del repo se mantiene siempre**, aunque la revisión ocurra en Notion:
+   es lo que hace que `verificar-prd.sh` y `auditar-gaps.sh` puedan correr. No es
+   burocracia — en la Ola 2 de SuperCRM esas comprobaciones detectaron dos errores
+   reales del propio PM (un patrón de diseño descrito al revés y una lógica del código
+   afirmada como automática cuando no lo era). Sin fichero no hay verificación mecánica.
 
 5. **Mockup HTML para validar visualmente.** Como todavía no hay una app real que
    levantar (proyecto nuevo), aplica la excepción que ya conoces de "Vista previa" (ver
@@ -379,10 +400,15 @@ redacción después del acuerdo explícito. Cuando el ajuste implica alcance nue
   - Los scripts (`verificar-prd.sh`, `auditar-gaps.sh`) funcionan en macOS; su suite de
     tests interna NO (usa `sed -i` de GNU, que BSD/macOS rechaza). Verificado
     2026-09-05: eso no afecta al uso real de la skill, solo a sus autotests.
-- **Dónde vive un PRD nuevo (decidido 2026-09-05):** el `prd.md` del repo manda —
-  ahí se escribe, versiona y verifica. Notion recibe copia solo al quedar APPROVED,
-  como espejo de lectura no editable. Esto aplica a PRD **nuevos**; el PRD fundacional
-  de SuperCRM (abajo) es anterior y se queda donde está.
+- **Dónde vive un PRD nuevo (decidido 2026-09-05, ajustado 2026-09-07):** el `prd.md`
+  del repo manda — ahí se escribe, versiona y verifica. **Sube a Notion en cuanto está
+  listo para revisión, no al quedar APPROVED**, porque es en Notion donde Aitor comenta
+  párrafo a párrafo. La copia de Notion no es de solo lectura, pero **solo escribe en
+  ella el PM**: Aitor comenta, el PM aplica y mantiene las dos iguales. Detalle
+  completo en el paso 4 de "Arrancar un proyecto nuevo". Aplica a PRD **nuevos**; el
+  PRD fundacional de SuperCRM (abajo) es anterior y se queda donde está.
+  - Instancia viva: [CRM — Ola 2 · Email en el CRM (Gmail)](https://app.notion.com/p/3d52e4a27d388105998fd037a7d162a5),
+    espejo de `producto/ola-2-email/prd.md`.
 - **Documento de producto fundacional (cerrado, no se toca nunca):** PRD en Notion,
   página "CRM · PRD". Gana siempre que algo lo contradiga.
 - **Documento de producto para alcance nuevo:** en Notion, espacio "Aitor Marin's
