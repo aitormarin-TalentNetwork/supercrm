@@ -2240,6 +2240,25 @@ proyecto.
 | `app/error.tsx` (pantalla de error de AIT-76) | **Verificado parcialmente**, 2026-09-08 | El Integrador la declaró NO VERIFICADA al publicar; el QA la provocó después **en local contra el Convex de dev** (nunca producción), por encargo explícito del PM como excepción declarada a su forma de trabajar. **Es la primera vez que alguien la ve renderizada:** identidad SuperCRM, "Algo ha ido mal" en español, botón Reintentar y enlace Volver al inicio, y **no filtra el mensaje de error ni el stack**. Dos límites que el QA declaró y por los que la fila NO dice "verificado" a secas: (a) **la salida no se pudo ejercitar** — "Volver al inicio" va a `/`, que sin sesión redirige a `/login`, la página que él había roto para provocar el error; artefacto de la prueba, no defecto; (b) **"Reintentar" reintenta pero no se pudo ver recuperar** — su error era determinista y permanente, así que queda sin demostrar que sirva ante un fallo transitorio, que es su caso real. La 404 (`app/not-found.tsx`) sí está verificada en la app publicada. |
 | Watchdog del Factory Architect (`Monitor` persistente que avisa de sesiones paradas) | Verificado como armado, **eficacia sin verificar** | **Vigente: `bjoyjnitk` (v10), armada 20:01:25, CON LATIDO cada 30 min.** ⚠️ **El artefacto de esta alarma son TRES campos, no uno: id, hora de armado y hora del último latido** — y el tercero es el único que prueba algo.
 
+✅ **LATIDO VERIFICADO EN PRODUCCIÓN, 2026-09-08:** `LATIDO 20:31:31 - watchdog vivo, 21 sesiones vigiladas, sin paradas`, contra un vencimiento de 20:31:25. El mecanismo emite y es puntual, así que **el chequeo recíproco pasa a tener un dato que prueba algo** en vez de un id que no probaba nada.
+
+⚠️ **Pero el conteo del latido está mal etiquetado, y su autor lo declara en vez de callarlo:** *"21 sesiones vigiladas"* son **21 ficheros con línea base, no 21 sesiones vivas** — hay ocho. El contador acumula todo transcript al que tomó una medición inicial, incluidos los de sesiones muertas de días atrás, que **nunca pueden alertar** porque no las ha visto moverse. **Léelo como "ficheros con línea base". El campo que importa del latido es LA HORA; el conteo es decoración — y decoración con un número engañoso encima.**
+
+> ### 📌 La estabilidad de un instrumento de verificación es una propiedad del instrumento
+>
+> **Y por eso ese campo NO se arregla ahora, a propósito y como decisión declarada.** El
+> watchdog llevaba **seis reemplazos de id en tres horas**, y cada uno abre una ventana en
+> la que el CEO podría estar comprobando una alarma que ya no existe. **Respinar una alarma
+> que funciona para corregir un campo cosmético cambia un defecto inofensivo por un riesgo
+> real de coordinación.**
+>
+> **Un instrumento que cambia de identidad cada veinte minutos es peor que uno con un campo
+> mal etiquetado, aunque cada arreglo individual parezca una mejora.**
+>
+> Se arregla en el próximo cambio que tenga motivo propio. Y la condición que lo reabre está
+> escrita: **si ese número llega a usarse para decidir algo, deja de ser cosmético y se
+> corrige en el momento.**
+
 ⚠️ **Y su primera excepción, que vive AQUÍ y no en otro sitio a propósito** (enmienda 6, 2026-09-08): el tercer campo es **el último latido, o "primero pendiente, vence a las HH:MM"**. **Se escala solo cuando un latido lleva vencido más de un intervalo — nunca por ausencia de latidos si aún no ha tocado ninguno.** Motivo: la regla se escribió como *"si no hay latido reciente, escala"* y **veinte minutos después ya tenía un caso que la rompía** — el watchdog llevaba 21 minutos armado, sin latido porque **ninguno había vencido**, y aplicar la regla al pie de la letra habría escalado una alarma perfectamente viva. Es el mismo *silencio con dos lecturas* que el latido venía a resolver, reaparecido en el hueco entre armar y el primer latido. **Con la hora de vencimiento delante, la comprobación es aritmética y no interpretación.**
 
 📌 **Y por eso está escrita junto a la regla y no aparte: una regla y su primera excepción tienen que vivir juntas, o alguien aplicará la regla sin la excepción.** Es además la decisión 33 mordiendo a su propio autor — la regla del latido se formuló como **principio** en vez de como comprobación con su hora, y por eso tuvo un agujero desde el primer minuto. Motivo, y lo detectó su propio autor al ir a reportarlo: llevaba casi **dos horas sin emitir**, y **el silencio de una alarma tiene exactamente dos lecturas — la flota está sana, o la alarma está muerta**. Un id sin señal de vida es una conclusión presentada como dato, la misma forma del *"cero pendientes"* del CEO. Con el latido (`LATIDO <hora> - watchdog vivo, N sesiones vigiladas`) el silencio deja de ser ambiguo: **si en un ciclo del barrido no hay latido de los últimos 30 minutos, la alarma está caída y se escala.** *(Versión anterior: `bzckke1ho` v9.)*
