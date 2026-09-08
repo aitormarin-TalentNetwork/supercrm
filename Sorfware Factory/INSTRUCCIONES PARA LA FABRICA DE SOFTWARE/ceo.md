@@ -233,6 +233,43 @@ trabajando de verdad" (aunque sea en el navegador, sin tocar el worktree) de "es
 genuinamente esperando algo" — justo lo que ni `ListAgents` ni las marcas de tiempo de
 archivos consiguen distinguir por sí solos.
 
+⚠️ **EL TRANSCRIPT SE PARSEA, NUNCA SE GREPEA** (decisión 20, 2026-09-08). Es la
+condición para que todo lo de abajo signifique algo, así que va primero.
+
+Un `grep` de un nombre de herramienta sobre el `.jsonl` **mide de qué se habla, no qué se
+ejecutó**. El transcript contiene los eventos **y además las conversaciones sobre los
+eventos** — y en esta fábrica, donde los roles hablamos constantemente de nuestros propios
+mecanismos, la conversación supera con mucho a los eventos. **Cuanto más se discute un
+mecanismo, menos fiable se vuelve medirlo por texto: el método se degrada precisamente
+cuando más lo usas.** No se arregla teniendo cuidado.
+
+*Caso real:* el CEO contó `"CronCreate"` como texto en tres sesiones y le salieron 2 en
+cada una. Eran **cero** — lo que contaba eran los mensajes de esa misma tarde discutiendo
+por qué no usarlo. A punto de reportarles a tres roles un incumplimiento inexistente de la
+regla que más vigilamos.
+
+**Extracción correcta, para las dos señales de abajo:**
+```python
+import io, json, os
+f = os.path.expanduser("~/.claude/projects/<carpeta-codificada>/<session-id>.jsonl")
+usos, encolados, ultimo_real = 0, [], None
+for line in io.open(f, encoding="utf-8", errors="replace"):
+    try: d = json.loads(line)
+    except Exception: continue
+    t, ts = d.get("type"), (d.get("timestamp") or "")[11:19]
+    if t == "queue-operation" and d.get("operation") == "enqueue":
+        encolados.append(ts)                       # mensaje recibido y NO procesado
+    elif t in ("user", "assistant"):
+        ultimo_real = ts                           # actividad real
+        c = (d.get("message") or {}).get("content")
+        if isinstance(c, list):
+            for b in c:
+                if b.get("type") == "tool_use" and b.get("name") == "ScheduleWakeup":
+                    usos += 1                      # llamada REAL, no una mención
+```
+**Cómo se lee un desbloqueo:** cuando la cola drena, todos los mensajes pendientes aparecen
+de golpe como eventos `user` con el **mismo timestamp**.
+
 📌 **Dentro del transcript, la señal PRIMARIA son las entradas `queue-operation` /
 `enqueue`** (hallazgo de la Directora, 2026-09-08; promovido a señal principal por la
 decisión 11 del Factory Architect). Dicen literalmente **qué mensajes le han llegado a esa
