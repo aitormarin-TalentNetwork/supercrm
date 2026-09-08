@@ -789,13 +789,24 @@ texto libre, y la tabla solo tiene los indices `by_owner` y `by_store` (seccion 
 buscar por direccion escanearia la tabla entera en cada mensaje. Por tanto:
 - **Indice nuevo** por `storeId` + direccion normalizada, para resolver el
   emparejamiento sin recorrer la tabla.
-- **Normalizacion** antes de comparar, en los dos lados: quitar el nombre de la cabecera
-  (`Nombre <a@b.com>` → `a@b.com`), pasar a minusculas, y descartar la etiqueta
-  posterior a `+` en la parte local. No se normaliza el dominio mas alla de minusculas.
+- **Normalizacion** antes de comparar, en los dos lados. **Parte ya existe y no hay que
+  construirla**: `convex/opportunities.ts::createQuick` guarda el email con `trim()` +
+  `toLowerCase()` y lo valida contra un patron de formato, asi que lo almacenado ya viene
+  en minusculas y sin espacios (corrige lo que decian las versiones anteriores de este
+  PRD, que lo daban por inexistente). Lo que **falta** anadir: quitar el nombre de la
+  cabecera (`Nombre <a@b.com>` → `a@b.com`) y descartar la etiqueta posterior a `+` en la
+  parte local — y aplicarlo tambien **al leer** el correo entrante, no solo al escribir el
+  cliente. El dominio no se normaliza mas alla de minusculas.
 - **Dos clientes de la misma tienda con la misma direccion**: el email se guarda **una
   sola vez**, asociado al cliente cuyo `ownerId` sea el dueño del buzon; si ninguno lo
   es o lo son varios, al de creacion mas antigua. La colision se registra para operacion
-  (seccion 25), porque casi siempre significa un cliente duplicado en el CRM.
+  (seccion 25).
+  **Ojo: esto NO es un caso de esquina, es esperable** (hallazgo del QA, 2026-09-08).
+  `createQuick` inserta un cliente **incondicionalmente**, sin buscar si ya existe, y no
+  hay forma de editar ni fusionar fichas: el producto **fabrica duplicados de forma
+  natural** cada vez que alguien da de alta dos veces a la misma persona. Emparejar
+  contra esa tabla no devuelve un resultado, devuelve varios. **AIT-80** ataca la causa;
+  esta regla es lo que hace que la ola no se rompa mientras tanto.
 
 **Entidad `gmailAccounts`** (nueva): usuario, token de refresco **cifrado**, fecha de
 conexion, marca de ultima sincronizacion, marca incremental de Gmail, datos del canal
