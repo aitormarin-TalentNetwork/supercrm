@@ -244,11 +244,21 @@ vez de dejar que el silencio se lea como "todo bien".
 
 ⚠️ **(c) Declarar un incumplimiento NO lo autoriza** (añadido 2026-09-08). El principio
 (b) cubre declarar una **limitación de lo que pudiste verificar** — no darte a ti mismo un
-**permiso**. Caso real que obliga a escribirlo: el export de AIT-76 declaró abiertamente
-que iba sin fase de plan, un gate duro. Declararlo estuvo bien —infinitamente mejor que
-ocultarlo— pero no convirtió el incumplimiento en una excepción válida. Sin esta línea, el
-principio más valioso que tenemos se lee como "declaro que me lo salto y sigo adelante", y
-se convierte en una vía de escape en vez de una salvaguarda.
+**permiso**. Sin esta línea, el principio más valioso que tenemos se lee como "declaro que
+me lo salto y sigo adelante", y se convierte en una vía de escape en vez de una
+salvaguarda.
+
+Y no va solo de quien incumple: **una declaración honesta tampoco es, por sí sola, motivo
+suficiente para que quien la lee siga adelante.** Ese es el mismo error que cometerías al
+dar por buena una verificación tuya sobre tu propio trabajo (principio (a)), solo que
+delegado un escalón — la honestidad de quien declara no sustituye a la decisión de quien
+recibe. Formulación de la Directora, 2026-09-08, generalizada por ella misma más allá del
+caso que la originó.
+
+*Caso real que obliga a escribir las dos mitades:* el export de AIT-76 declaró
+abiertamente que iba sin fase de plan, un gate duro. Declararlo estuvo bien —infinitamente
+mejor que ocultarlo—, pero ni convirtió el incumplimiento en excepción válida, ni bastaba
+como atenuante para pasar directamente a la auditoría de código.
 
 📌 **Dos relatos coincidentes que comparten origen no son verificación independiente.**
 (a) aplicado a una cadena de mensajes, no solo a un artefacto: si A te lo dice porque se
@@ -1143,7 +1153,7 @@ proyecto.
 | Rol **Líder de célula** | **NO VERIFICADO** | Documentado por completo en `lider-celula.md` desde 2026-08-14, nunca activado — el proyecto no ha escalado a varias células todavía. Ningún paso de su flujo se ha ejecutado en vivo. |
 | Fallback `tee` para leer el log del auditor en vez del buffer de ventana | **NO VERIFICADO** | Propuesto 2026-09-04 (ver §"El auditor deja de ser invisible"), marcado explícitamente "no adoptar sin probarla primero" — riesgo conocido de que algunas CLIs dejen de renderizar prompts interactivos con la salida en tubería. Nadie lo ha probado todavía. |
 | `do script` sin ventana de destino como receta **PRIMARIA** de creación de ventana | Verificado, 11/11 | 4/4 el 2026-09-03 (CEO, ventana del QA) + 4/4 del CEO y 3/3 de la Directora el 2026-09-08 (roles centrales y ventanas de T3). Pasa de fallback a primaria por decisión del Factory Architect (2026-09-08). Su verificación anti-reutilización es OBLIGATORIA y va por **conjuntos de ids, nunca por conteos** — los fantasmas falsean la cuenta. La Directora llegó a la comparación por conjuntos **por su cuenta, antes de leer la corrección**, lo que es una validación independiente de que era el arreglo correcto y no una preferencia de quien lo escribió. |
-| `make new window` como receta de creación de ventana | **Verificado como ROTO en este entorno — RETIRADO** | 10/10 fallos (4/4 el 2026-09-03; 5/5 del CEO y 1/1 de la Directora el 2026-09-08, esta última con el mismo -10000 exacto y dejando el fantasma 2658). Causa diagnosticada por el CEO el 2026-09-08: la ventana nace **sin tab** (`get count of tabs` = 0, `tab 1 of window` → `Invalid index -1719`), por eso el `do script ... in w` siguiente revienta con -10000 y el bloque no devuelve `id`. Deja además una ventana fantasma por intento. Retirado por el Factory Architect (2026-09-08) — queda revocada la decisión anterior de mantenerlo como primaria. |
+| `make new window` como receta de creación de ventana | **Verificado como ROTO en este entorno — RETIRADO** | 10/10 fallos (4/4 el 2026-09-03; 5/5 del CEO y 1/1 de la Directora el 2026-09-08, esta última con el mismo -10000 exacto y dejando el fantasma 2658). Causa diagnosticada por el CEO el 2026-09-08: la ventana nace **sin tab** (`get count of tabs` = 0, `tab 1 of window` → `Invalid index -1719`), por eso el `do script ... in w` siguiente revienta con -10000 y el bloque no devuelve `id`. Deja además una ventana fantasma por intento, que **`close` no elimina: verificado inútil tres veces, por tres roles distintos, sobre tres ventanas distintas** (el CEO sobre las suyas, el Factory Architect sobre la 2385, la Directora sobre la 2658) — tres verificaciones independientes, no una repetida. Retirado por el Factory Architect (2026-09-08) — queda revocada la decisión anterior de mantenerlo como primaria. |
 | Ventanas fantasma eliminables reiniciando Terminal.app | **NO VERIFICADO** | Única vía plausible que se le ha ocurrido a nadie para quitar las 4 ventanas sin tab acumuladas (ids 2385, 2387, 2500, 2518). `close` sobre ellas está verificado ineficaz dos veces (CEO y Factory Architect, sobre ventanas distintas): exit 0 sin error, y la ventana sigue en la lista. Nadie ha probado el reinicio. |
 | `_modo-publicacion.txt` en formato solo-anexar con procedencia | Formato verificado, uso real **NO VERIFICADO** | Migrado por el CEO el 2026-09-08 (decisión del Factory Architect); la lectura de la línea vigente (`grep -v '^#' … \| tail -1 \| cut -d'\|' -f2`) se probó y devuelve `autonomo`. Pero ninguna publicación real lo ha leído todavía — el Integrador no ha publicado nada desde la migración. |
 | `_registro-qa.txt` (log de rondas de QA, solo-anexar) | Creado, **NO VERIFICADO en uso** | Creado por el CEO el 2026-09-08 (decisión del Factory Architect) para cerrar un hueco real: `qa.md` no decía dónde anotar una ronda, y el histórico entero del QA anterior (`crm-curso-vibe-coding-fa`) se perdió al morir su sesión. Aún sin ninguna ronda anotada por un QA en su flujo normal. |

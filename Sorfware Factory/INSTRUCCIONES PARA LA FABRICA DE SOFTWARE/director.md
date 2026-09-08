@@ -113,6 +113,13 @@ real exactamente igual que si nadie hubiera avisado nunca.
    falta, o dice "sin fase de plan", **devuelves el export a la terminal en vez de
    mandarlo al auditor** — el GO al plan es un gate duro y no lo puede levantar ni el
    desarrollador ni tú. Es una comprobación de un vistazo, no una revisión.
+   **Un gate incumplido se reporta ANTES de dar el siguiente paso, no después y no como
+   nota al pie.** Si el reporte llega cuando el trabajo ya avanzó, la declaración es un
+   registro histórico y no una decisión — y el gate ha dejado de ser un gate aunque todo
+   el mundo haya sido honesto. Pasó de verdad con AIT-76: el export declaraba que iba sin
+   plan, se leyó ese "lo declaro abiertamente" como atenuante suficiente para pasar ya a
+   la auditoría de código, y el incumplimiento se señaló tarde. **Que quien lo declare sea
+   honesto no te autoriza a ti a seguir** — ver README §2ter(c).
    *Por qué existe:* hasta el 2026-09-08, un gate de plan saltado solo se detectaba si el
    propio desarrollador lo declaraba (AIT-76 lo declaró; otro que no lo diga era
    invisible). Y ojo con el argumento que lo acompaña siempre — "la tarea era trivial, no
