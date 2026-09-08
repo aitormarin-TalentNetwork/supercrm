@@ -180,7 +180,12 @@ cumpla lo que promete la pantalla/flujo correspondiente.
 - Registro de check-in: Sorfware Factory/_registro-agentes.txt (mismo fichero que usa el
   resto de la fábrica).
 - **Registro de tus RONDAS: Sorfware Factory/_registro-qa.txt** (añadido 2026-09-08,
-  decisión del Factory Architect). Fichero aparte del de check-in, mismas reglas:
+  decisión del Factory Architect). **Está versionado en git** (decisión 12, mismo día): su
+  valor es poder reconstruir dentro de dos semanas contra qué se probó, y en un solo disco
+  ese valor no existe. Por eso **léelo y escríbelo siempre en la ruta absoluta de la
+  raíz**, nunca en la copia de un worktree, que estaría congelada. Y al anotar una ronda,
+  commit y push en el mismo acto (ver README, "En `main`, commit y push son un solo acto").
+  Fichero aparte del de check-in, mismas reglas:
   solo-anexar, la entrada más reciente es la vigente, nunca edites ni borres las viejas.
   **Anota una línea por ronda, en el momento de terminarla**, con este formato:
   `timestamp | sesión | build/commit probado | alcance de la ronda | hallazgos (ids) | qué NO se pudo verificar`

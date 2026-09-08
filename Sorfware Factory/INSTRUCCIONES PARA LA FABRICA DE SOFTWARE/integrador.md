@@ -176,6 +176,12 @@ de este proyecto).
   se crea. Aitor puede decírselo a cualquier rol en cualquier momento ("deja de
   preguntarme, publica sin preguntar" / "vuelve a preguntarme antes de publicar") — quien
   lo reciba **anexa una línea nueva**, nunca reescribe el fichero.
+  - **Versionado en git desde 2026-09-08** (decisión 12): ya no está en `.gitignore`. El
+    commit aporta autor, fecha e historial **independientes de lo que la línea afirme de sí
+    misma** — el segundo testigo externo que le faltaba a una procedencia autodeclarada.
+    Consecuencia práctica: **léelo siempre en la ruta absoluta de la raíz**, nunca en la
+    copia de un worktree (estaría congelada), y si anexas una línea, commit y push en el
+    mismo acto.
   - **Formato (solo-anexar desde 2026-09-08, decisión del Factory Architect — ver
     `README.md` §2quinquies):** una línea por cambio,
     `timestamp | modo | quién escribe la línea | quién se lo pidió | canal — quién lo oyó

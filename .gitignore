@@ -60,10 +60,21 @@ next-env.d.ts
 # modo de publicación del Integrador (confirmar/autonomo) — estado efímero, no config
 /Sorfware Factory/_modo-publicacion.txt
 
-# registro de check-in de agentes (quién se presentó, cuándo, con qué rol) — estado
-# efímero de coordinación, no config del proyecto
+# registro de check-in de agentes (quién se presentó, cuándo, con qué rol)
+# SE QUEDA IGNORADO a propósito (decisión 12 del Factory Architect, 2026-09-08): mucho
+# churn y valor puramente momentáneo — "quién está vivo AHORA". Dentro de un mes no le
+# importa a nadie, así que versionarlo solo añadiría ruido al historial.
 /Sorfware Factory/_registro-agentes.txt
 
-# registro de rondas de QA (qué se probó, contra qué build, qué no se pudo verificar) —
-# mismo carácter que el anterior: histórico de ejecución, no config del proyecto
-/Sorfware Factory/_registro-qa.txt
+# NOTA (decisión 12, 2026-09-08): `_modo-publicacion.txt` y `_registro-qa.txt` ESTABAN
+# aquí y se han sacado a propósito — ahora se versionan. Criterio: el estado cuyo valor
+# es HISTÓRICO se versiona; el que solo vale en el momento se queda local.
+#   - _modo-publicacion.txt: dos líneas en cuatro días y equivocarse publica sin permiso.
+#     Churn mínimo, coste máximo. Además, su procedencia era autodeclarada (quien escribe
+#     la línea es quien afirma quién habló con Aitor); el commit aporta autor, fecha e
+#     historial INDEPENDIENTES de lo que la línea diga de sí misma — un segundo testigo,
+#     externo y gratis.
+#   - _registro-qa.txt: su valor declarado es poder reconstruir dentro de dos semanas
+#     contra qué se probó. Si vive en un solo disco, ese valor no existe.
+# Los dos se leen SIEMPRE desde la raíz por ruta absoluta, nunca desde la copia del
+# worktree (decisión 7) — al trackearlos, cada worktree tiene su copia congelada.

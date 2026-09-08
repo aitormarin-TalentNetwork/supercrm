@@ -396,6 +396,25 @@ publica sin permiso y no se deshace, equivocarse en el otro cuesta una pregunta 
 **(c) Rondas de QA → `_registro-qa.txt`, solo-anexar.** Ver §1 y `qa.md`. El histórico
 entero del QA anterior murió con su sesión porque `qa.md` no decía dónde anotarlo.
 
+**(f) El estado cuyo valor es HISTÓRICO se versiona en git; el que solo vale en el momento
+se queda local** (decisión 12, 2026-09-08). Escribir la procedencia no basta si la
+procedencia vive en un solo disco y es autodeclarada — quien escribe la línea es también
+quien afirma quién habló con Aitor. **El commit aporta autor, fecha e historial
+independientes de lo que la línea diga de sí misma: un segundo testigo, externo y gratis.**
+No hay que inventar ningún mecanismo nuevo.
+- **Se versionan:** `_modo-publicacion.txt` (dos líneas en cuatro días, y equivocarse
+  publica sin permiso: churn mínimo, coste máximo) y `_registro-qa.txt` (su valor
+  declarado es reconstruir dentro de dos semanas contra qué se probó — en un solo disco
+  ese valor no existe).
+- **Siguen ignorados, y el porqué también se escribe:** `_registro-agentes.txt` (mucho
+  churn, valor puramente momentáneo — "quién está vivo ahora"; dentro de un mes no le
+  importa a nadie) y `_turno-convex.lock` (efímero por diseño, y además desaparece con la
+  migración de §3bis).
+- ⚠️ **Cabo atado:** al trackearlos, cada worktree tiene su copia congelada. Los dos
+  ficheros **se leen siempre desde la raíz por ruta absoluta**, igual que los documentos
+  de proceso (decisión 7). Si no, se arregla la procedencia y se crea el problema de la
+  divergencia.
+
 **(e) Qué versión está desplegada tiene que poder responderlo cualquiera, no ser un
 privilegio de rol** (formulación del QA, 2026-09-08). Es la misma familia vista desde otro
 ángulo: la procedencia que falta aquí no es el autor de una nota, sino **la versión del
