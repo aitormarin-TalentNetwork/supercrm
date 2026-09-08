@@ -1497,6 +1497,40 @@ migrada, precisamente lo que se buscaba al pasar el turno a un cerrojo autoservi
     **es una propiedad del código**, y se reabre. Eso convierte la 38.1 en **el instrumento
     que responde esa pregunta**: el mapa deja de ser solo una herramienta de reparto y pasa
     a ser la evidencia de una decisión de arquitectura pendiente.
+  - **40 — LA HUELLA TIENE TRES VERSIONES Y SOLO UNA SIRVE PARA AGRUPAR** (2026-09-08, del
+    mapa real que produjo la Directora). La 38.1 decía *"el plan ya nombra sus ficheros"*
+    **sin decir de qué versión hablaba** — una regla infraespecificada en el dato que la
+    sostiene.
+    - **40.1 — Se agrupa con la huella POST-AUDITORÍA del plan.** La pre-auditoría
+      **sobrestima**: incluye lo que el desarrollador cree que *podría* necesitar. Evidencia:
+      un plan declaró **seis** ficheros y los reales eran **cuatro** — uno salió en la
+      auditoría (*"«revisar» no significa necesariamente «cambiar»"*) y otro por decisión del
+      propio desarrollador. **Agrupar con la versión declarada habría serializado tres
+      terminales sin motivo.**
+      **Y no hay que esperar parado:** se agrupa provisionalmente con la huella post-plan
+      **como cota superior declarada como provisional**, y se consolida al llegar cada GO.
+      Así el reparto no se detiene y **nadie confunde una estimación con un permiso**.
+    - **40.2 — La disjunción se reverifica AL ASIGNAR, no una sola vez al hacer el mapa.**
+      **El mapa es una foto, no un permiso permanente** (decisión 22 aplicada al reparto):
+      ese mismo día se autorizó un fichero libre al mirarlo y ocupado veinte minutos
+      después.
+      **Y el motivo de fondo: la huella de IMPLEMENTACIÓN subestima.** Una tarea salió del
+      plan con cuatro escritores de una entidad y acabó con cinco, porque al traer `main`
+      apareció uno que el plan no podía conocer. **Nunca encogió: creció.** Así que el mapa
+      **sobra antes de auditar y falta después de repartir, y los dos sesgos NO se
+      cancelan** — de ahí que hagan falta dos puntos de control, no uno.
+    - **40.3 — Vértice de corte: la regla que cambia la estrategia.**
+      > **Cuando el mapa muestre una tarea que toca la mayoría de los ficheros disputados y
+      > de la que dependen las demás, esa tarea SE PRIORIZA; no se paraleliza a su
+      > alrededor.**
+      *El caso:* AIT-81 tocaba **cuatro de los cinco** ficheros disputados y las otras tres
+      dependían de ella. **No eran cuatro tareas bloqueadas por dos ficheros: era un lote
+      entero bloqueado por una tarea.** Buscar trabajo disjunto alrededor era la estrategia
+      equivocada — no lo había, y el poco que existía ya estaba asignado.
+      **Paralelizar contra un vértice de corte reparte espera, no trabajo.**
+    - 📌 **Y esto le da al mapa su TERCERA función, que es la que más rinde:** no solo
+      reparte (38.1) y no solo responde si la concentración es estructural (condición de
+      reevaluación) — **identifica qué tarea desbloquea a las demás.**
   - **38.4 —** esto le da uso inmediato a la 36.2: las fichas ya anotan qué ficheros
     bloquean y cuánto alcance queda libre, así que **con el lote planificado esos datos
     dejan de ser un registro para el futuro y pasan a ser la ENTRADA del reparto**. Es la
