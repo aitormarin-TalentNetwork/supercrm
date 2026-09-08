@@ -717,6 +717,7 @@ desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta sal
 | `npm run dev` responde en `localhost:3000`, luego el servidor es el tuyo | **Puede ser el de OTRA terminal ocupando el puerto.** Responde en 2 segundos y todo parece normal — pero estarías validando el worktree de otra rama y reportándolo como tuyo. Agravante: `reuseExistingServer: true` en `playwright.config.ts` hace que Playwright **se enganche a lo que haya escuchando sin preguntar de quién es**. Con varias terminales en paralelo no es hipotético | `lsof -nP -iTCP:3000 -sTCP:LISTEN -t` y mirar el `cwd` del proceso: tiene que ser TU worktree. Hallazgo de T3, 2026-09-08 — comprobó que el suyo sí lo era y **lo reportó igual en vez de callárselo**. También en `intro-terminal.txt`, porque es paso previo de cualquier verificación en navegador |
 | "La mutation devolvió error, luego no escribió nada" | **Un error devuelto no prueba que no se escribiera.** Es el mismo "comprueba el efecto, no el retorno" del resto de la tabla, aplicado **al caso denegado**, que es donde menos se mira | volver a entrar como el otro usuario y comprobar el estado real (que la ficha siga con el mismo número de registros). Hallazgo de T3 probando autorización, 2026-09-08 |
 | Leer `process.env.X` en el **middleware Edge de Next.js** y creer que lee el entorno | **Se sustituye por un literal en tiempo de build.** El código *parece* leer el entorno y no lo hace — sobrevive a cualquier revisión de código, y solo falla **al segundo deploy**, cuando ya nadie lo relaciona con el cambio | verificar el valor **sobre el artefacto ya construido**, no leyendo el código: una build, dos arranques con valores distintos. Hallazgo de T2 el 2026-09-08, construyendo AIT-79 — que es justamente la tarea que existe para cerrar un falso verde, y estuvo a punto de nacer con uno dentro |
+| La ruta que le pasas a una herramienta para que escriba un fichero | **Puede resolverla contra otro directorio sin avisar.** Verificado en vivo el 2026-09-08: el MCP de Playwright **ignoró una ruta absoluta** y resolvió relativo a la raíz del proyecto. El fichero —un volcado de sesión con tokens de autenticación— apareció suelto en la raíz, untracked y sin ignorar, a un `git add -A` de entrar en el repo | **comprobar dónde apareció el fichero, no dónde lo pediste.** Pedir una ruta no es lo mismo que obtenerla |
 | `git add -A` en un checkout compartido | **No falla, no avisa, y se lleva lo que encuentre** — incluido trabajo en curso de otro rol que casualmente use la misma carpeta | **commitear por ruta explícita**; `git add -A` queda prohibido en la raíz (decisión 18.2). **La historia entera, porque la regla sola no enseña:** el 2026-09-08 el CEO hizo `add -A` desde la raíz para commitear documentación y arrastró un `throw new Error` que el QA había inyectado en `app/login/page.tsx` para poder ver renderizada `app/error.tsx` — una prueba legítima, bien marcada como temporal y revertida por él dos minutos después. El commit llegó a crearse. **Lo único que lo paró fue la comprobación de la decisión 9** (`git diff --name-only origin/main..main \| grep -E '^(app\|convex\|…)'`), escrita tres horas antes para algo completamente distinto: no arrastrar código en un push de documentación. Si llega a `main`, Railway despliega un login que revienta al cargar |
 | `grep <patrón> fichero \| head -1 && echo "APARECE"` | **Da positivo con CERO coincidencias.** En una tubería, `&&` evalúa el código de salida del ÚLTIMO comando (`head`, que devuelve 0 aunque grep no encuentre nada), no el del que te interesa | **cuenta ocurrencias y mira el número** (`grep -c`), nunca encadenes con `&&` sobre una tubería. Misma familia que `npm test \| tail`, con otro comando: la lección general es que **el código de salida de una tubería es el del último eslabón**. Hallazgo del Integrador, 2026-09-08, verificando AIT-76: estuvo a un paso de reportar un fallo inexistente y no cerrar una tarea correcta |
 | `osascript ... close` sobre una ventana | exit 0 sin haber cerrado nada | volver a listar las ventanas y confirmar que el `id` ya no está |
@@ -951,6 +952,37 @@ asignado, y por defecto acaba en la raíz.**
 que es otra cosa distinta de editar un fichero local. El QA no saltó ninguna regla —
 marcó su prueba como temporal, con condición de reversión escrita, y la revirtió en dos
 minutos. La regla no existía porque nadie la había escrito.
+
+### Decisión 32 — Dónde escriben tus HERRAMIENTAS, no solo dónde trabajas tú
+
+La 18 cubre **dónde experimentas**. No cubría el caso que apareció después, y que destapó el
+QA: **él no experimentaba en la raíz** — le dio a una herramienta una ruta absoluta fuera
+del repo, y **la herramienta la ignoró y escribió donde le dio la gana**. El fichero era un
+volcado de sesión **con tokens de autenticación dentro**, y quedó suelto en la raíz,
+untracked y sin ignorar.
+
+- **32.1 — Toda herramienta que escriba ficheros recibe un destino explícito fuera del
+  repo, Y SE COMPRUEBA DÓNDE ESCRIBIÓ DE VERDAD.** La segunda mitad es la que importa:
+  **pedir una ruta no es lo mismo que obtenerla.** Verificado en vivo — el MCP de Playwright
+  ignoró una ruta absoluta y resolvió relativo a la raíz del proyecto.
+- **32.2 — El destino por defecto de cualquier fichero que una herramienta produzca y no
+  sea un entregable es el scratchpad de la sesión**, nunca el repo ni un `/tmp` improvisado.
+
+⚠️ **32.3 — Y el límite, declarado y no maquillado: las dos anteriores son PRINCIPIOS, no
+comprobaciones.** Por la decisión 29 eso significa que **hay que asumir que se
+incumplirán** — igual que se incumplieron la de `ListAgents` y la del timestamp el mismo día
+que se escribieron. **Que existan estas dos reglas NO cierra el problema.**
+
+**Lo que lo cerraría es un control ejecutable** —algo que corra antes del commit y se niegue
+a incluir un fichero con pinta de credencial—, **y no lo tenemos**. Y no es casualidad: un
+hook de git vive en `.git/hooks`, que **no viaja** — el mismo problema que `settings.local.json`.
+**Queda encadenado a la decisión de Aitor sobre un `settings.json` trackeado.**
+
+📌 **Y el problema estructural, que ninguna de estas reglas ataca:** los tres episodios del
+2026-09-08 —el `throw` de prueba que casi se publica, el `git add -A` que lo arrastró, y
+este volcado de credenciales— **salen todos de que cuatro roles commitean desde el mismo
+checkout**. `.gitignore` es la red y el scratchpad la disciplina; **ninguno toca la causa**.
+Queda escrito como el problema estructural que es, para que no se disuelva en tres parches.
 
 ---
 
