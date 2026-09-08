@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { InteractionTimeline } from "@/components/crm/InteractionTimeline";
+import { AltaRapidaModal } from "@/components/crm/AltaRapidaModal";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { formatCurrency } from "@/lib/format";
 
@@ -36,6 +37,7 @@ export default function FichaClientePage({
   const ficha = useQuery(api.customers.getFicha, { customerId });
   const interactions = useQuery(api.interactions.listByCustomer, { customerId });
   const [deleteCustomerOpen, setDeleteCustomerOpen] = useState(false);
+  const [nuevaOportunidadOpen, setNuevaOportunidadOpen] = useState(false);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
 
@@ -156,8 +158,17 @@ export default function FichaClientePage({
           </div>
 
           <div className="mt-[18px] flex flex-wrap items-center gap-2.5 border-t border-border pt-[18px]">
-            <Button leftIcon={<Plus size={16} />} disabled title="Disponible próximamente">
-              Nueva oportunidad
+            {/* AIT-74: la etiqueta dice "para este cliente" porque el "+" de
+                la cabecera (QuickActions) se llama también "Nueva
+                oportunidad" y crea un cliente NUEVO. Con los dos activos y
+                el mismo nombre, la pantalla sería más ambigua que antes. La
+                normalización de las tres instancias de la etiqueta es
+                AIT-78; esto solo evita empeorar mientras tanto. */}
+            <Button
+              leftIcon={<Plus size={16} />}
+              onClick={() => setNuevaOportunidadOpen(true)}
+            >
+              Nueva oportunidad para este cliente
             </Button>
             {role === "owner" && (
               <>
@@ -178,9 +189,6 @@ export default function FichaClientePage({
               </>
             )}
           </div>
-          <p className="mt-2.5 text-xs text-text-muted">
-            Muy pronto podrás crear oportunidades desde aquí.
-          </p>
         </section>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.25fr_1fr]">
@@ -238,6 +246,11 @@ export default function FichaClientePage({
         </div>
       </div>
 
+      <AltaRapidaModal
+        open={nuevaOportunidadOpen}
+        onClose={() => setNuevaOportunidadOpen(false)}
+        customer={{ id: customerId, name: customer.name }}
+      />
       <DeleteCustomerDialog
         open={deleteCustomerOpen}
         onClose={() => setDeleteCustomerOpen(false)}
