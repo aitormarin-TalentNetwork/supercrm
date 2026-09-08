@@ -252,21 +252,31 @@ regla que más vigilamos.
 ```python
 import io, json, os
 f = os.path.expanduser("~/.claude/projects/<carpeta-codificada>/<session-id>.jsonl")
-usos, encolados, ultimo_real = 0, [], None
+usos, encolados, ultimo_real, ultima_herramienta = 0, [], None, None
 for line in io.open(f, encoding="utf-8", errors="replace"):
     try: d = json.loads(line)
     except Exception: continue
     t, ts = d.get("type"), (d.get("timestamp") or "")[11:19]
     if t == "queue-operation" and d.get("operation") == "enqueue":
-        encolados.append(ts)                       # mensaje recibido y NO procesado
+        encolados.append(ts)
     elif t in ("user", "assistant"):
         ultimo_real = ts                           # actividad real
         c = (d.get("message") or {}).get("content")
         if isinstance(c, list):
             for b in c:
-                if b.get("type") == "tool_use" and b.get("name") == "ScheduleWakeup":
-                    usos += 1                      # llamada REAL, no una mención
+                if b.get("type") == "tool_use":
+                    ultima_herramienta = b.get("name")   # el POR QUÉ del bloqueo
+                    if b.get("name") == "ScheduleWakeup":
+                        usos += 1                  # llamada REAL, no una mención
+
+# ⚠️ SIN DRENAR = encolados POSTERIORES a la última actividad real. NO el total.
+pendientes = [e for e in encolados if ultimo_real and e > ultimo_real]
 ```
+⚠️ **El total de `encolados` NO es la señal — los pendientes sí.** Una sesión sana acumula
+decenas de encolados a lo largo de la tarde, todos ya procesados; contar el total hace que
+cualquier sesión con horas de vida parezca atascada. El CEO cayó en esto el 2026-09-08 y
+estuvo a punto de reportar tres terminales sanas como sordas: T1 tenía 16 encolados y
+**cero** pendientes. La resta contra `ultimo_real` es lo que convierte el dato en señal.
 **Cómo se lee un desbloqueo:** cuando la cola drena, todos los mensajes pendientes aparecen
 de golpe como eventos `user` con el **mismo timestamp**.
 

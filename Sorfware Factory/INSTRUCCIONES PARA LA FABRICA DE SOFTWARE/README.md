@@ -557,6 +557,40 @@ comprobación, *"¿esto fallaría si el diseño fuera el equivocado?"*. Si la re
 **la prueba no vale aunque salga verde**. Son las dos caras: *"¿cómo podría esta
 verificación mentirme en verde?"* mira a la herramienta; esta mira al experimento.
 
+### La tercera categoría: la distancia entre medir y afirmar (decisión 22, 2026-09-08)
+
+De T2, y no es una fila más de la tabla — es un tipo de fallo distinto de los otros dos:
+
+- En el registro de abajo, **la herramienta miente**.
+- En la decisión 19, la herramienta funciona pero **la prueba no discrimina**.
+- Aquí **la comprobación fue correcta y su resultado también**. Lo que falla es tratar la
+  salida de una medición puntual como si fuera una propiedad estable.
+
+> **El problema no es medir mal, es la distancia entre medir y afirmar.** (T2.)
+
+**El caso:** a las 17:48 T2 midió que su copia de `intro-terminal.txt` y la de la raíz eran
+idénticas. Cuarenta y cinco minutos después: **63 líneas de diferencia**, y de 6 commits por
+detrás de `origin/main` a 23. La medición fue correcta las dos veces. Es además **el mejor
+argumento para la decisión 7** de todos los que tenemos: en T1 y T3 la divergencia ya
+existía; aquí **se creó bajo los pies de alguien que acababa de comprobar que no la había**.
+
+**La regla, en dos partes:**
+
+1. **Se mide inmediatamente antes de afirmar, no al principio del razonamiento.** Es
+   exactamente la misma regla a la que llegó la Directora por otro camino —hacer `git
+   fetch` antes de comparar, o comparas contra una foto vieja de `origin`—; el mismo
+   principio por dos rutas, no dos reglas sueltas.
+2. **Toda medición de algo mutable se reporta con su marca de tiempo.** Una medición sin
+   hora **no se puede evaluar como caducada, así que se lee como permanente** — que es
+   justo lo que pasó aquí.
+
+**Lo que estuvo a punto de costar, y es de manual:** entre los commits que le faltaban a T2
+está el que añade comprobar con `lsof` que el servidor del puerto es el suyo. Su prueba de
+AIT-79 arranca dos servidores y compara respuestas — si el segundo hubiera fallado por
+puerto ocupado y `curl` siguiera contestando al primero, habría concluido **"el valor está
+congelado" con el diseño correcto delante**. Un NO-GO fantasma y convincente, en la tarea
+que existe precisamente para cerrar un falso verde.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
@@ -1492,15 +1526,22 @@ fecha) o **NO VERIFICADO** (en negrita, con el motivo) — nunca se deja implíc
 verificado" honesto vale más que un "funciona" sin comprobar (ver §2ter). Añade aquí
 cualquier mecanismo nuevo antes de darlo por bueno en el resto de documentos.
 
-⚠️ **DOS preguntas obligatorias antes de marcar nada como Verificado** (decisiones del
-Factory Architect, 2026-09-08 — ver §2sexies). Son las dos caras: la primera mira a la
-herramienta, la segunda al experimento.
+⚠️ **TRES preguntas obligatorias antes de marcar nada como Verificado** (decisiones del
+Factory Architect, 2026-09-08 — ver §2sexies). En este orden, que es el de la secuencia
+completa: **¿mido el sujeto correcto? → ¿discrimina mi prueba? → ¿puede la herramienta
+mentirme en verde?**
+
+**(1) *"¿estoy midiendo lo que creo que estoy midiendo?"*** (T2, decisión 22.) Va primera
+porque es anterior a las otras dos: la prueba puede estar bien elegida y la herramienta ser
+honesta, y aun así **el sujeto ser el equivocado** — o el mismo sujeto haber cambiado entre
+que lo mediste y que lo afirmas. Toda medición de algo mutable se reporta **con su marca de
+tiempo**; una medición sin hora se lee como permanente.
 
 **(2) *"¿esto fallaría si el diseño fuera el equivocado?"*** Si la respuesta es no, la
 prueba no vale **aunque salga verde**: una comprobación que da verde tanto con el diseño
 bueno como con el malo no está comprobando nada (formulación de T2).
 
-**(1) *"¿cómo podría esta verificación mentirme en verde?"*** — Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
+**(3) *"¿cómo podría esta verificación mentirme en verde?"*** — Si no sabes responderla, el mecanismo entra como **NO VERIFICADO**, no como
 Verificado. Esto es lo que hace que §2sexies se aplique sola de aquí en adelante, en vez
 de quedarse en una lista que envejece: seis de las comprobaciones que usábamos a diario
 mentían en verde, y dos de ellas costaron los peores incidentes de publicación del
