@@ -389,7 +389,13 @@ contenedor.
 - `/ajustes` — línea legible para humanos; es presentación de la misma fuente, no un
   segundo origen, y no cubre el requisito de consulta sin sesión (eso lo hace `/version`).
 
-**Estado:** 🟡 en curso (AIT-79) — falta la verificación contra dos despliegues reales.
+**Estado:** 🟢 hecho (AIT-79) — verificado el 2026-09-08 contra dos despliegues reales
+consecutivos. Para cada uno por separado, `/version` devolvió un `deploymentId` no nulo
+idéntico al de Railway, el SHA completo de 40 caracteres idéntico a `meta.commitHash`, y
+`environment` exactamente `production`; entre ambos, los dos identificadores y los dos
+commits resultaron distintos. Los despliegues fueron `5d71567f` (`bafd805`, el merge de
+AIT-79) y `e9cc0648` (`c282cc6`), este último un push de documentación ajeno a la tarea —
+lo que hace la comprobación independiente por accidente y no por construcción.
 
 ## 7. Decisiones abiertas
 
