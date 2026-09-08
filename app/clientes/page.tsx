@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Table, TableColumn } from "@/components/ui/Table";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { QuickActions } from "@/components/nav/QuickActions";
+import { formatPhone, normalizePhone } from "@/lib/phone";
 
 type CustomerRow = {
   id: string;
@@ -43,10 +44,33 @@ export default function ClientesPage() {
     if (!customers) return [];
     const q = search.trim().toLowerCase();
     if (!q) return customers;
+    // AIT-80: los teléfonos se guardan normalizados, así que compararlos
+    // contra la consulta en crudo dejaría de encontrarlos en cuanto el
+    // usuario teclee un espacio o un guion ("600 123" no está en
+    // "600123456").
+    //
+    // Pero la consulta NO se normaliza entera: este buscador filtra también
+    // por nombre y email, y quitarle todo lo que no sea dígito a "Juan 600"
+    // dejaría de encontrar a Juan. Cada campo compara contra la forma que le
+    // corresponde.
+    //
+    // Solo se compara contra el teléfono si la consulta ENTERA parece un
+    // teléfono (misma clase de caracteres que valida el alta), no si
+    // simplemente contiene algún dígito. Con la regla laxa, buscar "Prueba
+    // AIT35" extraía "35" y arrastraba a todos los clientes con un 35 en
+    // cualquier posición del número — comprobado en el navegador. Antes de
+    // AIT-80 eso no pasaba, porque la consulta se comparaba en crudo y
+    // "prueba ait35" no está dentro de ningún teléfono.
+    //
+    // Al pasar por normalizePhone, el buscador hereda la regla del prefijo:
+    // buscar "+34 600" encuentra al cliente guardado como "600123456".
+    const phoneQuery = /^[\d\s+()-]+$/.test(search.trim())
+      ? normalizePhone(search)
+      : "";
     return customers.filter(
       (c) =>
         c.name.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q) ||
+        (phoneQuery !== "" && c.phone.includes(phoneQuery)) ||
         (c.email ?? "").toLowerCase().includes(q),
     );
   }, [customers, search]);
@@ -70,6 +94,9 @@ export default function ClientesPage() {
         header: "Teléfono",
         mono: true,
         minWidth: 130,
+        // AIT-80: el valor almacenado es canónico (dígitos), así que sin
+        // esto la columna mostraría "600123456".
+        render: (value) => formatPhone(String(value)),
       },
       {
         key: "email",

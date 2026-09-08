@@ -10,6 +10,7 @@
 // system).
 import jsPDF from "jspdf";
 import { formatCurrency, formatDate } from "./format";
+import { formatPhone } from "./phone";
 
 const COLOR_PRIMARY: [number, number, number] = [37, 99, 235]; // --color-primary
 const COLOR_TEXT: [number, number, number] = [15, 23, 42]; // --color-text
@@ -175,7 +176,18 @@ export async function buildQuotePdf(data: QuotePdfData): Promise<jsPDF> {
   y += (customerNameLines.length - 1) * headerLineGap + 5;
 
   doc.setTextColor(...COLOR_TEXT_MUTED);
-  const [customerPhoneLine] = wrapText(data.customerPhone, headerColWidth, 1);
+  // AIT-80: se formatea AQUÍ DENTRO, no se recibe ya formateado. El valor
+  // canónico es el que viaja por props y parámetros; formatearlo en el
+  // llamante convertiría `customerPhone` en un campo cuyo contrato sería
+  // "esto ya viene formateado", sin nada que lo diga ni lo obligue — y el
+  // siguiente llamante le pasaría el valor de la base, que es lo natural, y
+  // el presupuesto saldría con el teléfono en dígitos pelados. Este PDF es el
+  // único sitio de la aplicación que llega a manos del cliente final.
+  const [customerPhoneLine] = wrapText(
+    formatPhone(data.customerPhone),
+    headerColWidth,
+    1,
+  );
   doc.text(customerPhoneLine, marginX, y);
   const leftBottomY = y;
 

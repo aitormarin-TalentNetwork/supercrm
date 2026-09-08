@@ -31,6 +31,25 @@ export function uniqueCustomerName(prefix: string): string {
   return `${prefix} ${Date.now()}`;
 }
 
+/** Teléfono único por ejecución, por el mismo motivo que uniqueCustomerName:
+ * la suite NO resetea la base y los datos persisten entre corridas. Con la
+ * detección de duplicados de AIT-80, un teléfono cableado haría que la
+ * segunda corrida recibiera el aviso en vez de crear el cliente, el alta no
+ * redirigiría y `createOpportunityViaAltaRapida` moriría en su waitForURL.
+ * El nombre ya recibía este trato; al teléfono le faltaba.
+ *
+ * Timestamp Y aleatoriedad: `playwright.config.ts` fija `workers: 1` y
+ * `fullyParallel: false`, así que dos specs no colisionan entre sí — pero dos
+ * EJECUCIONES de la suite a la vez contra el deployment compartido sí, y ésas
+ * el timestamp solo no las distingue. Nueve dígitos empezando por 6, para
+ * pasar la validación de 9-15 dígitos. */
+export function uniquePhone(): string {
+  const random = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, "0");
+  return `6${`${Date.now()}`.slice(-5)}${random}`;
+}
+
 /** Alta rápida (AIT-10): abre el modal desde el botón flotante "+" de Hoy,
  * rellena lo mínimo y crea. Devuelve el id de la oportunidad creada
  * (capturado de la URL a la que redirige tras crear). Asume que la página
