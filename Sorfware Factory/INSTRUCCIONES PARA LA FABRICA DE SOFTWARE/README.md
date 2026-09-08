@@ -420,6 +420,42 @@ para decir *dónde se consulta*, no *cuánto vale*.
 
 ---
 
+### En `main`, commit y push son un solo acto (decisión 9 + enmienda 3, 2026-09-08)
+
+**El hueco:** el código tiene dueño de publicación (el Integrador, §2 paso 4) y la
+documentación no tenía ninguno. Resultado del 2026-09-08: 11 commits de PRD y luego 6 más
+—las once decisiones de proceso de ese día y el `_registro-qa.txt` recién creado—
+commiteados "correctamente" y existiendo **en un solo disco**. `CLAUDE.md` pide commit, no
+push, y para el trabajo que no pasa por el pipeline de código esa diferencia es la que
+separa "cerrado" de "cerrado y perdido si la máquina se cae".
+
+**La regla:** todo lo que se commitee directamente sobre `main` se sube en el mismo acto.
+No se enruta por el Integrador — la documentación no pasa por rama de tarea ni por merge,
+así que no hay nada que coordinar: solo un push que no estaba asignado a nadie.
+
+**La excepción, estrechada al riesgo real** (enmienda 3, el mismo día): la primera
+redacción decía *"para si `main` lleva commits que no son tuyos"* — y en una fábrica con
+seis roles commiteando, `main` casi siempre lleva commits de otro, así que la excepción se
+tragaba la regla entera y todo volvía al mismo cuello de botella. El peligro nunca fue
+empujar trabajo ajeno: era que **un push a `main` dispara un deploy de Railway y podría
+publicar CÓDIGO que no ha pasado por la vía del Integrador**. Así que la excepción se
+limita a eso, y se comprueba con una línea en vez de a ojo:
+```bash
+git diff --name-only origin/main..main | grep -E '^(app|convex|components|lib|hooks|e2e)/'
+```
+- **Sale vacío** → son documentación/proceso: **los empuja cualquiera, sin preguntar.**
+- **Sale algo** → hay código sin publicar por la vía del Integrador: **paras y le avisas.**
+  Ahí sí hay una decisión de publicación que no es de quien pasaba por allí.
+
+**Nota:** un push a `main` dispara build de Railway aunque el cambio sea solo
+documentación. Es inofensivo —build de más, el bundle servido es idéntico— pero mejor
+dicho aquí que descubierto por alguien que crea haber roto algo.
+
+**Verifica el efecto, no el exit code** (§2sexies): tras el push, `git log
+origin/main..main` tiene que quedar vacío.
+
+---
+
 ## 2sexies. Falso verde: comprobaciones que mienten en verde (2026-09-08)
 
 Decisión del Factory Architect, ejecutada por el CEO. Es **la otra mitad de §2ter**:

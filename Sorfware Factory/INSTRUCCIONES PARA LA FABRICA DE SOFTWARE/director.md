@@ -107,6 +107,16 @@ real exactamente igual que si nadie hubiera avisado nunca.
    pasa a desarrollar de verdad — a partir de aquí el flujo sigue exactamente igual que
    antes de este cambio, solo que ya validado el enfoque antes de invertir tiempo en
    escribirlo.
+   **Lo que commitees sobre la rama principal, súbelo en el mismo acto** (decisión 9 +
+   enmienda 3, 2026-09-08 — ver `README.md`, "En `main`, commit y push son un solo acto").
+   Un ADR, un ajuste de proceso, una nota de alcance: commitear deja el trabajo en un solo
+   disco. No se lo pases al rol de publicación — la documentación no tiene rama ni merge,
+   así que no hay nada que coordinar. **Solo paras y avisas si hay código de aplicación
+   sin publicar por su vía**, que se comprueba con una línea:
+   `git diff --name-only origin/main..main | grep -E '^(app|convex|components|lib|hooks|e2e)/'`
+   — vacío, empujas; con algo, es del Integrador. Y verifica el efecto, no el exit code:
+   tras el push, `git log origin/main..main` tiene que quedar vacío.
+
    **Punto de control de la cola — un fichero que pare o bloquee una tarea lleva una
    línea de cabecera obligatoria: `Reflejado en Linear: <fecha>`** (añadido 2026-09-08).
    Sin esa línea, el fichero **no está terminado**. Crear el `.txt` y escribir el

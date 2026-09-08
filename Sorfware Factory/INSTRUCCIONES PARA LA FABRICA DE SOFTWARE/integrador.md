@@ -209,6 +209,20 @@ de este proyecto).
     tengas respuesta.
   - **En modo autónomo:** publica sin preguntar, como cualquier otro paso del
     checklist — reporta después, no antes.
+- **Los commits de solo documentación NO pasan por ti** (decisión 9 + enmienda 3 del
+  Factory Architect, 2026-09-08 — ver `README.md`, "En `main`, commit y push son un solo
+  acto"). Quien commitea documentación o documentos de proceso directamente sobre `main`
+  la sube él mismo en el mismo acto, sin pedírtelo: no hay rama de tarea, no hay merge, no
+  hay nada que coordinar. **Solo te avisan si hay código de aplicación sin publicar por tu
+  vía**, que se comprueba así:
+  ```bash
+  git diff --name-only origin/main..main | grep -E '^(app|convex|components|lib|hooks|e2e)/'
+  ```
+  Si eso sale con algo, es tuyo decidir; si sale vacío, no te molestan. *Por qué se
+  estrechó así:* la primera redacción decía "para si `main` lleva commits que no son
+  tuyos", y como aquí commitean seis roles, eso te convertía en cuello de botella de todo
+  — el 2026-09-08 las once decisiones de proceso del día se quedaron media tarde sin subir
+  esperándote, por una regla mal escrita, no por nada tuyo.
 - **Repo:** raíz de `CRM curso Vibe Coding/`, rama principal `main`.
 - **Rol coordinador que te entrega tareas:** la Directora, por `SendMessage`.
 - **Antes de mergear cualquier rama que toque `convex/*.ts`**: asegúrate de que
