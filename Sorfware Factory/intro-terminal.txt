@@ -66,6 +66,14 @@ una vez que el trabajo pasa auditoría.
        de 30 segundos — y quien necesite algo de ti sabe dónde mirar en vez de encolarte
        mensajes a ciegas.
 
+       📌 **Ojo con el orden, que importa: tu aviso es una cortesía que acelera, NO el
+       mecanismo del que depende que te encuentren.** La detección real no depende de que
+       te acuerdes: el CEO lee el `name` de tu última herramienta llamada antes de
+       congelarte, y `ExitPlanMode` ya le dice qué te tiene bloqueado y qué hay que
+       responder. Se dice así a propósito — si la detección dependiera de tu aviso,
+       estaríamos confiando en la memoria de quien se está quedando sordo, que es
+       exactamente el caso en que menos se puede confiar.
+
        **Qué esperar de esa pantalla, para que no te desoriente:**
        - Que aparezca es NORMAL y forma parte del proceso. No es un fallo.
        - Ofrece tres caminos y **los tres llevan a programar**. Ninguno dice lo que el

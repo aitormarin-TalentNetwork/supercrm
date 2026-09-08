@@ -807,6 +807,12 @@ minutos. La regla no existía porque nadie la había escrito.
   señal suficiente de que algo necesita a Aitor. No confundir con `PermissionDenied` —
   ese se resuelve solo en modo auto y no necesita aviso.
 - **No paralelizar tareas que toquen el mismo archivo.** Van juntas, secuenciales, en la misma rama/terminal (ejemplo real: AIT-14 y AIT-15 comparten `convex/opportunities.ts` → se dieron a la misma terminal).
+- 📌 **El cerrojo de Convex solo le aplica a las terminales NO migradas** (aclarado
+  2026-09-08). Está escrito en genérico —"las terminales"— y eso envejece mal: a fecha de
+  hoy la mayoría ya tiene deployment propio y el cerrojo afecta a menos de las que el texto
+  sugiere. **No se nombra aquí cuáles son** (§2quinquies, corolario): la condición es
+  `CONVEX_DEPLOYMENT` = el compartido `third-goldfinch-805` en el `.env.local` de ese
+  worktree. Si es otro, esa terminal ignora todo lo que sigue sobre turno y cerrojo.
 - **Mientras una terminal no esté migrada a deployment propio (ver §3bis), el turno de
   Convex se organiza con un cerrojo — ya NO se pide a la Directora** (rediseñado
   2026-08-14, tras detectar que arbitrar cada petición no escala según crece el número
