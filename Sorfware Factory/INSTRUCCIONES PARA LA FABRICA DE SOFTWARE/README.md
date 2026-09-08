@@ -824,6 +824,8 @@ desde el lado equivocado. Es §2ter(b) exacto, en el sitio donde más tienta sal
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
 | **El estado que devuelve `ListAgents` — `busy`, `waiting`, o que la sesión no aparezca** | **Ningún estado de `ListAgents` es evidencia de que una sesión está viva y escuchando.** `busy` no separa "trabajando" de "bloqueada en un prompt": el Integrador estuvo **`busy` y sordo a la vez** durante 38 minutos, indistinguible de `busy` y trabajando. Y `waiting` tampoco es tranquilizador: T3 apareció `waiting` bloqueada en `ExitPlanMode`, indistinguible de ociosa legítima | cruzar SIEMPRE el estado con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia del 2026-09-08: Integrador `busy` 38 min, T3 `waiting` ~30 min |
+| **Una marca de tiempo sin huso horario** | **Se compara sin fricción contra otra de un huso distinto, y la resta sale plausible.** ⚠️ **Es peor que un dato ausente: una hora sin huso NO PARECE INCOMPLETA — parece un número.** Caso real, 2026-09-08: el censo del CEO iba en **UTC** y los latidos del watchdog en **local (UTC−3)**. El CEO aplicó la aritmética de la enmienda 6 correctamente **sobre dos números que no eran comparables**, y estuvo a punto de escalar a Aitor **una alarma perfectamente sana** — el mismo falso positivo que esa enmienda existía para evitar, reaparecido por otra puerta | **huso explícito en CADA marca de tiempo** — censos, artefactos y latidos (enmienda 8). ⚠️ **Acordar "usamos UTC" no sirve: es un principio y se incumple.** Escribir el huso en cada número **es una comprobación que se hace sola al leerla** |
+| **Contar sesiones sobre un directorio de transcripts sin filtrar por vivas** | Aparecen sesiones **muertas de días atrás** con decenas de mensajes encolados **que nunca van a drenar**, y se leen como sesiones sordas. Caso real: 160 y 76 encolados de sesiones difuntas en el censo del CEO; y "21 sesiones vigiladas" en el watchdog que eran 21 ficheros con línea base y ocho sesiones vivas | **filtrar por actividad reciente antes de contar nada.** 📌 **Y el dato que lo hace regla y no dos anécdotas: los dos instrumentos tenían el mismo defecto y ninguno lo copió del otro.** No es descuido de nadie — **medir sobre un directorio de transcripts invita a ese error** |
 | El `mtime` (o el tamaño) del `.jsonl` como señal de que una sesión está viva | **Crece al ENCOLAR mensajes entrantes**, no solo cuando la sesión produce algo. O sea: **una sesión sorda parece activa precisamente cuando alguien intenta hablarle** — y eso es lo que pasa siempre, porque en cuanto una terminal se atasca, los demás roles empiezan a escribirle. Un vigilante montado sobre esta señal **se queda mudo justo en el caso para el que se montó, y sin dar ninguna señal de estar fallando** | avance de la marca de tiempo del último evento **`assistant`** — lo último que la sesión ha **producido**, no lo último que le ha pasado. En una sesión que trabaja, `mtime` y último `assistant` van juntos; **en una atascada se separan, y esa separación ES el diagnóstico** |
 | Una alarma automática que da falsos positivos | **Es PEOR que no tener alarma.** La primera vez avisa, la segunda la ignoras, y la tercera te has acostumbrado a ignorarla — justo cuando es real. El fallo no se nota porque el mecanismo *parece* funcionar: sigue emitiendo | validar la alarma contra una fuente independiente **antes** de que avise a nadie, y descartarla sin contemplaciones si falla. Caso real, 2026-09-08: el watchdog del Factory Architect necesitó **cuatro versiones**; la v3 disparó **19 falsos positivos** (incluidas sesiones de hace 24 días) porque marcaba una sesión como viva **la primera vez que la veía, no cuando la veía moverse** — inferir liveness de una observación que no la establece. Las tres versiones malas se cazaron cruzando con `ListAgents` **antes** de avisar a Aitor; sin ese cruce le habrían llegado 19 avisos falsos en una tarde |
 | `find <dir> -name "*.jsonl" -newermt "<hora>"` en macOS | **Devuelve vacío sin error** si el flag no se comporta como se espera — y "no hay coincidencias" es indistinguible de "el flag no hizo nada". Hallazgo del Factory Architect, 2026-09-08: seis ficheros cumplían la condición y `find` no devolvió ninguno. **Habría concluido que ninguna sesión estaba activa, o sea que la fábrica entera estaba muerta** | `stat -f '%Sm' -t '%H:%M:%S'` sobre los ficheros y comparar las horas a mano |
@@ -932,6 +934,19 @@ concluir y no solo en el de revisar?"*
 **La observación que lo sostiene, y es incómoda:** el 2026-09-08 los roles de esta fábrica
 se corrigieron mutuamente **siete veces**. **Ninguna la provocó la regla escrita. Todas las
 provocó otro rol mirando el dato.** Las reglas no se aplicaron solas ni una sola vez.
+
+> ### La evidencia más fuerte que tenemos de esta decisión
+>
+> El 2026-09-08 el CEO **grepeó prosa** para resolver qué transcript era de qué rol —y le
+> salieron tres transcripts etiquetados como el mismo rol— **cometiendo la decisión 20
+> (*el transcript se parsea, nunca se grepea*) en el mismo ciclo en que esa regla estaba
+> escrita literalmente en su propio prompt de barrido.**
+>
+> **Una regla en el prompt de un `/loop` es lo más cerca que un principio puede estar de un
+> control: se reinyecta literal en cada ciclo, sin depender de que nadie la recuerde. Y aun
+> así no impidió nada.**
+>
+> **Si eso no basta, nada que dependa de leer basta.**
 
 **Y el patrón que separa las que sí funcionaron de las que no:**
 
