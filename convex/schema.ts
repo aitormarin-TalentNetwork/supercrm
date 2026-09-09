@@ -278,6 +278,28 @@ export default defineSchema({
     quoteId: v.id("quotes"),
   }).index("by_client_request_id", ["clientRequestId"]),
 
+  // Idempotencia de customers.createContact (AIT-88), mismo mecanismo que
+  // opportunityRequests e interactionRequests: una clave por apertura del
+  // formulario, reutilizada en un reintento del MISMO envío.
+  //
+  // TABLA PROPIA Y NO UN CAMPO POLIMÓRFICO EN opportunityRequests, a propósito:
+  // el proyecto ya se hizo esta pregunta con AIT-19 y la respondió igual. Un id
+  // que apuntara a dos tablas tendría que ser `v.union(...)` o un string suelto,
+  // y se perdería la garantía del compilador de que ahí solo hay ids de una
+  // entidad. Se cambia una comprobación de tipos por una convención, que es lo
+  // contrario de lo que hizo AIT-82.
+  //
+  // OJO AL CAMBIAR DE INTENCIÓN EN LA UI: contacto y venta escriben en tablas
+  // distintas, así que son DOMINIOS DE IDEMPOTENCIA INDEPENDIENTES. La misma
+  // clave no cruza de una a otra — por eso el formulario regenera
+  // `clientRequestId` al cambiar de modo (cambiar de intención es otro envío,
+  // no un reintento del mismo).
+  customerRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    customerId: v.id("customers"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
   // AIT-30 (Post-MVP): recordatorio de recompra tras una venta ganada.
   // Tabla propia, no `nextSteps` — conceptualmente distinto (fidelización
   // futura de un cliente ya cerrado, no seguimiento de una venta abierta

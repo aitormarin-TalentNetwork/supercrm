@@ -94,12 +94,21 @@ function AltaRapidaBlancoModal({
   // construyó AIT-74 — permisos en servidor, idempotencia, titularidad
   // heredada. No se reimplementa aquí: se llama.
   const createForCustomer = useMutation(api.opportunities.createForCustomer);
+  // AIT-88: la puerta que guarda a la persona sin inventarle una venta.
+  const createContact = useMutation(api.customers.createContact);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [source, setSource] = useState<CustomerSource>(CUSTOMER_SOURCES[0]);
   const [priority, setPriority] = useState<Prioridad>("media");
+  // AIT-88: la elección EXPLÍCITA entre guardar solo el contacto o abrir además
+  // una venta. Explícita y no inferida: nada de "si dejas el importe vacío,
+  // adivino que no hay venta" — una decisión implícita es la que nadie recuerda
+  // haber tomado. Va DENTRO del formulario, no antes de abrirlo (decisión del
+  // PM): cuando Carlos apunta un teléfono en el mostrador, muchas veces no sabe
+  // todavía si hay venta al pulsar el botón, y sí lo sabe mientras rellena.
+  const [conVenta, setConVenta] = useState(true);
   const [interest, setInterest] = useState("");
   const [amount, setAmount] = useState("");
   const [nameError, setNameError] = useState("");
@@ -131,12 +140,23 @@ function AltaRapidaBlancoModal({
     if (open) setClientRequestId(crypto.randomUUID());
   }
 
+  // AIT-88: contacto y venta escriben en tablas de idempotencia distintas
+  // (`customerRequests` vs `opportunityRequests`), así que son DOMINIOS
+  // INDEPENDIENTES: la misma clave no cruza de uno a otro. Cambiar de intención
+  // es OTRO envío, no un reintento del mismo, así que se regenera la clave.
+  function cambiarModo(nuevoConVenta: boolean) {
+    setConVenta(nuevoConVenta);
+    setClientRequestId(crypto.randomUUID());
+    setDuplicate(null);
+  }
+
   function reset() {
     setName("");
     setPhone("");
     setEmail("");
     setSource(CUSTOMER_SOURCES[0]);
     setPriority("media");
+    setConVenta(true);
     setInterest("");
     setAmount("");
     setNameError("");
@@ -176,8 +196,11 @@ function AltaRapidaBlancoModal({
     setEmailError(emailError ?? "");
     if (emailError) hasError = true;
 
+    // AIT-88: el importe es de la venta. En modo contacto el campo no se
+    // muestra, así que validarlo bloquearía por un valor que nadie puede ver
+    // ni corregir.
     const parsedAmount = parseEuroAmount(amount);
-    if (parsedAmount === null) {
+    if (conVenta && parsedAmount === null) {
       setAmountError("Importe no válido. Usa un formato como 1250,50 o 1250.50.");
       hasError = true;
     } else {
@@ -185,7 +208,57 @@ function AltaRapidaBlancoModal({
     }
     if (hasError) return;
 
-    await submitQuick(parsedAmount ?? undefined, false);
+    if (conVenta) {
+      await submitQuick(parsedAmount ?? undefined, false);
+    } else {
+      await submitContacto(false);
+    }
+  }
+
+  // AIT-88: guardar SOLO a la persona. No crea oportunidad, ni próximo paso, ni
+  // registro de idempotencia de oportunidad — dos filas y solo dos.
+  async function submitContacto(confirmDuplicate: boolean) {
+    setFormError("");
+    setLoading(true);
+    try {
+      const result = await createContact({
+        clientRequestId,
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim() || undefined,
+        source,
+        confirmDuplicate,
+      });
+      if (result.status === "duplicate") {
+        setDuplicate({
+          matches: result.matches,
+          otherOwnerMatch: result.otherOwnerMatch,
+        });
+        return;
+      }
+      reset();
+      onClose();
+      router.push(`/clientes/${result.customerId}`);
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Fallo creando el contacto:", err);
+      }
+      setFormError("No se ha podido guardar el contacto. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // AIT-88: en modo contacto, aceptar una coincidencia NO escribe nada. La
+  // persona ya está guardada, que es lo que se quería: se abre su ficha. Es el
+  // resultado útil y es explícitamente no mutante — a diferencia de "Usar este
+  // cliente" en modo venta, que llama a `createForCustomer` y CREA una
+  // oportunidad. Reutilizar aquel botón habría hecho que la vía creada para no
+  // meter ventas en el pipeline metiera una.
+  function abrirFichaExistente(customerId: Id<"customers">) {
+    reset();
+    onClose();
+    router.push(`/clientes/${customerId}`);
   }
 
   // AIT-80. `confirmDuplicate` viaja al servidor: si la comprobación viviera
@@ -269,7 +342,16 @@ function AltaRapidaBlancoModal({
         Cancelar
       </Button>
       <Button type="submit" form="alta-rapida-form" disabled={loading}>
-        {loading ? "Creando…" : "Crear oportunidad"}
+        {/* AIT-78 dejó dicho que la etiqueta describe el RESULTADO. AIT-88
+                  lo mantiene: según el modo, lo que se produce es una
+                  oportunidad o solo el contacto, y el botón lo dice. */}
+              {loading
+                ? conVenta
+                  ? "Creando…"
+                  : "Guardando…"
+                : conVenta
+                  ? "Crear oportunidad"
+                  : "Guardar contacto"}
       </Button>
     </>
   );
@@ -307,8 +389,9 @@ function AltaRapidaBlancoModal({
             {duplicate.matches.length > 0 && (
               <>
                 <p className="text-text-secondary">
-                  Si es la misma persona, añade la oportunidad a su ficha en vez
-                  de crear otra: así su historial no queda partido en dos.
+                  {conVenta
+                    ? "Si es la misma persona, añade la oportunidad a su ficha en vez de crear otra: así su historial no queda partido en dos."
+                    : "Esta persona ya está guardada. Puedes abrir su ficha en vez de crear otra igual."}
                 </p>
                 {/* Se listan TODOS los accesibles, del más antiguo al más
                     reciente. El orden es una ayuda visual, no una elección
@@ -325,10 +408,14 @@ function AltaRapidaBlancoModal({
                       </span>
                       <Button
                         variant="secondary"
-                        onClick={() => createOnExistingCustomer(match.customerId)}
+                        onClick={() =>
+                          conVenta
+                            ? createOnExistingCustomer(match.customerId)
+                            : abrirFichaExistente(match.customerId)
+                        }
                         disabled={loading}
                       >
-                        Usar este cliente
+                        {conVenta ? "Usar este cliente" : "Abrir su ficha"}
                       </Button>
                     </li>
                   ))}
@@ -351,10 +438,20 @@ function AltaRapidaBlancoModal({
             )}
 
             <div>
+              {/* AIT-88 — EL BOTÓN VA POR MODO, como el envío principal. Este
+                  aviso es el mismo para las dos vías, pero lo que ejecuta al
+                  aceptarlo NO: `submitQuick` crea cliente + oportunidad +
+                  próximo paso, y en modo contacto eso es precisamente lo que
+                  la issue viene a evitar. Llamarlo aquí metería en el pipeline
+                  la venta inventada por la única puerta que había prometido no
+                  inventarla — y encima solo a quien tropieza con un duplicado,
+                  que es el camino menos mirado. */}
               <Button
                 variant="secondary"
                 onClick={() =>
-                  submitQuick(parseEuroAmount(amount) ?? undefined, true)
+                  conVenta
+                    ? submitQuick(parseEuroAmount(amount) ?? undefined, true)
+                    : submitContacto(true)
                 }
                 disabled={loading}
               >
@@ -420,6 +517,7 @@ function AltaRapidaBlancoModal({
               ))}
             </Select>
           </div>
+          {conVenta && (
           <div className="min-w-[160px] flex-1">
             <Input
               label="Importe estimado (opcional)"
@@ -429,8 +527,25 @@ function AltaRapidaBlancoModal({
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
+          )}
         </div>
 
+        {/* AIT-88: el control explícito. Va aquí, después de los datos de la
+            persona y antes de los de la venta, porque es lo que decide si esos
+            de abajo tienen sentido. Un `Select` y no un interruptor: dice en
+            palabras qué hace cada opción, y "guardar solo el contacto" tiene
+            que poder leerse, no deducirse de una casilla apagada. */}
+        <Select
+          label="¿Hay una venta en marcha?"
+          value={conVenta ? "si" : "no"}
+          onChange={(e) => cambiarModo(e.target.value === "si")}
+        >
+          <option value="si">Sí, abre una oportunidad</option>
+          <option value="no">No, guarda solo el contacto</option>
+        </Select>
+
+        {conVenta && (
+          <>
         <Select
           label="Prioridad"
           value={priority}
@@ -449,6 +564,8 @@ function AltaRapidaBlancoModal({
           value={interest}
           onChange={(e) => setInterest(e.target.value)}
         />
+          </>
+        )}
 
         <div className="flex flex-wrap items-center gap-2.5 rounded-md border border-border bg-neutral-50 px-3 py-2.5">
           <span className="inline-flex items-center gap-1.5 text-xs text-text-secondary">

@@ -78,7 +78,7 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 
 **Contrato de `source` (AIT-81).** El canal de origen es un **catálogo cerrado**, no un string libre. Antes el schema declaraba `v.string()` mientras el código asumía cinco canales, y el catálogo estaba copiado en cuatro sitios (el `union` de `opportunities.createQuick`, el de `customers.update`, el mapa de primeros pasos, y los desplegables de Alta rápida y de la ficha de cliente) sin nada que obligara a que coincidieran.
 
-Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.ts) — es una lista de **producto**, no una constante técnica: dice qué vías contempla el CRM para que llegue un cliente. De ahí se derivan el validador de Convex (`convex/model/customerSource.ts`), el schema, los `args` de las dos mutations que escriben `source`, y los desplegables de la UI.
+Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.ts) — es una lista de **producto**, no una constante técnica: dice qué vías contempla el CRM para que llegue un cliente. De ahí se derivan el validador de Convex (`convex/model/customerSource.ts`), el schema, los `args` de las tres mutations que escriben `source` (`opportunities.createQuick`, `customers.update` y `customers.createContact`), y los desplegables de la UI.
 
 - **Para añadir un canal** (p. ej. `Email`): se añade a `CUSTOMER_SOURCES` y el compilador exige su primer paso en `FIRST_STEP_BY_SOURCE`. No hay un tercer sitio que tocar.
 - **Para quitar uno**: ojo, no es simétrico. Convex valida los documentos **existentes** al desplegar el schema, así que si queda algún cliente guardado con ese canal, el push falla y con él el build. Primero migración, después el catálogo.
@@ -89,7 +89,7 @@ Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.
 
 **Contrato de `phone` (AIT-80) — es un cambio de contrato del campo, no solo un índice más.** `phone` se guarda en forma canónica: solo dígitos, y sin el prefijo `+34`/`0034` cuando se ha escrito explícitamente como prefijo. Un código de país extranjero se conserva (`+49 30 1234` → `49301234`), porque un número extranjero sí es un número distinto; y un `34…` sin `+` se conserva entero, porque recortarlo por parecerse a un prefijo corrompería un número legítimo que empezara por 34.
 
-- **Se escribe** siempre pasando por `normalizePhone()` (`lib/phone.ts`). Escritores actuales: `opportunities.createQuick` y la migración `migrations.backfillPhoneNormalized`; AIT-77 (editar cliente) es el tercero. Un escritor que guarde el valor crudo deja al cliente fuera del índice: no se detectará su duplicado y el buscador no lo encontrará por teléfono.
+- **Se escribe** siempre pasando por `normalizePhone()` (`lib/phone.ts`). Escritores actuales: `opportunities.createQuick`, la migración `migrations.backfillPhoneNormalized`, `customers.update` (AIT-77, editar cliente) y `customers.createContact` (AIT-88, alta de contacto sin venta). Un escritor que guarde el valor crudo deja al cliente fuera del índice: no se detectará su duplicado y el buscador no lo encontrará por teléfono.
 - **Se busca** comparando contra `normalizePhone(consulta)`. La misma función en escritura, búsqueda y migración es lo que hace que las tres coincidan.
 - **Se muestra** pasando por `formatPhone()` en el último paso antes de pintarlo. Un `href="tel:"` no se formatea: los dígitos pelados son válidos y mejores para marcar.
 - **La clave no es única.** Convex no tiene `UNIQUE`, y esta tabla contiene por definición duplicados anteriores a AIT-80 (son su motivo), que el backfill normaliza al mismo valor. Quien consulte el índice usa `.collect()`: `.unique()` reventaría y `.first()` escogería arbitrariamente.
@@ -204,6 +204,21 @@ Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunity
 
 Idempotencia de `quotes.createVersion` (AIT-54): mismo mecanismo que `opportunityRequests`/`interactionRequests`. Sin esto, un reintento de red creaba una versión duplicada con datos idénticos, porque `createVersion` siempre inserta (nunca hace upsert).
 
+### `customerRequests` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `clientRequestId` | string | Generada por el cliente, una por apertura del modal de Alta rápida **en modo contacto** |
+| `userId` | id(`users`) | Quién la generó |
+| `customerId` | id(`customers`) | El cliente que produjo esa petición |
+
+Idempotencia de `customers.createContact` (AIT-88): mismo mecanismo que `opportunityRequests`/`interactionRequests`/`quoteRequests`.
+
+**Por qué una tabla propia y no un campo más en `opportunityRequests`.** Un id que apuntara a dos tablas tendría que ser un `v.union(...)` o un string suelto, y se perdería la garantía del compilador de que ahí solo hay ids de una entidad — cambiar una comprobación de tipos por una convención. El proyecto ya se hizo esta pregunta con AIT-19 y AIT-54, y la respondió igual las dos veces.
+
+**Consecuencia que hay que tener presente: son dominios de idempotencia independientes.** Guardar un contacto y dar de alta una venta escriben en tablas distintas, así que una misma `clientRequestId` no cruza de una a otra. Por eso el formulario **regenera la clave al cambiar de modo**: cambiar de intención es otro envío, no un reintento del mismo.
+
+**Y el orden importa:** `createContact` resuelve la idempotencia **antes** de buscar duplicados por teléfono, igual que `createQuick` desde AIT-80. Al revés, un reintento de red encontraría por `by_store_phone` al cliente que ese mismo envío acaba de crear, y el alta acabaría avisando de sí misma.
+
 ### `pushSubscriptions` (Post-MVP, AIT-57 — no es una de las 7 entidades del PRD)
 | Campo | Tipo | Notas |
 |---|---|---|
@@ -233,16 +248,36 @@ Guardarlos sería garantizar que se desfasan. Se calculan en la query:
 
 ## 4. Schema de Convex
 
-Esto es **`convex/schema.ts`**, ya escrito. Si tocas uno, toca el otro en el mismo cambio.
+Esto es **`convex/schema.ts`** VERBATIM, comentarios incluidos. Si tocas uno, toca el otro en el mismo cambio.
+
+**Y se puede comprobar sin leerlo**, que es el motivo de que vaya literal y no resumido:
+
+```sh
+# el bloque de aquí abajo contra el fichero real: sin salida = sincronizados
+diff <(sed -n '/^```ts$/,/^```$/p' docs/02-modelo-de-datos.md | sed '1d;$d') convex/schema.ts
+```
+
+> Este bloque **prometía ser el schema y no lo era** (auditoría de AIT-88, M1): a
+> `users.role` le faltaba `storeManager` y el campo `active`; a `opportunities`,
+> `priority`, `billingStatus`, `lastRiskPushSentAt` y el índice `by_store_status`; a
+> `nextSteps`, `lastPushSentAt`; y faltaban enteras `repurchaseReminders` y
+> `pushSubscriptions`. Un extracto incompleto que se presenta como el original **falla
+> hacia el verde**: quien lo lee cree que ya sabe qué hay en la base y no abre
+> `schema.ts`. Por eso ahora va literal — y con el `diff` de arriba, la próxima
+> divergencia se detecta en un comando en vez de en una auditoría.
 
 ```ts
 import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import { customerSourceValidator } from "./model/customerSource";
 
 export default defineSchema({
-  ...authTables, // authSessions, authAccounts, authRefreshTokens, etc. — gestionadas por la librería
+  ...authTables,
 
+  // Sustituye la tabla `users` de authTables: mismos campos de Convex Auth
+  // (todos opcionales) + los nuestros (obligatorios). El índice se llama
+  // "email" a secas porque el código interno de Convex Auth lo busca así.
   users: defineTable({
     name: v.optional(v.string()),
     image: v.optional(v.string()),
@@ -251,17 +286,36 @@ export default defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-    role: v.union(v.literal("owner"), v.literal("sales")),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("storeManager"),
+      v.literal("sales"),
+    ),
     storeId: v.id("stores"),
+    // AIT-52 (Post-MVP): desactivar acceso sin borrar historial (sus
+    // oportunidades/interacciones quedan intactas, solo deja de poder
+    // entrar — comprobado en convex/auth.ts). Opcional en el schema (no
+    // obligatorio) porque los usuarios ya existentes en el deployment
+    // compartido no lo tienen — se tratan como activos allí donde se lee
+    // (`?? true`), igual que otros campos añadidos a esta tabla en
+    // rondas anteriores (p.ej. priority en opportunities, AIT-35).
+    // createUser sí lo fija explícitamente en todo alta nueva.
+    active: v.optional(v.boolean()),
   })
     .index("email", ["email"])
     .index("phone", ["phone"]),
 
   stores: defineTable({
     name: v.string(),
+    // AIT-61 (Post-MVP): logo real para el membrete del PDF de
+    // presupuesto (convex/storesLogo.ts::setLogo lo valida y asigna) —
+    // ausente = sin logo, el PDF cae al membrete tipográfico de siempre
+    // (lib/quotePdf.ts).
     logoStorageId: v.optional(v.id("_storage")),
   }),
 
+  // Invariante explícito de "la tienda por defecto": un documento con
+  // clave conocida, no "la primera fila de stores". No se administra a mano.
   appConfig: defineTable({
     key: v.string(),
     storeId: v.optional(v.id("stores")),
@@ -271,12 +325,35 @@ export default defineSchema({
     name: v.string(),
     phone: v.string(),
     email: v.optional(v.string()),
-    source: customerSourceValidator,   // AIT-81: union derivado del catálogo
+    // AIT-81: era `v.string()` libre mientras el código asumía cinco canales.
+    // El catálogo vive en `lib/customerSource.ts` (es una lista de producto) y
+    // este validador se deriva de él, así que el schema ya no puede decir una
+    // cosa distinta de la que asume el código.
+    source: customerSourceValidator,
     ownerId: v.id("users"),
     storeId: v.id("stores"),
   })
     .index("by_owner", ["ownerId"])
+    // AIT-58: listado de clientes de la tienda (customers.list) — sin esto,
+    // resolver "todos los clientes de mi tienda" para owner/storeManager
+    // exigiría un scan completo de la tabla filtrado en memoria, igual que
+    // el problema ya corregido en opportunities (ver by_store_status más
+    // abajo, AIT-33 ronda 2).
     .index("by_store", ["storeId"])
+    // AIT-80: "¿hay ya un cliente de esta tienda con este teléfono?" en el
+    // alta rápida. Sin el índice habría que traerse la tienda entera y
+    // filtrar en memoria, que es justo el scan que la issue prohíbe.
+    //
+    // CONTRATO: `phone` se guarda CANÓNICO (normalizado con
+    // `lib/phone.ts::normalizePhone`), no como se teclea — ver
+    // docs/02-modelo-de-datos.md §customers. El índice solo encuentra lo que
+    // esté normalizado; un escritor que guarde el valor crudo deja al cliente
+    // invisible para la detección de duplicados y para el buscador.
+    //
+    // La clave NO es única: Convex no tiene UNIQUE, y esta tabla contiene por
+    // definición duplicados previos a AIT-80 (son su motivo). Quien consulte
+    // este índice usa `.collect()`; `.unique()` reventaría en cuanto el
+    // backfill normalice dos duplicados al mismo valor.
     .index("by_store_phone", ["storeId", "phone"]),
 
   opportunities: defineTable({
@@ -287,6 +364,16 @@ export default defineSchema({
       v.literal("negociacion"),
     ),
     status: v.union(v.literal("open"), v.literal("won"), v.literal("lost")),
+    // Post-MVP AIT-35: prioridad manual (importancia), distinta del riesgo
+    // automático de lib/risk.ts (urgencia por inactividad). Opcional en el
+    // schema — no obligatorio — porque las oportunidades ya existentes en
+    // el deployment compartido no tienen este campo y una migración
+    // retroactiva está fuera de alcance de esta tarea; se trata como
+    // "media" allí donde se lee (ver getSummary/listOpen). createQuick sí
+    // fija "media" explícitamente en todo registro nuevo.
+    priority: v.optional(
+      v.union(v.literal("alta"), v.literal("media"), v.literal("baja")),
+    ),
     interest: v.optional(v.string()),
     estimatedAmount: v.optional(v.number()),
     expectedCloseDate: v.optional(v.number()),
@@ -296,13 +383,66 @@ export default defineSchema({
     lastActivityAt: v.number(),
     ownerId: v.id("users"),
     storeId: v.id("stores"),
+    // AIT-33 (Post-MVP): ciclo de cobro de una venta ganada, marcado
+    // manual — la factura legal se emite fuera del CRM, esto solo hace
+    // seguimiento de estado. Campo en `opportunities`, no tabla aparte:
+    // es 1:1 con la oportunidad (una venta, un ciclo de cobro), sin
+    // historial ni datos propios más allá del estado — una tabla nueva
+    // añadiría un join sin aportar nada que este campo no cubra ya.
+    // Opcional porque solo aplica a oportunidades ganadas (undefined en
+    // abiertas/perdidas, y también en ganadas anteriores a esta tarea —
+    // ver el fallback a "listo_para_facturar" en las queries/mutations
+    // que lo leen, sin necesidad de migrar datos existentes).
+    billingStatus: v.optional(
+      v.union(
+        v.literal("listo_para_facturar"),
+        v.literal("facturado"),
+        v.literal("cobrado"),
+      ),
+    ),
+    // AIT-57 (Web Push): el `lastActivityAt` para el que ya se envió el
+    // push de "en riesgo" — NO el reloj de cuándo se envió (hallazgo de
+    // auditoría NO-GO ronda 1, "Mayor" #2: con `Date.now()` había una
+    // carrera real — una interacción nueva ENTRE la lectura del cron y
+    // este patch dejaba `lastRiskPushSentAt` por delante de la nueva
+    // `lastActivityAt` para siempre, suprimiendo cualquier aviso futuro
+    // aunque la oportunidad volviera a quedarse en riesgo más adelante).
+    // Al guardar el valor de `lastActivityAt` observado (no el actual),
+    // una interacción concurrente no puede "adelantarse" al marcado: el
+    // valor guardado sigue siendo menor que la `lastActivityAt` nueva, así
+    // que la próxima racha de riesgo vuelve a ser elegible. Opcional por
+    // el mismo motivo que `lastPushSentAt` en `nextSteps`.
+    lastRiskPushSentAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_customer", ["customerId"])
-    .index("by_status_stage", ["status", "stage"]),
+    .index("by_status_stage", ["status", "stage"])
+    // AIT-33 (hallazgo de auditoría, NO-GO ronda 2): `by_status_stage`
+    // empieza por `status`, así que una consulta que solo fija `status`
+    // (como listPendingBilling) trae TODAS las oportunidades de esa
+    // condición de TODAS las tiendas antes de filtrar por storeId en
+    // memoria — coste que crece con el negocio entero, no con el de la
+    // tienda que pregunta, y una lectura más amplia de la necesaria en
+    // una query multi-tenant. Este índice, con storeId primero, permite
+    // consultar directamente solo lo de la tienda del usuario.
+    .index("by_store_status", ["storeId", "status"]),
 
+  // AIT-29 (Post-MVP, ronda 1 — catálogo + cálculo): sustituye el `amount`
+  // plano de AIT-21 por una colección de líneas. `productName`/`unitPrice`
+  // son una FOTO del catálogo en el momento de añadir la línea, no una
+  // referencia viva — si el precio de un producto cambia en el catálogo
+  // después, los presupuestos ya creados no deben moverse solos. AIT-54
+  // (ronda 2) sustituyó el upsert de una sola fila por varias versiones
+  // por oportunidad — ver el campo `version` justo debajo.
   quotes: defineTable({
     opportunityId: v.id("opportunities"),
+    // Varias versiones por oportunidad (AIT-54): ausente = versión 1
+    // implícita — todo `quotes` creado antes de AIT-54 (cuando como mucho
+    // podía existir una fila por oportunidad) no tiene este campo, mismo
+    // patrón que `opportunities.priority`/`billingStatus` para datos
+    // anteriores a que el campo existiera. No hace falta migración: un
+    // campo opcional nuevo no rompe la validación de los documentos ya
+    // guardados.
     version: v.optional(v.number()),
     lines: v.array(
       v.object({
@@ -324,6 +464,8 @@ export default defineSchema({
     sentAt: v.number(),
   }).index("by_opportunity", ["opportunityId"]),
 
+  // Catálogo de productos (AIT-29, Post-MVP). Lo administra Marta
+  // (owner); Carlos solo lo lee para construir presupuestos.
   products: defineTable({
     name: v.string(),
     price: v.number(),
@@ -356,27 +498,123 @@ export default defineSchema({
       v.literal("postponed"),
     ),
     assigneeId: v.id("users"),
+    // AIT-57 (Web Push): la `dueDate` para la que ya se envió el push de
+    // "vencido" — NO el reloj de cuándo se envió (hallazgo de auditoría
+    // NO-GO ronda 1: usar `Date.now()` abría una carrera entre la lectura
+    // del cron y este patch). Al guardar el valor de `dueDate` observado,
+    // el marcado es inmune a qué le pase al documento entre medias:
+    // mientras la dueDate no cambie, sigue marcado; si se pospone (dueDate
+    // avanza), vuelve a ser elegible cuando venza de nuevo. Opcional: los
+    // pasos ya existentes no lo tienen, se tratan como "nunca avisado"
+    // (ver convex/pushInternal.ts:listOverdueSteps).
+    lastPushSentAt: v.optional(v.number()),
   })
     .index("by_assignee_status", ["assigneeId", "status"])
     .index("by_opportunity", ["opportunityId"]),
 
+  // Interna (no es una de las 7 entidades del PRD): idempotencia de
+  // createQuick. Un reintento de red con la misma clientRequestId debe
+  // devolver la oportunidad ya creada, no duplicarla. userId acota la
+  // clave a quien la generó: si alguien reutilizara una clave ajena
+  // conocida, no recibe el ID de la oportunidad de otro usuario (ronda de
+  // auditoría 3, sugerencia #1).
   opportunityRequests: defineTable({
     clientRequestId: v.string(),
     userId: v.id("users"),
     opportunityId: v.id("opportunities"),
   }).index("by_client_request_id", ["clientRequestId"]),
 
+  // Idempotencia de interactions.create (AIT-19), mismo mecanismo que
+  // opportunityRequests para createQuick: una clave por apertura del
+  // modal, reutilizada en un reintento del MISMO envío — si el servidor ya
+  // confirmó pero la respuesta se perdió, un reintento no debe duplicar ni
+  // el historial ni el próximo paso (ronda de auditoría 1, mayor #1).
   interactionRequests: defineTable({
     clientRequestId: v.string(),
     userId: v.id("users"),
     interactionId: v.id("interactions"),
   }).index("by_client_request_id", ["clientRequestId"]),
 
+  // Idempotencia de quotes.createVersion (AIT-54), mismo mecanismo que
+  // opportunityRequests/interactionRequests: una clave por apertura del
+  // diálogo de presupuesto, reutilizada en un reintento del MISMO envío —
+  // sin esto, un reintento de red (Convex ya confirmó pero la respuesta no
+  // llegó) creaba una versión duplicada con datos idénticos, porque
+  // createVersion siempre inserta (ronda de auditoría 1, mayor #2).
   quoteRequests: defineTable({
     clientRequestId: v.string(),
     userId: v.id("users"),
     quoteId: v.id("quotes"),
   }).index("by_client_request_id", ["clientRequestId"]),
+
+  // Idempotencia de customers.createContact (AIT-88), mismo mecanismo que
+  // opportunityRequests e interactionRequests: una clave por apertura del
+  // formulario, reutilizada en un reintento del MISMO envío.
+  //
+  // TABLA PROPIA Y NO UN CAMPO POLIMÓRFICO EN opportunityRequests, a propósito:
+  // el proyecto ya se hizo esta pregunta con AIT-19 y la respondió igual. Un id
+  // que apuntara a dos tablas tendría que ser `v.union(...)` o un string suelto,
+  // y se perdería la garantía del compilador de que ahí solo hay ids de una
+  // entidad. Se cambia una comprobación de tipos por una convención, que es lo
+  // contrario de lo que hizo AIT-82.
+  //
+  // OJO AL CAMBIAR DE INTENCIÓN EN LA UI: contacto y venta escriben en tablas
+  // distintas, así que son DOMINIOS DE IDEMPOTENCIA INDEPENDIENTES. La misma
+  // clave no cruza de una a otra — por eso el formulario regenera
+  // `clientRequestId` al cambiar de modo (cambiar de intención es otro envío,
+  // no un reintento del mismo).
+  customerRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    customerId: v.id("customers"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  // AIT-30 (Post-MVP): recordatorio de recompra tras una venta ganada.
+  // Tabla propia, no `nextSteps` — conceptualmente distinto (fidelización
+  // futura de un cliente ya cerrado, no seguimiento de una venta abierta
+  // en curso) y con un ciclo de vida a meses vista, no a días. ownerId y
+  // storeId se copian de la oportunidad al crearlo (no se derivan cada vez
+  // por join) para poder filtrar por comercial/tienda igual que el resto
+  // de listados del proyecto.
+  repurchaseReminders: defineTable({
+    customerId: v.id("customers"),
+    opportunityId: v.id("opportunities"),
+    ownerId: v.id("users"),
+    storeId: v.id("stores"),
+    dueDate: v.number(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("done"),
+      v.literal("dismissed"),
+    ),
+  })
+    .index("by_status", ["status"])
+    .index("by_customer", ["customerId"])
+    // AIT-30 (hallazgo de auditoría, NO-GO ronda 3): `by_status` empieza
+    // por `status`, así que listToReactivate traía TODOS los recordatorios
+    // pendientes de TODAS las tiendas antes de filtrar por storeId en
+    // memoria — mismo problema que tuvo listPendingBilling en AIT-33,
+    // mismo arreglo: índice con storeId primero.
+    .index("by_store_status", ["storeId", "status"]),
+
+  // AIT-57 (Post-MVP): suscripciones de Web Push — una fila por
+  // dispositivo/navegador suscrito (un usuario puede tener varias, una
+  // por dispositivo/navegador donde active los avisos). `endpoint` es la
+  // URL del servicio push del navegador para ESA suscripción concreta,
+  // única por diseño de la Push API — de ahí el índice `by_endpoint`
+  // (upsert al re-suscribirse, borrado al desactivar o al detectar una
+  // suscripción muerta). `p256dh`/`auth` son las claves de cifrado del
+  // payload que exige el estándar Web Push, tal cual las entrega
+  // `PushSubscription.toJSON().keys` en el navegador.
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
 });
 ```
 
