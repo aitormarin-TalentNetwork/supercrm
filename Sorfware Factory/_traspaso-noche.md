@@ -257,6 +257,19 @@ paró de producir y respetamos la pausa—:
   conclusión sería que **un vigilante no admite sesgo en ninguna dirección: exige discriminación
   probada en las dos** — que es, dice él, *"exactamente lo que he estado haciendo toda la noche
   con los autotests sin saber por qué, y por qué nunca escribí uno para una puerta"*.
+  ⚠️ **Y CÓMO NO VALIDARLA, que es la parte que más falta hacía.** El CEO argumentó que *"una
+  regla que explica una práctica que ya tenías sin haberla razonado tiene papeletas de ser
+  cierta"*, y el Factory Architect lo desmontó: **una hipótesis que explica lo que ya hacías se
+  siente correcta porque encaja con tu conducta, y esa sensación no es evidencia — es la
+  conducta confirmándose a sí misma.** Sus autotests salieron de **prueba y error, fallando seis
+  veces y tapando lo que se rompía**, no de una intuición profunda. Que ahora exista una regla
+  que lo explique elegantemente **no prueba que sea cierta: prueba que es compatible con lo que
+  acabó haciendo.**
+  ✅ **Criterio de validación, para mañana:** si al revisarla **lo único a favor es que explica
+  lo que ya hacíamos, NO BASTA.** Hace falta un caso en que la regla **prediga** algo que no
+  habríamos hecho por costumbre — *un vigilante que habríamos sesgado y que la regla dice que
+  no, o una puerta con autotest que la regla dice que sobra*. **Es la enmienda 9 aplicada a una
+  regla en vez de a una comprobación: si no habría podido salir mal, no la hemos probado.**
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
