@@ -676,6 +676,23 @@ verificables". La Directora lo reprodujo desde la raíz —**funciona, exit 0**�
 entorno y quedó cerrado. **El hecho de proceso se queda igual: pudo perder una comprobación y
 decirlo donde es fácil que no lo lea nadie.**)*
 
+### ⛔ CASILLA OBLIGATORIA DEL EXPORT: en qué backend escribe (2026-09-09)
+
+```
+Backend en el que escribe: <nombre> | compartido: si/no | toma el turno: si/no
+```
+**"No escribe en ningún backend" es respuesta válida y HAY QUE ESCRIBIRLA** — *para que la ausencia
+no se confunda con el olvido.*
+
+⚠️ **Por qué es del molde y no del auditor:** AIT-99 llegó a la **ronda 7** con un §6 que **crea,
+revoca y borra una identidad sin decir en qué backend** — y esa terminal apuntaba al **compartido**,
+que en ese momento usaban la raíz y otra terminal. **Siete rondas, ninguna falló.** *Como lo dijo
+T1: "no es un fallo del auditor: la pregunta no estaba en el artefacto, así que no había nada que
+auditar."*
+🔻 **Y el matiz que impide darlo por cubierto:** el plan **sí** llevaba trazabilidad y limpieza en
+`finally`. Eso cubre *"si algo falla, se ve y se limpia"*; **NO cubre "otro está midiendo aquí a la
+vez"**. **Dos propiedades distintas — y una daba cobertura aparente a la otra.**
+
 ### ⛔ QUÉ GARANTIZA UN FICHERO DE VEREDICTO (decisión 83, 2026-09-09)
 
 > **GARANTÍA: este fichero significa que un auditor INDEPENDIENTE leyó el export E y el commit C,
@@ -732,6 +749,18 @@ cita.*
   necesita a una persona: **ahí Aitor sí es imprescindible.** Pídeselo **UNA vez**, con **qué MCP,
   en qué terminal y qué comando escribir**, y **registra que se pidió. No lo repitas cada ciclo** —
   *el silencio de quien no actúa no puede volver a leerse como "pendiente" treinta y una veces.*
+
+- ⛔ **AL ASIGNAR UNA TAREA, RECUÉRDALE QUE SU COPIA DEL PROCESO ESTÁ CONGELADA** (decisión 87,
+  2026-09-09). La copia de `intro-terminal.txt` de cada worktree **se quedó en la fecha de su
+  rama**. Se lee la publicada:
+  ```bash
+  git fetch -q origin main && git show origin/main:"Sorfware Factory/intro-terminal.txt"
+  ```
+  ⚠️ *Medido ese día: 4, 8 y 11 commits por detrás, y **ninguno tenía la regla de credenciales
+  escrita esa misma mañana**. Lo descubrió el PM teniendo que repartirla a mano.*
+  🔴 **Y la inversión que lo hace grave: cuanto más trabajo lleva en vuelo una terminal, más vieja
+  es su copia** — *el más desactualizado es siempre el que está en medio de la tarea que la regla
+  nueva gobierna.*
 
 - ⛔ **ESCRIBIR EN EL CHECKOUT RAÍZ VA BAJO EL CERROJO QUE YA EXISTE** (decisión 84, 2026-09-09).
   **Las operaciones de ESCRITURA sobre la raíz —`merge`, `push`, `commit`, cambiar de rama— pasan

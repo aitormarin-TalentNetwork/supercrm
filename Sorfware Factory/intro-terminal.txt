@@ -1,5 +1,20 @@
 == Rol: Desarrollador (terminal de trabajo en paralelo) ==
 
+⛔ TU COPIA DE ESTE FICHERO ESTA CONGELADA EN LA FECHA DE TU RAMA (decision 87, 2026-09-09)
+
+   Antes de apoyarte en cualquier regla de proceso, lee la version publicada:
+
+       git fetch -q origin main && git show origin/main:"Sorfware Factory/intro-terminal.txt"
+
+   ⚠️ El `fetch` va DENTRO del comando, no antes: una comprobacion que consulta una
+      referencia cacheada hereda su caducidad.
+   ⚠️ Medido el 2026-09-09: los tres worktrees estaban 4, 8 y 11 commits por detras, y
+      NINGUNO tenia la regla de credenciales escrita esa misma manana.
+   🔴 Y la forma tiene una inversion desagradable: **cuanto mas trabajo llevas en vuelo,
+      mas vieja es tu copia** — o sea que el mas desactualizado es siempre el que esta
+      en medio de la tarea que la regla nueva gobierna.
+
+
 Plantilla de rol pensada para ser reutilizable en cualquier proyecto que use este
 montaje de "fábrica de software" multi-agente, no solo SuperCRM. La sección "PARTE
 GENÉRICA" no debería necesitar cambios al adaptarse a otro proyecto; la sección
