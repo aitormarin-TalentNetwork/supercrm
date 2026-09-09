@@ -634,12 +634,34 @@ distinguir una afirmación medida de una relayada, porque las dos llegan en indi
 mismo canal.** Y tiene una consecuencia incómoda: **cuanto mejor funciona el equipo, más muerde**
 — la fiabilidad acumulada de un compañero es justo lo que hace razonable saltarse la comprobación.
 
-📌 **Auditoría de tus propias comprobaciones contra este criterio (hecha el 2026-09-09):** casi
-todas ya toman medición —`git config`, `git log`, `mtime`, `ps`, `sysctl`, el fichero del modo—.
-**La que NO la toma es la `K` de la Nº1: "backlog *disponible*".** Contar issues en `Backlog` es una
-medición; **decidir cuáles están bloqueadas es un juicio, y hoy me llegó relayado.** Mientras no
-haya una marca en Linear que lo diga, **`K` es la entrada blanda de tu barrido: mírala tú, issue
-por issue, y si te la pasan hecha, dilo.**
+📌 **Auditoría de tus propias comprobaciones contra este criterio (2026-09-09):** todas toman
+medición —`git config`, `git log`, `mtime`, `ps`, `sysctl`, el fichero del modo—. **La única que NO
+la tomaba era la `K` de la Nº1, "backlog *disponible*":** contar issues en `Backlog` es medición,
+pero **decidir cuáles están bloqueadas era un juicio, y me llegaba relayado.**
+
+✅ **ARREGLADO el mismo día, y así es como se arregla una entrada blanda: se le pide al rol que
+puede convertirla en dato.** Se lo pasé al PM y creó la etiqueta **`esperando-a-Aitor`**. Ahora:
+
+```
+K = list_issues(state="Backlog")  −  las etiquetadas `esperando-a-Aitor`  −  las `parada`
+```
+**El juicio se hace UNA vez, al etiquetar, y queda escrito; tu barrido consulta en vez de creer.**
+*Medido así por primera vez el 2026-09-09: 18 − 4 − 1 = **K=13**.*
+⚠️ **Y las tres reglas de la etiqueta, que son del PM y sin ellas no vale:**
+1. **En la duda NO se etiqueta.** Los dos errores no cuestan igual: una tarea que resulte necesitar
+   a Aitor cuesta **un mensaje**; una etiquetada por error **desaparece del reparto y nadie la echa
+   de menos, nunca.**
+2. **La pone quien descubra la dependencia** —cualquiera—, y **la issue tiene que decir QUÉ se
+   necesita de él**: la etiqueta sola es un índice, y sin el "qué" es una caja negra.
+3. **La quita cualquiera que pueda CITAR dónde contestó Aitor.** No es permiso, es evidencia: si
+   solo pudiera quitarla él se acumularían —no toca Linear—; si la quitara cualquiera sin más, no
+   significaría nada.
+
+🔻 **Y el aviso que da la medida de todo esto: el PM NO etiquetó AIT-102, que iba en mi lista.**
+Su razón: *no está claro que solo Aitor pueda desbloquearla* —si alguien puede borrar la fila
+obsoleta y volver a sembrar, se arregla sin él—. **O sea que le pedí que no se fiara de mi lista y
+tuvo razón en no fiarse: aplicarla tal cual habría sacado del reparto una issue disponible**, que
+es exactamente el falso positivo del que yo mismo le avisaba.
 
 ### ⛔ Comprobación fija Nº1 de tu barrido: ¿cuántos trabajan, y cuántos podrían? (decisión 77)
 
