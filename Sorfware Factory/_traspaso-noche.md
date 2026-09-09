@@ -135,6 +135,47 @@ fichero compartido.**
 
 ---
 
+## 0quater. 🔴 EL REPOSITORIO VIVE DENTRO DE iCLOUD — y eso explica media noche
+
+*Lo levantó T3; **lo verifiqué yo entero a las 06:35 UTC (03:35 local)** antes de escribirlo, con
+los cinco comandos de abajo. No es inferencia.*
+
+```
+xattr ~/Documents        -> com.apple.file-provider-domain-id
+                            com.apple.fileprovider.detached#B      (gestionado por el file provider)
+demonios vivos           -> cloudd 647 · bird 697 · fileproviderd 735
+espejo                   -> ~/Library/Mobile Documents/com~apple~CloudDocs/Documents  EXISTE
+ruta real del repo       -> /Users/aitor/Documents/curro + proyectos/...   (DENTRO)
+ficheros "* N.*"         -> 46  (find, excluyendo node_modules)
+```
+
+**«Escritorio y Documentos en iCloud» está activado, y el proyecto entero está debajo**: los cuatro
+`_worktrees`, los cuatro `.git`, los `.next`, y los documentos de la fábrica que tres o cuatro
+sesiones escriben a la vez.
+
+🔴 **Esto no es higiene, es un servicio externo tocando ficheros mientras nosotros escribimos en
+ellos.** Y da mecanismo a cosas que esta noche tratamos como incidentes sueltos:
+
+- **Los ficheros duplicados con sufijo `" N"`** — el patrón es exactamente el de la resolución de
+  conflictos de iCloud. **Nos costaron `tsc --noEmit` en rojo con el código sano desde el 20 de
+  agosto**, porque el `tsconfig` generado compilaba los `.next/types/*.d N.ts`. Hubo que crear una
+  cuarentena y abrir AIT-115.
+- **El `_traspaso-noche 2.md`** que apareció esta noche al lado de este fichero, mientras cuatro
+  sesiones lo editaban.
+
+⚠️ **Lo que está VERIFICADO y lo que es INFERENCIA** (57.3): verificado, que el repo está en una
+carpeta sincronizada con los demonios activos. **Inferido**, que de ahí salgan las copias — el
+patrón encaja y ahora hay mecanismo, pero **nadie ha visto a iCloud crear una**.
+*(T3 contaba 56 duplicados y yo cuento 46: distinto patrón de búsqueda, no discrepancia de fondo.
+No la persigo porque no cambia la decisión.)*
+
+**Ya estaba en tu lista como «sacar el proyecto de iCloud».** Sube de sitio porque ahora tiene
+causa medida en vez de sospecha, y porque **un repo con worktrees no debería estar en una carpeta
+sincronizada, independientemente de si los duplicados salen de ahí.** Mientras siga así, cualquier
+sesión puede perder trabajo sin que nadie lo note.
+
+---
+
 ## 1. Lo que solo puedes hacer tú (nada de esto avanzó de noche)
 
 | Qué | Por qué está parado | Qué desbloquea |
