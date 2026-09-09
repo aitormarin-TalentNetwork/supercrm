@@ -187,8 +187,22 @@ revisión final hecha**:
 | **AIT-87** | Un seguimiento puede desaparecer sin que nadie se entere | 1 fichero · `convex/nextSteps.ts` |
 | **AIT-96** | La suite mide la app de otro si el 3000 está ocupado | 1 fichero · `playwright.config.ts` |
 
-**Intersección entre las tres: VACÍA, medida.** Ninguna depende de otra y ninguna se pisa: **se
-pueden publicar en cualquier orden, o las tres de una.**
+**Intersección entre las cuatro: VACÍA**, medida por la Directora a las 04:0x UTC — **las seis
+parejas, no solo cada rama contra `main`** (cuatro ramas pueden ser disjuntas contra `main` y
+pisarse entre ellas), con `git diff --name-only origin/main...rama` de **tres puntos**, **con los
+ficheros generados incluidos**, y **con control positivo**: cruzó AIT-96 con AIT-108 —que sí se
+pisan— y su comando **sí devolvió el fichero compartido**. Sin ese control, los seis ceros no
+significaban nada.
+
+🔴 **PERO LEE ESTO ANTES DE PUBLICAR LAS CUATRO SEGUIDAS, y es de ella:**
+
+> **Esto mide FICHEROS, no COMPORTAMIENTO.** La intersección vacía dice *"se pueden mergear en
+> cualquier orden **sin conflicto de git**"*. **NO** dice *"se pueden publicar en cualquier orden
+> **sin efecto entre ellas**"*.
+
+Cuatro ramas pueden no compartir un solo fichero **y aun así romperse entre ellas por el schema o
+por los datos** — AIT-88 **añade una tabla**, AIT-87 **cuenta filas huérfanas**. *"No creo que se
+den la mano, pero no lo he comprobado y no puedo afirmarlo."* **Nadie lo ha medido.**
 
 **Recomendación del Integrador, y es preferencia, no restricción:** AIT-88 primero, porque cierra
 el MVP y es **la única que toca `schema.ts`** — si algo va a fallar en un build, es esa, y

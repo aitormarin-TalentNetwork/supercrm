@@ -683,7 +683,13 @@ atreve a quitar.)*
 **La forma, que importa más que la idea:**
 
 > **Cada ciclo, rotando, coges UN NÚMERO CONCRETO que ese instrumento haya producido en ese
-> ciclo y preguntas de dónde sale.** No *"¿cómo mides?"* sino ***"este 9, este 21, este «cero
+> ciclo y preguntas de dónde sale.**
+
+⚠️ **Y CUÁL ELEGIR, que es mejor regla que la que teníamos: no el más dudoso — EL QUE MÁS CARO
+SALE SI ESTÁ MAL.** *"Aquel error lo pagábamos nosotros; este lo paga él."* Esa madrugada el
+elegido fue **«intersección vacía entre las cuatro acumuladas»**, porque **Aitor iba a publicar
+cuatro tareas seguidas apoyándose en él, sin suite que cazara un choque y sin nadie mirando**. Y
+salió algo: **el número era ajeno y se había relayado como propio.** No *"¿cómo mides?"* sino ***"este 9, este 21, este «cero
 > colas» — ¿de dónde sale?"***
 
 ⚠️ **Y por qué así: *"enséñame cómo mides" NO PUEDE FALLAR.*** Se contesta con el mismo párrafo
