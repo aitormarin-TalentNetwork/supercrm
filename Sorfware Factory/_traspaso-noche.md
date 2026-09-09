@@ -27,6 +27,18 @@ del final para saber hasta cuándo llega.**
 > *Me lo cazó el Factory Architect, y a él le costó dar por perdido su propio latido 18 minutos
 > por copiar mi hora en vez de mirar el reloj: **un número sin su procedencia se usa como si la
 > tuviera**, y el mío se propagó a la sesión que vigila a las demás.*
+> 🔻 **Y un LÍMITE a todo esto de "pegar el aviso a lo que avisa", medido el mismo día y que lo
+> corrige:** T3 iba a repetir un Major que T1 ya se había comido, **con el aviso escrito tres
+> líneas por encima del helper que iba a importar.** No funcionó, y no por descuido: **quien
+> importa un helper no lee el fichero, busca el símbolo.**
+> > **La colocación de un aviso tiene que coincidir con CÓMO LLEGA el lector.** Un comentario
+> > adyacente está colocado para quien lee de arriba abajo; el lector real llegó buscando un
+> > nombre. **Un aviso colocado para el modo de llegada equivocado es invisible aunque esté justo
+> > ahí.**
+> **Si el lector llega por el símbolo, la restricción va EN EL SÍMBOLO** —el nombre, la firma, un
+> tipo que rechace el uso malo— **o en una puerta. Nunca en prosa adyacente.** *(Lo cual salva la
+> tilde de las horas: ahí el lector llega leyendo, y la tilde va pegada al dato mismo, no al lado.)*
+
 > ⚠️ **Y hay una variante PEOR que la deriva, que nos pasó a tres de nosotros esta noche: escribir
 > una hora en UTC y rotularla "local", o al revés.** Son **tres horas** de error escondidas detrás
 > de una palabra, y **parece precisa**, así que nadie duda de ella. Instancias: el Integrador lo

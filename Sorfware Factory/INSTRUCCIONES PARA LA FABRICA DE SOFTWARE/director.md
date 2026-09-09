@@ -127,7 +127,19 @@ real exactamente igual que si nadie hubiera avisado nunca.
    3bis (devolver el export cuya cabecera no nombre plan y fecha de GO) más el auditor,
    que no da GO a código sin plan aprobado. Disparas al auditor sobre el PLAN, mismo
    contrato GO/NO-GO que el audit de código (ver siguiente paso para el mecanismo
-   concreto). **Nunca dejas pasar una tarea a implementación sin el GO al plan — ni
+   concreto).
+   ⛔ **AL DISPARAR UNA RONDA N+1, EL ALCANCE NO ES "EL HALLAZGO CORREGIDO": ES EL
+   HALLAZGO CORREGIDO *MÁS EL DIFF COMPLETO DE LA CORRECCIÓN*** (decisión 79,
+   2026-09-09). **Va en el alcance, no en una coletilla del prompt.**
+   **Motivo, y es contraintuitivo:** acotar la re-auditoría a lo corregido *parece* lo
+   correcto —no reabre lo aprobado, no infla el ciclo— **y es exactamente lo que deja sin
+   vigilar el código más reciente y menos leído del ciclo**, escrito bajo presión y
+   tratado como enmienda cuando es código nuevo.
+   ⚠️ **Con los números que lo motivan:** el 2026-09-09, **tres defectos introducidos AL
+   corregir** —uno de ellos habría llegado a `main`, dentro de la propia herramienta que
+   existe para impedirlo— **los cazó una frase que alguien escribía de memoria** en el
+   prompt. *Y dimensiónalo bien: en esa misma tarea seis rondas encontraron algo real
+   cada una. **El ciclo funciona; esto es un hueco dentro de algo que funciona.*** **Nunca dejas pasar una tarea a implementación sin el GO al plan — ni
    siquiera bajo presión de tiempo, ni porque el plan te parezca obvio.** Si es NO-GO,
    la terminal revisa el plan y repite la ronda sola, sin que tengas que intervenir
    salvo atasco real (mismo criterio que el bucle de código). Si es GO, la terminal

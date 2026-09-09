@@ -611,6 +611,16 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- **AL CORREGIR UN HALLAZGO, REVISA TU PROPIO DIFF COMPLETO COMO SI FUERA CÓDIGO NUEVO**
+  (decisión 79, 2026-09-09). Lo es: es lo más reciente y lo menos leído de toda la tarea.
+  ⚠️ **Y mira en particular QUÉ DATOS COMPARTEN las ramas que tocaste.** Los dos defectos
+  reales de ese día eran lo mismo: **una rama leyendo un dato preparado para otra** —al
+  reordenar, una dejó de calcular lo suyo y reutilizó una variable ajena, y el dato traía
+  un permiso dentro—. **Eso NO se ve leyendo qué decide cada rama: solo leyendo qué mira.**
+  ⚠️ Tercer caso del mismo día: al añadir la comprobación que pedía el auditor, la
+  condición siguió comparando solo las dos anteriores. **El instrumento existía, se
+  ejecutaba, y no entraba en la decisión que lo motivó.**
+
 - **LA HUELLA DE LA TAREA NO SE ESCRIBE A MANO** (decision 74, 2026-09-09): se pega
   la salida de estos dos comandos, LOS DOS.
 
