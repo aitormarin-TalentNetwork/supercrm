@@ -505,26 +505,46 @@ cierto. Lo falso era el *"y por tanto ya no sirven"* añadido encima **como si s
 ello**. Y el diagnóstico de T2 sobre su propio fallo vale más que el dato: **abrió el fichero de
 la fuente que confirmaba lo que ya creía y no se preguntó si había una rama antes.**
 
-🔶 **MI DECISIÓN, y es la más discutible de la noche — dime mañana si me pasé:** **autoricé a T2 a
-cerrar esas dos sesiones en su propio deployment**, en vez de dejarlo congelado hasta que
-despiertes. **Reversible, sin datos reales, sin tocar producción ni el compartido.**
-⚠️ **Y mi primera versión de esta autorización era mala, con el mismo fallo que llevamos toda la
-noche.** Escribí *"que corra su suite, que un refresco avanza la cadena"* — **una predicción sobre
-un mecanismo que ya nos había engañado una vez.** **La Directora la paró antes de que nadie la
-ejecutara**, con el dato que ni T2 ni yo habíamos mirado: **el `globalSetup` hace un login NUEVO,
-que probablemente abre otra sesión y deja la filtrada intacta.** Habría sido el cuarto movimiento
-a ciegas sobre lo mismo. **Lo que se hace en su lugar es lo verificable: cerrar las sesiones —un
-refresh token sin sesión no concede nada— y comprobarlo consultando la tabla, no prediciéndolo.**
-**Por qué esto no te lo dejo congelado como lo demás:** lo que te dejé era la EXCEPCIÓN a la regla
-de `CLAUDE.md` —*no* rotar—, y ésa sigue siendo tuya. **Rotar es cumplirla, no exceptuarla.** Y
-dejar credenciales confirmadas vivas cinco horas más con un arreglo rutinario a mano **es una
-decisión tan de peso como la contraria, solo que se disfraza de prudencia.**
-⚠️ **Con dos condiciones:** que **T2 verifique el resultado en vez de suponerlo** —es su segunda
-teoría de la noche sobre este mecanismo y la primera era falsa—, y que **la evidencia se congele
-antes**, porque correr la suite **destruye la reproducibilidad del hallazgo**. *Lo segundo ya lo
-hizo él por su cuenta antes de que yo se lo pidiera:
-`_copias-congeladas-por-revisar/T2_evidencia-tokens-filtrados_2026-09-09.txt`, con la condición de
-caducidad escrita arriba del todo.*
+❌ **MI DECISIÓN ESTÁ RETIRADA, NO EJECUTADA, Y ESTABA MAL DESDE LA RAÍZ. No hay nada que hacer.**
+
+Autoricé, con la Directora, **cerrar esas dos sesiones**. **La retiramos antes de que se ejecutara**,
+y lo que la tumbó fue la propia condición de "medir antes" — o sea que el diseño funcionó:
+- **La suite NO avanza la cadena filtrada.** T2 lo midió: treinta corridas, 31 y 30 sesiones nuevas
+  creadas, **y la cadena intacta**, porque `global-setup.ts` hace **login nuevo**. *Mi primera
+  autorización habría sido el cuarto movimiento a ciegas.*
+- **Y la vía "verificable" que la sustituía NO EXISTE.** Lo comprobé yo en el paquete instalado:
+  `invalidateSessions` recibe **un `userId`**, no una sesión —**cerraría 356 (112 + 244) para matar
+  2**— y `auth:store` está declarada **`internalMutationGeneric`**, o sea no invocable desde fuera.
+  **Autorizamos una acción tomándola de nuestra imagen de la herramienta, no de la herramienta.**
+
+🔻 **Y donde de verdad me equivoqué es en el encuadre, que era mío y lo di por bueno sin ir a la
+regla.** Yo escribí: *"lo congelado era la EXCEPCIÓN —no rotar—; rotar es cumplir `CLAUDE.md`."*
+**La Directora fue a leer la regla literal y yo no.** Dice: *"**Nunca volcar secretos en claro en
+una salida visible o registrada** (logs, terminal compartida, export para el auditor…). **Si ocurre
+por accidente**, el secreto expuesto se rota de inmediato."*
+> **La regla habla de secretos que van a una SALIDA — cosas que viajan y que alguien ve.** Esto fue
+> un commit a una rama local ya borrada, en un blob sin ninguna referencia, que nunca salió a
+> `origin`. **No es que hiciéramos una excepción: es que el supuesto de la regla nunca se cumplió.**
+**Y la distinción es lo que protege la regla:** si escribimos *"esta vez no rotamos"*, queda con un
+precedente de excepción y el próximo lo invoca; si escribimos *"no era el caso que describe"*, la
+regla sigue entera. *Yo estuve a punto de dejarle un precedente de excepción a una regla de
+seguridad por no abrir el fichero donde está escrita — la tercera vez en la noche que concluyo
+sobre un texto que no leí entero.*
+
+✅ **Y el argumento que decide, que ninguno de los dos había puesto por escrito hasta ahora:**
+> **Quien pueda leer ese blob ya tiene acceso a tu disco — y con eso no necesita el token.** Lo que
+> concede es un deployment **de dev con dos usuarios de demo**. **El acceso necesario para
+> obtenerlo es estrictamente más potente que el que otorga.** Cerrarlo no cierra nada real.
+*Ése era mi argumento original —"el commit no añadió superficie, un `cat` ya las leía"— y era
+correcto desde el principio. Lo que se tambaleó fue el añadido falso de que además estaban
+inertes, no el razonamiento.*
+
+📌 **Lo que te queda, y son dos minutos con luz — ninguna urgente:**
+1. **Borrar las 356 sesiones** de los dos usuarios de demo. Inofensivo en dev, molesto y burdo.
+2. **`git gc --prune=now`** — **es el arreglo de verdad, porque el problema es el BLOB y no las
+   sesiones.** No se hizo de noche porque el repo lo comparten cuatro checkouts y ocho sesiones
+   vivas, y podar objetos bajo los pies de todos sí es destructivo.
+3. **Dejarlas caducar solas el 9 de octubre.**
 
 **Lo que NO he hecho, y el argumento por el que no:**
 La regla de `CLAUDE.md` dice que un secreto expuesto se rota de inmediato. **No la he aplicado, y
