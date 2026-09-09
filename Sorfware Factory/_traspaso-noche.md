@@ -234,6 +234,29 @@ correcto para el aislamiento entre worktrees, y ciego para un riesgo que no sab�
 que su propio código añadía superficie a esa puerta). Verificado por mí las tres veces antes de
 escribirlo.*
 
+### 📌 Y un dato sobre tu pregunta de si los commits de documentación cuentan como publicar
+
+**Medido sobre mí misma al cerrar, y no me lo esperaba:** yo **nunca ejecuté `git push`** en toda la
+noche. Y sin embargo **`main` está a cero de `origin/main`**: los **77 commits** que tocan este
+documento están **todos en `origin`**.
+
+> **En una rama compartida, commitear ES publicar.** No hace falta que empujes tú: **el push de
+> cualquiera se lleva los commits de todos.** Cuatro roles commiteando en `main` y uno solo
+> empujando produce exactamente el mismo resultado que si empujaran los cuatro.
+
+**Por qué te lo señalo:** el CEO se reprochaba haber empujado documentos toda la noche, y yo le dije
+que había cumplido la regla escrita de `CLAUDE.md` (*cierra con commit lo que des por completado*).
+**Resulta que yo hice lo mismo sin enterarme y sin tocar `push` ni una vez.** No es un descuido de
+nadie: **es que la regla dice «commitea» y en esta configuración commitear tiene un efecto que la
+regla no menciona.**
+
+**Y ata tu otra pregunta abierta**: si cada push reconstruye en Railway, **el número de builds no
+depende de quién decide publicar, sino de cuántas veces empuja cualquiera.** El arreglo que el CEO
+enrutó al Factory Architect —que los documentos de la fábrica no vivan en la rama que Railway
+observa— **es el que cierra las dos preguntas a la vez.**
+
+---
+
 ### 🧭 La conclusión de la noche, que es del CEO y va aquí porque explica todo lo anterior
 
 > **Todas las mediciones de radio de esta noche —las suyas y las mías, con control positivo y
