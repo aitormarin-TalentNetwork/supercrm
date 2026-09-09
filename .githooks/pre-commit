@@ -1,0 +1,45 @@
+#!/bin/bash
+# Pre-commit de la fabrica de SuperCRM.
+#
+# INERTE hasta que alguien ejecute:  git config core.hooksPath .githooks
+# Se creo el 2026-09-09 porque durante 31 ciclos se le pidio a Aitor ese comando
+# y .githooks NO EXISTIA: el comando no habria hecho nada. Este es el eslabon que
+# faltaba, y es trabajo nuestro, no suyo.
+#
+# CUATRO MOTIVOS, los cuatro con incidente real el 2026-09-08/09:
+#   1. secretos          -> JWT/claves volcadas en un export (2026-08-21, rotadas)
+#   2. ficheros " N"     -> duplicados de macOS/iCloud; tsc un mes en rojo con codigo sano
+#   3. e2e/.auth/        -> tokens de sesion vivos commiteados por un `add` ancho
+#   4. cuarentena        -> _copias-congeladas-por-revisar/ versionada por otro `add` ancho,
+#                           rompio el build de main y costo un NO-GO a T1
+set -u
+fallos=0
+aviso() { echo "PRE-COMMIT: $1" >&2; fallos=$((fallos+1)); }
+
+# Solo lo que se va a commitear, no el arbol entero.
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+while IFS= read -r f; do
+  case "$f" in
+    *" 2."*|*" 3."*|*" 4."*|*" 5."*)
+        aviso "duplicado de macOS/iCloud: '$f' — muevelo o renombralo, no lo commitees" ;;
+  esac
+  case "$f" in
+    e2e/.auth/*|*/e2e/.auth/*)
+        aviso "instantanea de sesion con tokens vivos: '$f'" ;;
+    *_copias-congeladas-por-revisar/*)
+        aviso "cuarentena dentro del repo: '$f' — vive en ~/.cuarentena-fabrica/ (decision 69)" ;;
+  esac
+done <<< "$staged"
+
+# Secretos: patrones de valor, no nombres de variable.
+if git diff --cached -U0 | grep -qE '^\+.*(eyJ[A-Za-z0-9_-]{30,}|-----BEGIN [A-Z ]*PRIVATE KEY)'; then
+  aviso "parece un JWT o una clave privada en el diff"
+fi
+
+if [ "$fallos" -gt 0 ]; then
+  echo "PRE-COMMIT: $fallos motivo(s). Si es un falso positivo: git commit --no-verify" >&2
+  exit 1
+fi
+exit 0
