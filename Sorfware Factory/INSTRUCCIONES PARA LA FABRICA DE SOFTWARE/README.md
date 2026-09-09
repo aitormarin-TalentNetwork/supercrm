@@ -34,6 +34,58 @@ estaba escrito que se comportara.**
 > **Por eso el arreglo no es pedir más atención: es cambiar el texto.** Un fallo que se produce
 > por cumplir las instrucciones no se corrige esforzándose más en cumplirlas.
 
+## ⛔ BASE DE LA FÁBRICA — decisión 80 (2026-09-09)
+
+> ### **Todo recurso que una terminal toca es SUYO, o está declarado COMPARTIDO con su turno.**
+> ### **No hay tercera categoría.**
+
+**Por qué es una base y no una buena práctica:** un recurso compartido **no produce un error de
+recurso — produce un resultado sobre el PRODUCTO.** Un rojo que parece regresión, un verde que
+midió la rama de otro, una migración que parece verificada. **Por eso se investiga el sitio
+equivocado**, y por eso esto salió como **ocho fichas independientes en una noche** y nadie vio el
+conjunto hasta que Aitor lo dijo en una frase:
+
+```
+perfil de navegador   AIT-97           3 cortes al QA en un dia
+puerto 3000           AIT-96           una terminal midio la rama de otra
+deployment de Convex  AIT-95/102/118   rojos que no eran del producto
+cupo de login         AIT-103/110      18 rojos que parecian regresiones
+estado entre tests    AIT-114/119
+```
+
+**🔑 EL TEST, y funciona con el recurso que nadie ha pensado todavía:**
+> **¿Puedes NOMBRAR la instancia que es tuya?**
+> *"mi deployment es `healthy-mammoth-850`"* ✅ · *"mi puerto es **el** 3000"* ❌ — ése es el de todos.
+> **Si solo puedes nombrarlo con el artículo determinado, es compartido.**
+
+**Lista conocida** —ahorra pensar, no pretende ser exhaustiva—: perfil de navegador · puerto del
+servidor de desarrollo · deployment de Convex · cupo de intentos de login · datos y contadores del
+deployment · instantáneas de sesión · **índice de git**, que **ya está resuelto con los worktrees y
+es el precedente de que esto funciona**.
+
+**Al crear un puesto nuevo**, cada recurso de la lista tiene una respuesta: **mío** / **compartido
+con turno** / **no lo toco**. Sin tercera opción y sin dejarlo en blanco.
+
+### El corolario, que va aquí porque es el motivo de que esta decisión exista
+
+> **Algo que se decidió bien y que nadie puede leer donde trabaja se comporta exactamente igual que
+> si no se hubiera decidido.** *(PM, 2026-09-09)*
+
+**Esto se decidió con Aitor el día ANTERIOR y no se escribió.** Costó **tres cortes al QA, una
+migración sin verificar, y que el PM lo abriera como pregunta nueva.**
+
+⚠️ **Y es peor que un mecanismo huérfano, en tres cosas:**
+- un mecanismo sin escribir **sigue funcionando** mientras su dueño esté vivo; **una decisión sin
+  escribir deja de existir al acabar la conversación**, sin que nadie se vaya;
+- **nadie la echa de menos, porque todos recuerdan haberla tomado** — *el recuerdo de haber
+  decidido ocupa el sitio donde debería haber un hueco*;
+- y no solo deja de aplicarse: **se vuelve a someter a decisión, y la segunda vez puede salir
+  distinta.** **No se degrada: MUTA.**
+
+*Ese último punto es el argumento más fuerte que tenemos para escribir las decisiones: el coste no
+es solo que no se cumpla — es que **se le vuelve a preguntar a quien decidió, y el contexto ya no
+es el mismo.***
+
 ### Decisión 78 — lo que solo funciona porque dos roles están vivos a la vez, se escribe en los dos
 
 > **Un respaldo mutuo entre dos roles no es un mecanismo hasta que está escrito en los dos.**
