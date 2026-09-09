@@ -2802,6 +2802,21 @@ hecho sin comprobar `CONVEX_DEPLOYMENT`):**
      checklist que **enumera** un estado mutable caduca en silencio; el que **manda mirarlo**
      no. Contrástalo siempre con `npx convex env list` del origen (sin volcar valores) antes
      de darlo por completo.
+2bis. ⚠️ **CREAR LAS CUENTAS. Añadido 2026-09-08 — el checklist NUNCA lo decía, y sin esto el
+   paso 4 falla aunque todo lo demás esté bien.** `bootstrapInitialAccounts` es una
+   `internalMutation` y **no se dispara sola**: hay que invocarla a mano. *"Copia las
+   contraseñas semilla"* no basta — **las contraseñas sin cuentas no son nada**, y la tabla
+   `users` de un deployment recién creado está **vacía**.
+   ⚠️ **Y el matiz que solo se ve al ejecutarlo: el bootstrap por defecto NO crea a Marta y
+   Carlos.** Crea `admin@` y `aitor.marin@`. Las cuentas que la suite necesita —las que
+   `app/login/page.tsx` ofrece como botones de demo— **hay que pedirlas explícitamente
+   pasando `stores` con sus tres campos**.
+   📌 **Por qué esto es un caso de estudio y no una errata:** siguiendo el checklist al pie de
+   la letra, **el paso 4 falla tres veces seguidas por tres motivos distintos, y ninguno se
+   parece a su causa** — primero no arranca el auth (faltan `JWT_PRIVATE_KEY`/`JWKS`), luego
+   no hay cuentas, luego hay cuentas pero no las que la suite busca. Es la **65** en estado
+   puro: *un fallo ruidoso pero inatribuible cuesta casi lo mismo que uno silencioso.*
+   Hallazgo del QA, migrando su corrida periódica.
 3. Actualizar el `.env.local` de ese worktree con **las variables de conexión que imprime
    `npx convex dev` al crear el deployment** — hoy son `CONVEX_DEPLOYMENT`,
    `NEXT_PUBLIC_CONVEX_URL` y `NEXT_PUBLIC_CONVEX_SITE_URL`, **como ejemplo y no como lista
@@ -2809,6 +2824,14 @@ hecho sin comprobar `CONVEX_DEPLOYMENT`):**
 4. Verificar en el navegador que el login de demo y una pantalla básica (p. ej. "Hoy")
    cargan bien contra el deployment nuevo antes de dar la migración de esa terminal por
    hecha.
+   ⚠️ **Y este paso NO se da por cumplido "por efecto" con una suite verde** (2026-09-08): el
+   QA lo intentó y **los logins que vio pasar eran de otro deployment** —`reuseExistingServer`
+   había reutilizado el servidor de T1—. **Dar por verificado tu entorno con evidencia
+   producida por otro** es el error, y lo declaró él mismo. **Levanta tu servidor en un puerto
+   propio** (el QA usó el 3100 con el 3000 ocupado) y **comprueba el cableado buscando tu
+   deployment en los chunks de JS servidos, no en el HTML** — la URL de Convex va en el
+   bundle, no en la página inicial. *(Cuarta instancia del día del patrón mal escrito leído
+   como dato ausente: decisión 64.)*
 5. **No migrar una terminal que tenga trabajo en curso sin avisar primero** — hacerlo
    entre tareas (justo tras publicar una y antes de empezar la siguiente), nunca a medio
    desarrollo.
