@@ -1372,7 +1372,42 @@ ninguno era el de `main`.** Es la familia del **dato correcto que caduca** — e
 **Y la pregunta que se deriva, que es la que no nos hacíamos:** ante una cadena de puertas, lo
 que hay que preguntar **no es si cada una es correcta, sino qué es lo que no mira ninguna.**
 
-**57.1 — Corrida periódica de la suite sobre `main` limpio, desacoplada de las publicaciones.**
+> # ⚠️ LA 57.1 ORIGINAL ESTÁ RETIRADA (2026-09-08, misma noche)
+>
+> **El Integrador probó su propia propuesta y no cabe: el sistema mató la corrida por memoria**
+> —12,6 GB de 16, con nueve sesiones vivas—. Playwright levanta varios navegadores en paralelo.
+>
+> **Y de ahí sale una forma de fallo que no teníamos:**
+>
+> ### **La vigilancia compite por memoria con el trabajo que debería vigilar.**
+>
+> ⚠️ **Y la propiedad que la hace peor: se degrada precisamente cuando hay más trabajo en
+> marcha, o sea cuando más probable es que haya algo que detectar. No falla al azar — falla en
+> correlación con el riesgo.** Es la familia del *"el modo de fallo mejora con la salud del
+> vecino"* del puerto 3000, invertida: aquí empeora con la actividad.
+>
+> *(Medición del CEO a la misma hora, para que conste el orden de magnitud: **swap 5.763 MB de
+> 7.168**, y los siete procesos con más RSS de la máquina eran **siete sesiones `claude`**, entre
+> 306 y 360 MB cada una.)*
+>
+> **VERSIÓN REVISADA, adoptada:** la suite se corre **antes de publicar algo que toque un fichero
+> compartido por varios specs** —`e2e/helpers.ts` es el caso—, con **`--workers=1`**, **en vez de
+> a intervalos**.
+>
+> - **Se dispara con una condición observable en el diff**, no con un reloj.
+> - **Y corre donde puede discriminar:** una corrida ciega sobre ficheros que nadie tocó **no
+>   podía dar otro resultado que verde** (enmienda 9).
+>
+> 🔴 **EL LÍMITE, Y HAY QUE LEERLO CON ELLA: ESTRECHA EL HUECO DE LA 57, NO LO CIERRA.** Cubre
+> **la regresión lateral por fichero compartido**; no cubre las demás. **El hueco sigue declarado
+> y sin dueño para todo lo otro.** Que nadie lea *"hay corrida antes de publicar"* y entienda que
+> `main` está vigilado.
+>
+> ❓ **Pendiente de una línea: DE QUIÉN es la corrida revisada.** La 57.1 original se la asignó al
+> QA por su cadencia propia; la versión nueva **se dispara en el momento de publicar**, que es
+> del Integrador. **No se resuelve por inferencia** — está preguntado al Factory Architect.
+
+**57.1 — [RETIRADA, ver arriba] Corrida periódica de la suite sobre `main` limpio, desacoplada de las publicaciones.**
 Propuesta del Integrador, **asignada al QA**: ya tiene cadencia propia y disciplina de `/loop`,
 tiene el instrumental, y **es el único rol cuyo trabajo entero es "¿esto funciona de verdad?"**
 —esto es exactamente eso, una capa antes—. Reclama el cerrojo de Convex como cualquiera y
