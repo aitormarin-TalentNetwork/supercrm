@@ -359,8 +359,15 @@ class Component extends DCLogic {
   // ninguna vía: el único `insert("customers")` de todo el backend está en
   // `convex/opportunities.ts::createQuick`, que SIEMPRE crea también una
   // oportunidad. Verificado con grep sobre `convex/`.
-  // No se construye en AIT-85 (criterio de la issue). Pendiente de que el PM
-  // decida dirección; cuando exista la issue, se cita aquí su identificador.
+  // DIRECCIÓN ADJUDICADA: **gana el diseño**. La maqueta se queda tal cual y la
+  // funcionalidad se construye en **AIT-88** — "No se puede guardar un contacto
+  // sin inventarle una venta" (MVP, prioridad alta, creada 2026-09-09).
+  // No se construyó en AIT-85 porque es funcionalidad, no reconciliación
+  // (criterio 3 de la issue), pero la decisión NO queda pendiente: está tomada.
+  // Motivo del PM: obligar a inventarse una oportunidad mete ventas falsas en
+  // el pipeline y contamina lo que el producto mide — el valor en juego, la
+  // conversión y, sobre todo, la lista de "en riesgo", donde esos avisos
+  // falsos compiten con los de verdad.
   //
   // Lo que sí está cubierto y NO es divergencia: `setCliMode`/`resolveClient`
   // —elegir entre cliente existente y nuevo— existe en el código por otra vía:
