@@ -276,27 +276,40 @@ una vez que el trabajo pasa auditoría.
    worktree de OTRA rama y reportándolo como tuyo. Y `playwright.config.ts` tiene
    `reuseExistingServer: true`, así que Playwright se engancha a lo que haya
    escuchando sin preguntar de quién es.
-   ⚠️⚠️ CORRECCIÓN IMPORTANTE (2026-09-09): EL MÉTODO DEL `cwd` YA NO SIRVE.
-   Hasta hoy este mismo párrafo mandaba mirar el `cwd` del proceso y comprobar que
-   fuera tu worktree. **Eso ya no discrimina nada, y creerlo sale caro: T1 dio por
-   ajeno su propio servidor y mató el proceso equivocado.**
-   *La causa:* **Next.js 16 infiere el "workspace root"**. Al encontrar varios
-   `package-lock.json` elige el de la RAÍZ del repo y hace `chdir` allí. Así que el
-   `cwd` de un `next-server` lanzado desde un worktree **apunta a la raíz**, y la
-   comprobación dice "no es mío" **también para el tuyo**.
-   (Es comportamiento de Next.js 16 y puede cambiar con una versión: si algún día el
-   `cwd` vuelve a apuntar al worktree, esta nota se revisa en vez de arrastrarse.)
+   ⚠️⚠️ LEE ESTO ANTES DE INTENTAR AVERIGUAR DE QUIÉN ES (reescrito 2026-09-09,
+   segunda vez el mismo día: la primera versión de esta corrección también estaba
+   incompleta y la cazaron T1 y T2 midiendo, no nosotros releyendo).
 
-   EL MÉTODO QUE SÍ DISCRIMINA es mirar QUÉ BINARIO ejecuta el proceso:
-     lsof -nP -iTCP:3000 -sTCP:LISTEN -t     # PID del que tiene el puerto
-     ps -axo pid,command | grep <PID>        # con qué binario arrancó
-   Si el binario es `.../CRM curso Vibe Coding/node_modules/.bin/next` (sin
-   `_worktrees/` en medio), lo sirve **el checkout raíz**, no tu worktree.
-   Si es el de OTRO worktree, tampoco es tuyo.
+   PRIMERO, LO QUE RESUELVE SIN NECESIDAD DE IDENTIFICAR NADA:
+   **si el puerto está ocupado, no arranques encima y NO MATES EL PROCESO. Usa otro
+   puerto** (T1 corrió contra un 3010 propio; T2 contra un 3102). Esta regla no depende
+   de acertar de quién es, y es la que habría evitado el incidente entero. Lo de abajo
+   solo hace falta si necesitas saber contra qué estás midiendo.
 
-   Y si no es tuyo: **no arranques encima y no lo mates**. Usa otro puerto (T1 corrió
-   contra un 3010 propio) o coordínalo con la coordinadora. Matar el proceso de otra
-   terminal le tira el trabajo, y —como se vio— es fácil equivocarse de dueño.
+   EL `cwd` NO SIRVE, NI PARA AFIRMAR NI PARA DESCARTAR. No lo uses en ninguna
+   dirección:
+     - Puede apuntar a la RAÍZ siendo TUYO: Next.js infiere un "workspace root" cuando
+       encuentra varios `package-lock.json`. **T1 dio por ajeno su propio servidor y
+       mató el proceso equivocado** siguiendo la instrucción que había aquí escrita.
+     - Puede apuntar a TU WORKTREE aunque Next emita el aviso de workspace root: T2 lo
+       midió en el 3102 y el `cwd` era correcto, en el proceso y en su padre.
+   O sea: el comportamiento **no es universal**, así que un `cwd` que cuadra no prueba
+   nada y uno que no cuadra tampoco.
+
+   EL MÉTODO QUE SÍ FUNCIONA — Y OJO, HAY QUE SUBIR AL PROCESO PADRE:
+     lsof -nP -iTCP:<puerto> -sTCP:LISTEN -t   # PID del que escucha
+     ps -o ppid= -p <PID>                      # su PADRE
+     ps -axo pid,command | grep <PPID>         # línea de comando COMPLETA del padre
+   **El proceso que escucha NO sirve**: se retitula `next-server (v16.x)` y **no lleva
+   ruta**, así que aplicarle el método da MENOS información que el `cwd`. Y
+   `ps -p <pid> -o comm=` tampoco: da el nombre corto. Hay que leer la línea completa
+   **del padre**, que sí trae la ruta del binario:
+     …/_worktrees/T2/node_modules/.bin/next   → es de T2
+     …/CRM curso Vibe Coding/node_modules/.bin/next  (sin `_worktrees/`) → es de la RAÍZ
+
+   *Procedencia:* medido por T2 en el 3102 y confirmado por T1 al cerrar el suyo, el
+   2026-09-09, con Next.js 16.2.10. **Es comportamiento de una versión concreta**: si
+   algún día deja de cumplirse, esta nota se revisa en vez de arrastrarse.
 
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
