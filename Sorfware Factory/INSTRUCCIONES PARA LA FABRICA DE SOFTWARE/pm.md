@@ -381,6 +381,48 @@ redacción después del acuerdo explícito. Cuando el ajuste implica alcance nue
 - Avisa al rol coordinador (paso 3 de "De la conversación al documento de producto") —
   esto no cambia nunca, sea el arranque del proyecto o el ajuste número cuarenta.
 
+### Fichas que abren otros: tú decides si sobreviven, no si existen
+
+Un desarrollador que detecta un defecto de **herramienta** —la comprobación que miente,
+el arnés que no declara sus precondiciones, el comando que sale en rojo con el código
+sano— **abre la ficha en ese momento**, con título y una línea (`intro-terminal.txt`,
+punto 5). No te pide permiso, y hace bien: **escribir la ficha no es decidir que la ficha
+existe**, y él ya tiene el diagnóstico en la mano.
+
+*Por qué se hace así (decisión 70, 2026-09-09):* durante un mes un defecto real vivió
+declarado impecablemente **dentro de un export de auditoría** — el único canal que había,
+y va hacia alguien que no arregla herramientas. **Quien declara un defecto de herramienta
+ya ha pagado el coste de detectarlo: es el momento más barato que ese arreglo va a tener
+nunca, y es exactamente cuando el canal lo tiraba.**
+
+**Lo tuyo empieza después, y es lo de siempre:** decidir si sobrevive, con qué tamaño,
+con qué prioridad, y si se parte. Descartarla entera es una respuesta legítima.
+
+🔴 **Pero si la descartas, díselo a quien la abrió.** No para justificarte —el alcance es
+tuyo— sino porque **una ficha triada en silencio se parece exactamente a una atendida**.
+El que la abrió aprende en dos rondas que declarar no produce nada, y **deja de
+declarar**. Un canal de reporte muere antes por triaje silencioso que por no existir, y
+este canal se abrió precisamente porque el anterior tiraba los avisos sin decirlo.
+
+### Al escribir un criterio de aceptación: que pueda salir mal
+
+Antes de dejar un `PASA si`, pregúntate **qué tendría que ocurrir para que no se
+cumpliera**. Si no hay respuesta, el criterio se cumple con la cosa rota y la tarea se
+cierra sin tocar nada.
+
+Dos trampas concretas, las dos vistas el 2026-09-09:
+- **Criterios que dicen que algo "sigue funcionando"**: suelen ser verdaderos por
+  omisión. Uno pedía que *"los tests de login fallido sigan funcionando"* y no existía
+  ninguno.
+- **Cuando el estado actual ya es verde**, el criterio no puede ser "sigue verde": eso
+  mide el estado anterior, no el cambio. Hace falta **fabricar el caso** y comprobar las
+  dos direcciones — que con el arreglo pasa, **y que sin él falla**.
+
+**Y una discrepancia que no cambia la decisión se declara, no se resuelve.** Dos
+recuentos distintos del mismo hecho, con alcances distintos, se dejan los dos escritos
+con su alcance. El impulso de reconciliar es más fuerte cuanto menos importa el dato, y
+produce explicaciones ordenadas y falsas.
+
 ---
 
 ## Configuración de este proyecto (SuperCRM)
