@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import { requireUser } from "./model/access";
 import { startOfBusinessDay, startOfNextBusinessDay } from "../lib/businessTime";
@@ -47,13 +47,31 @@ export const listForToday = query({
     const items = await Promise.all(
       dueTodayOrOverdue.map(async (step) => {
         const opportunity = await ctx.db.get(step.opportunityId);
-        // El paso apunta a una oportunidad cerrada o inexistente: no
-        // debería pasar (closePendingNextSteps la cierra al cerrar la
-        // oportunidad), pero si pasara, no se muestra en vez de reventar.
-        // storeId cruzado (AIT-31, armonizado con getNotifications más
-        // abajo en este mismo archivo): el filtro por assigneeId ya acota
-        // el paso al usuario, pero no garantiza que la oportunidad (ni su
-        // cliente) sean de su misma tienda — el schema no lo fuerza.
+        // Tres motivos distintos con la misma salida (no mostrar el paso).
+        // Conviene no confundirlos:
+        //
+        // - `status !== "open"`: no debería pasar. `closePendingNextSteps`
+        //   (convex/opportunities.ts) cierra al cerrar la oportunidad tanto
+        //   los `pending` como los `postponed`, así que un paso accionable
+        //   de una oportunidad cerrada solo aparece si algún camino de
+        //   cierre nuevo se olvida de llamarla.
+        // - `opportunity === null`: la oportunidad fue BORRADA. Tampoco
+        //   debería pasar: `opportunities.remove` cascadea los pasos por
+        //   `by_opportunity` en la misma transacción. Pero la garantía es
+        //   esa cascada y nada más — `v.id("opportunities")` es un TIPO, no
+        //   una clave ajena, y Convex no impide que la fila apuntada
+        //   desaparezca. Lo que rompe el invariante está FUERA de estas
+        //   mutations: borrar a mano desde el panel de Convex, un `convex
+        //   import` parcial, o un camino de borrado futuro sin cascada.
+        // - storeId cruzado (AIT-31, armonizado con getNotifications más
+        //   abajo en este mismo archivo): este SÍ es esperable. El filtro
+        //   por assigneeId ya acota el paso al usuario, pero no garantiza
+        //   que la oportunidad (ni su cliente) sean de su misma tienda — el
+        //   schema no lo fuerza.
+        //
+        // Ocultarlo es lo correcto (AIT-87: un seguimiento de una
+        // oportunidad fantasma no ayuda a nadie), pero es silencioso. Para
+        // saber cuántos hay: `countOrphans`, al final de este archivo.
         if (
           opportunity === null ||
           opportunity.status !== "open" ||
@@ -159,7 +177,9 @@ export const getNotifications = query({
         .filter((step) => step.dueDate < startOfTomorrow)
         .map(async (step) => {
           const opportunity = await ctx.db.get(step.opportunityId);
-          // El filtro por assigneeId ya acota el paso al usuario, pero no
+          // Mismo triple descarte que `listForToday` — ver allí el porqué
+          // de cada motivo y cómo se cuentan los huérfanos (AIT-87). El
+          // filtro por assigneeId ya acota el paso al usuario, pero no
           // garantiza que la oportunidad (ni su cliente) sean de su misma
           // tienda — el schema no lo fuerza. Mismo chequeo cruzado que ya
           // se exige en listOpen/getWorkloadByOwner/getAtRiskList
@@ -220,6 +240,65 @@ export const getNotifications = query({
       atRiskOpportunities: atRiskOpportunities
         .filter((item) => item !== null)
         .sort((a, b) => a.lastActivityAt - b.lastActivityAt),
+    };
+  },
+});
+
+// AIT-87: censo de pasos huérfanos — los que apuntan a una oportunidad que
+// ya no existe. `listForToday` y `getNotifications` los descartan en
+// silencio (ver el comentario largo arriba), que es lo correcto para el
+// usuario pero dejaba el CRM sin forma de saber cuántos hay.
+//
+// Se ejecuta a mano, contra el deployment que se quiera auditar:
+//   npx convex run nextSteps:countOrphans '{}'
+//
+// `internalQuery` y no `query`: no es que el usuario no deba verlo, es que
+// desde el cliente NO SE PUEDE llamar — no entra en `api`, solo en
+// `internal`, y lo impide el runtime en vez de un chequeo de rol que
+// alguien pueda borrar sin darse cuenta. Corolario: ninguna carga de
+// pantalla puede dispararlo (criterio de AIT-87).
+//
+// Dos `collect()` y un Set, no un `ctx.db.get` por paso: con N pasos sobre
+// M oportunidades lee N+M documentos en vez de N+N. El escaneo completo de
+// `nextSteps` no es un patrón nuevo aquí — `pushInternal.listOverdueSteps`
+// ya lo hace, y encima cada hora desde `crons.ts`. Límites de lectura por
+// ejecución en Convex: 32.000 documentos escaneados, 16 MiB leídos, 4.096
+// rangos de índice. Al superarlos la transacción falla en vez de entregar
+// un censo parcial (lo afirma la auditoría de AIT-87 y encaja con que la
+// documentación hable de "enforces" sin describir resultados parciales; no
+// medido aquí). Y el que llegaría antes al límite es el cron horario, no
+// este censo manual.
+export const countOrphans = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const [steps, opportunities] = await Promise.all([
+      ctx.db.query("nextSteps").collect(),
+      ctx.db.query("opportunities").collect(),
+    ]);
+    const existing = new Set(opportunities.map((o) => o._id));
+    const orphans = steps.filter((s) => !existing.has(s.opportunityId));
+
+    return {
+      totalPasos: steps.length,
+      totalOportunidades: opportunities.length,
+      huerfanos: orphans.length,
+      // Aparte del total porque son cosas distintas: un huérfano `done` ya
+      // no le debía nada a nadie; uno `pending`/`postponed` ES el
+      // seguimiento perdido del que habla la issue.
+      huerfanosAccionables: orphans.filter(
+        (s) => s.status === "pending" || s.status === "postponed",
+      ).length,
+      // Acotada a 50 para que un resultado patológico no devuelva una
+      // respuesta enorme; `huerfanos` sigue siendo el total real, no el de
+      // la muestra. `action` NO se incluye a propósito: es texto libre del
+      // vendedor y puede llevar nombre de cliente o detalles del trato, y
+      // esta salida se pega en exports y en mensajes entre terminales.
+      muestra: orphans.slice(0, 50).map((s) => ({
+        id: s._id,
+        opportunityId: s.opportunityId,
+        status: s.status,
+        dueDate: s.dueDate,
+      })),
     };
   },
 });
