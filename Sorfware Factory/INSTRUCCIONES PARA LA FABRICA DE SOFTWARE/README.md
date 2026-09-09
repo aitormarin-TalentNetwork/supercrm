@@ -1853,9 +1853,18 @@ fue detectarlos, fue saber de qué eran.**
 cerrar otro hueco**: la primera corrida periódica del QA no midió `main`, midió el servidor de
 T1.
 
-**66.1 — Toda fila declara si su arreglo está construido, y si no, quién lo tiene.** Tres
-estados, como en el censo del CEO: **arreglado · enrutado a tarea (con su issue) · sin dueño**.
-**El tercero es el hallazgo.**
+**66.1 — Toda fila declara si su arreglo está construido, y si no, quién lo tiene. CUATRO
+estados:**
+
+> **arreglado · enrutado y PROGRAMADO · enrutado y ESPERANDO · sin dueño**
+
+**Los dos del medio no son lo mismo, y confundirlos es lo que hace inútil el registro:** separan
+*"esto se arregla"* de ***"esto lo hemos escrito para no volver a pensarlo"***. **Sin ese cuarto
+estado, AIT-96 se habría leído como resuelta por estar en Linear** — y está en Backlog,
+priorizada alta y **sin fecha**, arreglando el defecto que anoche invalidó una corrida entera
+del QA.
+
+**"Sin dueño" sigue siendo el hallazgo; "enrutado y esperando" es el que engaña.**
 
 **66.2 — Y el hueco que nos costó esto: enrutar no es que exista.** La 41.1 decía *"necesita
 issue, y crear issues es del PM"*, **y eso se hizo**. Lo que nadie comprobó es **si la issue
@@ -1887,6 +1896,27 @@ distinta y verdadera.
 fallo:** primero **qué filas describen un arreglo que nadie ha hecho**; después la dirección del
 fallo. **Porque una fila sin arreglo no se prioriza: se construye, o se declara que no se va a
 construir.**
+
+#### ❓ PREGUNTA ABIERTA — qué hacemos con una preocupación que aún no tiene coste medido
+
+**No es una decisión. Está aquí sin resolver a propósito**, planteada por el Factory Architect el
+2026-09-08 y sin criterio todavía.
+
+**Todo lo escrito ese día privilegia la medición sobre la impresión**, y con motivo: las
+impresiones fallaron muchas veces. **Pero la consecuencia es que una preocupación solo se puede
+plantear después de que algo salga mal.**
+
+*El caso propio:* el ritmo de producción de decisiones —sesenta y seis en una noche— **era
+medible desde hacía horas**: el Factory Architect las escribía y el CEO las commiteaba. **Ninguno
+de los dos lo miró, porque no había pasado nada todavía.** El CEO lo dijo así: *"una impresión no
+mueve nada"* — la 31 aplicada contra el propio equipo.
+
+> **Descartar todas las preocupaciones sin coste medido nos deja donde estábamos. Aceptarlas
+> todas nos devuelve a decidir por impresión.**
+
+**Queda como pregunta y no como regla** — a propósito, y por el mismo criterio que todo lo
+demás: **inventarse un criterio a las tres de la mañana es exactamente lo que este documento
+existe para evitar.**
 
 ### Registro vivo de comprobaciones desacreditadas
 
