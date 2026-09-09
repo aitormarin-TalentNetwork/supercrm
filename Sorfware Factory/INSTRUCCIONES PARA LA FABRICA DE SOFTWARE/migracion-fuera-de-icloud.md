@@ -72,7 +72,11 @@ git worktree list --porcelain | grep '^worktree ' | cut -d' ' -f2- | while read 
   git -C "$w" worktree repair --relative-paths
 done
 
-# 3. Borrar cachés que guardan rutas absolutas
+# 3. Que los worktrees FUTUROS nazcan ya con rutas relativas (Factory Architect, dec. 81)
+#    El repair de arriba arregla los que existen; esto evita tener que acordarse nunca mas.
+git config worktree.useRelativePaths true
+
+# 4. Borrar cachés que guardan rutas absolutas
 find . -maxdepth 4 -name ".next" -type d -not -path "*/node_modules/*" -exec rm -rf {} +
 ```
 
@@ -95,6 +99,16 @@ funcione** — prueba que no está roto de la forma ruidosa.
 
 - **Apagar la sincronización no hace falta**: al salir de `~/Documents`, iCloud deja de
   verla. Comprobar en Finder que la carpeta **no** tiene el icono de nube.
+
+  ⚠️ **Y NO uses esta comprobación para dar la migración por buena:**
+  ```bash
+  test -d ~/Library/Mobile\ Documents/com~apple~CloudDocs/Documents && echo "sync ON"
+  ```
+  Ese comando dice si *"Escritorio y Documentos"* está activo **como función**, y va a
+  seguir diciendo `sync ON` **después de migrar** — porque la protección no viene de
+  apagar iCloud, viene de que **la carpeta ya no está dentro**. Si alguien lo corre al
+  terminar y lo lee como fallo, deshará una migración correcta.
+  **Lo que hay que comprobar es la RUTA nueva, no el estado de iCloud.**
 - **Rutas absolutas escritas en documentos**: buscar `Documents/curro + proyectos` en
   `CLAUDE.md`, `docs/`, `Sorfware Factory/` y la configuración de MCP.
 - **Las terminales arrancan en la ruta nueva.** La vieja no existe: si alguna sesión
