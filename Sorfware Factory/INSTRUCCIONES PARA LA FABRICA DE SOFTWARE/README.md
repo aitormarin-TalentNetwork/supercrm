@@ -1382,6 +1382,19 @@ cambiaron.** Se deja dicho porque es la regla del relevo aplicada a sí misma.
 
 **Las tres correctas dentro de su alcance. Y `main` en rojo.**
 
+#### Y también pasa con las CONDICIONES, no solo con los instrumentos (2026-09-09)
+
+**Antes de publicar un hallazgo, la Directora puso dos condiciones: método alternativo y
+procedencia.** Las dos correctas. **Ninguna cerraba el paso a publicar una explicación que nadie
+había reproducido** — que era el único riesgo real, y el que se materializó: se reescribió dos
+veces una sección de `intro-terminal.txt` sobre una premisa falsa.
+
+> **Un conjunto de condiciones correctas no es un conjunto completo.** La pregunta no es *"¿son
+> buenas las que puse?"* sino **"¿qué puede pasar todavía cumpliéndolas todas?"**
+
+*Es la 57 aplicada a las condiciones que uno mismo se pone*, y por eso duele más: **el hueco no
+lo dejó un descuido, lo dejó una lista de requisitos pensada con cuidado.**
+
 📌 **Y la implicación que no estaba, y que crece con el paralelismo:** si nadie corre la suite
 completa entre el GO y el merge, **cada rama reporta sobre su propia foto**. Ese día tres
 terminales reportaron **20, 30 y 31** tests. **Ninguna mentía, los tres números eran ciertos, y
@@ -2060,6 +2073,7 @@ que habría que construir.** Cada una debería poder decir si su arreglo está *
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **El `cwd` (de un proceso o de los eventos de un transcript) como identificador de quién es** | ⚠️ **No es volátil: es PLAUSIBLEMENTE estable, y ahí está el daño.** Un identificador obviamente inestable no se usa; el `cwd` **es fijo durante horas y solo se mueve de vez en cuando**, así que **funciona en todas las pruebas, funciona la mayoría de los ciclos, y falla el día que alguien hace `cd`**. Caso del 2026-09-09: el censo del CEO sacó **dos filas reclamando ser T1** — una era una sesión **de raíz** con 2.493 eventos en la raíz y 256 en T1, **cuyo último `cwd` era T1**. *El `cwd` no es un mal identificador: **es que no es un identificador de la sesión, es un estado**.* | **el directorio de proyecto donde vive el `.jsonl`**, que se fija al arrancar y no cambia. 📌 **Misma familia que *"una hora equivocada sigue pareciendo una hora"*: no se distingue del bueno por su forma, solo por su historia.** *(Y el agravante: la 45 se escribió para quitar exactamente esa ambigüedad, y su propia implementación la incumplía un nivel más abajo.)* |
 | **Medir un arreglo bajo la precondición que el propio arreglo crearía** | **La medición es correcta y la conclusión no se sigue**, porque el mundo en el que se midió **es el mundo posterior al arreglo**. Caso del 2026-09-08 (NO-GO de AIT-96): T2 comprobó su arreglo del puerto lanzando `npm run dev -- -p 3837` —**puerto explícito en CLI**—, pero `webServer.command` es `npm run dev` **sin puerto**, y Next solo desactiva el auto-incremento cuando el puerto viene de CLI o `PORT`. En palabras del auditor: *"la medición sí soporta la conclusión, pero únicamente bajo esa precondición que falta en el diseño"*. **Midió el mundo en el que su arreglo ya está aplicado** | **reproducir exactamente el arranque real**, no uno equivalente-a-ojo: el mismo comando, las mismas variables, la misma invocación. ⚠️ **Y la pregunta que lo caza: ¿mi prueba usa alguna condición que solo existirá SI mi arreglo funciona?** Si la respuesta es sí, la prueba **no podía fallar** (enmienda 9) |
 | **El nombre de una rama de git como etiqueta inofensiva** | **Es estado duradero, y se pudre igual que un nombre de sesión.** Caso del 2026-09-08: había una rama `…/ait-85-…` **con commits de AIT-92 dentro**, y **AIT-85 estaba Done en Linear**. Dos fallos a la vez: el Integrador busca la rama de AIT-92 y **no la encuentra**; y una rama con nombre de issue cerrada y sin mergear **es exactamente lo que alguien borra creyendo que es residuo**. 📌 **El trabajo se pierde y el borrado se siente como limpieza** | **la rama se renombra a la de su issue** (`gitBranchName` de Linear) **y la correspondencia vieja→nueva se deja escrita** en el fichero de tarea y en la issue: renombrar sin dejar el mapeo cambia un nombre podrido por una referencia rota, que es el otro fallo de la misma familia. **Quitarle el nombre a algo es tan destructivo como quitarle el contenido** |
 | **La hora que devuelve `ScheduleWakeup` ("Next wakeup scheduled for HH:MM")** | **Viene en hora LOCAL, no en UTC**, y la salida **no lo dice**. Quien la copie a un censo que va en UTC desplaza el dato **tres horas** — y como una hora equivocada **sigue pareciendo una hora**, no se nota: el latido parece llevar media noche desaparecido. Caso del 2026-09-08: el QA se la pasó al CEO como UTC y lo corrigió él mismo al comprobarlo, *"leyendo la salida de la herramienta sin mirar en qué huso venía"* | **convertir explícitamente al leerla**, y escribir el huso al lado siempre (enmienda 8). ⚠️ **Y el matiz que lo hace traicionero: se puede dar de memoria.** La regla de *"pide el dato que no se puede contestar de memoria"* no protege aquí — el dato existe, pero **le falta la mitad**: *una hora sin huso no es un dato, es la mitad de uno* |
