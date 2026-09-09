@@ -131,7 +131,7 @@ fichero compartido.**
 | Qué | Por qué está parado | Qué desbloquea |
 |---|---|---|
 | **La prueba de Gmail en un móvil real** — abrir un hilo, copiar la URL, ver si la app de Gmail del móvil la captura y llega al hilo correcto | Ningún agente tiene un móvil | **AIT-91**, y con ella la cadena **91 → 92 → AIT-101**, que es la funcionalidad Urgente de la Ola 2 ("los correos de un cliente aparecen en su ficha") |
-| **`git config core.hooksPath .githooks`** + crear el hook — ⚠️ **YA SON DOS MOTIVOS INDEPENDIENTES, no uno.** Se pidió para **secretos**; el segundo apareció esta noche: en el árbol de T1 salieron `e2e/06-avisos-de-bloqueo.spec 2.ts` y **`app/clientes/[id]/page 2.tsx`**, copias byte a byte de macOS. Hoy inertes —Playwright lista 18 tests y no 36— pero **un `page 2.tsx` dentro de una carpeta de ruta de Next es exactamente lo que entra con un `git add -A` a las tres de la mañana**, y ninguna revisión de diff lo mira con atención a esa hora | Un comando tuyo | El control de secretos deja de ser un principio. ⚠️ **Y avísame cuando lo hagas**: ese control lleva 11 ciclos viendo solo su caso de alarma y **nunca el de silencio**, así que hay que confirmar que **deja de reportarlo**. Si sigue avisando, llevaba 11 ciclos roto |
+| **`git config core.hooksPath .githooks`** + crear el hook — ⚠️ **YA SON TRES MOTIVOS INDEPENDIENTES, y el tercero es el bueno — ver §6ter.** Se pidió para **secretos**; el segundo apareció esta noche: en el árbol de T1 salieron `e2e/06-avisos-de-bloqueo.spec 2.ts` y **`app/clientes/[id]/page 2.tsx`**, copias byte a byte de macOS. Hoy inertes —Playwright lista 18 tests y no 36— pero **un `page 2.tsx` dentro de una carpeta de ruta de Next es exactamente lo que entra con un `git add -A` a las tres de la mañana**, y ninguna revisión de diff lo mira con atención a esa hora | Un comando tuyo | El control de secretos deja de ser un principio. ⚠️ **Y avísame cuando lo hagas**: ese control lleva 11 ciclos viendo solo su caso de alarma y **nunca el de silencio**, así que hay que confirmar que **deja de reportarlo**. Si sigue avisando, llevaba 11 ciclos roto |
 | **Aislar el perfil del navegador del MCP** (issue **AIT-97**) | Es configuración de tu MCP | Hoy **cortó al QA tres veces**. Y lleva tus sesiones reales de Google, Notion, LinkedIn |
 | **¿Creaste tú a mano la cuenta `aitor.marin@` del 26 de agosto** en el deployment de T1? | Dos hipótesis, y la barata es esa | Si fue manual, **buscar ese código no encuentra nada** y alguien se pasará horas confirmando una ausencia |
 | **`settings.local.json`** (el aviso de voz anuncia mal el rol) y **permiso de Grabación de Pantalla** | Ajustes tuyos | Menores |
@@ -394,6 +394,56 @@ reparto**. El siguiente que lo cruce lo cruzará por ahí: no por hacer algo gra
 algo **tan pequeño que no parecía de nadie**.
 
 ---
+
+## 6ter. 🔴 Credenciales de sesión commiteadas — contenido, verificado por mí, y NO he rotado nada
+
+**Qué pasó:** T2 creó una rama para el inventario de la suite y, **al verificar que sus propios
+comandos funcionaban de verdad**, el `globalSetup` generó las instantáneas de sesión. Se colaron
+en el commit `79456d8`: `e2e/.auth/owner.json` y `e2e/.auth/sales.json`, con un **JWT de 594
+caracteres y un refresh token de 67** — **credenciales vivas, no hashes**. Son de
+`healthy-mammoth-850`, el deployment de T2: **ni el compartido ni producción.**
+
+**El radio, y esto no te lo relayo: lo medí yo con `git` después de que me llegara.** Las cuatro
+comprobaciones dan lo mismo que dijo la Directora: el commit vive **en una sola rama local**,
+**esa rama NO está en `origin`**, **ningún `e2e/.auth` ha entrado nunca en `origin/main`**, y no
+aparece en ninguna otra rama. **No ha salido de este disco.**
+
+🔶 **MI DECISIÓN, Y ES LA QUE MÁS REVISABLE TIENES DE LA NOCHE: no he rotado ni invalidado nada.**
+La regla de `CLAUDE.md` dice que un secreto expuesto se rota de inmediato. **No la he aplicado, y
+el motivo es que su precondición no se cumple:** dice *expuesto* —volcado a una salida visible o
+registrada—, y esto no salió del disco. **Y el dato que lo decide: esos ficheros ya estaban en ese
+disco antes del incidente, porque el arnés los escribe en cada corrida, por diseño.** Rehacer la
+rama **devuelve exactamente el estado previo**; rotar sería reutilizar un precedente sin su
+precondición, que es justo lo que me costó otro fallo esta misma noche.
+⚠️ **El límite de ese razonamiento, declarado: se apoya ENTERO en que el radio es local.** Si
+mañana descubres que esa rama llegó a `origin` en algún momento que yo no vi, **la decisión
+cambia y hay que invalidar.** Lo que la sostiene es medible, no es una opinión.
+
+**Por qué se coló, que es lo que vale:** la verificación de T2 **era correcta** — comprobó que
+`e2e/.auth` estaba ignorado, y lo estaba, **en la rama de AIT-108, que es donde vive esa línea**.
+La rama del inventario sale de `origin/main`, **donde esa línea no existe todavía** porque AIT-108
+está sin publicar.
+> **Una protección que vive en una rama sin publicar no protege a las demás ramas.** Y la
+> comprobación se hizo justo en el único sitio donde sí existía.
+
+**Y no fue un descuido: le pasó por hacer lo correcto.** Corrió sus ocho comandos en vez de
+escribirlos y ya — **dos estaban rotos y los arregló**. La misma diligencia que encontró el
+defecto generó el fichero.
+
+⚠️ **Algo tapó el agujero a las 05:29:27 y NO SÉ QUIÉN.** Comprobé `.git/info/exclude` y ya
+contiene `e2e/.auth/`, cubriendo **todos los worktrees** —verificado con un `check-ignore` real
+dentro del de T2, no supuesto—. **Su fecha es cuatro minutos POSTERIOR al commit**, o sea que se
+añadió reaccionando al incidente, y **en la ventana en que la Directora había pedido no tocar
+nada**. No destruye nada ni altera el commit, así que no compromete la respuesta; **pero es un
+cambio no anunciado sobre estado compartido, que es exactamente la regla que ella me impuso a mí
+hace tres horas.** Lo dejo como pregunta, no como acusación: **no sé quién fue y no lo voy a
+adivinar.**
+🔴 **Y esa tapa es invisible y solo vive en esta máquina:** `.git/info/exclude` no se clona, no
+está en ningún commit y nadie la ve al mirar `.gitignore`. **Si alguien da por hecho que "esto ya
+está arreglado", el agujero se reabre en silencio en el próximo clon.** El arreglo de verdad es
+publicar la línea de `.gitignore` que ya está escrita, revisada y con GO **dentro de AIT-108**.
+**Cuando AIT-108 se publique, hay que quitar la regla de `info/exclude`** para que no queden dos
+protecciones de las cuales solo una se ve.
 
 ## 6bis. Dos que necesitan tu turno por la mañana, por motivos distintos
 
