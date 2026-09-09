@@ -824,11 +824,19 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 **Se lee de un fichero, no de un mensaje** (corregido 2026-09-09, ver abajo):
 
 ```bash
-cat /tmp/fa-vigilante-estado.txt   # 2026-09-09 10:08:17 UTC | vivo | 7 produciendo, 1 quietas | T1=0min...
+cat /tmp/fa-vigilante-estado.txt
+  # escrito 2026-09-09 11:03:07 UTC (si esta marca tiene mas de 4 min, el vigia NO corre) | workers: T1=0min T2=0min T3=0min
 stat -f '%Sm' -t '%H:%M:%S' /tmp/fa-vigilante-estado.txt
 ```
-**El ciclo es de 60 s: si el fichero tiene más de 3 minutos, el vigilante NO está corriendo.** Lo
+**El ciclo es de 120 s: si el fichero tiene más de 4 minutos, el vigía NO está corriendo.** Lo
 compruebas **tú solo**, con la fábrica dormida o con el Factory Architect ocupado.
+✅ **Y fíjate en que la condición viaja DENTRO del propio fichero**, así que no depende de que
+recuerdes este umbral ni de que él esté para contártelo. *Si el ciclo vuelve a cambiar, el fichero
+lo dirá antes que este documento.*
+⚠️ **El umbral tiene que seguir al ciclo:** el vigía pasó de 60 s a 120 s **y este documento se
+quedó en 3 minutos** — un fichero legítimo de ~2 min habría dado *"muerto"* bajo carga. **Falla
+hacia el rojo: molesto, no peligroso, pero es un control que grita en falso, y ya sabemos cómo
+acaban.**
 
 ⚠️ **La pregunta NO es "¿ha latido?" — es "¿EXISTE un vigilante Y está corriendo?"**
 > **Ausencia-por-muerte y ausencia-por-inexistencia se ven exactamente igual, y se arreglan
