@@ -3722,11 +3722,37 @@ muere, el hook `Stop` no corre por mucho que el marker esté puesto.** Una seña
 observar.**
 
 **El patrón, en 2 pasos — primero armar, después disparar:**
-1. **Arma el vigilante ANTES de que exista nada que vigilar.** Con la herramienta `Bash` y
-   `run_in_background: true`, lanza un bucle que espere un marker **que todavía no existe**:
-   `until [ -f /tmp/<marker> ]; do sleep 2; done; rm -f /tmp/<marker>`. Recibes la
-   notificación en tu propia conversación en el instante en que el marker aparezca — sin
-   sondeo por intervalos largos ni depender de que nadie más lo note.
+1. **Arma el vigilante ANTES de que exista nada que vigilar** — y **compara fechas, no
+   existencia**:
+
+   ```bash
+   FIRE=$(date +%s)          # ⚠️ ANTES de disparar el trabajo, no después
+   until [ -f "$M" ] && [ "$(stat -f %m "$M")" -gt "$FIRE" ]; do sleep 2; done
+   ```
+
+   Recibes la notificación en tu propia conversación en el instante en que el marker aparezca.
+
+   ⚠️ **`-f` a secas NO VALE, y esto se descubrió en vivo el 2026-09-08 con dos auditorías en
+   vuelo.** La **50.2** prohibió el `rm -f` defensivo —correctamente: borraba markers recién
+   creados— **y al quitarlo se abrió el extremo opuesto: un marker superviviente de la ronda
+   anterior hace que la espera dispare AL INSTANTE**, y da *"terminada"* minutos **antes** de
+   empezar. Esa noche había markers de las 22:56, 23:26 y 23:33 vivos en `/tmp` mientras
+   arrancaban auditorías nuevas.
+
+   📌 **La solución estaba escrita en la propia 50.2 y no se había ejecutado:** *la ambigüedad
+   temporal se resuelve **comparando fechas**, jamás borrando.* Se escribió el *"no borres"* y
+   **no el "compara"**, que era la otra mitad de la misma frase.
+
+   ⚠️ **Y `FIRE` se calcula ANTES de disparar, no después** (precisión de la Directora, que ya
+   lo tenía puesto): con `FIRE` posterior al disparo, **una auditoría rápida puede tocar el
+   marker en ese hueco y el vigilante lo daría por viejo — esperaría para siempre.** *El orden
+   importa tanto como la comparación.* En su implementación real hubo **26 y 29 segundos** de
+   margen entre armar y disparar.
+
+   **Y la comprobación de que funciona es de efecto, no de patrón:** que un marker de las
+   23:33 siguiera ahí **sin que la espera de T2 hubiera disparado** es la prueba. Por eso
+   **esos markers viejos no se borran "para limpiar"**: además de poder quitárselos a una
+   espera ajena, **son la única evidencia de que la comparación funciona.**
 2. **Ahora sí, dispara el trabajo**, encadenándole al final ese mismo marker — `touch
    /tmp/<marker>`, con un identificador único de esa tarea concreta (nunca reutilices un
    marker de otro propósito, p. ej. el del aviso de voz a Aitor — son cosas distintas).

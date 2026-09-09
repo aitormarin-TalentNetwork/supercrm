@@ -60,6 +60,10 @@ audita treinta, se miran por encima.)*
   que AIT-102 no la bloquea — de las pocas cosas verificables de verdad esta noche. **Nadie
   solapa y nadie está parada.**
 - **Mandé renombrar una rama y dejar el mapeo escrito** (ver §7ter).
+- **Corregí la receta del vigilante en §2bis-ter**, que estaba mal escrita y habría producido
+  avisos falsos: decía `until [ -f marker ]`, y un marker superviviente de la ronda anterior
+  hace que la espera dispare **al instante**. *(La Directora ya lo tenía bien en su
+  implementación real; lo roto era nuestro documento.)*
 - *(Se irán añadiendo aquí las que tome durante la noche, con su motivo.)*
 
 ⚠️ **Tres precisiones que me puso el Factory Architect sobre este reparto, y que aplico:**
@@ -269,4 +273,4 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: 2026-09-09 02:40 UTC (= 23:40 local del 8-sep). Ver arriba §7bis, añadido a las 02:55 UTC.*
+*Última actualización: **2026-09-09 02:45 UTC (= 23:45 local del 8-sep)**. Las secciones 7bis/7ter/7quater se añadieron después de esa hora.*
