@@ -594,6 +594,29 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+- ⛔ **RECUPERAR UN MCP MUERTO ES TUYO, Y NO HACE FALTA MOLESTAR A AITOR** (decisión 82,
+  2026-09-09). **Son DOS modos de fallo y solo uno es nuestro:**
+  ```
+  1. lo MATA alguien  -> el proceso NO esta.  Detectable con ps.   LO RECUPERAS TU
+  2. CADUCA el token  -> el proceso SIGUE vivo y falla al usarlo.  ES DE AITOR
+  ```
+  **El modo 1 se recupera en tres pasos, y el tercero es el que decide:**
+  ```
+  detectar : ps -> el servidor MCP de esa terminal no esta
+  actuar   : osascript ... do script "/mcp" in tab 1 of (first window whose id is <id>)
+  VERIFICAR: que esa sesion haga una llamada ligera al MCP y CONFIRME que responde
+  ```
+  ⚠️ **Teclear `/mcp` es una acción; lo que hay que comprobar es que el MCP CONTESTE.** Si te
+  quedas en *"se lo he escrito"*, tienes una petición sin efecto comprobado — **que es exactamente
+  lo del `core.hooksPath`: 31 ciclos pidiendo algo que no habría hecho nada.**
+  ✅ **Tienes el permiso**: `osascript` sobre ventanas de Terminal está autorizado en
+  `.claude/settings.json` y en `settings.local.json` (comprobado el 2026-09-09). **Misma frontera
+  que ya tenías: desatascar sí, forzar un veredicto no.**
+  ⛔ **El modo 2 NO lo cubras.** Reconectar un token caducado abre un flujo de autorización que
+  necesita a una persona: **ahí Aitor sí es imprescindible.** Pídeselo **UNA vez**, con **qué MCP,
+  en qué terminal y qué comando escribir**, y **registra que se pidió. No lo repitas cada ciclo** —
+  *el silencio de quien no actúa no puede volver a leerse como "pendiente" treinta y una veces.*
+
 - ⛔ **TU ENTREGABLE NO SON LAS TAREAS HECHAS: ES QUE NADIE ESTÉ PARADO** (decisión 77).
   **No terminas un ciclo con un worker sin tarea habiendo backlog disponible.** Y si vas a parar
   tú —contexto, una espera, lo que sea— **lo entregas explícitamente al CEO: el silencio no es un

@@ -611,6 +611,16 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- **QUIEN LEVANTA UN NAVEGADOR ES EL UNICO QUE PUEDE CERRARLO, Y LO CIERRA AL
+  TERMINAR SU TAREA** (decision 82, 2026-09-09). Es una regla de DUENO, no una siega:
+  nadie barre los procesos de otro.
+  ⚠️ Por que importa: el 2026-09-09 habia ~1 GB acumulado en servidores MCP y los
+  navegadores que habian abierto, con el sistema matando procesos por memoria.
+  ⚠️ Y por que NO se resuelve barriendo: un `pkill -f playwright` se lleva por delante
+  los servidores MCP de TODAS las terminales y el navegador personal de Aitor. Ya pasó.
+  ⚠️ Ojo al clasificar: el servidor MCP y los navegadores que abre son un ARBOL, no una
+  lista. Contar "procesos con playwright" mezcla las dos cosas.
+
 - **AL CORREGIR UN HALLAZGO, REVISA TU PROPIO DIFF COMPLETO COMO SI FUERA CÓDIGO NUEVO**
   (decisión 79, 2026-09-09). Lo es: es lo más reciente y lo menos leído de toda la tarea.
   ⚠️ **Y mira en particular QUÉ DATOS COMPARTEN las ramas que tocaste.** Los dos defectos
