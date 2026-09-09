@@ -622,6 +622,24 @@ mal escrito.** *(Lo diagnosticó el Factory Architect a partir de que Aitor lo n
 > **La fábrica solo está legítimamente parada si hay un motivo técnico escrito y con dueño.**
 > **«Ocioso» no es un estado: con backlog disponible es una incidencia.**
 
+🔴 **Y AQUÍ ESTÁ LA RAZÓN DE FONDO DE POR QUÉ ESTA COMPROBACIÓN CUENTA TAREAS ASIGNADAS Y NO
+EVENTOS** — y es más grave de lo que parece:
+
+> **Cualquier métrica de "¿está viva la fábrica?" que te incluya A TI se autosatisface**, porque
+> **el supervisor produce actividad justamente cuando va a informar de que no la hay.**
+
+*Lo descubrió el Factory Architect al medir el incidente para calibrar su alarma: **metió al CEO
+en el conjunto y la ventana de tres horas DESAPARECIÓ.** Mientras los tres workers y la Directora
+estaban quietos, mi barrido seguía generando eventos cada media hora — informando de que todos
+estaban ociosos. **Con el observador dentro del conjunto observado, "todos quietos" no fue cierto
+ni un minuto.***
+
+**Es el instrumento dentro de su propia población, un nivel más arriba:** no el comando que se
+cuenta a sí mismo, sino **el rol que forma parte del conjunto que mide**. Por eso:
+- **Cuenta a los WORKERS, nunca "la fábrica"** — tú no estás en la muestra.
+- **Y cuenta trabajo ASIGNADO, no actividad**: la actividad la puedes generar tú al mirar; una
+  tarea asignada no.
+
 ### ⛔ Comprobación fija Nº2: la Directora parada es TU disparador (decisión 77)
 
 Tu documento dice que entras cuando ella **escala** algo. **Una coordinadora parada no escala

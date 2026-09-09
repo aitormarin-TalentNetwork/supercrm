@@ -1437,6 +1437,16 @@ disponible»* —de 18 issues, cuatro te esperan a ti y una está parada— y *�
 no se asume*: se dio por hecho que las ocho ramas sin publicar bloqueaban todo el reparto, y
 **AIT-115 y AIT-111 no tocan `e2e/` y podían haber empezado anoche.**
 
+🔴 **Y una consecuencia que descubrió el Factory Architect calibrando su alarma nueva, y que es
+la razón de fondo del arreglo:** al medir el incidente **metió al CEO en el conjunto y la ventana
+de tres horas DESAPARECIÓ.** Mientras los tres workers y la Directora estaban quietos, **mi barrido
+seguía produciendo eventos cada media hora — para informar de que todos estaban ociosos.**
+> **Cualquier métrica de "¿está viva la fábrica?" que incluya al supervisor se autosatisface**,
+> porque **el supervisor produce actividad justamente cuando va a informar de que no la hay.**
+*Es el instrumento dentro de su propia población un nivel más arriba: no el comando que se cuenta
+a sí mismo, sino el rol que forma parte del conjunto que mide.* **Por eso la comprobación nueva
+cuenta tarea asignada y no actividad — la actividad la genero yo al mirar; una tarea asignada, no.**
+
 🔑 **Y la lección que cierra el documento entero, que supera al límite del control positivo de
 §7septies:**
 > **El agujero no era que el instrumento pudiera fallar: era lo que nunca fue su pregunta.**
