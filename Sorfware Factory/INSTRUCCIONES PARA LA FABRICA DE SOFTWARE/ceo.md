@@ -597,6 +597,32 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### 🔧 CÓMO SE MIDE, no solo qué se mide — tres métodos que costaron un fallo cada uno
+
+*Estaban **solo** en el prompt del `/loop` de una sesión, no aquí. Auditado y corregido el
+2026-09-09; un CEO nuevo habría repetido los tres.*
+
+**1. La hora se MIDE: `date -u` y `date`, y se escribe la zona.** Nunca la deduzcas de cuánto te
+parece que ha pasado — **la deriva va siempre hacia adelante** y llegó a 17 minutos en una noche.
+⚠️ **Peor que la deriva: rotular UTC como local o al revés** — son 3 h escondidas tras una palabra
+y **parece precisa**. Cuidado con dejar `TZ=UTC` puesto en la shell. Para lo ya escrito, la hora
+sale de `stat -f %Sm` o de `git log`, **nunca del recuerdo**. *Mi hora inventada se propagó a otra
+sesión, que dio su propio vigilante por perdido 18 minutos por copiarla.*
+
+**2. Contar procesos exige DOS llamadas separadas.** Una que solo tome la foto, **sin que el patrón
+aparezca en ella**, y otra que busque en el fichero:
+```bash
+ps -Ao pid=,tty=,etime=,command= > /tmp/claude-501/snapX.txt   # llamada 1: sin el patrón
+grep -c "codex exec" /tmp/claude-501/snapX.txt                  # llamada 2
+```
+**En una sola llamada el `bash -c` lleva el patrón dentro y te cuentas a ti mismo.** *Reporté 1
+auditoría donde había 0, en la misma ronda en la que había escrito esa fila del catálogo.*
+
+**3. El censo de un worktree es el MÁXIMO `assistant` entre TODOS sus `.jsonl`.** No el fichero más
+reciente por `mtime` —una sesión vieja puede tener el evento más nuevo— y **el rol se resuelve por
+el DIRECTORIO DE PROYECTO del `.jsonl`, nunca por el campo `cwd`**, que se mueve con cada `cd`.
+Las colas, **contra el último evento `user`**, no contra el último de cualquier tipo.
+
 ### ⚠️ NO USES EL TÍTULO DE LA VENTANA PARA SABER QUIÉN ES UNA TERMINAL (2026-09-09)
 
 Los títulos —*"T1 - Desarrollador"*— **no los pone la sesión: los mantienen tres bucles de shell en
