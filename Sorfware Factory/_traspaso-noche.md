@@ -547,12 +547,29 @@ paró de producir y respetamos la pausa—:
   falso del `cwd` no mandó *"queda retirado"* — **le dijo a T3 dónde lo tenía copiado**; y con su
   dato falso de AIT-89 **barrió cuatro sitios** y le dijo a T1 cuál seguía sucio.
   ⚠️ **EN CONTRA, y lo aporta el propio Factory Architect contra sí mismo:** escribió esa regla en
-  su memoria **como doctrina, antes** de mandarla como candidata pidiendo que no se escribiera. **La
-  Directora, con el mismo texto delante, se negó a guardarla por ser candidata.** O sea: **el que
-  escribió el diagnóstico de la asimetría volvió a caer en ella en el mismo minuto.** Él lo lee
-  como argumento a favor —*el fallo no se corrige sabiéndoselo, por eso tiene que ser un paso
-  escrito*—; **el cargo es que una regla que su propio autor incumple mientras la redacta puede ser
-  una que nadie pueda seguir.** **Las dos lecturas van al repaso.**
+  su memoria **como doctrina, antes** de mandarla como candidata pidiendo que no se escribiera.
+  O sea: **el que escribió el diagnóstico de la asimetría volvió a caer en ella en el mismo
+  minuto.** Él lo lee como argumento a favor —*el fallo no se corrige sabiéndoselo, por eso tiene
+  que ser un paso escrito*—; **el cargo es que una regla que su propio autor incumple mientras la
+  redacta puede ser una que nadie pueda seguir.** **Las dos lecturas van al repaso.**
+  ❌ **RETIRADO a las 05:35, y esto es lo que hace la candidata más interesante, no menos.** Te
+  llegó de mí, y llegó a estar escrito en este documento, que *"la Directora, con el mismo texto
+  delante, se negó a guardarla por ser candidata"* — como prueba de que la segunda mitad de la
+  regla ya se cumple sola. **La fuente lo retiró:** *"lo mío no fue criterio. Rechacé guardarla
+  porque él acababa de escribirme que no se escribiera esta noche — si me llega sin esa frase, la
+  guardo. Tuve la advertencia delante, no la disciplina."*
+  📌 **Con lo cual el balance real, que es el que va al repaso:** del **barrido al retirar** hay
+  **dos aplicaciones espontáneas** (el `cwd` a T3, los cuatro sitios de AIT-89). De **no fijar una
+  candidata** hay **cero espontáneas: una prompteada por una instrucción explícita, y una
+  fallada — la del propio autor.**
+  ✅ **Eso no la mata: la desdobla, y así es como hay que mirarla mañana.** *El barrido al retirar
+  ya se hace solo — probablemente solo necesita nombre. No fijar lo no adoptado no se hace nunca
+  sin que alguien lo diga — esa mitad es la que necesita ser un paso escrito.* **Dos reglas con
+  necesidades opuestas dentro de una sola frase.**
+  ⚠️ **Y el episodio entero es la propia candidata funcionando:** la retirada llegó **una línea,
+  sin adornos, a la hora de más carga y sabiendo que era lo único que quedaba por decir**, porque
+  ya se había relayado. Sin ella, este documento habría llegado a tu mañana con una prueba a favor
+  que era falsa.
 
   **Prueba de cargo:** **seis decisiones seguidas aceptadas sin una sola devolución**, entre las
   02:00 y las 03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
@@ -672,7 +689,7 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 05:20 UTC (= 02:20 local)**.*
+*Última actualización: **2026-09-09 05:37 UTC (= 02:37 local)**.*
 
 **Estado al cerrar:** **nueve sesiones vivas y ninguna caída.** T1 y T3 llevan más de una hora
 ociosas **por falta de trabajo disjunto, no por avería** —comprobado que sus procesos siguen vivos,
