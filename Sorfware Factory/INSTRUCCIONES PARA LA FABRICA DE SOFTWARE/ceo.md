@@ -966,15 +966,30 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 
 ```bash
 # los 3 workers quietos a la vez >40 min = fabrica parada
+# OJO 1: "Sorfware-Factory" NO es opcional en el glob. Sin ese calificador matchea los
+#        worktrees de OTROS proyectos de la maquina y cuentas terminales ajenas (comprobado).
+# OJO 2: 400 KB, no 60. Un solo resultado de herramienta grande llena la ventana: el
+#        2026-09-09 T1 tenia 0 eventos `assistant` en los ultimos 60 KB y 11 en 400 KB,
+#        con un transcript de 14 MB. Con 60 KB el comando la habria PERDIDO en silencio.
 for d in ~/.claude/projects/*Sorfware-Factory--worktrees-T[123]; do
-  f=$(ls -t "$d"/*.jsonl | head -1)
+  f=$(ls -t "$d"/*.jsonl 2>/dev/null | head -1)
+  n=$(basename "$d" | tail -c 3)
+  [ -z "$f" ] && { echo "$n: SIN FICHERO"; continue; }
   # el filtro NO es un detalle: es el "segun quien" del timestamp. Sin el, coge el ultimo
   # evento de CUALQUIER tipo —incluidos los mensajes que RECIBE— y una terminal parada que
   # recibe mensajes parece que produce. Medido: una sesion muerta divergia 3.216 min (53 h).
-  ts=$(tail -c 60000 "$f" | grep '"type":"assistant"' | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
-  echo "$(basename $d | tail -c 3): $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
+  ts=$(tail -c 400000 "$f" | grep '"type":"assistant"' | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
+  [ -z "$ts" ] && { echo "$n: SIN DATO (ventana insuficiente)"; continue; }
+  echo "$n: $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
 done
 ```
+🔴 **TRES ESTADOS, no dos: una cifra · `SIN DATO` · `SIN FICHERO`.**
+> **Un worker que NO APARECE en la salida no es un worker produciendo: es el comando roto.**
+⚠️ **Dirección del fallo de la versión anterior, y es la peor posible:** si los tres se pararan
+**y** sus colas no tuvieran eventos `assistant`, **el comando no imprimiría NADA y eso se leería
+como "sin novedad"**. *Un falso verde **dentro del detector de fábrica parada**.*
+⚠️ **Si alguno sale `SIN DATO`, NO se puede descartar la parada: se avisa igual.**
+
 🔴 **Y el control positivo de ESTE comando no puede hacerse contra una sesión sana: los dos
 comandos —con filtro y sin él— dan IDÉNTICO cuando la terminal está produciendo.** *El defecto solo
 aparece en el caso para el que existe la comprobación.* **Busca un transcript cuyo último evento no
