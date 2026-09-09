@@ -45,8 +45,15 @@ export const BASE_ORIGIN = `http://localhost:${E2E_PORT}`;
  *  lleva tokens de sesión REALES. */
 const AUTH_DIR = path.join(__dirname, ".auth");
 
-export function statePath(role: Role): string {
-  return path.join(AUTH_DIR, `${role}.json`);
+/** El directorio es INYECTABLE, con el real por defecto. No es una comodidad:
+ *  mientras la ruta viva dentro de estas funciones, **una prueba que quiera
+ *  ejercitarlas no tiene más remedio que escribir en la instantánea de verdad**
+ *  — y acabaría produciendo el envenenamiento que AIT-119 viene a impedir, con
+ *  el `00-` de su fichero poniéndola por delante de los flujos.
+ *  No se le pide a las pruebas que se porten bien: se les quita la posibilidad
+ *  de portarse mal. */
+export function statePath(role: Role, dir: string = AUTH_DIR): string {
+  return path.join(dir, `${role}.json`);
 }
 
 /** Lo que Playwright guarda en un `storageState`. Se declara en vez de
@@ -73,9 +80,77 @@ export type StorageState = {
  *  atómico dentro del mismo sistema de ficheros) y después `rename`. Un lector
  *  ve el fichero entero o no lo ve; nunca un JSON a medias. Modo 0600 porque
  *  dentro hay tokens de sesión válidos. */
-export function writeStateAtomically(role: Role, state: StorageState): void {
-  fs.mkdirSync(AUTH_DIR, { recursive: true });
-  const destino = statePath(role);
+/**
+ * *** AIT-119 · LA ÚNICA DEFINICIÓN DE "INSTANTÁNEA VÁLIDA". ***
+ *
+ * Válida = las dos cookies de auth PRESENTES y CON VALOR NO VACÍO.
+ *
+ * Lo de "no vacío" no es celo: `refreshTokenOf` devuelve `""` tanto si la cookie
+ * falta como si está ahí sin valor. Si el que escribe y el que lee
+ * interpretaran eso distinto, un fichero con dos cookies vacías pasaría la
+ * validación y no autenticaría nada — el mismo defecto una capa más abajo.
+ * Por eso hay UNA función y la usan los dos.
+ *
+ * Devuelve QUÉ ENCONTRÓ, no un booleano: sin eso, el fallo dice "algo va mal" y
+ * cuesta cuatro hipótesis en vez de un minuto (fue exactamente lo que pasó).
+ *
+ * @returns null si es válida; si no, la frase que explica el hallazgo.
+ */
+export function problemaDeInstantanea(
+  state: StorageState | null | undefined,
+  role: Role,
+): string | null {
+  if (!state || !Array.isArray(state.cookies)) {
+    return `la instantánea de "${role}" no tiene forma de instantánea (sin \`cookies\`).`;
+  }
+  const faltan: string[] = [];
+  const vacias: string[] = [];
+  for (const nombre of [COOKIE_JWT, COOKIE_REFRESH]) {
+    const cookie = state.cookies.find((c) => c.name === nombre);
+    if (cookie === undefined) faltan.push(nombre);
+    else if (cookie.value === "") vacias.push(nombre);
+  }
+  if (faltan.length === 0 && vacias.length === 0) return null;
+
+  const presentes = state.cookies.map((c) => c.name).join(", ") || "ninguna";
+  return (
+    `la instantánea de sesión de "${role}" no sirve: ` +
+    (faltan.length > 0 ? `falta ${faltan.join(" y ")}. ` : "") +
+    (vacias.length > 0 ? `sin valor ${vacias.join(" y ")}. ` : "") +
+    `Tiene ${state.cookies.length} cookie(s): [${presentes}].`
+  );
+}
+
+/** Qué hacer, y lo que NO hay que hacer. Va en los dos mensajes.
+ *
+ *  NO dice "vuelve a correr": correr UN test suelto REGENERA el fichero y lo
+ *  deja sano, así que quien lo intente verá verde y creerá que no había nada.
+ *  El gesto de comprobar borra la evidencia. */
+const QUE_HACER =
+  "Bórrala (`rm e2e/.auth/<rol>.json`) y lanza la SUITE ENTERA. " +
+  "No relances un test suelto: eso regenera el fichero y esconde el problema.";
+
+/** Escritura ATÓMICA y VALIDADA.
+ *
+ *  La validación vive AQUÍ y no en los llamadores a propósito. Antes estaba en
+ *  `global-setup.ts` —que escribe 2 veces por corrida— y no en `helpers.ts`
+ *  —que escribe 29—, y ese hueco es AIT-119 entero. Con la comprobación dentro
+ *  del escritor **no existe ningún camino que escriba sin validar**, y deja de
+ *  depender de que el tercer llamador se acuerde.
+ *
+ *  Y valida ANTES de crear el temporal: un fichero inválido no llega a existir,
+ *  y la instantánea buena que hubiera queda intacta byte a byte. */
+export function writeStateAtomically(
+  role: Role,
+  state: StorageState,
+  dir: string = AUTH_DIR,
+): void {
+  const problema = problemaDeInstantanea(state, role);
+  if (problema !== null) {
+    throw new Error(`[e2e] NO se guarda una instantánea inválida — ${problema} ${QUE_HACER}`);
+  }
+  fs.mkdirSync(dir, { recursive: true });
+  const destino = statePath(role, dir);
   const temporal = `${destino}.${process.pid}.tmp`;
   fs.writeFileSync(temporal, JSON.stringify(state, null, 2), { mode: 0o600 });
   fs.renameSync(temporal, destino);
@@ -148,8 +223,8 @@ export async function capturarEstadoRodado(
   return estado;
 }
 
-export function readState(role: Role): StorageState {
-  const ruta = statePath(role);
+export function readState(role: Role, dir: string = AUTH_DIR): StorageState {
+  const ruta = statePath(role, dir);
   if (!fs.existsSync(ruta)) {
     // Fallar en voz alta y nombrando la causa, no devolver un estado vacío que
     // acabaría en un `waitForURL` agotándose a los 30 s sin decir por qué.
@@ -159,5 +234,29 @@ export function readState(role: Role): StorageState {
         `Si corres con una config propia, regístralo también allí.`,
     );
   }
-  return JSON.parse(fs.readFileSync(ruta, "utf8")) as StorageState;
+  const estado = JSON.parse(fs.readFileSync(ruta, "utf8")) as StorageState;
+  // Se valida el CONTENIDO, no solo que el fichero exista. `existsSync` protege
+  // de que falte; no de que esté vacío — y el fichero envenenado EXISTE.
+  //
+  // ⚠️ QUÉ CUBRE ESTO DE VERDAD, medido y no supuesto: `globalSetup` reescribe
+  // las dos instantáneas al arrancar, así que **una rota de ayer NO llega viva
+  // a los tests de hoy** — se cura sola antes de que nadie la lea. Lo que esta
+  // comprobación cubre es el resto: una instantánea rota DENTRO de la corrida
+  // en curso, una editada a mano, o un `globalSetup` que no llegara a escribir.
+  // Es defensa en profundidad; la que impide el daño es la validación al
+  // ESCRIBIR.
+  const problema = problemaDeInstantanea(estado, role);
+  if (problema !== null) {
+    // El mensaje dice QUÉ se ha encontrado y DÓNDE, y nada más. Nada de
+    // atribuir causa: aquí no se sabe quién dejó el fichero así, y una causa
+    // plausible puesta en un error se lee como diagnóstico. Si dijera de quién
+    // NO es la culpa, una regresión real de autenticación se archivaría como
+    // problema del arnés —que es exactamente hacia el verde—.
+    throw new Error(
+      `[e2e] ${problema} Fichero: ${ruta}. Si quieres conservarla para ` +
+        `mirarla, cópiala a un sitio fuera del repo antes de tocar nada. ` +
+        `${QUE_HACER}`,
+    );
+  }
+  return estado;
 }
