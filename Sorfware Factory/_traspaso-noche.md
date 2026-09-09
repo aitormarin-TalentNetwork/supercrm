@@ -39,6 +39,42 @@ facturación de Convex, y no voy a entrar en tu cuenta para verlo.)*
 
 ---
 
+## 0bis. 🔴 Y LO SEGUNDO: las dos cuentas reales del negocio solo entran por Google
+
+**AIT-113**, Backlog, **nadie la coge esta noche.** No es un defecto de código: **es un riesgo
+sobre tu acceso a tu propio negocio.**
+
+**El hecho**, confirmado en ADR-003 y en `docs/03-setup.md` §6bis: las dos cuentas reales se
+dieron de alta como **solo Google, sin contraseña**. **Si el login con Google falla, no entran.**
+Y *"¿Olvidaste la contraseña?"* **tampoco vale — no hay contraseña que recuperar**, así que el
+reseteo falla por el mismo motivo.
+
+⚠️ **Por qué va esta noche y no la semana que viene:** el acceso de esas dos personas **depende de
+un ajuste que tocamos nosotros anoche** —pasar la app a Interna—, en un proyecto de Google que
+**administramos nosotros**. Salió bien y está verificado. **Eso no cambia la forma del riesgo:
+hay una única vía de acceso y su configuración la movemos nosotros.**
+
+**Cómo apareció, que es lo que le da credibilidad:** T3 **no lo buscaba**. Fue a citar el ADR para
+poder escribir *"inténtalo de nuevo **o entra con tu email y contraseña**"* en un mensaje de
+error, y el ADR decía que esas cuentas **no tienen contraseña**. **El consejo natural de la
+pantalla era un callejón sin salida, y justo para quien más iba a verlo.**
+
+🔴 **Lo que NO vale hacer con esta ficha, y el PM lo puso como criterio de FALLA:**
+
+> **No se cierra alegando que AIT-112 ya lo explica.** AIT-112 hace que el fallo **se vea** en vez
+> de dejar el botón mudo — bueno, y **no es lo mismo**. **Explicar un bloqueo no es resolverlo**, y
+> con AIT-112 publicada **va a parecer que sí.**
+
+**Las dos salidas, y ninguna es obvia:**
+- **Aceptarlo por escrito** — asumir que el acceso depende de Google y de una configuración que
+  tocamos nosotros.
+- **Abrir una segunda vía de acceso** — que **abre superficie de ataque**: hoy esas cuentas **no
+  se pueden atacar por contraseña precisamente porque no la tienen.**
+
+**Tu negocio, tu cuenta, tu riesgo. Nadie de la fábrica va a elegir por ti.**
+
+---
+
 ## 1. Lo que solo puedes hacer tú (nada de esto avanzó de noche)
 
 | Qué | Por qué está parado | Qué desbloquea |
