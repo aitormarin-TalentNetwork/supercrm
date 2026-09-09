@@ -140,7 +140,7 @@ AIT-100. El PRD va por **v0.11** con los cuatro bloqueantes cerrados.
 
 **Catorce publicadas hoy, ninguna revertida, ningún build roto, `main` sincronizado.**
 
-## 🟢 TRES TAREAS ESPERANDO TU SÍ *(medido por el Integrador a las 04:0x UTC)*
+## 🟢 CUATRO TAREAS ESPERANDO TU SÍ *(medido por el Integrador a las 04:0x UTC)*
 
 **Es exactamente lo que el modo `confirmar` venía a producir.** Las tres con **GO del auditor y
 revisión final hecha**:
@@ -158,9 +158,33 @@ pueden publicar en cualquier orden, o las tres de una.**
 el MVP y es **la única que toca `schema.ts`** — si algo va a fallar en un build, es esa, y
 conviene verla sola. **Puedes invertirlo** si prefieres soltar antes las dos pequeñas.
 
-⚠️ **Las tres van SIN número de suite propio.** No es que salieran en rojo: **la suite completa no
+⚠️ **Y ahora son CUATRO: se ha sumado AIT-94.** *(Intersección entre las cuatro: sigue vacía, medida.
+Cualquier orden vale.)*
+
+⚠️ **Las cuatro van SIN número de suite propio.** No es que salieran en rojo: **la suite completa no
 se ha podido correr —tres intentos, tres muertes por memoria—** así que **nadie ha medido `main`
 con ellas dentro.**
+
+### ✅ Pero hay un número, el primero de la noche — y cierra una declaración
+
+```
+28 passed / 0 failed · EXIT=0 · 1,8 min · cero TooManyFailedAttempts
+```
+
+**Primera corrida que termina.** Y el Integrador no llegó ahí insistiendo: **cambió qué medía** —
+partió la suite en *los 28 tests sin login* y *los 26 con login*, y corrió los primeros.
+
+**Lo que cierra:** entre esos 28 están **los cinco de AIT-93**, la tarea que él publicó
+**declarando que no había podido verificarla**. **Es la primera de las declaraciones de esta noche
+que se cobra** — y la cerró la misma persona que la escribió, sobre lo que ella misma publicó a
+ciegas. *Declarar un límite no es archivarlo.* Con ella quedan verdes también los specs de
+**AIT-80** y **AIT-82**.
+
+⚠️ **Los dos límites, sin suavizar:**
+1. **Este 28/28 NO cubre las cuatro acumuladas.** Se verifican en los specs **con login**, que son
+   justo los 26 que no se pudieron correr.
+2. **No significa que el limitador ya no moleste: significa que no lo tocó.** *(AIT-102 sigue
+   abierta.)*
 
 ⚠️ **Pero dos de esas catorce se cerraron SIN número de suite, y la declaración está dentro de
 sus propias issues:**
