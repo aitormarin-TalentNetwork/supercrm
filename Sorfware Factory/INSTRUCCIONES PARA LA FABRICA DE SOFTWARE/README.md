@@ -714,6 +714,26 @@ publicación, el titular del cerrojo de Convex, qué terminal está migrada) se 
 para decir *dónde se consulta*, no *cuánto vale*.
 
 
+**(m) Un documento que se lee al arrancar no llega solo a quien ya arrancó (2026-09-08).**
+
+> **Cambiar un documento de arranque exige avisar a las sesiones vivas en el mismo momento del
+> cambio.** No se confía en que lo relean: no lo van a releer, porque ya arrancaron.
+
+Es hermana de la copia congelada del worktree, pero **no es la misma**: allí el documento no
+llega; aquí **llega, pero solo a quien venga después**. El documento queda correcto y la
+fábrica sigue funcionando con la versión anterior — y nada señala la diferencia.
+
+**Aplica a `intro-terminal.txt`, `CLAUDE.md`, `AGENTS.md`, `auditor_prompt.txt` y los
+documentos de rol.** La acción concreta es un mensaje a cada sesión viva afectada, en el
+mismo acto de commitear el cambio, diciendo **qué cambió y qué tiene que hacer distinto** — no
+"relee el documento".
+
+*Caso del día:* al endurecer el formato del `titular.txt` del cerrojo de Convex se avisó a las
+tres terminales en marcha. Una de ellas contestó algo que conviene guardar: **su "recibido" no
+equivalía a haber ejercitado la regla** —T1 tiene deployment propio y nunca reclama el
+cerrojo—, así que si alguien mide adopción contando acuses, estará contando lecturas y no
+usos.
+
 **(l) El registro de agentes indexado por el nombre de sesión — decisión 45 del Factory
 Architect, 2026-09-08.** Es la instancia más pura de todas: **estado escrito una vez, con
 una clave que caduca sola y sin avisar.**
@@ -2451,6 +2471,35 @@ casualidad de barrer**. No hay nada montado que los detecte solo. Si el barrido 
 que los caza, **cada instancia sin auditar es un fallo esperando a que alguien pase por
 delante**. Ninguno costó una ronda: solo minutos de espera invisible, que es la clase de
 coste que no aparece en ninguna métrica y por eso se tolera indefinidamente.
+
+**Enmienda 10 — el primer paso de la 50.1 es una pregunta, no una preferencia (2026-09-08).**
+La 50.1 decía *"prefiere lo observable"* sin decir cómo saber cuándo no hay nada que observar.
+El criterio que falta:
+
+> **La línea no está entre marker y proceso: está entre señales de un HECHO y señales de una
+> INTENCIÓN.**
+>
+> - *"¿Terminó X?"* es un **hecho del mundo**: siempre hay algo que observar —el proceso, el
+>   commit, el fichero de salida— y **el marker sobra**.
+> - *"¿Alguien quiere que pase Y?"* es una **intención**: no hay nada que observar, y ahí el
+>   marker no es inferior — **es lo único que hay**.
+
+**Así que antes de elegir mecanismo se pregunta: ¿esto es un hecho del mundo o la voluntad de
+alguien?** La tabla de las tres instancias de arriba es el ejemplo trabajado.
+
+**Y la consecuencia, que cambia la mitigación:**
+
+> **Una señal de intención no admite verificación: solo redundancia.** Como no hay nada que
+> observar, **no se puede comprobar si llegó** — así que va siempre con un segundo canal, y
+> ninguno de los dos se da por suficiente.
+
+*Prueba del mismo día:* el aviso por voz falló por dos sitios a la vez —etiqueta equivocada en
+cinco de seis roles, y un marcador compartido que hacía que los avisos se robaran entre
+roles— y **lo que funcionó fue el texto**. Nadie lo diseñó como redundancia: sobrevivió porque
+había dos canales por casualidad. Y el remate está en la tabla de arriba: **si el proceso
+muere, el hook `Stop` no corre por mucho que el marker esté puesto.** Una señal de intención
+**nunca es más fiable que el mecanismo que la lee, y ese mecanismo tampoco se puede
+observar.**
 
 **El patrón, en 2 pasos — primero armar, después disparar:**
 1. **Arma el vigilante ANTES de que exista nada que vigilar.** Con la herramienta `Bash` y
