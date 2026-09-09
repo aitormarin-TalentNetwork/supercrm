@@ -43,6 +43,25 @@ que se mueve mientras se escribe**. Una frase suya —*"la cola del Integrador e
 abrió el fichero para otra cosa. **Los datos que cambian llevan ahora su hora de medición al
 lado**; si uno no la lleva, **desconfía de él antes que del resto.**
 
+⚠️ **Y una tercera advertencia, de las que afectan a TODO lo de abajo: este documento atribuye
+acciones a roles —«lo hizo T2», «el CEO empujó», «lo levantó T3»— y NINGUNA de esas atribuciones se
+puede verificar con `git`.** Medido al cerrar:
+
+```
+autores distintos en origin/main esta noche  ->  1   (AITOR MARIN <aitor@…local>)
+committers distintos                          ->  1   (el mismo)
+"Co-Authored-By: Claude Opus 5 (1M context)"  ->  102 commits, TODOS con el trailer idéntico
+"Escrito por: Claude Code (Opus)"             ->  16, también idéntica
+```
+
+**El historial es mudo sobre quién hizo qué.** Las atribuciones de este documento valen porque cada
+sesión declaró lo suyo y las demás lo leyeron — **no porque el repositorio lo registre.** Si mañana
+alguien intenta reconstruir quién publicó algo, no va a poder: **y el riesgo no es que falle, es que
+deduzca por el contenido del commit y acierte casi siempre**, cogiéndole confianza a un método que
+no la merece. *(Lo levantó T2 al aplicarse a sí mismo el hallazgo de que commitear en rama
+compartida publica; verificado por mí.)* **Es también la razón por la que la decisión 42 —la línea
+de autoría— no sirve para esto: identifica a la herramienta, no a la sesión.**
+
 Léelo en este orden. Lo de arriba es lo que necesita que decidas; lo de abajo es contexto.
 
 ---
