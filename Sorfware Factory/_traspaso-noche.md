@@ -227,7 +227,19 @@ partió la suite en *los 28 tests sin login* y *los 26 con login*, y corrió los
 **Lo que cierra:** entre esos 28 están **los cinco de AIT-93**, la tarea que él publicó
 **declarando que no había podido verificarla**. **Es la primera de las declaraciones de esta noche
 que se cobra** — y la cerró la misma persona que la escribió, sobre lo que ella misma publicó a
-ciegas. *Declarar un límite no es archivarlo.* Con ella quedan verdes también los specs de
+ciegas. *Declarar un límite no es archivarlo.*
+
+✅ **Y ese número se interrogó después, en la revisión cruzada — AGUANTA.** El Integrador dio las
+cuatro derivaciones y **el control positivo**: metió un mutante en un `expect`, **predijo el
+resultado antes de correr** (1 caído, 27 verdes, `EXIT≠0`) y salió **exactamente eso**. Así que
+**el 28/28 se distingue de "no corrió nada"**, que es lo único que lo convierte en prueba. El
+denominador está confirmado por dos vías —los marcadores `[28/28]` y un `--list` estático, que no
+toca servidor— y **los cinco tests de AIT-93 aparecen NOMBRADOS en la salida**, no inferidos. El
+`EXIT` sale de una **redirección, no de una tubería**.
+
+⚠️ **Con el límite que él mismo declara:** la partición fue **por fichero, no por test**. *"28 sin
+login es exacto para los que corrí, pero no afirmo que sean todos los que se podían correr"* — si
+algún spec **con** login tiene tests sueltos que no lo necesitan, quedaron fuera. Con ella quedan verdes también los specs de
 **AIT-80** y **AIT-82**.
 
 ⚠️ **Los dos límites, sin suavizar:**
