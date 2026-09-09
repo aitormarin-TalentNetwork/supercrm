@@ -748,6 +748,29 @@ tras abrirse AIT-117—:
 igualmente** —el gancho de `test:e2e`, o el prompt de tu bucle—. **Un documento no se ejecuta
 solo; un comando que ya estabas ejecutando, sí.**
 
+### 🧪 CÓMO SE ELIGE EL SUJETO DE UN CONTROL POSITIVO (2026-09-09)
+
+> **Un control positivo necesita un sujeto que no pueda DEJAR de discriminar.**
+> **Un artefacto muerto o congelado es el mejor sujeto posible; un sistema VIVO es el peor**,
+> porque su estado es justo la variable que estás midiendo.
+
+*Es contraintuitivo —uno tiende a probar contra "lo real y actual"— y es lo que convierte un
+control en **una foto con suerte**.* **Caso del mismo día:** un control propuesto contra una sesión
+activa **dejó de discriminar en cinco minutos**, porque esa sesión volvió a producir; el sujeto
+bueno resultó ser **una sesión muerta desde hacía tres días**, con 53 h de divergencia estable.
+
+### 🔴 DOS VARIANTES DE LA MISMA COMPROBACIÓN NO SE VALIDAN ENTRE SÍ CON EL SISTEMA SANO
+
+> **Dos implementaciones de la misma comprobación coinciden en el estado sano POR DISEÑO** — si no
+> coincidieran ahí, una estaría mal sobre el funcionamiento normal.
+> **Por eso su acuerdo en el caso sano tiene información CERO: está garantizado.** Solo informa
+> donde **podrían** diferir, o sea **en el fallo.**
+
+⚠️ **No es que la comparación esté "mal hecha": es INCAPAZ POR CONSTRUCCIÓN de distinguirlas.**
+*Yo di por corroborado un comando porque coincidía con otra fuente en las tres terminales activas.
+No corroboraba nada — y el comando tenía perdido el filtro que lo hacía funcionar.* **Vale para
+cualquier par que compares en adelante, no solo para aquél.**
+
 ### ⛔ EL CRITERIO QUE VALE PARA TODAS TUS COMPROBACIONES (2026-09-09)
 
 > ### **Una comprobación toma MEDICIONES como entrada, nunca afirmaciones — incluidas las de un compañero fiable.**
