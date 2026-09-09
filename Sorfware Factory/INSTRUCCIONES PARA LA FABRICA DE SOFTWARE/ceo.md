@@ -618,6 +618,27 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### ⚠️ Contar `codex exec` (o cualquier proceso) exige DOS llamadas, no una
+
+**Corregido dos veces el 2026-09-09, la segunda por caer en ello en el propio censo.**
+
+El barrido reportó **1 auditoría viva** cuando había **cero**: el único proceso que casaba era
+**el wrapper `bash -c` de la propia comprobación**, que lleva el script entero —patrón incluido—
+en su línea de comando.
+
+> **Volcar `ps` a un fichero y buscar después NO basta si las dos cosas van en el mismo comando.**
+> El wrapper ya existe cuando `ps` corre. **La separación tiene que ser de PROCESOS, no de
+> líneas.**
+
+✅ **Cómo se hace bien:**
+1. **Una llamada** que solo tome el snapshot, **sin que el patrón aparezca en ningún sitio de esa
+   llamada**: `ps -A -o pid=,ppid=,command= > /tmp/snapA.txt`
+2. **Otra llamada** que busque en el fichero.
+
+📌 **Y el dato que lo hace memorable: el fallo ocurrió en la casilla del catálogo escrita para
+avisar de este fallo**, dos horas después de escribirla. **Saberlo no protege; separar los
+procesos sí.**
+
 ### ⚠️ La memoria no se mide con el swap a secas — tres números, no uno
 
 **Corregido el 2026-09-09.** El barrido reportaba `sysctl vm.swapusage`, y **ese número solo
