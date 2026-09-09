@@ -377,6 +377,13 @@ una vez que el trabajo pasa auditoría.
        correctos — exigir cero habria sido exigir que Convex Auth no hiciera su trabajo.
        No se cambia en silencio: quien lo aprobo en planificacion tiene derecho a
        enterarse de que ya no esta.
+    5. Herramienta rota o esquivada — si has tenido que rodear una herramienta del
+       proyecto (tipos, lint, tests, build) porque da un resultado que NO es del
+       codigo, dilo aqui Y MANDASELO ADEMAS A LA COORDINADORA POR MENSAJE DIRECTO
+       (decision 70, 2026-09-09). El export va al auditor, y el auditor no arregla
+       herramientas: si solo lo escribes aqui, tu aviso muere con la ronda. Caso real:
+       T3 declaro impecablemente que `tsc` salia en rojo por artefactos duplicados y no
+       por el codigo; el defecto llevaba desde el 20 de agosto y siguio otro mes.
   Si en una ronda posterior hay que corregir algo (NO-GO): **borra el fichero de la
   ronda anterior** y crea el de la ronda siguiente con la versión actualizada completa.
   Nunca dejes más de un fichero activo a la vez para la misma tarea — el auditor debe

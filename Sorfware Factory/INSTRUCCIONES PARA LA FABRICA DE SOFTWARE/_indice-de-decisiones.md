@@ -106,6 +106,8 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 66 | Una fila del catálogo no es un control: describe uno que habría que construir (66.1 tres estados: arreglado · enrutado con issue · sin dueño; 66.2 **enrutar no es que exista** — se comprueba en Linear; 66.3 el repaso mira primero qué arreglos nadie ha hecho) | R §2sexies · C |
 | 67 | **El working tree no tiene reflog:** commitea antes de lanzar cualquier instrumento que reescriba ficheros del working tree que estás tocando | R §2sexies · IT |
 | 68 | La dirección del fallo protege; **la frecuencia gasta esa protección** (68.1 test: con el sistema sano, ¿cuántas veces grita? · 68.2 un criterio puede quedar insatisfecho con la cosa BIEN, y retirarlo se declara) | R §2sexies-bis · IT |
+| 69 | **La cuarentena vive FUERA del repo** (`~/.cuarentena-fabrica/<fecha>-<motivo>/` con LEEME) — dentro no hay sitio neutro. **Un precedente se reutiliza con su precondición, o no se reutiliza** | R §2sexies-bis |
+| 70 | Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export — va además a la coordinadora por mensaje directo, y ella no la archiva con la tarea | R §2sexies-bis · IT · D |
 
 ---
 

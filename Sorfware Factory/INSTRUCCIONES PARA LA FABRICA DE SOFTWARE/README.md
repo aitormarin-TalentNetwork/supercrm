@@ -2427,6 +2427,49 @@ declarar sus límites, no solo su resultado.** Es §2ter(b) aplicado al relevo.
 *En sus propias palabras, que es como conviene que se lea:* **"se lo he pedido toda la noche a
 las tres terminales y no me lo he aplicado al informar"**.
 
+### Decisión 69 — La cuarentena vive FUERA del repo (2026-09-09)
+
+> **Lo que se aparta por sospecha SALE del repo**, a `~/.cuarentena-fabrica/<fecha>-<motivo>/`,
+> **con un `LEEME.md` que diga de dónde salió y por qué.**
+
+⚠️ **Dentro del repo no hay sitio neutro.** `tsconfig.json` compila `**/*.ts`, así que **cualquier
+carpeta del repo está dentro del compilador** — y lo mismo vale para `eslint`, un `grep -r`, o el
+indexado de otra sesión. **Una cuarentena que sigue dentro del alcance del que escanea no es una
+cuarentena: es un cambio de carpeta.**
+
+*El caso:* mover a `_copias-congeladas-por-revisar/` **funcionó** con documentos de proceso y
+**falló** con `.ts`. El CEO apartó tres duplicados de `.next/types/` siguiendo ese precedente **y
+los errores pasaron de 5 a 18**.
+
+> ### **Un precedente se reutiliza con su precondición, o no se reutiliza.**
+>
+> *"Apliqué un precedente sin comprobar la precondición que lo hacía funcionar: aquella cuarentena
+> movía `.md`, que nadie compila."*
+
+**Y la precondición no estaba escrita en ninguna parte** — por eso el precedente parecía general
+cuando era específico.
+
+### Decisión 70 — Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export (2026-09-09)
+
+**T3 lo hizo todo bien** y el defecto siguió vivo un mes. Escribió en su export: *"`npx tsc
+--noEmit` sale con exit 2 en este worktree pase lo que pase; 0 errores en código del proyecto, los
+8 están en `.next/types/`"*, con el detalle de que eran duplicados, y **el auditor le pidió
+conservar la salida íntegra**. Los ficheros de la raíz eran **del 20 de agosto**.
+
+⚠️ **El fallo no es de T3 ni del auditor: el export es un canal HACIA EL AUDITOR, y el auditor no
+arregla herramientas.** Una declaración correcta sobre el estado de la instrumentación **entra por
+la única puerta que hay y sale por ninguna.**
+
+📌 **Y es sistemático, no un despiste:** el formato del export pide *"evidencias"*, y un
+desarrollador honesto escribe ahí *"la herramienta X está rota, lo esquivo así"* — **que es
+exactamente donde no lo va a leer quien puede arreglarlo.**
+
+**Se arregla con destinatario, no con más lectura:** el aviso va **además** a la coordinadora **por
+mensaje directo** (punto 5 del formato del export), **y ella no lo archiva con la tarea** — abre
+issue o escala, y **si se decide convivir con ello, se dice quién y hasta cuándo**.
+*(«Que la coordinadora lea los exports» sería más trabajo y falla en silencio; un mensaje directo
+tiene destinatario.)*
+
 ### Decisión 68 — La dirección del fallo protege; la frecuencia gasta esa protección (2026-09-09)
 
 **Va pegada a la 46 porque sin ella se contradicen.** Un guardián del script de T2 —*"si la config

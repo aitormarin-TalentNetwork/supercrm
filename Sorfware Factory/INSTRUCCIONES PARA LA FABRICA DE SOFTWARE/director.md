@@ -477,6 +477,21 @@ compartidos" arriba): si lleva abandonado más de lo razonable, es el mismo tipo
 problema que una terminal parada — nadie más tiene por qué notarlo si no lo necesita
 todavía.
 
+### Un aviso de herramienta rota NO se archiva con la tarea (decisión 70, 2026-09-09)
+
+Cuando una terminal te diga que **ha tenido que rodear una herramienta del proyecto** —tipos,
+lint, tests, build— **porque da un resultado que no es del código**, eso **no se cierra con la
+tarea**: se **abre issue o se escala**. Y **si se decide convivir con ello, se dice quién lo
+decidió y hasta cuándo.**
+
+**Por qué existe esta línea:** T3 lo declaró impecablemente en su export —*"`tsc` sale en rojo
+por artefactos duplicados, no por el código"*— y **el defecto siguió vivo**. Los ficheros eran del
+**20 de agosto**. **El export es un canal hacia el auditor, y el auditor no arregla herramientas**:
+una declaración sobre la instrumentación **entra por la única puerta que hay y sale por ninguna.**
+
+Por eso ahora te llega **además por mensaje directo** (punto 5 del formato del export). **Un
+mensaje tiene destinatario; un apartado de un fichero, no.**
+
 ### El veredicto se vuelca a un fichero, y tu mensaje lleva una línea literal (decisión 62)
 
 **Dos cambios, y el segundo es el que importa.**
