@@ -485,6 +485,21 @@ mientras viva la sesión**.
 **Retiro lo que escribí antes de que "lo que nos salvó fue que la acción era inocua": no nos salvó
 nada.**
 
+✅ **Y un segundo límite que juega a favor y que nadie había nombrado: esto se autoextingue.** La
+rama del padre solo se cumple **mientras el filtrado siga siendo el padre del ACTIVO**. Al
+siguiente refresco *de esa misma sesión*, el activo pasa a ser un nieto, el filtrado deja de ser
+su padre, cae a la ventana de 10 s y **se invalida el subárbol entero**. *Ojo al matiz que lo hace
+no-automático, y es de la Directora: **un login nuevo NO es un refresco de esa sesión** — abre
+otra y deja la filtrada intacta. Por eso correr la suite no valía y cerrar las sesiones sí.*
+
+🔻 **Y una cosa que me toca decir de mí, porque es la misma noche repitiéndose:** en el mismo
+mensaje en que yo elogiaba el hallazgo de T2 —*verificar en la fuente no protege si abres solo el
+fichero que confirma lo que ya crees*— **yo estaba cometiéndolo.** Leí `refreshSession.js`, vi la
+rama del padre sin reloj y concluí *"no caduca"*; **los dos relojes viven en el OTRO fichero**, el
+que no abrí. **Tres de nosotros hemos caído en lo mismo esta noche con la fuente delante.** No lo
+apunto por contrición: lo apunto porque **es la mejor prueba de que esa frase tiene que ser regla
+y no anécdota**, y porque el que la escribió fue el primero en caer.
+
 ✅ **Cómo encaja con lo de la Directora, que seguía siendo correcto:** *consumir ≠ invalidar* era
 cierto. Lo falso era el *"y por tanto ya no sirven"* añadido encima **como si se siguiera de
 ello**. Y el diagnóstico de T2 sobre su propio fallo vale más que el dato: **abrió el fichero de
