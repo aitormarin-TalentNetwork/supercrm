@@ -57,10 +57,10 @@ Además de `users`, Convex Auth gestiona **6 tablas propias** (`authSessions`, `
 ### `appConfig` (interna, no es una de las 7 entidades del PRD)
 | Campo | Tipo | Notas |
 |---|---|---|
-| `key` | string | Clave fija, hoy solo `"default_store"` |
+| `key` | string | `"default_store"` (la tienda por defecto) y `"bootstrap_claim:<email>"` — reservas **atómicas y efímeras** de `users:seedPasswordAccounts` (AIT-99), para que dos siembras concurrentes no creen la misma cuenta dos veces; se borran al terminar |
 | `storeId` | id(`stores`)? | La tienda por defecto del MVP |
 
-Existe para que "la tienda por defecto" tenga un identificador explícito (un documento con clave conocida) en vez de asumir "la primera fila de `stores`". La rellena una sola vez `convex/users.ts:ensureDefaultStore`; no se administra a mano — un alta manual duplicada rompería el `.unique()` que la consulta.
+La fila `default_store` existe para que "la tienda por defecto" tenga un identificador explícito (un documento con clave conocida) en vez de asumir "la primera fila de `stores`". La rellena una sola vez `convex/users.ts:ensureDefaultStore`; no se administra a mano — un alta manual duplicada rompería el `.unique()` que la consulta. Las filas `bootstrap_claim:<email>` son de otra naturaleza: **no son configuración, son un cerrojo** que se crea y se borra dentro de una siembra (AIT-99). Si encuentras una suelta, es que una siembra murió a medias — se puede borrar.
 
 **Alta de usuarios — nunca registro público:** como el PRD no contempla registro público ("los accesos los crea la dueña de tu empresa"), no hay formulario de alta abierto. Dos caminos, según cómo entra cada cuenta (AIT-60, Google en paralelo a Password — ver ADR-003 en [`01-arquitectura.md`](01-arquitectura.md)):
 - **Password:** `convex/auth.ts` usa `createAccount` (provider `Password`) — así se crearon las 2 cuentas de prueba originales (AIT-8), `marta@supercrm.es`/`carlos@supercrm.es`, que siguen entrando por contraseña exactamente igual que siempre.

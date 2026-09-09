@@ -164,7 +164,7 @@ El asistente de `npx @convex-dev/auth` hace, en el deployment de Convex (no en `
 - `SITE_URL` — necesario aunque no haya OAuth.
 - `JWT_PRIVATE_KEY` / `JWKS` — el par de claves con el que Convex Auth firma los tokens de sesión. **Sin esto, ningún login funciona nunca**, con independencia del provider.
 
-Las 2 cuentas de prueba originales (`marta@supercrm.es`/`carlos@supercrm.es`, AIT-8) ya viven en el deployment desde que se crearon una vez con `createAccount` + estas 2 variables (`convex/users.ts:bootstrapInitialAccounts` sin argumentos ya NO las recrea — desde AIT-60 crea las cuentas Google, ver §6bis; para levantar un deployment nuevo de cero necesitando también cuentas de contraseña haría falta un `createAccount` manual con el mismo patrón). En un deployment ya en marcha (el caso normal) no hace falta volver a ejecutar nada de esto — solo puestas a mano si arrancas de cero. **Y si la cuenta YA existe pero su contraseña no coincide con la de estas variables** —el login falla con `InvalidSecret`, no con `InvalidAccountId`— eso no se arregla poniéndolas otra vez: ver **§6quater**.
+Las 2 cuentas de prueba originales (`marta@supercrm.es`/`carlos@supercrm.es`, AIT-8) ya viven en el deployment desde que se crearon una vez con `createAccount` + estas 2 variables (`convex/users.ts:bootstrapInitialAccounts` sin argumentos ya NO las recrea — desde AIT-60 crea las cuentas Google, ver §6bis; para levantar un deployment nuevo de cero necesitando también cuentas de contraseña, ver **§6quinquies**, que ya lo automatiza — antes de AIT-99 hacía falta un `createAccount` manual). En un deployment ya en marcha (el caso normal) no hace falta volver a ejecutar nada de esto — solo puestas a mano si arrancas de cero. **Y si la cuenta YA existe pero su contraseña no coincide con la de estas variables** —el login falla con `InvalidSecret`, no con `InvalidAccountId`— eso no se arregla poniéndolas otra vez: ver **§6quater**.
 
 ```bash
 npx convex env set SEED_OWNER_PASSWORD <contraseña-owner>
@@ -333,8 +333,10 @@ existe, lo que no casa es la contraseña.**
 **Las tres vías que NO sirven**, y conviene saberlo antes de perder media hora:
 
 - **El dashboard de Convex** guarda el *hash*, no la contraseña. No hay campo que editar.
-- **Cambiar `SEED_OWNER_PASSWORD`/`SEED_SALES_PASSWORD`** no hace nada: **ya no las lee
-  nadie** (ver AIT-99). Cambiar la variable no toca una credencial ya creada.
+- **Cambiar `SEED_OWNER_PASSWORD`/`SEED_SALES_PASSWORD`** no hace nada **para este
+  caso**. Sí las lee `users:seedPasswordAccounts` desde AIT-99, pero **solo para crear
+  cuentas que faltan** (§6quinquies): sobre una credencial ya creada, cambiar la variable
+  no tiene ningún efecto.
 - **"¿Olvidaste la contraseña?"** manda un código a `marta@supercrm.es`, un dominio
   inventado sin buzón.
 
@@ -401,6 +403,101 @@ Cuatro causas distintas producen "el login falla" y **ninguna lo dice**. Se dist
 
 **La cuenta no existe** es otra cosa distinta: da `InvalidAccountId`, no `InvalidSecret`.
 Si es eso, no es esta sección — es la siembra de un deployment nuevo (AIT-99).
+
+### 6quinquies. Sembrar las cuentas de contraseña en un deployment NUEVO (AIT-99)
+
+Un deployment de Convex recién creado **nace sin login por contraseña**. No es un fallo de
+configuración: la única función que crea cuentas Password es `createAccount`, y desde AIT-60
+no la invocaba nada. Sin cuentas, la suite e2e no puede correr ahí.
+
+**Cuál de las dos secciones necesitas** — lo decide si la cuenta existe, y los síntomas son
+distintos:
+
+| Lo que ves | La cuenta | Dónde ir |
+|---|---|---|
+| `authAccounts` vacía, o el login no reconoce el email | **NO existe** | **aquí, §6quinquies** |
+| El login falla con `InvalidSecret` (existe, pero la contraseña no casa) | **SÍ existe** | **§6quater** |
+
+**Por qué son dos procedimientos y no uno:** usan funciones distintas de Convex Auth con
+**precondiciones opuestas** — `createAccount` falla si la cuenta ya existe;
+`modifyAccountCredentials` falla si no existe. Un procedimiento único que ramificara por
+dentro no te diría en qué rama estás hasta la mitad, que es justo lo que necesitas saber
+antes de empezar.
+
+⚠️ **Solo dev/test.** Producción no se siembra por aquí: las cuentas reales del negocio son
+**Google-only** (ADR-003), y cambiar eso es AIT-113, que está sin decidir.
+
+**Si el deployment es compartido**, coge el turno (`_turno-convex.lock`) y avisa a las demás
+terminales antes de empezar, igual que en §6quater.
+
+**Requisito previo:** los pasos de §6 hechos — `SITE_URL`, `JWT_PRIVATE_KEY` y `JWKS`
+puestos en el deployment. **Sin ese par de claves no funciona ningún login**, con
+independencia del provider, y el síntoma se parece mucho a una contraseña mal puesta.
+
+#### El procedimiento
+
+**1. Las contraseñas semilla.** Se **generan**, nunca se copian de otro entorno
+(decisión 63.3). Hacen falta en dos sitios y **tienen que llevar el mismo valor**:
+
+```bash
+OWNER=$(openssl rand -base64 24)
+SALES=$(openssl rand -base64 24)
+
+# al deployment, por stdin — nunca como argumento, que queda en el historial del shell
+printf '%s' "$OWNER" | npx convex env set SEED_OWNER_PASSWORD
+printf '%s' "$SALES" | npx convex env set SEED_SALES_PASSWORD
+
+# al frontend, que es quien autorrellena el formulario de /login
+printf 'NEXT_PUBLIC_DEMO_OWNER_PASSWORD=%s\n' "$OWNER" >> .env.local
+printf 'NEXT_PUBLIC_DEMO_SALES_PASSWORD=%s\n' "$SALES" >> .env.local
+
+unset OWNER SALES
+```
+
+**`printf` y no `echo`:** `echo` añade un salto de línea que entraría *dentro* de la
+contraseña del deployment y no en la del frontend. El síntoma sería un login que falla con
+la contraseña «correcta» — indistinguible de §6quater, y te mandaría a la sección
+equivocada.
+
+**2. Sembrar:**
+
+```bash
+npx convex run users:seedPasswordAccounts '{}'
+```
+
+Debe responder con las dos cuentas en `creadas` y **nada en `omitidas`**.
+
+**3. Comprobar, sin sacar ningún secreto de Convex:**
+
+```bash
+npx convex run users:listPasswordAccounts '{}'
+```
+
+Dos filas `password`, una por email.
+
+> ⚠️ **No uses `npx convex data authAccounts` para esto.** Esa tabla tiene una columna
+> `secret` y el volcado la trae entera; filtrarla después no sirve, porque el valor ya ha
+> salido. `listPasswordAccounts` proyecta **en el servidor**, así que lo que cruza la
+> frontera ya no lleva credenciales.
+
+**4. Entrar en `/login` con las dos cuentas.** Es la única comprobación que recorre el
+camino completo: las anteriores solo dicen que las filas están, no que sirvan para entrar.
+
+#### Qué significa si falla
+
+| Lo que sale | Qué pasó |
+|---|---|
+| `Falta SEED_OWNER_PASSWORD…` | **No se ha creado ninguna cuenta.** Las variables se resuelven todas antes de escribir nada, a propósito: un deployment con Marta sí y Carlos no es más difícil de diagnosticar que uno vacío, porque el login funciona para uno de los dos y parece un problema de esa cuenta. |
+| `omitidas: [… "ya existe en users"]` **en un deployment recién creado** | Hay filas en `users` sin su cuenta en `authAccounts`. **Míralo, no reintentes:** reintentar da exactamente el mismo mensaje. |
+| `Fallo creando la cuenta …` | Lo dice el propio error: revisa a mano `authAccounts` y `users` en el dashboard antes de reintentar. Puede haber una cuenta huérfana. |
+| El login falla con la contraseña correcta | Casi siempre son `JWT_PRIVATE_KEY`/`JWKS` (§6). El error real aparece en los logs de `npx convex dev`, **no en el navegador**. |
+| El login falla y esas claves están bien | Comprueba que `NEXT_PUBLIC_DEMO_*` lleva el **mismo valor** que `SEED_*`. Nada en el sistema obliga a que coincidan, y descuadrarlas produce este síntoma. |
+
+#### Lo que esta siembra NO hace
+
+**`seedPasswordAccounts` solo crea cuentas que faltan.** Cambiar `SEED_OWNER_PASSWORD` o
+`SEED_SALES_PASSWORD` **no cambia la contraseña de una cuenta que ya existe** — para eso,
+**§6quater**.
 
 ## 7. Web Push (AIT-57, Post-MVP)
 
@@ -503,7 +600,7 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `NEXT_PUBLIC_CONVEX_URL` | `.env.local` | La URL que usa el navegador. `NEXT_PUBLIC_` = pública, no meter secretos con ese prefijo. |
 | `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD` | `.env.local` | Autorrelleno de "cuentas de prueba" en `/login`, solo fuera de producción (ver AIT-9). |
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
-| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es`. **Hoy no las lee ningún código** (AIT-99): sirvieron para crear esas cuentas y la credencial quedó congelada en `authAccounts` desde entonces. **Cambiar estas variables NO cambia la contraseña de una cuenta que ya existe** — para eso, ver §6quater. Y **tienen que llevar el mismo valor que `NEXT_PUBLIC_DEMO_*`**: nada obliga a que coincidan, y descuadrarlas rompe el login. |
+| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es`. Las lee **`users:seedPasswordAccounts`** (AIT-99), y **solo para crear cuentas que faltan** (§6quinquies): una vez creada la cuenta, la credencial vive en `authAccounts` y la variable ya no la toca. **Cambiar estas variables NO cambia la contraseña de una cuenta que ya existe** — para eso, ver §6quater. Y **tienen que llevar el mismo valor que `NEXT_PUBLIC_DEMO_*`**: nada obliga a que coincidan, y descuadrarlas rompe el login. |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Deployment de Convex (`npx convex env`) | Envío del código de reseteo de contraseña (AIT-62) — `convex/ResendOTPPasswordReset.ts` las lee. `RESEND_FROM_EMAIL` necesita un dominio verificado en Resend para entregar a cuentas reales, no el de prueba. Ver §6ter. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |

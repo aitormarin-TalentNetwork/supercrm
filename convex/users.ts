@@ -1,7 +1,12 @@
 import { v } from "convex/values";
-import { getAuthUserId, invalidateSessions } from "@convex-dev/auth/server";
+import {
+  createAccount,
+  getAuthUserId,
+  invalidateSessions,
+} from "@convex-dev/auth/server";
 import {
   action,
+  internalAction,
   internalMutation,
   internalQuery,
   mutation,
@@ -169,6 +174,222 @@ export const bootstrapInitialAccounts = internalMutation({
         );
       }
     }
+  },
+});
+
+
+// ===========================================================================
+// AIT-99 — Siembra de cuentas de CONTRASEÑA en un deployment nuevo
+// ===========================================================================
+// Un deployment de Convex recién creado nace SIN login por contraseña: la
+// única vía que crea cuentas Password es `createAccount`, y desde AIT-60
+// nada la invoca (`convex/auth.ts:141` vive en la rama `signUp`, que el
+// provider rechaza). Sin cuentas, la suite e2e no puede correr allí.
+//
+// LO QUE ESTO **NO** ES, y la distinción decide qué función usar:
+//   la cuenta NO existe  -> AIT-99, aquí: `createAccount`, falla si YA existe
+//   la cuenta SÍ existe  -> AIT-102: `modifyAccountCredentials`, falla si NO
+// Son precondiciones opuestas y modos de fallo opuestos. Cambiar
+// SEED_OWNER_PASSWORD/SEED_SALES_PASSWORD **no** cambia la contraseña de una
+// cuenta ya creada: para eso, docs/03-setup.md §6quater.
+//
+// Solo dev/test. Producción NO se siembra por aquí: esa decisión es AIT-113 y
+// está sin tomar (las cuentas reales del negocio son Google-only, ADR-003).
+
+// Restaurada de antes de AIT-60 (96bc5e5^): la necesita la siembra para
+// distinguir "el usuario ya está" de "hay que crearlo". AIT-60 la retiró al
+// dejar de haber ningún camino que creara cuentas Password.
+export const getUserByEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email.trim().toLowerCase()))
+      .unique();
+  },
+});
+
+// Reserva atómica de un slot de siembra: al ser una única mutation, Convex
+// serializa (OCC) las ejecuciones concurrentes que compiten por la misma
+// `claimKey` — como mucho una consigue `true`. Cierra la carrera entre
+// "comprobar si existe" y "crear la cuenta", que al vivir en un
+// internalAction no tiene esa garantía por sí sola.
+// Restaurada de 96bc5e5^ sin cambios de comportamiento.
+export const claimBootstrapSlot = internalMutation({
+  args: { claimKey: v.string() },
+  handler: async (ctx, { claimKey }) => {
+    const existing = await ctx.db
+      .query("appConfig")
+      .withIndex("by_key", (q) => q.eq("key", claimKey))
+      .unique();
+    if (existing) return false;
+    await ctx.db.insert("appConfig", { key: claimKey });
+    return true;
+  },
+});
+
+// Contraparte de claimBootstrapSlot: se llama siempre que createAccount
+// termina (éxito o fallo) para que un claim nunca quede huérfano bloqueando
+// reintentos futuros. No cubre un proceso que muere en seco a mitad (fuera
+// de alcance para un script manual de un solo operador).
+export const releaseBootstrapSlot = internalMutation({
+  args: { claimKey: v.string() },
+  handler: async (ctx, { claimKey }) => {
+    const existing = await ctx.db
+      .query("appConfig")
+      .withIndex("by_key", (q) => q.eq("key", claimKey))
+      .unique();
+    if (existing) await ctx.db.delete(existing._id);
+  },
+});
+
+// Cómo se comprueba qué cuentas de contraseña hay, SIN que un secreto salga
+// de Convex. `npx convex data authAccounts` vuelca la tabla entera, y esa
+// tabla tiene una columna `secret`: filtrar esa salida a posteriori no sirve
+// —el valor ya se ha materializado en stdout y de ahí pasa a un pipe—. La
+// proyección se hace aquí, en el servidor, y lo que cruza la frontera ya no
+// contiene credenciales.
+export const listPasswordAccounts = internalQuery({
+  args: {},
+  handler: async (ctx) =>
+    (await ctx.db.query("authAccounts").collect())
+      .filter((a) => a.provider === "password")
+      .map((a) => ({ provider: a.provider, account: a.providerAccountId })),
+});
+
+export const seedPasswordAccounts = internalAction({
+  args: {
+    // Sin argumentos siembra Marta y Carlos, que es el caso real de un
+    // deployment nuevo. `accounts` existe para poder sembrar una identidad
+    // que NO exista: sin él, contra un deployment ya poblado las dos cuentas
+    // se omiten por "ya existe" y la creación no se ejercita nunca.
+    //
+    // El secreto se lee SIEMPRE de la variable de entorno NOMBRADA aquí,
+    // nunca del argumento: una contraseña que viaja como parámetro queda en
+    // la línea de comandos, en el historial del shell y en los logs de la
+    // invocación.
+    accounts: v.optional(
+      v.array(
+        v.object({
+          email: v.string(),
+          name: v.string(),
+          role: v.union(
+            v.literal("owner"),
+            v.literal("storeManager"),
+            v.literal("sales"),
+          ),
+          passwordEnvVar: v.string(),
+        }),
+      ),
+    ),
+    storeName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const plan =
+      args.accounts ??
+      ([
+        {
+          email: "marta@supercrm.es",
+          name: "Marta",
+          role: "owner",
+          passwordEnvVar: "SEED_OWNER_PASSWORD",
+        },
+        {
+          email: "carlos@supercrm.es",
+          name: "Carlos",
+          role: "sales",
+          passwordEnvVar: "SEED_SALES_PASSWORD",
+        },
+        // Direcciones exactamente como en Design/pantallas/Login.dc.html.
+      ] as const);
+
+    // FASE 1 — resolver TODOS los secretos antes de escribir nada. Si falta
+    // una variable, no se ha creado ninguna cuenta: un deployment a medias
+    // (Marta sí, Carlos no) es más difícil de diagnosticar que uno vacío,
+    // porque el login funciona para uno de los dos y parece un problema de
+    // esa cuenta concreta. Mismo criterio fail-closed que el bloque de claves.
+    const resueltas: Array<{
+      email: string;
+      name: string;
+      role: "owner" | "storeManager" | "sales";
+      secret: string;
+    }> = [];
+    for (const cuenta of plan) {
+      const secret = process.env[cuenta.passwordEnvVar];
+      if (!secret) {
+        // El NOMBRE de la variable, jamás su valor.
+        throw new Error(
+          `Falta ${cuenta.passwordEnvVar} en el deployment de Convex. No se ha creado ninguna cuenta.`,
+        );
+      }
+      resueltas.push({
+        email: cuenta.email.trim().toLowerCase(),
+        name: cuenta.name,
+        role: cuenta.role,
+        secret,
+      });
+    }
+
+    const storeId = await ctx.runMutation(internal.users.ensureDefaultStore, {
+      name: args.storeName ?? "Tienda principal",
+    });
+
+    // FASE 2 — crear
+    const creadas: string[] = [];
+    const omitidas: Array<{ email: string; motivo: string }> = [];
+
+    for (const { email, name, role, secret } of resueltas) {
+      if (await ctx.runQuery(internal.users.getUserByEmail, { email })) {
+        // No es un error: es el caso idempotente. Pero en un deployment que
+        // se acaba de crear NO debería pasar — si pasa, hay filas en `users`
+        // sin su cuenta en `authAccounts`, y eso se mira, no se reintenta.
+        omitidas.push({ email, motivo: "ya existe en users" });
+        continue;
+      }
+      const claimKey = `bootstrap_claim:${email}`;
+      const claimed = await ctx.runMutation(internal.users.claimBootstrapSlot, {
+        claimKey,
+      });
+      if (!claimed) {
+        omitidas.push({
+          email,
+          motivo: "otra ejecución concurrente la está creando ahora mismo",
+        });
+        continue;
+      }
+
+      let creationError: unknown = null;
+      try {
+        await createAccount(ctx, {
+          provider: "password",
+          account: { id: email, secret },
+          profile: { email, name, role, storeId },
+        });
+      } catch (err) {
+        creationError = err;
+      }
+
+      // COMPROBACIÓN POR EFECTO, no por el try/catch: si ya hay una cuenta
+      // huérfana en `authAccounts` para este email (users borrado a mano sin
+      // borrar authAccounts), createAccount NO lanza — simplemente no crea
+      // nada, en silencio. Sin este chequeo el fallo pasaría por éxito y el
+      // claim quedaría reservado para siempre.
+      const created = await ctx.runQuery(internal.users.getUserByEmail, {
+        email,
+      });
+      if (!created) {
+        await ctx.runMutation(internal.users.releaseBootstrapSlot, { claimKey });
+        throw new Error(
+          `Fallo creando la cuenta ${email}. Antes de reintentar, revisa a mano las tablas "authAccounts" y "users" en el dashboard de Convex.` +
+            (creationError
+              ? ` Error original: ${creationError}`
+              : " createAccount no lanzó ningún error explícito; probablemente ya existe una cuenta huérfana en authAccounts para este email."),
+        );
+      }
+      creadas.push(email);
+    }
+
+    return { creadas, omitidas };
   },
 });
 
