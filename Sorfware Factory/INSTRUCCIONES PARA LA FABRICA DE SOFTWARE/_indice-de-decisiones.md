@@ -104,6 +104,8 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 64 | Antes de creerte un negativo, comprueba que la herramienta sabe dar positivos — *un código de salida no dice «fue bien», dice «la pregunta de esta herramienta se contestó que sí»* (64.3 todo barrido declara qué no puede ver) | R §2sexies · C |
 | 65 | El arnés declara sus precondiciones y falla nombrando la que falta; no se parchean una a una (**65.1 tercer eje del triaje: ¿el fallo nombra su causa o hay que buscarla?**) | R §2sexies |
 | 66 | Una fila del catálogo no es un control: describe uno que habría que construir (66.1 tres estados: arreglado · enrutado con issue · sin dueño; 66.2 **enrutar no es que exista** — se comprueba en Linear; 66.3 el repaso mira primero qué arreglos nadie ha hecho) | R §2sexies · C |
+| 67 | **El working tree no tiene reflog:** commitea antes de lanzar cualquier instrumento que reescriba ficheros del working tree que estás tocando | R §2sexies · IT |
+| 68 | La dirección del fallo protege; **la frecuencia gasta esa protección** (68.1 test: con el sistema sano, ¿cuántas veces grita? · 68.2 un criterio puede quedar insatisfecho con la cosa BIEN, y retirarlo se declara) | R §2sexies-bis · IT |
 
 ---
 

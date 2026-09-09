@@ -2073,6 +2073,7 @@ que habría que construir.** Cada una debería poder decir si su arreglo está *
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| 🔴 **Un script de medición que hace `git checkout <ref> -- <fichero>`** (o `git restore --source`, `git stash`, copiar desde un backup, `sed -i` sobre un fichero que además tienes abierto) | **No miente: ESCRIBE EN EL SUJETO.** Borra el trabajo sin commitear **sin avisar, sin preguntar y sin dejar rastro recuperable** — no hay forma ni de recuperarlo ni de saber qué se perdió. Caso del 2026-09-09: T2 midió el *"antes"* de AIT-96 con un script que restauraba `e2e/helpers.ts`, y **se llevó por delante su propio arreglo sin commitear**. Lo salvó tenerlo fresco en la sesión — *"eso es suerte, no método"*. **Cuarta variante de instrumento contaminado de la noche, y la primera que no da un número falso: borra trabajo** | **commitear ANTES de lanzarlo** (decisión 67). 📌 **El hecho general vale más que el comando: el working tree no tiene reflog — lo commiteado se recupera aunque lo pierdas de vista; lo que solo está en disco, no.** Así que la clase no es *git checkout*: es **cualquier cosa que reescriba un fichero del working tree desde otra fuente** |
 | **Una explicación con forma de PARADOJA** | ⚠️ **Es la que más hay que ir a comprobar, y es la que menos se comprueba: suena mejor contada.** Caso del 2026-09-09: *"la única tarea que puede desatascarme es la que menos puedo verificar"* — memorable, elegante, **y falsa**. La versión real no tenía forma de paradoja: *hay una dependencia externa (la credencial) y todo lo demás cuelga de ella*. **Una paradoja se propaga más rápido que una dependencia**, así que el error viaja mejor que la verdad. Lo dijo quien la escribió: *"por eso debería haberme chirriado a mí"* | **tratar la elegancia como señal de alarma, no de acierto.** 📌 **Y su forma general, que cubre esto y el resto del catálogo: no solo encajamos hechos nuevos en patrones que ya tenemos — también preferimos la versión que suena mejor contada.** |
 | **Deducir el comportamiento de algo por el TÍTULO de su ficha** | **El título nombra la intención, no el efecto.** Caso del mismo día: de *"la suite hace login una vez por spec y no le hace falta"* se dedujo que la tarea **arreglaba** el login; **lo que hace es concentrarlo** — un solo login real que, si falla, **aborta el arranque sin correr un test**. Es hermano de *clasificar una issue por su título en vez de por su huella medida*, con dos víctimas distintas el mismo día | **leer el código, y si no, decir que no se ha leído.** *(Las dos veces el error fue razonar sobre un resumen teniendo el original a mano — y las dos las cazó otro, no quien lo escribió.)* |
 | 🔴 **Limpiar tus temporales cuando alguno sostiene un número que ya declaraste** | ⚠️ **La evidencia y la basura tienen la misma pinta**, y el criterio *"es mío y es temporal"* **responde a la pregunta equivocada**. Caso del 2026-09-09: el Integrador borró `/tmp/suite2.log` en una limpieza de secretos — **era la única prueba del `28 passed / EXIT=0` que estaba sosteniendo el cierre de una declaración**. **Sobrevivió por casualidad**, en la salida de una tarea de fondo que había hecho un `tail`; sin ese `tail`, el cierre se habría quedado sin sostén y **nadie lo habría notado, porque la afirmación ya estaba escrita**. 📌 **Limpiando con cuidado por un riesgo, destruyó la evidencia de otro** | **los logs que sostienen un número declarado NO van a `/tmp`**: van al archivo de la tarea, junto al registro de publicación — donde ya vive todo lo que tiene que sobrevivir. **La pregunta al limpiar no es "¿es mío y temporal?" sino "¿hay algo escrito que dependa de esto?"** |
@@ -2421,6 +2422,39 @@ declarar sus límites, no solo su resultado.** Es §2ter(b) aplicado al relevo.
 
 *En sus propias palabras, que es como conviene que se lea:* **"se lo he pedido toda la noche a
 las tres terminales y no me lo he aplicado al informar"**.
+
+### Decisión 68 — La dirección del fallo protege; la frecuencia gasta esa protección (2026-09-09)
+
+**Va pegada a la 46 porque sin ella se contradicen.** Un guardián del script de T2 —*"si la config
+revertida sigue registrando `globalSetup`, para"*— **saltó por un falso positivo** (grepeaba
+`globalSetup` a secas y lo encontró **en un comentario**) **y aun así hizo su trabajo**: impidió
+medir un sujeto equivocado.
+
+> **La precisión de un filtro importa menos que su dirección de fallo.**
+
+⚠️ **Pero esa frase suelta contradice la 46** —*un control que grita en falso desde el primer ciclo
+se desactiva mentalmente en el segundo*— y **licencia construir guardianes anchos que acaban siendo
+mobiliario**. **La reconciliación es la FRECUENCIA:** el seguro de un rojo es **que se investiga**, y
+eso solo es cierto **mientras sea raro**.
+
+**Dos casos que parecen la misma lección y no lo son** *(la diferencia es justo el eje)*:
+
+| | Guardián ancho de `globalSetup` | Criterio "cero refrescos" (V3/C) |
+|---|---|---|
+| **Falla hacia** | rojo | rojo |
+| **Con el sistema SANO, dispara** | **una vez, y paró la medida** | **en cada corrida** (34 refrescos, todos correctos) |
+| **Resultado** | **control útil** | **mobiliario**: rojo permanente que nadie miraría |
+
+**68.1 — Test antes de aceptar un control impreciso:** ***"con el sistema sano, ¿cuántas veces
+grita?"*** Cero o casi cero → **la imprecisión es aceptable y cae del lado bueno**. En cada corrida →
+**no es un guardián ancho: es la 46 en camino.**
+
+**68.2 — Un criterio de aceptación puede quedar insatisfecho con la cosa BIEN.** T2 retiró su V3/C:
+*"exigir cero refrescos habría sido exigir que Convex Auth no hiciera su trabajo."* Es **el reverso
+del criterio satisfecho con la cosa rota**, y **el menos caro de los dos, por el motivo contrario:
+un rojo se investiga, un verde no lo mira nadie.**
+⚠️ **Pero un criterio aprobado en planificación que se retira en silencio deja al que lo aprobó
+creyendo que sigue vigente. Se declara** — punto 4 del formato del export.
 
 ### Un control nuevo se estrena con el estado ya conciliado (decisión 46, 2026-09-08)
 
