@@ -86,6 +86,11 @@ export function PushSubscriptionSync() {
           }
         } catch {
           // Silencioso — vigía en segundo plano, ver comentario de arriba.
+          // El silencio aquí es una DECISIÓN, no un olvido: nadie lanzó esto
+          // y nadie espera su resultado. Criterio en docs/01-arquitectura.md
+          // §6, ADR "Cuándo un fallo tiene que decírselo al usuario"
+          // (AIT-112) — que además prohíbe expresamente "arreglarlo"
+          // haciendo que este catch avise.
         }
       }
       void unlinkLocally();
@@ -105,7 +110,9 @@ export function PushSubscriptionSync() {
         await syncSubscription(existing);
         if (!cancelled) lastSyncedEmail.current = email ?? null;
       } catch {
-        // Silencioso — ver comentario de arriba.
+        // Silencioso — ver comentario de arriba, y el criterio en
+        // docs/01-arquitectura.md §6, ADR "Cuándo un fallo tiene que
+        // decírselo al usuario" (AIT-112).
       }
     }
     void sync();

@@ -40,6 +40,22 @@ const DEMO_ACCOUNTS = [
 // desde Ajustes ANTES de que esa persona inicie sesión
 // (convex/auth.ts:createOrUpdateUser rechaza cualquier email sin fila
 // previa en `users` — no hay alta automática).
+// AIT-112: los dos motivos por los que el acceso con Google puede quedarse a
+// medias. Van juntos y con nombre porque el aviso es UNO SOLO (ver
+// `googleNotice` más abajo): tenerlos aquí deja la copia en un sitio y el
+// JSX leyéndose como "pinta el aviso".
+//
+// Ninguno menciona "entra con tu email y contraseña", que sería el consejo
+// obvio teniendo el formulario tres centímetros más abajo: las cuentas
+// reales del negocio son SOLO GOOGLE, sin contraseña (ADR-003 en
+// docs/01-arquitectura.md), así que sería mandar a un callejón sin salida
+// justo a quien más probabilidades tiene de ver este error.
+const GOOGLE_VUELTA_RECHAZADA =
+  "No se ha podido completar el inicio de sesión con Google. Si crees que " +
+  "deberías tener acceso, contacta con la dueña de tu empresa.";
+const GOOGLE_NO_ARRANCO =
+  "No se ha podido iniciar el acceso con Google. Inténtalo de nuevo.";
+
 function GoogleLogo() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -75,6 +91,9 @@ export default function LoginPage() {
   const [credError, setCredError] = useState("");
   const [loading, setLoading] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [googleStartError, setGoogleStartError] = useState<string | null>(
+    null,
+  );
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   // Una sola vía de redirección tras autenticarse, para las dos formas de
@@ -143,8 +162,11 @@ export default function LoginPage() {
   // Lectura directa de window.location durante el render (no en estado +
   // efecto): en el primer render de cliente `isLoading` de useConvexAuth
   // todavía es `true` (igual que en servidor, donde `window` ni existe),
-  // así que showGoogleBlockedMessage sale `false` en los dos — sin eso
-  // habría un desajuste de hidratación entre servidor y cliente. Mismo
+  // así que la rama de "vuelta rechazada" de `googleNotice` sale `null` en
+  // los dos — sin eso habría un desajuste de hidratación entre servidor y
+  // cliente. (AIT-112 no lo cambia: `googleStartError` nace `null`, así que
+  // el aviso entero sigue saliendo `null` en el primer render de los dos
+  // lados.) Mismo
   // patrón de lectura que usa el propio cliente de @convex-dev/auth para
   // el "code" de OAuth.
   //
@@ -158,10 +180,35 @@ export default function LoginPage() {
   const oauthAttempted =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("oauth") === "1";
-  const showGoogleBlockedMessage =
-    oauthAttempted && !isLoading && !isAuthenticated;
+
+  // AIT-112: UN SOLO aviso para el acceso con Google, con sus DOS causas
+  // enumeradas aquí y en ningún otro sitio. Si aparece una tercera, este es
+  // su hueco.
+  //
+  // Que sea un hueco y no dos bloques es lo que garantiza que no se pisen, y
+  // no es teoría: las dos causas COEXISTEN de verdad. Al volver rechazado, la
+  // URL se queda con `?oauth=1` y nadie la limpia; si se vuelve a pulsar el
+  // botón y esta vez falla al arrancar, las dos condiciones son ciertas a la
+  // vez. Con dos bloques habría que acordarse de excluirlos mutuamente; con
+  // uno, no hay dos sitios donde mostrarse.
+  //
+  // El nombre es `googleNotice` y no `showGoogleBlockedMessage` a propósito:
+  // nombra el HUECO, no una causa. El nombre anterior nombraba una causa y
+  // cubría un caso, que es lo que hizo que el fallo al arrancar pareciera
+  // cubierto durante meses.
+  //
+  // Gana el fallo al arrancar: es lo que la persona acaba de hacer y está
+  // esperando; el de la vuelta describe un intento anterior ya terminado.
+  const googleNotice =
+    googleStartError ??
+    (oauthAttempted && !isLoading && !isAuthenticated
+      ? GOOGLE_VUELTA_RECHAZADA
+      : null);
 
   async function handleGoogleSignIn() {
+    // Primero, y no al final: si no, un fallo anterior seguiría en pantalla
+    // mientras el botón dice "Redirigiendo…".
+    setGoogleStartError(null);
     setStarting(true);
     try {
       await signIn("google", { redirectTo: "/login?oauth=1" });
@@ -169,6 +216,12 @@ export default function LoginPage() {
       if (process.env.NODE_ENV !== "production") {
         console.error("Fallo iniciando el flujo de Google:", err);
       }
+      // AIT-112: hasta aquí solo se apagaba el spinner. El botón volvía a su
+      // estado normal y no aparecía nada — y en producción ni siquiera el
+      // console.error de arriba. Mensaje genérico, nunca `err.message`
+      // (regla del proyecto desde la ronda 1 de AIT-10): esa cadena trae el
+      // nombre interno de la función y el Request ID.
+      setGoogleStartError(GOOGLE_NO_ARRANCO);
       setStarting(false);
     }
   }
@@ -236,17 +289,13 @@ export default function LoginPage() {
             Entra para ver tu pipeline y los seguimientos de hoy.
           </p>
 
-          {showGoogleBlockedMessage && (
+          {googleNotice && (
             <div
               role="alert"
               className="mb-4 flex items-start gap-2 rounded-md bg-error-subtle p-3 text-sm text-error"
             >
               <AlertCircle size={16} className="mt-0.5 shrink-0" />
-              <span>
-                No se ha podido completar el inicio de sesión con Google. Si
-                crees que deberías tener acceso, contacta con la dueña de tu
-                empresa.
-              </span>
+              <span>{googleNotice}</span>
             </div>
           )}
 

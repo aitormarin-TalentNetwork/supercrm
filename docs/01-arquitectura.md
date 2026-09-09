@@ -435,6 +435,47 @@ perder lo que estaba escribiendo.
 
 **Estado:** 🟡 en curso (AIT-83).
 
+### ADR-0xx · Cuándo un fallo tiene que decírselo al usuario — 2026-09-09 (AIT-112)
+
+> **Sin número, como los dos ADR anteriores.** §6 arrastra dos `ADR-0xx` sin numerar;
+> inventar aquí un número que luego choque sería peor que dejarlo pendiente con ellos.
+> La renumeración de los tres va aparte.
+
+**Contexto:** al inventariar los manejadores de error de la interfaz (AIT-94) aparecieron
+dos `catch` deliberadamente silenciosos en `components/push/PushSubscriptionSync.tsx`. El
+auditor aceptó excluirlos, pero señaló lo que faltaba: **el criterio de exclusión no
+estaba escrito en ninguna parte**, así que el siguiente inventario volvería a discutir los
+mismos dos ficheros desde cero. Este ADR existe para que esa discusión no se repita.
+
+**Decisión:**
+
+> Un `catch` que sigue a **una acción que el usuario acaba de iniciar** tiene que avisar.
+> Un `catch` en **un proceso de fondo que el usuario no ha pedido**, no.
+
+La frontera no es "es de push" ni "está dentro de un `useEffect`": es **si hay gesto y hay
+espera**. Alguien que pulsa un botón y aguarda el resultado tiene derecho a saber que no
+salió; avisar de algo que no ha pedido —y que ni sabe que existe— es ruido, y el ruido
+entrena a ignorar los avisos que sí importan.
+
+**Consecuencias, con los casos reales que la motivaron:**
+- `components/push/PushSubscriptionSync.tsx` (dos `catch`) — **excluidos**. Es un vigía en
+  segundo plano: nadie lo lanzó y nadie espera su resultado.
+- `components/push/PushNotificationsSection.tsx:handleEnable` — **avisa, y debe**: ahí el
+  usuario pulsó un interruptor. Mismo fichero de dominio, lado distinto de la frontera.
+- `app/oportunidades/[id]/page.tsx` (AIT-94) y `app/login/page.tsx` (AIT-112) — eran los
+  dos incumplimientos reales; los dos arreglados.
+
+🚫 **Lo que este ADR NO autoriza:** resolver un inventario haciendo que los `catch` del
+vigía de fondo también avisen. Eso cumple la letra y rompe el motivo.
+
+**Nota de método para el próximo inventario:** clasificar por heurística de nombres falla
+en las dos direcciones, medido en AIT-94. `setStarting(false)`/`setLoading(false)` parecen
+avisos y solo apagan un spinner; `setStatus("unsupported")` no lo parece y sí avisa (se
+renderiza como "No disponibles en este navegador"). Y `catch {` sin binding no lo encuentra
+un patrón que busque `catch (`. **El script enumera; la clasificación se adjudica a mano.**
+
+**Estado:** 🟢 Cerrada.
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:
