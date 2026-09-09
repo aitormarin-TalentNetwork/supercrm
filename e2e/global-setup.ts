@@ -1,8 +1,12 @@
-import { chromium, type FullConfig } from "@playwright/test";
+import { chromium } from "@playwright/test";
 import {
   BASE_ORIGIN,
+  capturarEstadoRodado,
+  COOKIE_JWT,
+  COOKIE_REFRESH,
   DEMO_ACCOUNT_LABEL,
   HOME_BY_ROLE,
+  refreshTokenOf,
   ROLES,
   type Role,
   type StorageState,
@@ -43,21 +47,24 @@ async function autenticarRol(role: Role): Promise<StorageState> {
     await pagina.getByRole("button", { name: "Entrar" }).click();
     await pagina.waitForURL(`**${HOME_BY_ROLE[role]}`);
 
-    const estado = (await contexto.storageState()) as StorageState;
+    // Capturar AQUÍ MISMO guardaría un token que esta misma página consume
+    // ~850 ms después, al forzar su primer refresco. El primer test heredaría
+    // un token ya usado: dentro de la ventana de 10 s pasaría, y fuera de ella
+    // mataría la sesión. Se espera a la rotación y se guarda el token vigente.
+    const inicial = (await contexto.storageState()) as StorageState;
+    const estado = await capturarEstadoRodado(contexto, refreshTokenOf(inicial));
 
-    // Control de que la instantánea sirve para algo ANTES de guardarla. Un
-    // storageState sin el origen de la app compila, se escribe y se lee sin
-    // error, y lo único que hace es que 26 tests se estrellen contra /login
-    // treinta segundos más tarde cada uno.
-    const origen = estado.origins.find((o) => o.origin === BASE_ORIGIN);
-    if (!origen || origen.localStorage.length === 0) {
-      throw new Error(
-        `la instantánea de "${role}" no trae el localStorage de ${BASE_ORIGIN}. ` +
-          `Orígenes capturados: ${estado.origins.map((o) => o.origin).join(", ") || "(ninguno)"}.`,
-      );
-    }
-    if (estado.cookies.length === 0) {
-      throw new Error(`la instantánea de "${role}" no trae ninguna cookie.`);
+    // Control de que la instantánea sirve para algo ANTES de guardarla: sin
+    // esto, un storageState vacío se escribe y se lee sin error, y lo único que
+    // pasa es que 26 tests se estrellan contra /login treinta segundos más
+    // tarde cada uno.
+    for (const cookie of [COOKIE_JWT, COOKIE_REFRESH]) {
+      if (!estado.cookies.some((c) => c.name === cookie)) {
+        throw new Error(
+          `la instantánea de "${role}" no trae la cookie ${cookie}. ` +
+            `Cookies capturadas: ${estado.cookies.map((c) => c.name).join(", ") || "(ninguna)"}.`,
+        );
+      }
     }
 
     await contexto.close();
@@ -67,7 +74,7 @@ async function autenticarRol(role: Role): Promise<StorageState> {
   }
 }
 
-async function globalSetup(_config: FullConfig): Promise<void> {
+async function globalSetup(): Promise<void> {
   // PASO AIT-95 (pendiente): comprobar aquí que el backend está desplegado.
   // PASO AIT-103 (pendiente): comprobar aquí el estado del limitador.
 

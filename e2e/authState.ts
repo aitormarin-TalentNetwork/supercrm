@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { BrowserContext } from "@playwright/test";
 import { E2E_PORT } from "../playwright.config";
 
 // AIT-108 · EL CONTRATO DE LA INSTANTÁNEA DE SESIÓN
@@ -78,6 +79,59 @@ export function writeStateAtomically(role: Role, state: StorageState): void {
   const temporal = `${destino}.${process.pid}.tmp`;
   fs.writeFileSync(temporal, JSON.stringify(state, null, 2), { mode: 0o600 });
   fs.renameSync(temporal, destino);
+}
+
+/** Las dos cookies en las que vive la sesión. En este modo (Convex Auth con
+ *  Next.js) los tokens son httpOnly y los gestiona el servidor; el
+ *  localStorage solo guarda un marcador ("dummy") y la hora de la última
+ *  lectura del estado del servidor. Medido: sembrar SOLO las cookies autentica
+ *  igual que sembrar cookies + localStorage. */
+export const COOKIE_JWT = "__convexAuthJWT";
+export const COOKIE_REFRESH = "__convexAuthRefreshToken";
+
+export function refreshTokenOf(state: StorageState): string {
+  return state.cookies.find((c) => c.name === COOKIE_REFRESH)?.value ?? "";
+}
+
+/** *** EL NÚCLEO DE AIT-108, Y LA PARTE QUE NO ERA OBVIA ***
+ *
+ *  Convex Auth ROTA el refresh token: cada uso consume el actual y emite otro.
+ *  Un token consumido se puede reusar durante una ventana de 10 segundos
+ *  (`REFRESH_TOKEN_REUSE_WINDOW_MS` en
+ *  @convex-dev/auth/dist/server/implementation/refreshTokens.js) y, pasada esa
+ *  ventana, reusarlo INVALIDA EL SUBÁRBOL ENTERO de la sesión
+ *  (`invalidateRefreshTokensInSubtree`). No es una caducidad: es detección de
+ *  robo, y la víctima es la sesión completa.
+ *
+ *  Por eso una instantánea FIJA no vale: los tests van a unos 6 s uno de otro,
+ *  así que el primero rota, el segundo cae dentro de la ventana y el TERCERO la
+ *  mata. Medido exactamente así antes de escribir esto: pasan 2 contextos y
+ *  muere el 3.º — que es el mismo sitio donde se rompía la suite completa.
+ *
+ *  La instantánea RUEDA: cada uso guarda el token que acaba de emitirse, de
+ *  modo que el siguiente test consume el vigente y no reusa nada. Es lo que
+ *  hace un navegador normal; lo raro era pretender que un token fuese eterno.
+ *
+ *  La rotación tarda ~850 ms tras la primera navegación (medido, 6 de 6). Se
+ *  ESPERA a que ocurra en vez de suponer un tiempo: si no ocurre dentro del
+ *  presupuesto, es que el token no se consumió, y entonces guardar el estado
+ *  actual es exactamente lo correcto. Por eso esto no falla, converge.
+ *
+ *  Depende de `workers: 1` y `fullyParallel: false` (playwright.config.ts): con
+ *  tests en paralelo, dos contextos consumirían el mismo token y volveríamos al
+ *  problema de arriba. */
+export async function capturarEstadoRodado(
+  context: BrowserContext,
+  tokenPrevio: string,
+  presupuestoMs = 10_000,
+): Promise<StorageState> {
+  const hasta = Date.now() + presupuestoMs;
+  let estado = (await context.storageState()) as StorageState;
+  while (refreshTokenOf(estado) === tokenPrevio && Date.now() < hasta) {
+    await new Promise((r) => setTimeout(r, 200));
+    estado = (await context.storageState()) as StorageState;
+  }
+  return estado;
 }
 
 export function readState(role: Role): StorageState {

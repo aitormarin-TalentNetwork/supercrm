@@ -1,5 +1,12 @@
 import { Page, Locator, expect } from "@playwright/test";
-import { BASE_ORIGIN, HOME_BY_ROLE, readState, type Role } from "./authState";
+import {
+  capturarEstadoRodado,
+  HOME_BY_ROLE,
+  readState,
+  refreshTokenOf,
+  type Role,
+  writeStateAtomically,
+} from "./authState";
 
 /** AIT-108 — Siembra la sesión desde la instantánea que escribió
  * `e2e/global-setup.ts` y deja al usuario en su pantalla de arranque por rol.
@@ -16,33 +23,32 @@ import { BASE_ORIGIN, HOME_BY_ROLE, readState, type Role } from "./authState";
  * LO QUE SE COMPARTE ES UNA INSTANTÁNEA, NO UNA SESIÓN VIVA: se escribe una vez
  * en el global setup y a partir de ahí solo se lee.
  *
- * ⚠️ ALCANCE DE ESA AFIRMACIÓN, y conviene leerla entera: la instantánea puede
- * quedarse obsoleta por tres vías —que alguien la MUTE, que un contexto herede
- * el de otro, o que un test provoque un REFRESCO y Convex Auth rote el refresh
- * token—, y esas son las tres vías **alcanzables por los consumidores de hoy**,
- * no una enumeración universal. Convex Auth permite además invalidarla con
- * `signOut` o desactivando el usuario; ningún spec de hoy hace ninguna de las
- * dos. Si mañana alguien añade un test que cierre sesión, esta enumeración deja
- * de ser cierta sin que nada avise — por eso queda escrita como lo que es. */
+ * ⚠️ LA TERCERA VÍA NO ERA HIPOTÉTICA. De las tres por las que la instantánea
+ * puede quedarse obsoleta —que alguien la MUTE, que un contexto herede el de
+ * otro, o que un test provoque un REFRESCO y Convex Auth ROTE el token—, la
+ * tercera ocurre SIEMPRE, en cada test, y es lo que obliga a que la instantánea
+ * ruede. Y siguen siendo las tres vías **alcanzables por los consumidores de
+ * hoy**, no una enumeración universal: Convex Auth permite además invalidarla
+ * con `signOut` o desactivando el usuario, y ningún spec de hoy hace ninguna de
+ * las dos. Si mañana alguien añade un test que cierre sesión, esta enumeración
+ * deja de ser cierta sin que nada avise — por eso queda escrita como lo que es.
+ *
+ * ⚠️ ESTO EXIGE `workers: 1` Y `fullyParallel: false` (playwright.config.ts).
+ * Ya estaban por otra razón —los tests escriben datos reales en el mismo
+ * deployment—, pero desde AIT-108 no son una elección: son un REQUISITO DE
+ * CORRECCIÓN. Con tests en paralelo, dos contextos consumirían el mismo refresh
+ * token, el segundo lo reusaría fuera de la ventana de 10 s y la sesión moriría
+ * para todos. Si algún día se paraleliza la suite, hay que dar una sesión por
+ * worker ANTES de subir `workers`. */
 export async function loginAs(page: Page, role: Role) {
   const estado = readState(role);
   const contexto = page.context();
 
+  // Solo cookies. En este modo el localStorage guarda un marcador ("dummy") y
+  // una marca de tiempo, no la sesión; sembrarlo con `addInitScript` además la
+  // reescribiría en CADA navegación del test, pisando lo que el cliente hubiera
+  // actualizado. Medido: sembrar solo cookies autentica igual.
   await contexto.addCookies(estado.cookies);
-
-  const origen = estado.origins.find((o) => o.origin === BASE_ORIGIN);
-  if (!origen) {
-    throw new Error(
-      `[e2e] la instantánea de "${role}" no tiene localStorage para ${BASE_ORIGIN}. ` +
-        `Orígenes: ${estado.origins.map((o) => o.origin).join(", ") || "(ninguno)"}.`,
-    );
-  }
-  // `addInitScript` corre ANTES del JS de la página en cada navegación, que es
-  // el único momento en que sirve: Convex Auth lee su sesión de localStorage al
-  // arrancar, así que escribirla después de cargar llega tarde.
-  await contexto.addInitScript((entradas: Array<{ name: string; value: string }>) => {
-    for (const { name, value } of entradas) window.localStorage.setItem(name, value);
-  }, origen.localStorage);
 
   await page.goto(HOME_BY_ROLE[role]);
 
@@ -57,6 +63,17 @@ export async function loginAs(page: Page, role: Role) {
   }
 
   await page.waitForURL(`**${HOME_BY_ROLE[role]}`);
+
+  // LA INSTANTÁNEA RUEDA (ver `capturarEstadoRodado` en authState.ts): este
+  // test acaba de consumir el refresh token y el servidor ya emitió el
+  // siguiente. Se guarda para que el test que venga consuma el vigente en vez
+  // de reusar uno muerto — que pasados 10 s no da un error de sesión, sino que
+  // INVALIDA LA SESIÓN ENTERA. Sin esta línea la suite pasa 3 tests y luego
+  // cae en bloque; medido: 22 rojos de 54.
+  writeStateAtomically(
+    role,
+    await capturarEstadoRodado(contexto, refreshTokenOf(estado)),
+  );
 }
 
 /** Nombre de cliente único por ejecución, para no colisionar entre corridas
