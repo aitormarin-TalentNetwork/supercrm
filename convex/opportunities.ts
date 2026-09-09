@@ -821,6 +821,15 @@ export const reopen = mutation({
     // reescribir eso.
     // Sin índice `by_opportunity` en `repurchaseReminders` — mismo patrón que
     // `remove` más abajo: se consulta por cliente y se filtra en memoria.
+    //
+    // ⚠️ EL FILTRO POR `opportunityId` ES LO ÚNICO QUE ACOTA EL RADIO. Como el
+    // índice es `by_customer`, esta consulta trae los recordatorios de TODAS
+    // las oportunidades ganadas de ese cliente: sin ese filtro —o mal
+    // escrito— aquí se borrarían los de las demás. El radio de un fallo en
+    // esta línea no es esta oportunidad, es el cliente entero, y se vería
+    // meses después en Reactivar, sin nada que lo conecte con el botón que se
+    // pulsó. Verificado con un cliente de dos ventas ganadas: reabrir una
+    // deja intacto el recordatorio de la otra.
     const reminders = (
       await ctx.db
         .query("repurchaseReminders")
