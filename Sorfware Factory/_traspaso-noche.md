@@ -670,6 +670,44 @@ sobre un texto que no leí entero.*
 > **Quien pueda leer ese blob ya tiene acceso a tu disco — y con eso no necesita el token.** Lo que
 > concede es un deployment **de dev con dos usuarios de demo**. **El acceso necesario para
 > obtenerlo es estrictamente más potente que el que otorga.** Cerrarlo no cierra nada real.
+
+🔴 **ESE ARGUMENTO SE CAYÓ A LAS ~06:20, Y CON ÉL TODO LO QUE HAY ESCRITO ARRIBA SOBRE "NUNCA SALIÓ
+DEL DISCO". LO VERIFIQUÉ YO:**
+
+```
+16777234:248240311   .git                                  (la ruta por la que trabajamos)
+16777234:248240311   ~/Library/Mobile Documents/com~apple~CloudDocs/Documents/.../.git
+```
+
+**Mismo device, mismo inodo: es la MISMA carpeta por dos rutas, y una de ellas es la raíz de
+sincronización de iCloud.** Lo levantó T2, lo verificó la Directora, y lo he vuelto a medir yo.
+**El repositorio entero, `.git` incluido, está dentro del ámbito de sincronización.** Todas las
+mediciones de radio de esta noche —las mías y las suyas— **contestaban a "¿salió por `git`?" y la
+puerta era otra.**
+⚠️ **Separando lo comprobado de lo no comprobado, que es lo único honesto aquí:** **VERIFICADO**
+que está en el ámbito de sincronización. **NO VERIFICADO** que Apple lo haya subido de hecho —
+eso no se consulta sin tocar tus ajustes, y **nadie los ha tocado**.
+📌 **Lo que NO cambia, y por eso no te hemos despertado:** quien entre por iCloud tiene **todos tus
+documentos**, incomparablemente más que una sesión de un Convex de dev con dos usuarios de demo.
+**El riesgo sigue siendo bajo. Lo que ya no es cierto es que fuera nulo.** Y **`git gc` ya no lo
+arregla del todo**: propaga un borrado local, no deshace lo que se haya subido.
+
+🔻 **Y esto tumba también la corrección que yo había aceptado sobre `CLAUDE.md`, así que la
+retiro.** Escribí que la regla de secretos no aplicaba **porque esto no había viajado**. **Viajó.**
+La distinción era buena y el hecho que le pusimos debajo era falso — **el mismo error espejo que yo
+mismo diagnostiqué dos horas antes: una razón buena a la que le pegan un dato falso y se hunden
+juntas.** *Mi instinto inicial de tratarlo como secreto expuesto estaba más cerca que la lectura
+fina que lo sustituyó.*
+
+🔴 **Y LO QUE DE VERDAD IMPORTA ES MAYOR QUE LOS TOKENS: iCloud NO LEE `.gitignore`.** Medido por
+mí, solo nombres y tamaños, sin abrir ninguno:
+```
+.env.local  x5   (raíz · T1 · T2 · T3 · QA)   — los cinco IGNORADOS por git (.gitignore:37)
+```
+**Las dos capas que montamos anoche —`.gitignore` e `info/exclude`— eran IRRELEVANTES para esta
+puerta.** Protegen contra entrar en un commit; **ninguna toca la sincronización.** Y esto
+reencuadra media noche: la cuarentena de duplicados, los `" 2"` de macOS, el `tsc` en rojo desde el
+20 de agosto — **eran síntomas de esto, no incidentes sueltos.**
 *Ése era mi argumento original —"el commit no añadió superficie, un `cat` ya las leía"— y era
 correcto desde el principio. Lo que se tambaleó fue el añadido falso de que además estaban
 inertes, no el razonamiento.*
