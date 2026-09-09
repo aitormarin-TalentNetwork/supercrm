@@ -910,22 +910,11 @@ bajo presión de memoria.*
 de máquina. En esta máquina, hoy, NO SE PUEDE.** Eso va escrito, **no se deja como si siguiera
 ahí** — que es justo lo que la 78 vino a impedir.
 
-*(Histórico, por si vuelve a haber vigía: se leía de un fichero, no de un mensaje.)*
-
-```bash
-cat /tmp/fa-vigilante-estado.txt
-  # escrito 2026-09-09 11:03:07 UTC (si esta marca tiene mas de 4 min, el vigia NO corre) | workers: T1=0min T2=0min T3=0min
-stat -f '%Sm' -t '%H:%M:%S' /tmp/fa-vigilante-estado.txt
-```
-**El ciclo es de 120 s: si el fichero tiene más de 4 minutos, el vigía NO está corriendo.** Lo
-compruebas **tú solo**, con la fábrica dormida o con el Factory Architect ocupado.
-✅ **Y fíjate en que la condición viaja DENTRO del propio fichero**, así que no depende de que
-recuerdes este umbral ni de que él esté para contártelo. *Si el ciclo vuelve a cambiar, el fichero
-lo dirá antes que este documento.*
-⚠️ **El umbral tiene que seguir al ciclo:** el vigía pasó de 60 s a 120 s **y este documento se
-quedó en 3 minutos** — un fichero legítimo de ~2 min habría dado *"muerto"* bajo carga. **Falla
-hacia el rojo: molesto, no peligroso, pero es un control que grita en falso, y ya sabemos cómo
-acaban.**
+*(Histórico, por si algún día vuelve a haber vigía: **se leía de un fichero y no de un mensaje**,
+y **el fichero llevaba su condición de caducidad dentro**, así que no dependía de que el CEO
+recordara el umbral. Esas dos propiedades sí merecen sobrevivir. **Los comandos NO se conservan
+aquí a propósito: un bloque ejecutable debajo de un aviso de retirada se copia sin leer la
+cabecera** — que es exactamente el fallo que este documento lleva todo el día catalogando.)*
 
 ⚠️ **La pregunta NO es "¿ha latido?" — es "¿EXISTE un vigilante Y está corriendo?"**
 > **Ausencia-por-muerte y ausencia-por-inexistencia se ven exactamente igual, y se arreglan
