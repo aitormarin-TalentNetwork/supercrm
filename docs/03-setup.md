@@ -256,6 +256,25 @@ npx convex env set AUTH_GOOGLE_SECRET <client-secret>
 
 No hace falta nada en `.env.local`: el intercambio OAuth entero (redirect, callback, token) vive en el deployment de Convex, nunca en el navegador ni en el frontend.
 
+**Google es la ÚNICA forma de entrar para las cuentas reales del negocio, y es una
+decisión tomada** (Aitor, 2026-09-09, AIT-113). `admin@talent-network.org` y
+`aitor.marin@talent-network.org` **no tienen contraseña** — su alta se hace sin ella
+(ADR-003) — así que:
+
+- **Si el login con Google falla, esas dos cuentas no entran.** No hay segunda vía.
+- **"¿Olvidaste la contraseña?" tampoco sirve**: no hay credencial que recuperar, así que
+  el reseteo falla por el mismo motivo que el login.
+- `marta@supercrm.es` y `carlos@supercrm.es` **sí** tienen contraseña, pero son cuentas
+  **de prueba**: que funcionen no da acceso a nadie del negocio.
+
+**Por qué se acepta**: el Workspace lo administra Aitor, una caída de Google es rara y
+pasajera, y **la alternativa abre una puerta que hoy no existe** — dar contraseña a la
+cuenta `owner` del CRM la vuelve atacable por contraseña, y ese riesgo está encendido
+siempre, mientras que el que cubriría solo aparece si Google se cae.
+
+**Esto NO es un descuido pendiente de arreglar.** Si alguien propone dar contraseña a esas
+cuentas, esta es la decisión que tiene que reabrir, no un hueco que tapar.
+
 **Alta de cuentas Google — lista blanca, no registro público:** una cuenta de Google, por sí sola, nunca entra — `convex/auth.ts:createOrUpdateUser` rechaza cualquier email sin una fila previa en `users` (mensaje: *"La cuenta de Google … no tiene acceso"*). El alta real la hace la dueña desde Ajustes (`convex/users.ts:createUser`, sin contraseña — solo aplica a cuentas Google, ver ADR-003), o el bootstrap inicial de las 2 cuentas reales del negocio:
 
 ```bash
