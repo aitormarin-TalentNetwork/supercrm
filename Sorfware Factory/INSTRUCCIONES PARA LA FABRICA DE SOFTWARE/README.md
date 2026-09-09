@@ -343,6 +343,23 @@ mensaje. *(Se descartó explícitamente meterlo en `AGENTS.md`: la puerta previa
 todo lo que hay a su alrededor es ejecutable, y una palmada entre reglas cambia cómo se lee
 el resto del documento.)*
 
+**Cuando la 42 se automatice — aviso pagado ya, 2026-09-08.** La comprobación manual de la
+cabecera dio un **falso negativo** sobre un export de T1: decía "falta" y la línea estaba
+ahí, solo que **alineada con espacios**. Fue la tercera vez ese día que un filtro rígido no
+encontró algo que sí estaba.
+
+> En un censo un falso negativo es ruido. **En una PUERTA es fatal: un gate que dice "falta"
+> cuando está presente acaba siendo ignorado** — decisión 46 exacta, un control que grita en
+> falso se desactiva mentalmente en el segundo ciclo.
+
+Así que el patrón que la automatice **tolera variación benigna** —espacios, mayúsculas,
+orden de los campos— y **falla solo cuando el dato no está**.
+
+**Y la 42 ya se ha ganado el sitio:** la noche que se escribió, **ninguno de los tres exports
+la traía de serie** y los cuatro veredictos de la hora siguiente declaraban la pareja
+completa. Costó dos avisos y **cero rondas** — que es justo por qué tenía que ser una puerta
+y no una costumbre.
+
 ## 2quater. Procedimiento de adopción de skills (2026-09-05)
 
 Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
@@ -773,6 +790,10 @@ Decisión del Factory Architect, ejecutada por el CEO. Es **la otra mitad de §2
 > §2ter cubre al agente que **sabe** que no pudo verificar algo, y le exige declararlo.
 > §2sexies cubre al agente que **cree que sí verificó** porque la herramienta le devolvió
 > verde. La buena fe no protege del segundo.
+
+> **Y la razón por la que todo esto se escribe, en palabras de T3 (2026-09-08):**
+>
+> ### **"Los criterios escritos no protegen del error: protegen de uno mismo cuando el error saldría gratis."**
 
 **Regla de diseño, que es la parte accionable: cuando una comprobación pueda mentir en
 verde, se verifica el EFECTO, no el código de retorno ni la ausencia de error.** "No
@@ -1486,6 +1507,52 @@ checkout**. `.gitignore` es la red y el scratchpad la disciplina; **ninguno toca
 Queda escrito como el problema estructural que es, para que no se disuelva en tres parches.
 
 ---
+
+## 2nonies. La tarea de barrido es otra especie (decisión 48, 2026-09-08)
+
+Decisión del Factory Architect. Nace de AIT-85 —"reconciliar diseño y código"—, que **entró
+como limpieza de prioridad baja y salió con tres issues, dos de ellas MVP de prioridad alta,
+ninguna que nadie estuviera buscando**. Y el caso es reproducible: cualquier *"revisa todo X
+y dime qué encuentras"* se va a comportar igual.
+
+**48.1 — Se nombran y se distinguen: tarea de barrido.** La propiedad que las separa de todo
+lo demás es una sola: **su alcance no se conoce hasta que se ejecuta.** Las tres consecuencias
+de abajo no son excepciones que se le conceden — son su forma normal.
+
+**48.2 — Su plan es sobre el MÉTODO, y eso es correcto, no un defecto.** Las tres rondas de
+auditoría del plan de AIT-85 fueron sobre *cómo barrer*, porque el resultado no existía
+todavía. Queda declarado para que el siguiente que vea tres rondas sobre un plan sin resultado
+no piense que algo va mal: **en una tarea de barrido el método es la única palanca de calidad
+que hay**, así que auditarlo a fondo no es exceso, es lo único auditable.
+
+**48.3 — Un barrido encuentra; no arregla.** Su entregable son **issues**, nunca el cambio. Si
+además arreglara, arrastraría un alcance de corrección tan ilimitado como el de búsqueda, y
+ninguna de las dos mitades sería auditable en sus propios términos. Cada hallazgo sale como
+issue y entra por el pipeline normal.
+
+**48.4 — Y esto es lo que lo hace planificable: se acota por ESFUERZO, no por alcance.** Como
+el alcance es desconocido, lo que se fija es **cuánto** se barre. Y su entregable lleva
+obligatoriamente la **frontera de cobertura: qué se barrió y qué no se llegó a mirar.**
+
+> Sin eso, **un barrido parcial se lee como completo** — que es el fallo del día en su forma
+> más cara: *una copia incompleta no se contradice con nada*. Un informe que dice "encontré
+> tres" sin decir "de estas diez pantallas miré cuatro" **invita a dar el asunto por
+> cerrado**. Es §2ter(b) aplicado a una tarea entera: se declara lo que no se cubrió.
+
+**48.5 — No se usa nunca como relleno.** Y la razón general, que va más allá de este caso:
+**lo que no se puede dimensionar no puede tapar un hueco.** El relleno tiene que ser acotado
+por definición; un barrido es exactamente lo contrario.
+
+### «Cubierto» sin nombrar por dónde es «no lo he mirado» (criterio de T3, adoptado 2026-09-08)
+
+> **"Cubierto por otra vía" exige poder señalar la vía.**
+
+Va **enlazado** con el hallazgo del PM en Supervisión —*"cubierto por el filtro"* frente a
+*"decidido que no se construye"*—, porque es el mismo fallo y separarlos lo esconde: sin
+nombrar la vía, **"cubierto" es un sinónimo educado de "no lo he mirado"**.
+
+Su virtud es que **el atajo se cae solo**: no hay que resistir ninguna tentación, es que al
+intentar nombrar la vía descubres que no existe. Por eso es un criterio y no una advertencia.
 
 ## 3. Reglas que la sesión directora tiene que respetar
 
