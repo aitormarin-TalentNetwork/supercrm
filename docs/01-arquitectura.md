@@ -476,6 +476,55 @@ un patrón que busque `catch (`. **El script enumera; la clasificación se adjud
 
 **Estado:** 🟢 Cerrada.
 
+### ADR-0xx · Qué puede decirle al usuario un error del servidor — 2026-09-09 (AIT-111)
+
+> Sin número, como los `ADR-0xx` anteriores de esta sección: inventar aquí uno que luego
+> choque es peor que dejarlo pendiente con ellos. La renumeración de todos va aparte.
+
+**Contexto:** el proyecto ya resolvía esto en cuatro sitios sin haberlo escrito nunca.
+Cuatro funciones `describe*Error` (dos en `components/auth/PasswordResetDialog.tsx`, una en
+`app/ajustes/page.tsx`, una en `app/oportunidades/[id]/page.tsx`) **leen** `err.message` y
+ninguna lo **devuelve**. Enfrente, los dos diálogos de borrado de AIT-65 lo pasaban tal
+cual — lo que AIT-94 declara como criterio de FALLA. Con la regla sin escribir, quien leía
+el código concluía que estaba bien y quien leía AIT-94 concluía que había dos infracciones,
+y nadie tenía dónde comprobarlo.
+
+**Decisión:**
+
+> `err.message` se puede **leer** para clasificar; no se puede **devolver**. Lo que se le
+> enseña al usuario tiene que estar acotado por algo que declara el cliente.
+
+Tres formas legítimas, las tres ya en uso:
+
+- **constante del cliente** — se compara contra un marcador y se devuelve una frase escrita
+  a mano (`describeResetRequestError`);
+- **lista blanca del cliente** — `KNOWN_..._ERRORS.find((m) => err.message.includes(m))` y
+  se devuelve *la cadena de la lista* (`describeCreateUserError`);
+- **trozo acotado por un patrón del cliente** — `err.message.match(RE)` y se devuelve solo
+  lo que el regex delimita (`describeQuoteError`).
+
+**Lo que NO autoriza:** devolver `err.message` porque *parezca* escrito para el usuario. No
+hay forma de distinguirlo de uno que se escapó, y los que se escapan traen cosas como éstas,
+medidas en este proyecto el mismo día: `[CONVEX M(opportunities:reopen)] [Request ID:
+8034d31a…]` (nombre interno de la función y un identificador de petición) y `Provider 'x' is
+not configured, available providers are 'password', 'google'` (la lista de proveedores de
+autenticación configurados).
+
+**Si hace falta que el servidor diga algo concreto que el cliente no puede anticipar**, eso
+es `ConvexError` — que hoy **no se usa en ningún sitio del proyecto**. Estrenarlo es una
+decisión aparte, no una consecuencia de este ADR.
+
+**Cómo se comprueba** (expectativa negativa, así que se cuenta, no se mira):
+
+```bash
+node scripts/check-error-message-leaks.mjs    # 0 = limpio, 1 = hay fugas
+```
+
+Ese script declara su propio alcance: detecta el patrón directo `setAlgoError(… err.message
+…)` y no el que pasa por una variable intermedia. **Enumera; no decide.**
+
+**Estado:** 🟢 Cerrada.
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:
