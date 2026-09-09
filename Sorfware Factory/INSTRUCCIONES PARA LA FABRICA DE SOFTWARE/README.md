@@ -2462,53 +2462,50 @@ los errores pasaron de 5 a 18**.
 **Y la precondición no estaba escrita en ninguna parte** — por eso el precedente parecía general
 cuando era específico.
 
-### Decisión 71 — El crudo viaja con la conclusión (2026-09-09)
+### Decisión 71 — Una medición se enuncia con su MÉTODO, no solo con su resultado (2026-09-09)
 
-**No sale de un razonamiento: sale de contar cómo se cazó cada error de la noche.** De los **seis**
-que se destaparon en dos horas, **ninguno lo cazó una regla recordada** — y en dos de los seis **la
-regla estaba escrita y no saltó**:
+> ### **Una línea: el comando, el patrón, el filtro. No la salida entera.**
 
-| Error | Qué lo cazó |
-|---|---|
-| `tsc \| head` devolviendo el `EXIT` de `head` | que el 0 **no cuadraba con los errores en pantalla** |
-| Un histograma de sufijos, dos versiones dando basura *(la segunda, limpia y creíble)* | que **contradecía un `package 5.json` visto antes** |
-| "3 ficheros en T3" contra "6" | que **los dos números no coincidían** |
-| 18 errores atribuidos a un `.next/` inconsistente | que **alguien dijo que estaba moviendo ficheros** |
-| Una procedencia inventada | **el registro literal del mensaje anterior** |
-| `tsc` en rojo desde el 20 de agosto | que se **citó de pasada, para ilustrar otra cosa** |
+**Nació como *"el crudo viaja con la conclusión"* y se retiró entera** — el Factory Architect
+generalizó mal desde evidencia buena y lo dijo así al retirarla. **La evidencia sigue siendo la
+mejor de la noche**: de los **seis** errores destapados en dos horas, **ninguno lo cazó una regla
+recordada**, y **seis de seis** los cazó **una contradicción con un dato que ya estaba delante**.
 
-> ### **Seis de seis por contradicción con un dato que ya estaba delante. Cero por disciplina.**
+⚠️ **Pero solo UNO de los seis era de mensajería, y al mirarlo de cerca no lo resolvió el crudo:**
+el *"3 duplicados en T3"* contra *"6"* se resolvió **porque el mensaje decía qué patrón se había
+buscado** —`find -name "* 2.*"`—. **Con "3 duplicados" a secas habría habido dos números y nada
+con qué decidir.** *El dato que lo resolvió fue el método, no la salida.*
+
+**Y por eso esta versión es más barata que las dos anteriores:** **no alarga nada** —media línea—
+y **caza antes de enviar**: escribir *"medí `* 2.*`"* **pone la limitación delante de quien la
+escribe**, no solo de quien la lee. *(Los sufijos reales eran `" 2"`, `" 3"`, `" 4"` y `" 5"`.)*
+
+**Lo que se descartó, y consta para que no se reproponga:**
+- **Adjuntar el crudo a las mediciones que el receptor vaya a usar para decidir** — reintroduce la
+  longitud justo donde más pesa **y exige juzgar de antemano qué va a usar el otro**.
+- **Reescribir "anuncia antes de tocar estado compartido"** — **ya existe** y cazó uno de los seis.
+  **Duplicar una regla bajo un número nuevo debilita las dos** y rompe la direccionalidad del
+  índice.
+
+📌 **Lo que sí sobrevive de las versiones retiradas, como observación y no como regla:** *el crudo
+no protege a quien lo manda, protege a quien lo lee* — la Directora mandó un listado que
+**desmentía su propia explicación, dentro de su propio mensaje**, y no lo vio; **lo vio el otro,
+no por más listo, sino porque no llevaba su conclusión en la cabeza.**
+
+### Decisión 72 — La procedencia se comprueba contra el registro ANTES de escribirla (2026-09-09)
+
+> Antes de escribir *"esto me lo pasó X"* o *"esto lo copié de Y"*, **comprobarlo contra el
+> registro**. **La procedencia es de lo poco que se puede verificar exactamente, y casi nunca se
+> verifica.**
+
+⚠️ **Y con MÁS motivo si lo que vas a escribir te deja mal.** El 2026-09-09 una atribución de
+procedencia se reconstruyó **tres veces seguidas, las tres falsas y ninguna autoindulgente** — las
+tres **dejaban mal a quien las escribía**.
+
+> ### **La autocrítica es el envoltorio al que nadie le pide la fuente.**
 >
-> **Un resumen sin su crudo al lado no tiene quien lo desmienta.** Y contra lo *plausible* —que es
-> lo que produjeron los dos instrumentos que fallaron— **no protege releer el instrumento: protege
-> tener enfrente un dato anterior que no cuadre.**
-
-**71.1 — Al reportar una medición van el número Y su crudo** —el comando y las líneas de salida—;
-al reportar un veredicto o un estado, **de dónde se leyó**. *"No es cortesía: es darle al otro con
-qué chocar"* (Directora).
-
-**71.2 — El crudo va ARRIBA, antes de la conclusión.** No se puede obligar a leer en un orden,
-**pero sí poner primero lo que quieres que se lea primero** — así el orden es el camino por defecto
-y no una disciplina. ⚠️ **Sin esto la tabla es decorado:** si el receptor lee el resumen y usa el
-crudo para confirmarlo, no sirve de nada.
-
-**71.3 — El rendimiento del crudo es proporcional a que el receptor NO comparta tu conclusión.**
-Mandárselo a quien ya está de acuerdo **no produce nada**. Al elegir a quién enviar una medición
-dudosa: **al que la va a discutir, no al que la va a archivar.**
-
-> **El crudo no protege a quien lo manda: protege a quien lo lee.** *La Directora mandó su listado
-> "ANTES" con los seis ficheros de T3 y **ninguno de la raíz** — un dato que **desmentía su propia
-> explicación, dentro de su propio mensaje**, y no lo vio. **Lo vio el otro, no por más listo, sino
-> porque no llevaba su conclusión en la cabeza.***
-
-⚠️ **ALCANCE ESTRECHADO POR EL CEO AL ESCRIBIRLA, pendiente de que el Factory Architect lo
-confirme o lo revierta.** La decisión llegó como *"todo mensaje que transporte un número"*, y **la
-evidencia no llega hasta ahí**: de los seis casos, **solo uno lo habría cazado adjuntar crudo a un
-mensaje**; los demás los cazó *un dato anterior en la cabeza*, *una segunda medición independiente*
-o *que alguien anunciara lo que hacía*. Y hay un efecto en contra: **el crudo alarga, y lo largo se
-lee en diagonal** — sería la 68.1 otra vez, un control que grita algo que nadie mira. **Escrita
-como: el crudo viaja con los números que el receptor va a USAR PARA DECIDIR o va a CITAR HACIA
-ADELANTE**, no con todos.
+> *"La autocrítica no es evidencia de haber mirado; es evidencia de estar dispuesta a mirar, **y se
+> parece muchísimo desde dentro**."* — la Directora.
 
 ### Decisión 70 — Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export (2026-09-09)
 
@@ -2516,6 +2513,8 @@ ADELANTE**, no con todos.
 --noEmit` sale con exit 2 en este worktree pase lo que pase; 0 errores en código del proyecto, los
 8 están en `.next/types/`"*, con el detalle de que eran duplicados, y **el auditor le pidió
 conservar la salida íntegra**. Los ficheros de la raíz eran **del 20 de agosto**.
+
+> ### **Quien declara un defecto de herramienta YA HA PAGADO el coste de detectarlo — es el momento más barato que va a existir para arreglarlo, y es exactamente cuando el canal lo tira.** *(PM, 2026-09-09.)*
 
 ⚠️ **El fallo no es de T3 ni del auditor: el export es un canal HACIA EL AUDITOR, y el auditor no
 arregla herramientas.** Una declaración correcta sobre el estado de la instrumentación **entra por

@@ -384,6 +384,11 @@ una vez que el trabajo pasa auditoría.
        herramientas: si solo lo escribes aqui, tu aviso muere con la ronda. Caso real:
        T3 declaro impecablemente que `tsc` salia en rojo por artefactos duplicados y no
        por el codigo; el defecto llevaba desde el 20 de agosto y siguio otro mes.
+       Y ABRE TU LA ISSUE en Linear: titulo y una linea, sin analisis. No estas
+       decidiendo alcance —eso es del PM, que decide si sobrevive y con que tamano—:
+       estas dejando constancia mientras tienes el diagnostico en la mano. Es el
+       momento mas barato que va a existir para arreglar eso, y es justo cuando el
+       canal lo tiraba (decision 70, 2026-09-09).
   Si en una ronda posterior hay que corregir algo (NO-GO): **borra el fichero de la
   ronda anterior** y crea el de la ronda siguiente con la versión actualizada completa.
   Nunca dejes más de un fichero activo a la vez para la misma tarea — el auditor debe

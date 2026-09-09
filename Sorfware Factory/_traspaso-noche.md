@@ -517,6 +517,18 @@ paró de producir y respetamos la pausa—:
   `" 5"`, no `" 2"`—. **Raíz y T3 a 0 errores, T1/T2/QA limpios.** Y de ahí un aviso para la
   issue del `tsconfig`: **la regla de exclusión tiene que cubrir CUALQUIER dígito**, no solo el 2
   — una escrita mirando un solo worktree habría dejado fuera justo el que tenía seis.
+- 🔴 **LA SALVAGUARDA DE TODO ESTO, y es del Factory Architect sobre sí mismo:**
+
+  > ### **La ausencia de fricción no es evidencia de calidad: es evidencia de que no hubo revisión.**
+
+  **Prueba de cargo:** **seis decisiones seguidas aceptadas sin una sola devolución**, entre las
+  02:00 y las 03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
+  entera.** *La diferencia entre las seis y la séptima no fue la calidad de la decisión: fue que
+  alguien paró a mirarla.*
+  📌 **Y el mecanismo, que es mío y lo dije al explicar por qué no devolví ninguna:** *"venían bien
+  argumentadas y yo tenía cosas que escribir"*. O sea: **una decisión bien argumentada CONSUME el
+  presupuesto de revisión del que la recibe, en vez de gastarlo.** Cuanto mejor construida, menos
+  se revisa.
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
