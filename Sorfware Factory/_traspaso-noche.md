@@ -1461,7 +1461,7 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 05:43 UTC (= 02:43 local)**, medida con `date -u`.*
+*Última actualización: **2026-09-09 06:03 UTC (= 03:03 local)**, medida con `date -u`.*
 
 ⚠️ **Y esta línea también caduca: la he tocado tres veces sin actualizarla, y decía 05:22 cuando ya
 había entrado toda la sección de las ocho tareas.** Una hora fija en un documento vivo miente sin
@@ -1473,6 +1473,19 @@ TZ=UTC git log -1 --date=format-local:'%F %T' --pretty='%ad UTC — %s' -- "Sorf
 
 *Y ése es el patrón que se repitió toda la noche en cosas más caras que una hora: **una regla no
 fija un valor que se mueve, dice dónde consultarlo.***
+
+## ✅ CIERRE DE LA NOCHE — 06:03 UTC (= 03:03 local), medido con `date -u`
+
+**La fábrica ha parado, y ha parado bien: nueve sesiones vivas, NINGUNA caída, ningún trabajo a
+medias sin declarar.** T1, T2 y T3 **ociosas por falta de trabajo disjunto**, las tres comprobadas
+vivas por proceso y no por ausencia de actividad. T2 y T3 han terminado y lo han declarado. La
+Directora ha retirado su red de seguridad **porque se quedó sin sujeto**, no porque se cansara.
+**Cerrojo libre · modo `confirmar` · nada sin subir · cero auditorías en curso ·
+`core.hooksPath` AUSENTE, ciclo 20.**
+
+**Lo que te espera, por orden:** las **ocho tareas** con GO · las **credenciales declaradas y no
+tocadas**, con sus tres salidas · **AIT-102**, que desatasca toda la verificación · el resto de §1.
+**Nada quedó a medias esperando que alguien se acordara.**
 
 **Estado al cerrar:** **nueve sesiones vivas y ninguna caída.** T1 y T3 llevan más de una hora
 ociosas **por falta de trabajo disjunto, no por avería** —comprobado que sus procesos siguen vivos,
