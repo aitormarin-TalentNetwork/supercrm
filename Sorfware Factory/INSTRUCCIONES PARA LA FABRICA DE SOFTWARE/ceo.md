@@ -618,6 +618,28 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### Comprobación fija de tu barrido: mira el instrumento de OTRO, por turno
+
+Añadido 2026-09-09. **Una por ciclo, rotando**: le pides a un rol que te enseñe **cómo mide** —no
+qué mide— y lo lees. Watchdog del Factory Architect, barrido de la Directora, corrida del QA,
+gate del Integrador.
+
+**Por qué está en la lista de fijas y no en la de buenas intenciones:** esa noche aparecieron
+**cuatro fallos de instrumento** —el `-f` sin comparar fechas, el `cwd` como identidad, el `ls -t
+| head -1` en dos barridos distintos— y **los cuatro salieron de mirar el del otro. Ninguno de
+revisar el propio.**
+
+> **El instrumento propio se lee con la expectativa de que funciona.** Mirar el ajeno es lo único
+> que rompe esa expectativa, y **sale gratis**.
+
+⚠️ **Y las cuatro salieron por casualidad**: alguien contó lo suyo y el otro fue a mirar. **Un
+hallazgo que depende de que se mencione de pasada no es un mecanismo** — por eso esto pasa a ser
+una fila del barrido con turno, y no un consejo.
+
+📌 **No confundirlo con la vigilancia recíproca**, que comprueba **si el instrumento del otro está
+VIVO**. Esto mira **cómo está construido**. Son preguntas distintas y la segunda no la cubría
+nadie.
+
 ### ⚠️ Y dentro de cada worktree: el MÁXIMO de todos los transcripts, no el más reciente por `mtime`
 
 **Corregido el 2026-09-09, y el fallo era estructural aunque ese día no mordiera.** Hay **varias
