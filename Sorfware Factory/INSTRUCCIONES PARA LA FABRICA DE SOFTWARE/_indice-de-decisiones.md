@@ -7,6 +7,32 @@ nada **y concluía que había buscado mal, no que la referencia estuviera muerta
 el verde.
 
 > ## **55.3 — Una decisión no está ejecutada hasta que se puede encontrar por su número.**
+
+---
+
+## ❌ LOS NÚMEROS MUERTOS: búsqueda AGOTADA, no pendiente (CEO, 2026-09-09)
+
+**`6 · 8 · 10 · 14 · 28 · 38 · 40` no tienen texto localizable, y esto ya NO es una tarea abierta.**
+
+**Cómo se buscó, para que nadie repita la búsqueda:** `decisión N` (con y sin tilde) en **los ocho
+documentos de proceso** —`README.md`, `ceo.md`, `director.md`, `pm.md`, `factory-architect.md`,
+`integrador.md`, `qa.md`, `intro-terminal.txt`— **no solo en el README, que es donde se buscó la
+primera vez.** *Control positivo del método: la 55 aparece en tres ficheros y la 84 en dos, así que
+el patrón encuentra lo que existe.*
+⚠️ **Y una advertencia sobre la primera búsqueda, porque casi me engaña a mí:** un patrón más laxo
+daba *2, 2 y 1 coincidencias* para la 8, la 10 y la 14 — **al abrir las líneas, ninguna era una
+decisión**: era ruido del propio patrón (`"8)"`, `"(10)"`). ***Un recuento no es un hallazgo: abre
+la línea.***
+
+> **Estos números NO se citan.** No porque estén reservados, sino porque **citar un número muerto
+> hace que el lector concluya que ha buscado mal**, no que la referencia no exista — *falla hacia
+> el verde*, que es exactamente lo que este índice vino a impedir.
+> **Y no se reutilizan para decisiones nuevas:** un número que ya se citó en algún sitio y ahora
+> significa otra cosa **es peor que un hueco.**
+
+📌 **Lo que sí puede recuperarlos:** que aparezca su texto en un transcript viejo o en una memoria.
+**Si eso pasa, se rellena la fila y se quita de esta lista** — pero **nadie tiene que volver a
+recorrer los documentos: eso ya está hecho y dio cero.**
 >
 > **55.2 — Escribir una decisión incluye escribir su línea aquí, EN EL MISMO ACTO.** No es una
 > tarea aparte ni un repaso periódico: si es un segundo paso, se olvidará — y llevamos
@@ -43,15 +69,15 @@ nadie la cita—. Corre en cada barrido del CEO.
 
 | # | Enunciado | Dónde vive |
 |---|---|---|
-| 1–6 | ⚠️ **TEXTO NO LOCALIZADO por su número** | — |
+| 1–6 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 7 | Los documentos de proceso y el estado compartido se leen SIEMPRE desde la raíz por ruta absoluta, nunca desde la copia del worktree | R §2quinquies · IT |
-| 8 | ⚠️ **TEXTO NO LOCALIZADO por su número** | — |
+| 8 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 9 | En `main`, commit y push son un solo acto (+ enmienda 3: el CEO puede subir documentación ajena para no ser cuello de botella; + su límite: «puedo subirlo» no es «es mío subirlo») | R §2quinquies · I |
-| 10 | ⚠️ **TEXTO NO LOCALIZADO por su número** | — |
+| 10 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 11 | Los tres niveles de diagnóstico de una terminal, y el aviso de que hoy solo el nivel 1 funciona | R §1 · C |
 | 12 | El estado cuyo valor es HISTÓRICO se versiona en git; el que solo vale en el momento se queda local | R §2quinquies (f) · I |
 | 13 | Dos condiciones sin las cuales versionar un registro hace más daño que bien | R §2quinquies (g) |
-| 14 | ⚠️ **TEXTO NO LOCALIZADO por su número** | — |
+| 14 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 15 | Una regla que manda preguntar a un humano tiene que fijar el CANAL | R §2septies · C |
 | 16 | Avisa ANTES de quedarte sordo (ya no aplica a la fase de plan, ver 23) | IT |
 | 17 | Los tres bloqueos que congelan la cola de mensajes, y cuál se puede oír | R §2sexies |
@@ -65,7 +91,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 25 | Una respuesta de granularidad baja no autoriza puntos concretos | R §2quinquies (h) |
 | 26 | El vigilante se arma en el momento del envío (+ 26.2 eliminada por la 27) | D |
 | 27 | Un parámetro, no dos pasos: el caso "se atascó y nunca llega a idle" lo cubre el watchdog del Factory Architect | D |
-| 28 | ⚠️ **TEXTO NO LOCALIZADO por su número** | — |
+| 28 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 29 | **Lo que se ejecuta se cumple; lo que se recuerda, no** | R §2sexies-bis |
 | 30 | Una verificación que depende de ganar una carrera está mal diseñada | R §2sexies |
 | 31 | **Manda la tabla, no la conclusión** (+ su otra mitad: un dato relevado no es un dato medido — el último que va a usar un dato lo mide) | R §2sexies-bis · D |
@@ -77,7 +103,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 37 | **La categoría peor: una regla que PARECE control y no lo es** | R §2sexies-bis |
 | 38 | ⚠️ **TEXTO NO LOCALIZADO por su número.** Citada en el prompt de barrido del CEO como "planificación por lotes (38.1)" — **referencia muerta, corregida a texto** | — |
 | 39 | Los prompts de los `/loop` son estado duradero, y nadie los había auditado nunca | R §2quinquies (k) |
-| 40 | ⚠️ **TEXTO NO LOCALIZADO por su número** | — |
+| 40 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 41 | Un recurso local codificado en un fichero versionado es una colisión esperando a ocurrir | R §2sexies |
 | 42 | **La independencia del auditor pasa a verificarse** — PUERTA PREVIA: sin línea de autoría, no hay GO | R §2ter · AP · IT |
 | 43 | **La medición exacta sobre el sujeto equivocado** (+ su forma peor: dos señales con el mismo error de sujeto no se corroboran, se refuerzan) | R §2sexies |
