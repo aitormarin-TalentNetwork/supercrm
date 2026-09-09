@@ -587,11 +587,17 @@ function DeleteCustomerDialog({
       if (process.env.NODE_ENV !== "production") {
         console.error("Fallo eliminando cliente:", err);
       }
-      setError(
-        err instanceof Error
-          ? err.message
-          : "No se ha podido eliminar el cliente. Inténtalo de nuevo.",
-      );
+      // AIT-111: mensaje genérico, nunca `err.message`. La regla y sus tres
+      // formas legítimas están en docs/01-arquitectura.md §6, ADR "Qué puede
+      // decirle al usuario un error del servidor": se puede LEER para
+      // clasificar, no DEVOLVER.
+      //
+      // Aquí no hay nada que clasificar: el recuento que el usuario necesita
+      // (el diálogo de `cannotDeleteOpen`, con `opportunities.length`) lo
+      // compone esta misma pantalla ANTES de llamar, y en el camino
+      // normal la mutation ni se invoca. Lo único que llegaba por esta vía era
+      // el rechazo en vuelo — y con él, cualquier fallo de infraestructura.
+      setError("No se ha podido eliminar el cliente. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
