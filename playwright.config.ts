@@ -121,7 +121,11 @@ export default defineConfig({
   fullyParallel: false, // los tests escriben datos reales en el mismo deployment de Convex
   workers: 1,
   retries: 0,
-  reporter: "list",
+  // AIT-110: `list` sigue siendo el que imprime la corrida. El segundo solo
+  // habla al final, y solo si hubo fallos Y el cupo de login cruzó el umbral
+  // durante la corrida — ver e2e/rate-limit-reporter.ts. En verde no imprime
+  // nada y hace UNA sola lectura.
+  reporter: [["list"], ["./e2e/rate-limit-reporter.ts"]],
   timeout: 30_000,
   use: {
     baseURL: BASE_URL,
