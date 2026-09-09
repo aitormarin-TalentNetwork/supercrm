@@ -314,6 +314,31 @@ una vez que el trabajo pasa auditoría.
    que explica bien un incidente no es por eso cierto; antes de escribirlo aquí, que
    alguien lo reproduzca.
 
+⚠️ NUNCA MATES PROCESOS FILTRANDO POR "playwright" (añadido 2026-09-09)
+   Un `pkill -f playwright` **deja sin MCP a todas las sesiones de Claude a la vez** y
+   se lleva por delante el navegador con las sesiones reales de Aitor. Ya pasó: **el MCP
+   de T2 murió así y estuvo horas caído**, porque levantarlo exige que Aitor escriba
+   `/mcp` — ninguna terminal puede arreglarlo sola. Quien lo mató creía estar liberando
+   memoria.
+
+   Medido por el CEO y **reproducido por el PM** (2026-09-09, dos medidas separadas):
+   de los ~22 procesos que casan con "playwright", **8 son servidores MCP —uno por
+   sesión— y ninguno es matable**. El Chrome del perfil cuelga de uno de ellos.
+
+   LO ÚNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
+     …@playwright/mcp…   → SERVIDOR de una sesión. NO SE TOCA.
+     …playwright test…   → corrida de la suite. Eso sí es matable.
+   Comprueba SIEMPRE con `ps -axo pid,command` antes de matar nada, y mata por PID
+   concreto, nunca por patrón.
+
+   ⚠️ **Y el `cwd` NO protege aquí**: seis de esos servidores tienen su `cwd` en la raíz.
+   El `cwd` sirve para saber si algo es de otro, **no para distinguir dos cosas distintas
+   que viven en el mismo sitio**. Son preguntas diferentes.
+
+   Y antes de matar nada "para liberar memoria": **mira lo reclamable, no solo el swap.**
+   El swap se mueve solo, y leer "quedan 900 MB" a partir de él da una lectura falsa de
+   emergencia — el 2026-09-09 había 4,3 GB reclamables mientras alguien mataba procesos.
+
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
          Escrito por: Claude Code (Opus)
@@ -479,6 +504,22 @@ una vez que el trabajo pasa auditoría.
       Y antes de lanzarlo, haz siempre `git merge main` primero (aunque no sepas si main
       se movió) — si no, tu propio `convex dev` puede borrar del deployment funciones ya
       mergeadas por otra terminal que tu copia local no tiene.
+🔴 NUNCA MATES PROCESOS FILTRANDO POR "playwright" (2026-09-09, incidente real).
+   Un `pkill -f playwright` deja SIN NAVEGADOR a las nueve sesiones de la fabrica
+   y mata el Chrome con las cuentas personales de Aitor. Medido: 24 procesos
+   casan; 9 son servidores `@playwright/mcp` (uno por sesion) y solo 1 es una
+   corrida de suite. El Chrome del perfil cuelga de uno de esos MCP.
+   LO UNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
+     @playwright/mcp   -> SERVIDOR, no se toca
+     playwright test   -> corrida, esa si es matable
+   Y FILTRAR POR cwd NO TE PROTEGE: seis de los nueve MCP tienen cwd en la raiz.
+   El cwd sirve para no tocar lo de OTRO, no para distinguir dos cosas distintas
+   que viven en el mismo sitio.
+   Ya paso: el MCP de T2 murio asi y quedo caido horas, porque solo lo levanta
+   Aitor escribiendo `/mcp`. Quien lo hizo creia estar liberando memoria.
+   Y NO HACE FALTA liberar memoria a mano: mira los tres numeros (swap
+   usado/total, libre+inactiva, y el agregado de RSS) antes de tocar nada.
+
 ⚠️ AL INSPECCIONAR UNA TABLA DE CONVEX, NO VUELQUES LA FILA ENTERA (2026-09-08,
    aviso de T1 tras pasarle a el mismo). `npx convex data authAccounts` imprime la
    columna `secret` — hashes con su sal — y eso ACABA EN TU TRANSCRIPT. No son

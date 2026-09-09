@@ -618,6 +618,32 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### ⚠️ La memoria no se mide con el swap a secas — tres números, no uno
+
+**Corregido el 2026-09-09.** El barrido reportaba `sysctl vm.swapusage`, y **ese número solo
+engaña**: en macOS **el total del swap es dinámico**. Esa madrugada bajó de **7.168 a 6.144 MB**
+sin que nadie hiciera nada, así que **el "libre" cayó de 1.487 a 921 MB** y parecía un
+empeoramiento **cuando el uso real había BAJADO** (5.481 → 5.223).
+
+**Los tres que hay que dar juntos:**
+
+```bash
+sysctl -n vm.swapusage                      # swap: used / total  (el total SE MUEVE)
+vm_stat | awk '/Pages free/{f=$3} /Pages inactive/{i=$3}   END{gsub(/\./,"",f); gsub(/\./,"",i); printf "%d MB\n",(f+i)*16384/1048576}'
+                                            # libre + inactiva = lo REALMENTE reclamable
+ps -eo rss,tty,command | grep "[c]laude --permission-mode" \
+  | awk '$2!="??"{s+=$1} END{printf "%d MB\n", int(s/1024)}'
+                                            # lo que pesa la fábrica entera, agregado
+```
+
+*Esa noche:* swap **5.223 / 6.144**, **libre+inactiva 4.345 MB**, y **las nueve sesiones sumaban
+3.162 MB**. Con el swap solo, la lectura era *"quedan 921 MB, esto revienta"*; con los tres,
+**hay 4,3 GB reclamables y la fábrica pesa 3,2**.
+
+📌 **Y el agregado es el número que le sirve a Aitor para decidir si abre otra terminal** —no
+"los procesos más pesados son sesiones `claude`", que es una observación sin escala. **~350 MB
+por sesión es el dato accionable.**
+
 ### ⚠️ El «cero colas» se mide contra el último evento USER, no contra el último de cualquier tipo
 
 **Corregido el 2026-09-09 preparando la revisión cruzada, antes de que nadie preguntara.**

@@ -159,8 +159,17 @@ recuerda por qué existe.
 
 ## 5. Riesgos vivos que conviene que sepas
 
-- **Memoria — ⚠️ EL DATO CAMBIÓ, y el Factory Architect te pasó el anterior como límite de
-  escalado.** A las 02:31 UTC medí swap 5.763/7.168 con **los siete procesos más pesados siendo
+- **Memoria — ⚠️ EL DATO QUE TE PASARON NO ERA EL ÚTIL, y aquí está el que sí.** Medido a las
+  03:27 UTC: **las nueve sesiones de Claude suman 3.162 MB de RSS**, o sea **~350 MB cada una**.
+  Ese es el número para decidir si abres otra terminal — *"los procesos más pesados son sesiones
+  `claude`"* es una observación sin escala.
+  ⚠️ **Y el swap a secas engaña**: esa madrugada su total bajó solo de 7.168 a 6.144 MB (macOS lo
+  gestiona dinámicamente), así que el "libre" cayó de 1.487 a 921 y parecía que empeoraba
+  **cuando el uso real había bajado**. Con **libre+inactiva = 4.345 MB**, la lectura correcta es
+  que **hay margen**, no que reviente. *(Corregido también el barrido, que reportaba solo el
+  swap.)*
+- *(Registro histórico de lo que se te dijo antes y ya no vale)* — **EL DATO CAMBIÓ, y el Factory
+  Architect te pasó el anterior como límite de escalado.** A las 02:31 UTC medí swap 5.763/7.168 con **los siete procesos más pesados siendo
   siete sesiones de Claude**. A las 02:39 UTC: **5.681/7.168, estable, y el proceso más pesado ya
   no es una sesión `claude` sino Chrome (515 MB)**. Sigue siendo cierto que **nueve terminales
   aprietan la máquina** y que esta noche el sistema mató **dos** corridas de tests — pero **el
