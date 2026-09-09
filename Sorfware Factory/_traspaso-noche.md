@@ -1471,6 +1471,33 @@ es evidencia de que vayamos ganando** —no tiene denominador—. **Un repaso qu
 está confirmando su propio método.*** Por eso la fusión 76 ↔ el enlace de la 79 se mira **antes**
 que cualquier candidata nueva.
 
+🆕 **Dos del PM, de la mañana, y la segunda ataca lo que produzco yo:**
+
+**(a) Por qué una corrección es más peligrosa que un error normal.** Tres veces hoy una corrección
+bien hecha rompió algo —el `info/exclude` cuya condición cumplí yo diez minutos después, mi `add`
+ancho al escribir la 77, y una línea de comentario que dejó ilegible el modo de publicación—. **Las
+tres veces el que corregía tenía razón.** Su explicación:
+> **Una corrección llega con la guardia baja: quien la escribe acaba de demostrar que tenía razón,
+> y quien la lee ya está de acuerdo. El momento en que menos se revisa un cambio es justo después
+> de acertar.**
+
+**(b) Y el remedio a que los informes sean lo menos auditado, que no es auditar más:**
+> **Cada número de un informe nombra a quién va a actuar sobre él, o no entra.**
+*No es disciplina de verificación, es de escritura, y por eso puede funcionar: un dato con
+destinatario **se verifica solo** —el destinatario lo usa y lo tumba si está mal— y un dato sin
+destinatario **desaparece del informe** en vez de quedarse ahí sin auditar.* Los tres casos del día
+lo sostienen: **`K=13`** tenía consumidor y se verificó al primer uso; **"47 tests"** no lo tenía y
+**mutó tres veces**; **mi tabla de veredictos** no lo tuvo **hasta que llegó a quien publicaba, y
+ahí se cayó.** *La diferencia no fue el rigor de quien los midió: fue cuánto tardaron en encontrar
+a alguien que los necesitara.*
+⚠️ **Con el agujero que él mismo declara y que no sabemos cerrar: qué pasa con los datos que hoy no
+tienen consumidor pero mañana sí.**
+🔻 **Y aplicándomelo a mí, que es de donde sale el ejemplo más incómodo: `core.hooksPath` lleva 31
+ciclos en mi barrido.** Tiene destinatario nombrado —tú— y **no se ha actuado ni una vez.** Por su
+regla no debería seguir circulando; **pero retirarlo tampoco es la respuesta, porque el hueco sigue
+ahí.** *Un control cuyo consumidor nunca actúa no está midiendo el estado: está midiendo que la
+petición no encaja donde se puso.*
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
