@@ -50,8 +50,14 @@ function headersHaveAction(headers: HeadersInit): boolean {
 
 /** La cabecera puede venir en `init.headers` o dentro de un `Request` ya
  *  construido: hay que mirar en los dos sitios. Leer `Request.headers` no
- *  consume su cuerpo. */
-function isServerAction(input: RequestInfo | URL, init?: RequestInit): boolean {
+ *  consume su cuerpo.
+ *
+ *  EXPORTADA SOLO PARA PODER PROBARLA (AIT-89), no porque tenga otro consumidor.
+ *  Su modo de fallo es invisible: si una de las cuatro formas dejara de
+ *  detectarse, el aviso no fallaría — dejaría pasar la acción, y el síntoma
+ *  sería el bug de AIT-83 volviendo meses después sin nada que lo conecte. Las
+ *  pruebas viven en `e2e/00-server-action-detection.spec.ts`. */
+export function isServerAction(input: RequestInfo | URL, init?: RequestInit): boolean {
   if (init?.headers && headersHaveAction(init.headers)) return true;
   if (typeof Request !== "undefined" && input instanceof Request) {
     return input.headers.has(ACTION_HEADER);
