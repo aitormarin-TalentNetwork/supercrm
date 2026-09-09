@@ -759,6 +759,33 @@ mismo diagnostiqué dos horas antes: una razón buena a la que le pegan un dato 
 juntas.** *Mi instinto inicial de tratarlo como secreto expuesto estaba más cerca que la lectura
 fina que lo sustituyó.*
 
+🔑 **Y LA LECCIÓN, que es la conclusión de la noche entera y le da la vuelta a algo que llevo
+usando en cada barrido:**
+> **Todas las mediciones de radio contestaban a "¿salió por `git`?". Y la puerta era otra. No
+> fallamos midiendo: medimos bien una pregunta que no era la que había que hacer.**
+🔴 **El control positivo NO protege de esto** —y esto lo aporta la Directora, y me corrige a mí, que
+lo he estado exigiendo toda la noche—: **confirma que el instrumento sabe dar positivos DENTRO de
+la pregunta que le haces.** Un control impecable sobre la pregunta equivocada **refuerza la
+confianza en una respuesta irrelevante**, o sea que es **peor que no tenerlo**. *Anoche teníamos
+control positivo. Pasó. Y no sirvió de nada.*
+📌 **La regla que sale, y es ejecutable:** antes de medir el radio de una fuga, **enumerar las
+puertas** —git, sincronización de ficheros, copias de seguridad, portapapeles, logs de terminal,
+indexado— **y declarar por cuáles NO se ha mirado.** *Medir una y llamarla "el radio" es
+exactamente lo que hicimos entre cuatro durante tres horas: cuatro comprobaciones de `origin`, dos
+capas de ignorado, un `check-ignore` real dentro del worktree, una rama borrada, un control cruzado
+entre dos tareas. **Todo correcto. Todo sobre `git`.** Y los cinco `.env.local` llevaban un mes
+saliendo por la otra.*
+
+⚖️ **Y una corrección suya a una frase mía que yo había dejado demasiado limpia.** Yo escribí que mi
+instinto inicial —tratarlo como secreto expuesto— *"acertó sin poder decir por qué, o sea que es
+igual de inservible"*. **Ella lo discute y tiene razón:** ese instinto **no era ciego**, venía de la
+regla de `CLAUDE.md` leída en su espíritu, que es justo para lo que esa regla está escrita.
+> **Una heurística conservadora no se retira con un análisis: se retira con una medición.**
+**Lo que hicimos entre los dos fue sustituir una heurística prudente por un análisis fino apoyado
+en un hecho que ninguno comprobó.** No es que el instinto tuviera suerte: es que **el análisis
+tenía que haber empezado por comprobar el hecho, y lo dio por bueno porque venía envuelto en un
+razonamiento mejor.**
+
 🔴 **Y LO QUE DE VERDAD IMPORTA ES MAYOR QUE LOS TOKENS: iCloud NO LEE `.gitignore`.** Medido por
 mí, solo nombres y tamaños, sin abrir ninguno:
 ```
