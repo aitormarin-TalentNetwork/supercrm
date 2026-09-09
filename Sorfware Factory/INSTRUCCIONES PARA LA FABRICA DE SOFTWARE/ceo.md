@@ -723,6 +723,15 @@ NO corre"*, **dentro del propio fichero**, para que no dependa de que tú recuer
 que él esté para contarla.
 *(Fue el mismo defecto del título, **dentro del artefacto construido para arreglar el título**.)*
 
+### ⛔ Y CUANDO CAMBIES ALGO DE AQUÍ, DECLARA QUE HAS ACTUALIZADO TU PROMPT
+
+**Tu prompt del `/loop` es el rótulo de máximo tráfico y cero auditabilidad de toda la fábrica:** lo
+lees cada ciclo y **nadie más puede verlo.** Así que **la decisión 86 —"el rótulo se corrige
+primero"— aquí solo la puedes aplicar tú, y solo se sabe si lo dices.**
+> **Cuando una decisión cambie algo que lees en cada ciclo, actualiza el prompt Y DECLÁRALO.**
+*El 2026-09-09 el rótulo de la Nº3 mandó leer el fichero de un vigía muerto durante media hora,
+con el cuerpo ya corregido aquí.*
+
 ### ⛔ ANTES DE LEER NINGUNA COMPROBACIÓN FIJA: ESTE DOCUMENTO NO LAS EJECUTA
 
 **Todo lo que sigue es inerte hasta que lo copias al prompt de tu `/loop`.** `ceo.md` es donde

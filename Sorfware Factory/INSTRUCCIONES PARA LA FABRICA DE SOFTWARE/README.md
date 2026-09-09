@@ -86,6 +86,30 @@ migración sin verificar, y que el PM lo abriera como pregunta nueva.**
 es solo que no se cumpla — es que **se le vuelve a preguntar a quien decidió, y el contexto ya no
 es el mismo.***
 
+### ⛔ EL PUNTO CIEGO DE LA 86: el prompt de cada rol (2026-09-09)
+
+**La decisión 86 dice "corrige primero el sitio de más tráfico y menos contexto". En esta fábrica
+ese sitio es el PROMPT RECURRENTE de cada rol** —el del `/loop` del CEO, el barrido de la
+Directora— **y es justo donde la 86 no se puede comprobar desde fuera:**
+
+```
+maximo trafico      -> se lee en CADA ciclo
+minimo contexto     -> una linea
+CERO auditabilidad  -> nadie mas puede verlo
+```
+
+> **Cuando una decisión cambie algo que un rol lee en cada ciclo, ese rol DECLARA que ha
+> actualizado su propio prompt.**
+
+**No es ceremonia: es la única forma de que un rótulo invisible desde fuera entre en el alcance de
+la 86.** *Sin eso, la 86 es aplicable en todos los documentos **y no en el sitio donde más se
+lee**.*
+⚠️ **Caso que lo motiva:** el rótulo del barrido del CEO decía *"el vigía, de un FICHERO"* **media
+hora después de que el vigía dejara de existir** — con el cuerpo ya corregido en `ceo.md`.
+**Nadie de fuera podría haberlo encontrado: lo encontró él porque lo lee, y lo dijo porque quiso.**
+*Ya sabíamos que los MECANISMOS que viven en un prompt son invisibles —tres reglas de barrido que
+no estaban en `ceo.md`—; ahora sabemos que **los RÓTULOS también.***
+
 ### ⛔ Un arreglo que funciona NO es el final (2026-09-09)
 
 **`CLAUDE.md` ya exige documentar en el mismo cambio una decisión técnica que cambia — pero su
