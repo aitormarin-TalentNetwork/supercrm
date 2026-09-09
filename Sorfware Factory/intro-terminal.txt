@@ -314,6 +314,31 @@ una vez que el trabajo pasa auditoría.
    que explica bien un incidente no es por eso cierto; antes de escribirlo aquí, que
    alguien lo reproduzca.
 
+⚠️ NUNCA MATES PROCESOS FILTRANDO POR "playwright" (añadido 2026-09-09)
+   Un `pkill -f playwright` **deja sin MCP a todas las sesiones de Claude a la vez** y
+   se lleva por delante el navegador con las sesiones reales de Aitor. Ya pasó: **el MCP
+   de T2 murió así y estuvo horas caído**, porque levantarlo exige que Aitor escriba
+   `/mcp` — ninguna terminal puede arreglarlo sola. Quien lo mató creía estar liberando
+   memoria.
+
+   Medido por el CEO y **reproducido por el PM** (2026-09-09, dos medidas separadas):
+   de los ~22 procesos que casan con "playwright", **8 son servidores MCP —uno por
+   sesión— y ninguno es matable**. El Chrome del perfil cuelga de uno de ellos.
+
+   LO ÚNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
+     …@playwright/mcp…   → SERVIDOR de una sesión. NO SE TOCA.
+     …playwright test…   → corrida de la suite. Eso sí es matable.
+   Comprueba SIEMPRE con `ps -axo pid,command` antes de matar nada, y mata por PID
+   concreto, nunca por patrón.
+
+   ⚠️ **Y el `cwd` NO protege aquí**: seis de esos servidores tienen su `cwd` en la raíz.
+   El `cwd` sirve para saber si algo es de otro, **no para distinguir dos cosas distintas
+   que viven en el mismo sitio**. Son preguntas diferentes.
+
+   Y antes de matar nada "para liberar memoria": **mira lo reclamable, no solo el swap.**
+   El swap se mueve solo, y leer "quedan 900 MB" a partir de él da una lectura falsa de
+   emergencia — el 2026-09-09 había 4,3 GB reclamables mientras alguien mataba procesos.
+
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
          Escrito por: Claude Code (Opus)
