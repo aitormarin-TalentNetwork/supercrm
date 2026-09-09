@@ -682,6 +682,30 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- ⛔ AL LIBERAR EL TURNO DE CONVEX, DEJA TRAZA ANTES DEL `rmdir` (decision 88, 2026-09-09):
+      cat "Sorfware Factory/_turno-convex.lock/titular.txt" >> "Sorfware Factory/_turno-convex.log"
+      echo "  | liberado $(date '+%Y-%m-%d %H:%M %Z')"        >> "Sorfware Factory/_turno-convex.log"
+  El dato YA EXISTE en `titular.txt` —titular, tarea, deployment y hora con huso—.
+  Hoy se tira al borrar el directorio, **y con el la unica prueba de que alguien
+  escribio en esa ventana.**
+  🔑 **Por que la carga esta aqui y no en el que mide:**
+     > **El que escribe SABE que escribe. El que mide NO puede saber que alguien va a
+     > escribir despues.**
+     Pedirselo al que mide seria cargar al unico de los dos que no puede saber lo que
+     hace falta saber.
+  ⚠️ **Y por que el cerrojo no basta:** un cerrojo es exclusion mutua —dice quien escribe
+     AHORA— y **no dice nada de antes de que llegaras ni de despues de que salieras**.
+     Una medicion es una afirmacion sobre un estado PASADO. **Exclusion y validez son dos
+     problemas distintos: el cerrojo resuelve el primero; el segundo necesita REGISTRO.**
+
+- ⛔ EN EL EXPORT, JUNTO A LA CASILLA DEL BACKEND: di CUANDO mediste (decision 88)
+      Medido contra <recurso compartido> a las <hora CON HUSO>: <valores>
+  Caso real: T3 midio "38 passed" a las 10:15 contra el compartido; a las 10:36 T1 tomo
+  el turno y desplego funciones nuevas EN ESE MISMO deployment; a las 11:23 se relanzo la
+  auditoria. **El numero de T3 era cierto al escribirlo y ya no lo era al leerlo** — y si
+  el auditor re-ejecuta y sale otra cosa, **el rojo tiene causa de T1 y el nombre de T3
+  encima.** Nadie hizo nada mal.
+
 - ⛔ ANTES DE CUALQUIER COMANDO DE `convex` QUE NO SEA DE SOLO LECTURA: RESPALDA
   `.env.local` Y COMPARA SU `md5` DESPUES. Si cambio, restaura y avisalo.
   🔴 `npx convex dev --env-file <otro-fichero>` **NO protege el `.env.local` del que lo

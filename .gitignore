@@ -63,6 +63,8 @@ next-env.d.ts
 # cerrojo autoservicio del turno de Convex mientras el deployment siga compartido
 # (estado efímero de coordinación entre terminales, no config del proyecto)
 /Sorfware Factory/_turno-convex.lock
+# Registro de quien tuvo el turno y cuando lo libero (decision 88). Sin secretos: solo quien y cuando.
+/Sorfware Factory/_turno-convex.log
 
 # modo de publicación del Integrador — YA NO SE IGNORA (decisión 12, 2026-09-08).
 # Dejó de ser "estado efímero" el día que pasó a llevar procedencia: dos líneas en cuatro

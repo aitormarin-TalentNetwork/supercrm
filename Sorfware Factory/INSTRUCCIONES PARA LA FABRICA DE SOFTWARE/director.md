@@ -676,6 +676,20 @@ verificables". La Directora lo reprodujo desde la raíz —**funciona, exit 0**�
 entorno y quedó cerrado. **El hecho de proceso se queda igual: pudo perder una comprobación y
 decirlo donde es fácil que no lo lea nadie.**)*
 
+### ⛔ ANTES DE JUZGAR UNA MEDICIÓN CONTRA UN COMPARTIDO, MIRA EL REGISTRO DEL TURNO (decisión 88)
+
+```bash
+cat "Sorfware Factory/_turno-convex.log"   # quien tuvo el turno y cuando lo libero
+```
+**Si alguien tuvo el turno ENTRE la medición y la lectura, la medición es anterior a una
+escritura**: se re-mide, o se atribuye a eso — **NO al cambio auditado.**
+
+⚠️ **El turno protege la ESCRITURA; no protege la VALIDEZ de lo ya medido.** *No es que el cerrojo
+se quede corto: **es estructuralmente incapaz.** Dice quién escribe **ahora** y no dice nada de
+antes ni de después. Una medición es una afirmación sobre un estado **pasado**.*
+> **Exclusión y validez son dos problemas distintos: el cerrojo resuelve el primero; el segundo
+> necesita un registro de cambio.**
+
 ### ⛔ CASILLA OBLIGATORIA DEL EXPORT: en qué backend escribe (2026-09-09)
 
 ```
