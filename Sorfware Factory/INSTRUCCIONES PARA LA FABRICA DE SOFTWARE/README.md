@@ -1926,6 +1926,7 @@ que habría que construir.** Cada una debería poder decir si su arreglo está *
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **`npx convex data <tabla>` para inspeccionar una tabla** | **Imprime la fila ENTERA, incluidas columnas de credenciales.** Sobre `authAccounts` vuelca la columna `secret` —hashes con su sal— **al transcript de quien lo ejecute**. No son contraseñas en claro, pero **es material de credenciales y queda registrado**. Misma familia que `npx convex env list`, con otro comando. Lo declaró T1 el 2026-09-08 después de que le pasara **mientras investigaba precisamente este agujero** | **pedir solo las columnas que necesitas** (`provider`, `providerAccountId`) o filtrar la salida antes de que se vea (`\| cut`). ⚠️ **Y ojo con el momento: esto pasa justo cuando varias personas van a mirar la misma tabla a la vez para diagnosticar algo** — el aviso vale más antes que después |
 | **Un error de red al llamar a un servicio de terceros, leído como "su servicio falla"** | **Confunde "me han contestado que no" con "no he llegado a preguntar".** `net::ERR_CONNECTION_CLOSED`, un DNS que no resuelve o un timeout **no son respuestas**: son la ausencia de una. Caso del 2026-09-08: verificando el login de Google tras AIT-90, la petición a `accounts.google.com` murió sin respuesta **desde ese entorno**; reportarlo como "el login está roto" habría sido un **falso rojo** — fallo del arnés vendido como fallo del producto | **mirar la petición real y su respuesta**, no el resultado agregado. Y separar los tres estados: *contestó que sí* · *contestó que no* · **no contestó**. El tercero no es un veredicto sobre el producto, es un veredicto sobre el entorno |
 | **"El proceso no tiene terminal asociada, luego es un resto huérfano"** | **Es cierto y no significa nada.** Un proceso lanzado por un servidor MCP **nunca tiene tty** — igual que ninguno de los nuestros. La señal **no distingue huérfano de hijo de un servidor sano**. Caso del 2026-09-08: el QA leyó así 12 procesos de Chrome; los dos `playwright-mcp` padre estaban **vivos**, y uno de los navegadores se había arrancado **siete minutos antes**. Matarlos habría tirado la sesión de otro | **mirar el padre: `ps -p <ppid>`. Si vive, no es un resto.** Y por la 60.2, esta comprobación es **obligatoria** aquí: el siguiente paso era destructivo |
 | **Medir algo sobre el texto de un documento que se describe a sí mismo** | **Cuenta la explicación como si fuera un caso.** El contador de filas verificadas del índice hacía `grep -c '✅'` sobre el fichero entero y contaba **el ✅ de la cabecera que explica qué significa la marca**: reportó *"1 de 56 verificadas"* con **cero** verificadas. Hermano de `grep <herramienta>` sobre un transcript (decisión 20): **el documento contiene los datos y además el texto que habla de los datos** | acotar la medición a la parte estructurada —`grep -E '^\|'` antes de contar, o parsear la tabla— **nunca al fichero entero**. Y sospechar por sistema de cualquier métrica sobre un documento que explica su propia notación (decisión 58.3) |
@@ -2819,6 +2820,39 @@ aislado de las demás, apuntado desde el `.env.local` de su propio worktree
 `.env.local`. Si sigue siendo `third-goldfinch-805`, esa terminal NO está migrada
 todavía y le sigue aplicando el turno arbitrado de §3. Si es otro nombre, ya tiene
 deployment propio y puede ignorar esa regla.
+
+> # 🔴 §3bis ESTÁ ROTO PARA CUALQUIER DEPLOYMENT NUEVO (2026-09-08)
+>
+> **Un deployment creado después del 2026-08-25 00:51 UTC no puede hacer login con contraseña,
+> así que NO PUEDE CORRER LA SUITE E2E** —que entra por los botones de demo—. El checklist de
+> abajo **no es completable** tal cual para ese caso: su paso 4 no puede cumplirse.
+>
+> **La causa, verificada por tres vías independientes:**
+> - **`bootstrapInitialAccounts` ya no crea cuentas de contraseña.** Desde **AIT-60** crea filas
+>   de `users` como **lista blanca para Google**: *"para Google, la fila en `users` ES el alta:
+>   no hay `createAccount` ni secreto"* (`convex/users.ts:80`).
+> - **`SEED_OWNER_PASSWORD` y `SEED_SALES_PASSWORD` no las lee nadie:** **0 ocurrencias en todo
+>   el repo**, medido con control de positivos (`createAccount` sale 8 veces con el mismo grep).
+>   **Son variables muertas, y el paso 2 afirmaba que "la app depende" de ellas.**
+> - **La fecha lo cierra, y es el dato que convierte la sospecha en hecho** (aportado por T1):
+>   sus cuentas de Marta y Carlos se crearon el **2026-08-24 18:10 UTC**; **AIT-60 se mergeó el
+>   2026-08-25 00:51 UTC**. **Nacieron 6h 41min antes del cambio.**
+>
+> ⚠️ **O sea que T1 y T2 no son contraejemplos: son la prueba.** Funcionan **por ser anteriores**,
+> no porque el bootstrap funcione. **El QA es el primero que lo pisa porque es el primero que
+> migró después.**
+>
+> **Estado:** enrutado al PM como alcance (decisión 66). **El camino existe y no hay que
+> construirlo:** `convex/auth.ts:141` llama a `createAccount` dentro del flujo `signUp` del
+> proveedor Password — **falta invocarlo**, no crearlo. *(Y un segundo hilo, de T1: la tercera
+> fila de su `authAccounts` es del 26 de agosto, posterior a AIT-60, con `emailVerified` — **no
+> sale del bootstrap**, así que hay otra vía viva que conviene identificar.)*
+>
+> 📌 **Y la consecuencia de proceso, que no se ve mirando ninguna decisión por separado: la 57.1
+> y la 59.1 se anulan mutuamente.** En el compartido el QA contamina lo que otros miden; en el
+> suyo no puede autenticarse. **El hueco que la corrida periódica existía para cerrar sigue
+> abierto** — es el *"espacio entre comprobaciones correctas"* de la 57, aplicado a nuestras
+> propias decisiones.
 
 **Checklist de migración, por terminal (PENDIENTE de ejecutar — no asumir que ya está
 hecho sin comprobar `CONVEX_DEPLOYMENT`):**
