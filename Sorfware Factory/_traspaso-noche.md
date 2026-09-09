@@ -508,8 +508,15 @@ paró de producir y respetamos la pausa—:
   canario de tipos que **sí puso rojo**, así que el cero se distingue de *"no compiló nada"*.
   ⚠️ **A la primera lo hice mal:** los moví a la carpeta de cuarentena **dentro del repo** y
   **pasaron de 5 errores a 18**, porque `tsconfig` también compila ahí. **Apliqué un precedente
-  sin comprobar la precondición que lo hacía funcionar.** *(Los duplicados de T3 NO los he
-  tocado: son de la Directora.)*
+  sin comprobar la precondición que lo hacía funcionar.**
+  ⚠️ **Y tuvo un segundo efecto que yo no podía ver: la Directora estaba midiendo en ese mismo
+  minuto**, le salieron **18 errores donde antes había 5**, y **escribió un diagnóstico falso
+  para explicar mi efecto secundario.** Ya lo retiró. **No pasó nada porque los ficheros eran
+  inocuos; si hubieran sido recuperables solo desde uno de los dos sitios, se pierden.**
+  ✅ **Los de T3 ya están hechos por ella** —eran **seis**, no tres, y con sufijos `" 4"` y
+  `" 5"`, no `" 2"`—. **Raíz y T3 a 0 errores, T1/T2/QA limpios.** Y de ahí un aviso para la
+  issue del `tsconfig`: **la regla de exclusión tiene que cubrir CUALQUIER dígito**, no solo el 2
+  — una escrita mirando un solo worktree habría dejado fuera justo el que tenía seis.
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
