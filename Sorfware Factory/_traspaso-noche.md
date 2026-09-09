@@ -325,6 +325,12 @@ paró de producir y respetamos la pausa—:
   el trabajo de otros cuatro roles, no.** Queda **autorizado solo para esta noche**. *Si mañana
   no se sostiene, se pierde una noche de rotación; si se hubiera fijado hoy y estuviera mal,
   quedaría una obligación permanente que nadie se atreve a quitar.*
+- 💡 **HIPÓTESIS con UN SOLO CASO —el mío—, anotada como hipótesis porque suena verdadera por
+  elegante:** *el valor de la revisión cruzada puede no estar en la revisión, sino en
+  anticiparla.* Encontré el defecto de mi propio censo **yendo a derivar mi número antes de que
+  el Factory Architect me lo preguntara**. Si se sostiene, **no hace falta revisar a todos: hace
+  falta que todos sepan que les puede tocar** — y eso cambia el diseño del mecanismo. **Un caso
+  no es evidencia.**
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
