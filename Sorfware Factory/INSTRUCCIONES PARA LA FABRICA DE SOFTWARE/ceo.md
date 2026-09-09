@@ -748,6 +748,30 @@ tras abrirse AIT-117—:
 igualmente** —el gancho de `test:e2e`, o el prompt de tu bucle—. **Un documento no se ejecuta
 solo; un comando que ya estabas ejecutando, sí.**
 
+### ⛔ EL ÚLTIMO PASO DE TODA VERIFICACIÓN ES MIRAR EL OBJETO, NO SU CUENTA (2026-09-09)
+
+> **Ante un `0` o un `1`, abrir es OBLIGATORIO y cuesta un comando.**
+> **Con números grandes: mira los extremos** — el primero, el último, y los que rocen el umbral.
+
+**Los tres fallos de un solo día que motivan esto tenían recuentos de 0, 1 y 6:**
+```
+0  "no aparece"           -> el cero que en realidad era "no supe mirar"
+1  "hay una coincidencia" -> la frase partida en dos lineas: falso positivo
+6  "seis candidatos"      -> un barrido sobre-reportando
+```
+🔑 **Y no es casualidad que sean pequeños:**
+> **Los recuentos que se leen mal son precisamente el `0` y el `1`.** Un cero se lee como *"no
+> hay"* cuando puede ser *"no supe mirar"*; un uno se lee como *"encontrado"* **sin comprobar
+> cuál**. **Un 500 casi nunca se confunde con un hallazgo** — nadie concluye nada de un 500 sin
+> mirarlo.
+
+✅ **Por eso el límite de la regla cae justo donde no hace falta: los recuentos que más necesitan
+abrirse son exactamente los más baratos de abrir.** Un `sed -n` sobre 0, 1 o 6 líneas **cuesta lo
+mismo que el `grep -c` que lo precedió.**
+📌 **Eso convierte "verifica más" —que depende de la voluntad— en un paso con PRECIO CONOCIDO.**
+*Y el fallo que evita no es olvidarse de comprobar: es **comprobar y llamar verificación a un
+recuento**. Dos veces en una hora escribí "verificado" habiendo hecho exactamente eso.*
+
 ### 🧪 CÓMO SE ELIGE EL SUJETO DE UN CONTROL POSITIVO (2026-09-09)
 
 > **Un control positivo necesita un sujeto que no pueda DEJAR de discriminar.**

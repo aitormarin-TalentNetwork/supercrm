@@ -1496,6 +1496,14 @@ peticion -> efecto     la peticion esta bien formada y llega, y ejecutarla no ca
 *consolidar sus propias candidatas sin que nadie las friccione es exactamente lo que la decisión 71
 demostró que sale mal.* **Llega propuesta, no adoptada.**
 
+⚖️ **CRITERIO PARA ORDENAR LAS CANDIDATAS, del FA, y es el que yo usaría primero:**
+> **Las reglas que se DEDUCEN valen más que las que se RECUERDAN**, porque **no dependen de que
+> quien las lea haya vivido el incidente.**
+*Casi todo lo de estas 24 horas se escribió **después de que algo mordiera** — y esas reglas
+necesitan su caso al lado para convencer. **Una sola se dedujo de la forma:** «dos variantes de la
+misma comprobación coinciden con el sistema sano por diseño, porque si no una estaría mal sobre el
+funcionamiento normal». **No hay caso que contar y aun así aplica mañana a cualquier par.***
+
 ⚖️ **CRITERIO PARA EL REPASO, y no es una curiosidad: entre dos candidatas que se solapan, la que
 las FUNDE vale más que las dos.** *El catálogo lleva un día entero creciendo, y su crecimiento **no
 es evidencia de que vayamos ganando** —no tiene denominador—. **Un repaso que solo añade entradas
