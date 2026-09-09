@@ -875,6 +875,35 @@ proceso.**
 > **"48% libre"**, y el swap está al **88%** con 2,19 M de *swapouts* y 1,3 GB en el compresor.
 > **Si eliges el primero, no pasa nada. Si eliges el segundo, pasa.**
 
+### 📏 CÓMO SE MIDE LA MEMORIA — corregido el 2026-09-09 tras equivocarme otra vez
+
+```bash
+vm_stat | awk '/Pages free|Pages inactive|Pages speculative/{gsub("\\.","",$NF); s+=$NF} \
+               END{printf "disponible real: %.0f MB\n", s*4096/1048576}'
+sysctl -n vm.swapusage        # total + used + free, los tres juntos
+memory_pressure | tail -1
+```
+
+🔴 **NO uses "Pages free" a secas: en macOS tiende a cero POR DISEÑO** —el sistema usa toda la RAM
+y libera lo inactivo cuando alguien lo pide—. **Un "libre" bajo no es escasez: es un sistema
+funcionando.** *Yo di la alarma con 15 MB "libres" cuando el disponible real eran 2,2 GB. La
+corrección es de la Directora.*
+🔴 **Y `Swapouts` NO mide presión actual: es un contador acumulado desde el arranque, nunca baja.**
+Que el swap *total* crezca dice que el sistema **se ha dimensionado**, no que esté ahogado.
+
+⚠️ **PERO el disponible real se mueve MUY rápido bajo carga, y ése es el dato que no teníamos:**
+```
+11:01  disponible real 2.259 MB   -> "no hay alarma", y era cierto
+11:05  disponible real   499 MB   -> cuatro minutos después, x4,5 menos
+```
+**Una medida de memoria caduca en minutos.** Si vas a relayarla, va **con su hora**, y si la
+recibes de otro, **remídela antes de decidir** — es *un dato correcto que caduca*, aplicado al
+recurso que más rápido se mueve de todos.
+
+🔑 **Y lo que resuelve el empate cuando dos medidas se contradicen: el EFECTO.** Ese día el
+vigilante del Factory Architect **murió por OOM dos veces en dos horas**. *Un cadáver decide sobre
+cualquier porcentaje* — y por eso la regla de abajo va antes que todas las cifras de arriba.
+
 **Regla:** para la memoria, como para todo lo demás de este documento, **el efecto manda sobre el
 indicador** — *¿ha muerto algo?* vale más que cualquier porcentaje. Y si vas a dar un número, da
 **swap usado/total + compresor + procesos más pesados**, nunca uno solo.
