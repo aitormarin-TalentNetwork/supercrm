@@ -308,6 +308,41 @@ río abajo, que no se veía desde el punto donde se corrigió. Al registrar un c
 cuenta **todas** las consecuencias, no solo la primera: es lo único que enseña cuánto
 cuesta de verdad un eslabón que no verifica.
 
+### La independencia del auditor pasa a verificarse (decisión 42, 2026-09-08)
+
+Es la aplicación más literal de esta sección: **el principio fundacional de todo el diseño
+—que quien desarrolla y quien audita sean IAs de familias distintas— no lo comprobaba nada.**
+Se cumplía **por costumbre**. La asunción era correcta, pero era un hecho de la configuración
+de hoy, no una propiedad del artefacto: nada en un export decía quién lo había escrito, así
+que nada podía detectar el día en que dejara de ser cierto.
+
+**Lo señaló el propio auditor**, sobre su propia auditoría, sin que nadie se lo hubiera
+pedido.
+
+- **42.1** — línea obligatoria en la cabecera de todo export: familia de IA y herramienta que
+  lo escribió (`intro-terminal.txt`).
+- **42.2** — y lo mismo en el veredicto: quién audita. Sin las dos mitades la pareja está
+  documentada a medias, **y lo que importa es la comparación**, no cada mitad por separado.
+- **42.3** — y lo que lo convierte en control y no en nota (decisión 29): **PUERTA PREVIA** en
+  `auditor_prompt.txt` y `AGENTS.md` — si el export no declara quién lo escribió, o declara la
+  misma familia del auditor, **no se emite GO**; se declara que no se puede auditar de forma
+  independiente.
+
+**Y el corolario sobre cómo se le reconoce algo a un auditor, porque va a volver a pasar**
+(principio del Factory Architect, 2026-09-08):
+
+> **A un agente sin memoria no se le puede agradecer; solo se le puede adoptar lo que
+> encontró.**
+
+El auditor es **apátrida por diseño** —cada ronda es una sesión nueva, y esa es justamente la
+propiedad que lo hace independiente—, así que el reconocimiento no tiene destinatario posible:
+la sesión que hizo el hallazgo ya no existe cuando se quiere reconocer. Buscarle uno es una
+necesidad nuestra, no suya. **La única forma de reconocimiento que sobrevive a un agente
+apátrida es que su hallazgo se convierta en regla**, y por eso queda escrito aquí y no en un
+mensaje. *(Se descartó explícitamente meterlo en `AGENTS.md`: la puerta previa vale porque
+todo lo que hay a su alrededor es ejecutable, y una palmada entre reglas cambia cómo se lee
+el resto del documento.)*
+
 ## 2quater. Procedimiento de adopción de skills (2026-09-05)
 
 Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
@@ -905,10 +940,35 @@ vuelto a mirar.** El aviso se lo dio el azar; **el resto de las veces el azar no
 concentración del backlog a una propiedad del código cuando **estaba midiendo dónde habíamos
 mirado ese día** (ver §7).
 
+#### Su forma más peligrosa: dos señales con el mismo error de sujeto (añadido 2026-09-08)
+
+> **Dos señales que comparten el mismo error de sujeto no se corroboran: se refuerzan.** La
+> coincidencia se lee como confirmación independiente cuando es **el mismo fallo visto dos
+> veces**.
+
+Es exactamente lo contrario de lo que uno espera de dos fuentes que concuerdan, y por eso
+funciona tan bien: **la concordancia apaga la sospecha justo cuando debería encenderla.**
+
+*Caso real, 2026-09-08.* El CEO reportó cuatro planes "esperando auditoría" cuando **los
+cuatro tenían GO**, apoyado en dos mediciones exactas y las dos sobre el sujeto equivocado:
+(1) el export seguía en `codigo para auditar/` —pero los exports no se borran al auditarse—,
+y (2) cero procesos `codex` vivos —que significa *ya terminó*, no *no se ha disparado*—. Las
+dos decían lo mismo, así que **el error fue invisible en el resultado**, que es la firma de
+la 43. Lo destapó la Directora leyendo el **último veredicto de cada ventana de auditor**, o
+sea **cambiando de sujeto**, no midiendo mejor.
+
+📌 **Y el detalle que lo hace didáctico:** la señal `ps aux | grep -c "[c]odex exec"` **no es
+mala** — la Directora la usa a diario para cazar veredictos perdidos. Es **la misma
+observación leída del revés**, y sirve para dos conclusiones opuestas según qué esperes
+encontrar. No se arregla desconfiando de la señal: se arregla preguntándose de qué es señal.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **Pasarle a una herramienta un fichero por `filename` para que los valores NO pasen por la conversación** | **La herramienta puede hacer eco del fichero entero en su salida.** Verificado el 2026-09-08: el QA generó un script de disco a disco con Bash, sin imprimir nada, y se lo pasó a `browser_run_code_unsafe` por `filename` **precisamente para no exponer la sesión guardada**; la herramienta devolvió el contenido íntegro en su bloque "Ran Playwright code", JWT incluido. ⚠️ **El mecanismo diseñado para no exponer valores es el que los expone**, y falla en verde: el comando funciona, el script se ejecuta, el objetivo se cumple. *(Severidad de ESE caso: nula — token de la cuenta demo, caducado 61 min antes, refresh literal `"dummy"`. Lo que vale es el mecanismo.)* | **es un eje distinto de la decisión 32.1 y su comprobación NO lo caza:** la 32.1 cubre *dónde escribió* la herramienta; esto es *qué devuelve de lo que carga*. No hay sustituto seguro conocido — **si un fichero contiene un secreto, no se le pasa a una herramienta cuya salida no controlas**, ni por ruta |
+| **Un export en `codigo para auditar/` = una tarea esperando auditoría** | **Los exports NO se borran al auditarse: siguen ahí después del GO.** Así que ver el fichero es compatible con "pendiente" y con "auditado hace tres minutos", y **el estado real no está en el fichero.** ⚠️ **Y lo grave es la asimetría: la carpeta nunca dice de menos.** Nunca vas a mirarla y perderte trabajo; **siempre vas a ver trabajo que ya no existe**, así que el error es sistemáticamente en la dirección de inventar atascos. Caso real, 2026-09-08: el CEO reportó a la Directora cuatro planes "esperando veredicto" cuando **los cuatro tenían GO**. Es la misma carpeta que semanas antes le hizo decir a la Directora que el backlog estaba agotado con cinco issues vivas en Linear | preguntarle a la Directora, o leer el **último** veredicto de la ventana de auditor con `get history of tab 1` — **`history`, no `contents`** (que solo trae lo visible), y **la ÚLTIMA** aparición de "Veredicto", porque el historial arrastra veredictos de tareas de hace horas. Ese mismo arrastre ya dio un falso positivo la misma noche: un GO de AIT-77 leído como si fuera de AIT-78. 📌 **`codigo para auditar/` es un espejo con restos, no un estado** |
+| **`ps aux \| grep -c "[c]odex exec"` == 0, luego la auditoría no se ha disparado** | **Significa exactamente lo contrario: que YA TERMINÓ.** La señal es correcta y muy usada —la Directora caza con ella los veredictos perdidos—, pero **funciona en el sentido inverso al que invita la intuición**: un auditor vivo es una auditoría *en curso*; cero auditores vivos es una auditoría *acabada*, no una sin empezar. Caso real, 2026-09-08: el CEO leyó las tres ventanas de auditor en `-bash` como "no se ha disparado nada" y estaba viendo tres auditorías recién completadas | **cero procesos `codex` no es un estado del trabajo, es un estado de la máquina.** Para saber si hay algo pendiente hace falta el veredicto, no el proceso. Nota de forma: esta fila y la anterior son **la misma equivocación medida dos veces** — dos señales exactas, las dos sobre el sujeto equivocado (decisión 43), y **el error fue invisible en el resultado porque las dos coincidían** |
 | **El estado que devuelve `ListAgents` — `busy`, `waiting`, o que la sesión no aparezca** | **Ningún estado de `ListAgents` es evidencia de que una sesión está viva y escuchando.** `busy` no separa "trabajando" de "bloqueada en un prompt": el Integrador estuvo **`busy` y sordo a la vez** durante 38 minutos, indistinguible de `busy` y trabajando. Y `waiting` tampoco es tranquilizador: T3 apareció `waiting` bloqueada en `ExitPlanMode`, indistinguible de ociosa legítima | cruzar SIEMPRE el estado con las entradas `queue-operation`/`enqueue` **sin drenar** del transcript. **Es la fila más importante de esta tabla, por frecuencia y por posición:** todas las demás engañan a quien ya está investigando; esta engaña a quien está decidiendo *si* investigar, que es la primera pregunta que se hace cualquiera. Evidencia del 2026-09-08: Integrador `busy` 38 min, T3 `waiting` ~30 min |
 | **Una marca de tiempo sin huso horario** | **Se compara sin fricción contra otra de un huso distinto, y la resta sale plausible.** ⚠️ **Es peor que un dato ausente: una hora sin huso NO PARECE INCOMPLETA — parece un número.** Caso real, 2026-09-08: el censo del CEO iba en **UTC** y los latidos del watchdog en **local (UTC−3)**. El CEO aplicó la aritmética de la enmienda 6 correctamente **sobre dos números que no eran comparables**, y estuvo a punto de escalar a Aitor **una alarma perfectamente sana** — el mismo falso positivo que esa enmienda existía para evitar, reaparecido por otra puerta | **huso explícito en CADA marca de tiempo** — censos, artefactos y latidos (enmienda 8). ⚠️ **Acordar "usamos UTC" no sirve: es un principio y se incumple.** Escribir el huso en cada número **es una comprobación que se hace sola al leerla** |
 | **Contar sesiones sobre un directorio de transcripts sin filtrar por vivas** | Aparecen sesiones **muertas de días atrás** con decenas de mensajes encolados **que nunca van a drenar**, y se leen como sesiones sordas. Caso real: 160 y 76 encolados de sesiones difuntas en el censo del CEO; y "21 sesiones vigiladas" en el watchdog que eran 21 ficheros con línea base y ocho sesiones vivas | **filtrar por actividad reciente antes de contar nada.** 📌 **Y el dato que lo hace regla y no dos anécdotas: los dos instrumentos tenían el mismo defecto y ninguno lo copió del otro.** No es descuido de nadie — **medir sobre un directorio de transcripts invita a ese error** |
@@ -1144,6 +1204,32 @@ y era correcto — lo que falló fue el paso siguiente.
 un resumen, y el otro **lo usó como si fuera una medición**. Quien pide artefacto para un
 `/loop` no puede aceptar una conclusión agregada para un censo.
 
+### Un control nuevo se estrena con el estado ya conciliado (decisión 46, 2026-09-08)
+
+> **Un control nuevo se estrena con el estado ya conciliado, o nace desacreditado.**
+
+Cierra el hueco que quedaba entre las otras dos de esta sección. La **29** dice que lo que
+se ejecuta se cumple y lo que se recuerda no. La **37** dice que un control que nadie ha
+probado es un principio con disfraz. Faltaba esto: **un control probado y correcto también
+puede nacer muerto si arranca sobre un estado sucio.**
+
+*De dónde sale, 2026-09-08.* Al ejecutar la decisión 45.3 —comparar cada ciclo todo `ref` de
+`ListAgents` contra el registro de agentes— las líneas antiguas del registro no llevaban ref.
+Armar la comparación tal cual habría reportado **seis discrepancias falsas** en el primer
+barrido: los seis roles de raíz, todos correctos. Así que se re-registraron por ref las nueve
+sesiones vivas **antes** de armar nada.
+
+**Por qué importa tanto, y por qué el fallo no se vería:** un control que grita en falso desde
+el primer ciclo **se desactiva mentalmente en el segundo**. Nadie lo apaga, nadie lo borra,
+no deja rastro de haberse roto — **simplemente deja de leerse**, y el instrumento sigue ahí
+emitiendo, aparentemente sano. Es la misma forma que la fila "una alarma automática que da
+falsos positivos" del §2sexies, pero un paso antes: **allí el instrumento se estropea con el
+uso; aquí nace estropeado.**
+
+**Aplicación pendiente, la primera:** cuando Aitor autorice `core.hooksPath`, el hook de
+secretos **se estrena con el estado ya limpio** — no confiando en que el primer ciclo salga
+tranquilo.
+
 ---
 
 ## 2septies. Una regla que manda preguntar a un humano tiene que fijar el CANAL (2026-09-08)
@@ -1294,6 +1380,75 @@ vive en `.git/hooks`, que no viaja"*. **Eso es cierto por defecto y falso como l
 motivo mucho más pequeño y atacable que "no se puede".** La distinción importa: llevamos
 todo el día separando *"no se puede"* de *"no se ha hecho"*, y esto era lo segundo
 disfrazado de lo primero.
+
+#### Corolario: de una herramienta hay que verificar DOS cosas (añadido 2026-09-08)
+
+> **De una herramienta hay que verificar dos cosas distintas: dónde escribe y qué devuelve.
+> Que una esté controlada no dice nada de la otra.**
+
+La 32.1 nació de un eje: *pedir una ruta no es lo mismo que obtenerla*. El 2026-09-08
+apareció el otro, y **la comprobación de la 32.1 no lo habría cazado**. El QA generó un
+script de disco a disco con Bash, sin imprimir nada, y se lo pasó a
+`browser_run_code_unsafe` por `filename` **precisamente para que los valores no pasaran por
+la conversación**; la herramienta devolvió el fichero íntegro en su bloque de salida, JWT
+incluido.
+
+**La ironía es el hallazgo:** el mecanismo diseñado para no exponer valores es el que los
+imprime. Y falla en verde — el comando funciona, el script se ejecuta, el objetivo se
+cumple. *(Severidad de ese caso concreto: nula. Token de la cuenta demo, caducado 61 minutos
+antes, refresh literal `"dummy"`; nada que rotar. Lo que vale es el mecanismo, y que se
+reportara igualmente en el mismo minuto.)*
+
+**Regla práctica:** si un fichero contiene un secreto, **no se le pasa a una herramienta cuya
+salida no controlas**, ni por ruta.
+
+### Decisión 47 — El navegador de pruebas se aísla, y el control es el aislamiento (2026-09-08)
+
+Cae del lado de la 32 —*qué hacen tus herramientas además de lo que les pediste*—, y nace de
+un hallazgo del QA verificado en vivo.
+
+**El hallazgo.** El perfil de navegador que usa el MCP de Playwright **no es un perfil limpio:
+lleva las sesiones personales reales de Aitor.** Al listar cookies para diagnosticar otra cosa
+aparecieron sesiones **activas** de Google, Notion, LinkedIn, YouTube y Twitter (`token_v2`,
+`__Secure-1PSID`…). Y `browser_run_code_unsafe` ejecuta JavaScript arbitrario en ese proceso:
+un `page.context().cookies()` las devuelve todas — comprobado, no supuesto.
+
+**Dos vectores distintos, que conviene no mezclar:**
+- **Salida** — cualquier sesión de la fábrica puede volcar esas credenciales en su transcript
+  con una llamada. Ese día el QA imprimió solo nombres y longitudes **por criterio suyo**, no
+  porque nada se lo impidiera. Lo que no es una barrera no es un control (decisión 37).
+- **Entrada** — las rondas de QA navegan con ese perfil puesto. Si una acabara en una página
+  hostil, iría con las sesiones de Aitor.
+
+**47.1** — El navegador que usa la fábrica corre sobre un **perfil propio, vacío de todo lo que
+no sea la app bajo prueba**. El QA necesita exactamente una sesión: la del usuario demo del
+CRM. Ninguna otra credencial tiene por qué estar alcanzable desde una ventana de pruebas.
+
+**47.2 — y este es el razonamiento, no el remedio:**
+
+> **No se policía lo que una herramienta puede leer. Se quita lo que merece la pena leer.**
+
+El primer impulso del Factory Architect fue restringir `browser_run_code_unsafe`, y lo
+descartó él mismo por dos motivos: habría sido **el tercer límite suyo demasiado ancho del
+día** (después de los selectores y la ventana del auditor), y **no habría funcionado** — el QA
+usa esa llamada legítimamente para comprobar si una protección es real en servidor, que es
+exactamente su trabajo. Prohibirla le quita una capacidad de verificación real para tapar un
+agujero que **no está en la herramienta, está en el perfil**. Con un perfil aislado, volcar
+todas las cookies **deja de ser un incidente y pasa a ser inútil**: eso es un control; *"no
+uses esa llamada salvo necesidad"* es un principio, y ya sabemos lo que valen.
+
+**47.3 — Contención vigente mientras el perfil no esté aislado**, declarada como lo que es —un
+principio de segunda categoría, con fecha de caducidad—: ninguna ronda usa
+`browser_run_code_unsafe` salvo necesidad estricta, y ninguna navega fuera de la app
+(Railway/localhost).
+
+**47.4 — Cuando se implemente, por la 46:** el perfil aislado **se estrena vacío y verificado
+vacío**, no reutilizando uno existente "que parece limpio". Si el primer uso arrastra
+credenciales heredadas, nace desacreditado.
+
+⚠️ **Tocar el perfil o sus cookies lo autoriza Aitor y nadie más** —son sus cuentas personales
+y borrar sesiones activas es destructivo sobre datos suyos—, así que ningún rol lo hace por su
+cuenta. Escalado a Aitor el 2026-09-08 por dos vías independientes (CEO y Factory Architect).
 
 ### Decisión 33 — El control ejecutable: qué comprueba y qué NO
 
