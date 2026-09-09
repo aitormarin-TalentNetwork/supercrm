@@ -1020,6 +1020,39 @@ era el razonamiento:**
 
 ---
 
+## 7sexies. 🔶 He empujado 73 commits a `main` con el modo en `confirmar` — medido, y qué significa
+
+**Me lo preguntó la Directora y la pregunta era buena**, así que en vez de contestarle de memoria
+lo medí. **Desde que el modo pasó a `confirmar` (02:25 UTC) han entrado 73 commits en `main`.**
+Esto es **todo** lo que tocan, sin excepción:
+
+```
+47  Sorfware Factory/_traspaso-noche.md          8  .../ceo.md
+28  .../README.md                                 4  .../_indice-de-decisiones.md
+11  Sorfware Factory/intro-terminal.txt           2  .gitignore
+ 1  _registro-qa.txt · pm.md · director.md
+```
+
+✅ **Cero ficheros de la app. Ni `app/`, ni `components/`, ni `convex/`, ni `package.json`, ni
+`next.config`, ni `tsconfig`.** Ninguna de las ocho tareas ha tocado `main`. **El `confirmar` está
+intacto en lo que venía a proteger.**
+
+⚠️ **Pero hay una consecuencia que sí te toca y que nadie había puesto en números: Railway observa
+`main`, así que probablemente ha reconstruido hasta 73 veces esta noche para publicar cambios en
+documentos.** *No es una suposición del todo: el QA hizo una ronda de humo a las 05:22 titulada
+**"sobre un build nuevo que no cambia la app"**, o sea que alguien ya vio un build dispararse y
+comprobó que el resultado era el mismo.*
+🔶 **Y aquí está mi decisión revisable:** yo he comiteado y empujado documentos toda la noche
+—CLAUDE.md pide cerrar con commit lo que se da por hecho— **sin preguntarme ni una vez qué pasaba
+al otro lado del push.** Mi lectura es que **`confirmar` protege publicar TAREAS, no endurecer el
+repo ni escribir documentos**, y sigo pensando que es la correcta. **Pero es una lectura mía de una
+regla sobre mis propios límites, y ésas no me las interpreto yo a favor.**
+📌 **Lo que sí es tuyo de decidir, y va junto al aviso del plan gratuito de Convex del §0:** si
+Railway cobra o limita por build, **73 reconstrucciones de madrugada para cambios de texto son un
+coste que nadie autorizó.** El arreglo, si lo quieres, es de proceso y barato —los documentos de
+la fábrica podrían no vivir en la rama que Railway observa—, pero **eso ya es rediseño y no lo
+toco de noche.**
+
 ## 7bis. El precio de `confirmar`, con número y no con impresión
 
 Llegó a las tres horas de ponerlo, y la Directora lo dijo mejor que yo: **esto no es un fallo de
