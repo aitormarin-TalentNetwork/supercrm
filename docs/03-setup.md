@@ -171,7 +171,9 @@ npx convex env set SEED_OWNER_PASSWORD <contraseña-owner>
 npx convex env set SEED_SALES_PASSWORD <contraseña-sales>
 ```
 
-Y en `.env.local` (frontend, para el autorrelleno de "cuentas de prueba" en `/login` — solo se usa si `NODE_ENV !== "production"`):
+Y en `.env.local` (frontend, para el autorrelleno de "cuentas de prueba" en `/login`):
+
+⚠️ **Ojo, esto de aquí decía que el bloque "solo se usa si `NODE_ENV !== \"production\"`" y era falso** (comprobado el 2026-09-08 pidiendo el HTML de producción sin sesión: la contraseña sale entera en la página pública). `app/login/page.tsx` lo pinta **siempre**, y es una decisión explícita del proyecto —hoy no hay datos reales y evita ir a buscar credenciales cada vez—, no un descuido. Está recogida en el `checklist de salida a producción real`: cuando lleguen clientes de verdad hay que **rotar** esas contraseñas y **retirar** el bloque, en ese orden.
 
 ```
 NEXT_PUBLIC_DEMO_OWNER_PASSWORD=<mismo valor que SEED_OWNER_PASSWORD>
