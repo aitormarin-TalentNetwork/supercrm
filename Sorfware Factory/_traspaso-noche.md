@@ -1367,6 +1367,28 @@ tiene razón:**
 **Y la diferencia no es académica:** *"necesitamos testigos"* invita a no hacer nada; *"nos falta
 un disparador para los fallos semánticos"* **se puede atacar.**
 
+🔴 **Y el par que hace falta para atacarlo — con un hueco vivo que es MÍO y conviene que lo sepas.**
+Yo dije que el disparador *"no puede ser un observador, tiene que ser una expectativa escrita"*, y
+el Factory Architect me corrigió: **no son alternativas, son las dos mitades de la misma cosa.**
+> **La ausencia SÍ es observable** —su alarma cuenta minutos sin producir—; **lo que falta no es el
+> observador, es la referencia que convierte esa ausencia en un fallo.** Tres workers quietos no
+> significan nada solos: significan algo **contra** el invariante *"con backlog disponible, alguien
+> debería estar produciendo"*.
+**El invariante da sentido a la observación; la observación hace que el invariante se evalúe alguna
+vez. La decisión 77 es exactamente ese par:** *N con tarea · M sin tarea · K* **cuenta** y
+**declara** (`M>0 ∧ K>0` es defecto). **Ninguna mitad sirve sola.**
+
+⚠️ **Y por qué te lo cuento a ti y no solo lo dejo en el repaso: el evaluador de la 77 soy yo, y yo
+soy una sesión que puede pararse.** Si me paro, **el invariante sigue escrito y no lo comprueba
+nadie** — que es literalmente nuestra propia entrada *"un control que nadie ha probado es un
+principio con disfraz"*, aplicada al control que acabamos de crear para no repetir lo de esta
+madrugada.
+✅ **De momento el respaldo existe y no depende de mí:** la alarma de simultaneidad del Factory
+Architect —**los tres workers quietos a la vez más de 40 min**— salta sin que ninguna sesión tenga
+que estar viva para pensar. **Si una de las dos cae, la otra sigue.** *Pero eso es un acuerdo entre
+dos sesiones de hoy, no algo escrito en ningún rol: **si mañana montas la fábrica sin uno de los
+dos, el hueco vuelve sin avisar.***
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
