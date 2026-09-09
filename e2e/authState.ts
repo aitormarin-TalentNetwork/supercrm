@@ -236,14 +236,20 @@ export function readState(role: Role, dir: string = AUTH_DIR): StorageState {
   }
   const estado = JSON.parse(fs.readFileSync(ruta, "utf8")) as StorageState;
   // Se valida el CONTENIDO, no solo que el fichero exista. `existsSync` protege
-  // de que falte; no de que esté vacío — y el fichero envenenado EXISTE. Sin
-  // esto, una instantánea rota de una corrida anterior sigue haciendo daño y el
-  // síntoma es una espera agotándose a los 30 s en la pantalla de login.
+  // de que falte; no de que esté vacío — y el fichero envenenado EXISTE.
+  //
+  // ⚠️ QUÉ CUBRE ESTO DE VERDAD, medido y no supuesto: `globalSetup` reescribe
+  // las dos instantáneas al arrancar, así que **una rota de ayer NO llega viva
+  // a los tests de hoy** — se cura sola antes de que nadie la lea. Lo que esta
+  // comprobación cubre es el resto: una instantánea rota DENTRO de la corrida
+  // en curso, una editada a mano, o un `globalSetup` que no llegara a escribir.
+  // Es defensa en profundidad; la que impide el daño es la validación al
+  // ESCRIBIR.
   const problema = problemaDeInstantanea(estado, role);
   if (problema !== null) {
     throw new Error(
-      `[e2e] ${problema} Se generó rota en una corrida anterior; no la ha roto ` +
-        `este cambio. ${QUE_HACER}`,
+      `[e2e] ${problema} Se guardó rota antes de esta lectura —en esta misma ` +
+        `corrida o en otra—; no la ha roto el cambio que estés probando. ${QUE_HACER}`,
     );
   }
   return estado;

@@ -23,9 +23,21 @@ import {
 // directorio: no se le pide a la prueba que se porte bien, se le quita la
 // posibilidad de portarse mal.
 
+/** Directorio temporal que se retira al acabar la prueba. Lo de retirarlo no es
+ *  estética: hoy mismo se han limpiado 17 procesos huérfanos, y la forma es la
+ *  misma — algo que se crea y nadie recoge. Un test que deja basura la deja en
+ *  cada corrida. */
+const temporales: string[] = [];
 function dirTemporal() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "ait119-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ait119-"));
+  temporales.push(dir);
+  return dir;
 }
+test.afterEach(() => {
+  while (temporales.length > 0) {
+    fs.rmSync(temporales.pop()!, { recursive: true, force: true });
+  }
+});
 
 const COOKIE_BASE = {
   domain: "localhost",
@@ -137,8 +149,12 @@ test("Y6 · readState rechaza el fichero envenenado REAL y dice qué encontró",
   }
   expect(mensaje).toContain("0 cookie(s)");
   expect(mensaje).toContain("ninguna");
-  // Que no parezca una regresión de este cambio: el fichero ya estaba roto.
-  expect(mensaje).toContain("corrida anterior");
+  // Lo que esta aserción protege es que el mensaje NO se lea como una regresión
+  // del cambio que uno esté probando. Se afirma sobre eso, no sobre una causa
+  // concreta: decir "de una corrida anterior" era falso —puede romperse dentro
+  // de la corrida en curso o a mano— y estaba fijado aquí como si fuera cierto.
+  expect(mensaje).toContain("no la ha roto el cambio");
+  expect(mensaje).not.toContain("corrida anterior");
 });
 
 test("Y7 · readState acepta una instantánea válida", () => {
