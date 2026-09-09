@@ -650,8 +650,24 @@ una vez que el trabajo pasa auditoría.
      NUNCA `git show HEAD`, y NUNCA pegado de la ronda anterior.
   ⚠️ Por que se cuela: `git show HEAD` NO FALLA. Produce un diff valido, bien formado
      y perfectamente legible... del commit equivocado. No hay nada que chirrie.
+  ⚠️ Y EL COMANDO FIJA EL RANGO, NO EL SUJETO: depende de DONDE se ejecute, y la
+     salida no lo dice. Medido: el mismo comando da 3 ficheros desde el worktree de
+     T3 y CERO desde la raiz — un export de T3 generado desde la raiz sale vacio,
+     perfectamente bien formado, y en la direccion que nadie detecta.
+     Por eso el bloque lleva delante, generado por EL MISMO comando:
+         worktree: $(git rev-parse --show-toplevel)
+         rama:     $(git rev-parse --abbrev-ref HEAD)
+     Un export de una tarea de T3 que diga `rama: main` canta solo. El comando no
+     puede garantizar donde se ejecuta; lo que si puede es DECLARARLO, y asi un
+     error de ejecucion deja huella en vez de salir en blanco.
+     (Es la regla de siempre —una diferencia sin sus dos extremos nombrados es media
+      medicion— con el extremo que faltaba: el DONDE.)
   ✅ Se verifica POR EFECTO, no por intencion: que las lineas +/- del diff de la rama
      aparezcan TODAS en el fichero exportado.
+  📐 Y las tres piezas en orden, que hacen cosas distintas: la GENERACION hace
+     imposible el pegado viejo (imposible por la forma), la CABECERA hace visible el
+     sujeto equivocado, y la VERIFICACION POR EFECTO es el cinturon para lo que se
+     escape a las dos.
   🔴 Y LA RAZON POR LA QUE ESTO IMPORTA MAS DE LO QUE PARECE: las dos direcciones del
      fallo NO cuestan lo mismo.
        - Export PEOR que la rama -> NO-GO injusto. Ruidoso y barato: alguien mira.
