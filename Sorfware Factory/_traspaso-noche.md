@@ -467,13 +467,21 @@ usado con **tres ramas, en este orden**:
  3) si no                                                           -> invalida y mata la sesión
 ```
 
-**La rama 1 va PRIMERO y no caduca por tiempo.** T2 midió que **los dos ficheros filtrados son
+**La rama 1 va PRIMERO y no la cierra la ventana de 10 s.**
+⚠️ **Aquí exageré y el Factory Architect me lo devolvió con razón:** escribí *"no caducan por
+tiempo"* y **es falso**. **Sí hay dos relojes, y corren ANTES que las tres ramas** —comprobado por
+mí en `refreshTokens.js`, líneas 82 y 99—: la **inactividad del propio token** y la **duración
+total de la sesión**; cualquiera vencido, se rechaza. **La formulación correcta es: dejaron de
+estar limitados por la ventana de 10 segundos y pasaron a estarlo por el reloj de la sesión.**
+*Grave, pero acotado. Lo corrijo en vez de dejarlo "por si acaso" porque **decir algo peor de lo
+que es le resta fuerza al siguiente aviso**, y esta noche va a haber otro.* T2 midió que **los dos ficheros filtrados son
 justo el padre del token activo de su sesión** — o sea, caen en la rama 1. *(El orden de las ramas
 lo verifiqué yo en la fuente; la relación padre/activo me llega de él, y no puedo comprobarla sin
 tocar los tokens.)*
 
 ⚠️ **Y la maniobra que se ejecutó lo empeoró:** antes estaban *sin usar* —servían una vez—; ahora
-están *usados y son padre del activo*, o sea **siguen sirviendo y por una vía que no expira**.
+están *usados y son padre del activo*, o sea **siguen sirviendo, y ya no diez segundos sino
+mientras viva la sesión**.
 **Retiro lo que escribí antes de que "lo que nos salvó fue que la acción era inocua": no nos salvó
 nada.**
 
