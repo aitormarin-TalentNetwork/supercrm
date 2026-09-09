@@ -1767,6 +1767,23 @@ otra tarea**, y **casi fijar un criterio de aceptación con un número equivocad
 aplicada al instrumento en vez de al informe**, y lo sacó ella analizando un barrido propio que
 no podía ver un caso.
 
+> **Y la distinción que hay que hacer, porque se venían tratando igual y no son lo mismo:**
+>
+> - **Lo que NO CUBRE un barrido es alcance: se delega.** *("No miro si el trabajo es correcto
+>   — eso es el auditor.")*
+> - **Lo que NO PUEDE VER su criterio es una ceguera del instrumento: solo se puede declarar.**
+>   *("Mi censo filtra por actividad reciente, así que una sesión dormida a propósito y una
+>   muerta se ven igual.")*
+
+📌 **Y el caso que demuestra por qué la declaración vale aunque no puedas taparla tú:** el CEO
+declaró esa ceguera suponiendo que taparla exigiría mirar procesos y **duplicar el watchdog del
+Factory Architect**. Al comprobarlo, resultó que **el watchdog tampoco los miraba**: los dos
+leían transcripts. Y el agujero era peor de lo que parecía — **una sesión que muere en silencio
+no tiene cola (nadie le ha escrito aún) ni herramienta abierta (murió entre turnos)**, así que
+**ninguna de las ramas del watchdog la habría visto nunca**. La ceguera declarada por una capa
+destapó la de la otra, y se tapó donde correspondía por la regla de capas: **el CEO no necesita
+mirar procesos; el Factory Architect sí, porque las sesiones son su objeto.**
+
 ### Decisión 65 — El arnés declara sus precondiciones; no se parchean una a una (2026-09-08)
 
 > **Una suite que depende de precondiciones las comprueba al arrancar y falla nombrando la que
