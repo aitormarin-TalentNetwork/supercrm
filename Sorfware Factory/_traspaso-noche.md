@@ -926,6 +926,28 @@ Lo mejor no lo escribimos ni el Factory Architect ni yo:
 
 ---
 
+## 7septies. El marco con el que leer todo lo de arriba, y una conclusión que NO me creo
+
+> ### **El rigor tiene una silueta, y la silueta se puede alcanzar sin el contenido.**
+
+**Es lo que explica la noche entera.** Un verde, una autocrítica, una cita de código, un comando
+bien elegido, una corrección — **las cinco tienen la forma exacta de haber comprobado**, y por eso
+ninguna de las que fallaron se cazó desconfiando: **todas se cazaron chocando** contra otra fuente
+que decía algo distinto.
+
+⚠️ **Y la última conclusión de la noche merece el mismo trato que las demás, así que la dejo a
+medias a propósito.** Escribí que devolví la decisión 71 y no la 74 **porque la 74 traía su control
+positivo ya ejecutado y la 71 solo razonado**. Suena bien y **nos deja bien a los dos** —"el
+proceso funcionó"—, que es justo el tipo de explicación cómoda que llevamos toda la noche marcando
+como sospechosa. **Con un caso de cada, no se puede distinguir de la otra causa candidata: que
+fueran las seis de la mañana y que yo ya hubiera devuelto una esa noche.**
+📌 **La versión que aguanta:** *la 71 se devolvió y la 74 no; la diferencia plausible es el
+control ejecutado frente al razonado, pero un caso de cada no lo demuestra.* **Y si el repaso
+quiere saberlo de verdad, el dato es contable, no opinable: sobre las próximas decisiones, cuántas
+traían control ejecutado y cuántas de ésas se devolvieron.** *(Me lo devolvió el Factory
+Architect, y tenía razón: **sería raro que la única conclusión que se salvara del criterio fuese
+la que habla bien de nosotros.**)*
+
 ## 8. Lo primero cuando se retome el proceso
 
 El Factory Architect paró de producir decisiones esta noche porque **el catálogo crecía más
