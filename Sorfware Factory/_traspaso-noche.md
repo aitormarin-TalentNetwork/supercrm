@@ -1056,8 +1056,9 @@ era el razonamiento:**
 ## 7sexies. 🔶 He empujado 73 commits a `main` con el modo en `confirmar` — medido, y qué significa
 
 **Me lo preguntó la Directora y la pregunta era buena**, así que en vez de contestarle de memoria
-lo medí. **Desde que el modo pasó a `confirmar` (02:25 UTC) han entrado 73 commits en `main`.**
-Esto es **todo** lo que tocan, sin excepción:
+lo medí. **Desde que el modo pasó a `confirmar` (02:25 UTC) han entrado 77 commits en `main`**
+—cifra de las 05:50 UTC, y **se mueve mientras se lee**: eran 73 hace diez minutos—. Esto es **todo**
+lo que tocan, sin excepción:
 
 ```
 47  Sorfware Factory/_traspaso-noche.md          8  .../ceo.md
@@ -1070,16 +1071,31 @@ Esto es **todo** lo que tocan, sin excepción:
 `next.config`, ni `tsconfig`.** Ninguna de las ocho tareas ha tocado `main`. **El `confirmar` está
 intacto en lo que venía a proteger.**
 
-⚠️ **Pero hay una consecuencia que sí te toca y que nadie había puesto en números: Railway observa
-`main`, así que probablemente ha reconstruido hasta 73 veces esta noche para publicar cambios en
-documentos.** *No es una suposición del todo: el QA hizo una ronda de humo a las 05:22 titulada
-**"sobre un build nuevo que no cambia la app"**, o sea que alguien ya vio un build dispararse y
-comprobó que el resultado era el mismo.*
+⚠️ **Pero hay una consecuencia que sí te toca: Railway observa `main` y reconstruye con cambios de
+solo-documentación.** *Comprobado que el repo **no** lleva `railway.json`, `railway.toml`,
+`.railwayignore` ni `watchPatterns` en ningún sitio: **no filtra por rutas**. Y no es teoría — el
+QA hizo una ronda de humo titulada **"sobre un build nuevo que no cambia la app"**, o sea que
+alguien ya vio uno dispararse y comprobó que el resultado era idéntico.*
+🔴 **Y aquí me corrigió la Directora, con razón, sobre el número — que es lo que más importa
+porque es una cifra de coste: `commits` NO es `builds`. Railway reconstruye por PUSH.** Si diez
+commits salieron en un push, eso es **un** build. **Nadie ha contado los pushes y no se pueden
+reconstruir desde el repo.** Así que el número honesto es: **hasta 77, probablemente bastantes
+menos, y NADIE LO HA MEDIDO.**
+📌 **Lo escribo así a propósito**, porque un número alto parece la explicación: si lees *"77
+builds"* decides sobre una cifra que ninguno de nosotros conoce. **Quien puede cerrarlo de verdad
+es el Integrador, que tiene la consola de Railway** — no le he pedido que lo mire de madrugada
+**porque no bloquea nada**; es una pregunta de cinco minutos para cuando amanezca.
 🔶 **Y aquí está mi decisión revisable:** yo he comiteado y empujado documentos toda la noche
 —CLAUDE.md pide cerrar con commit lo que se da por hecho— **sin preguntarme ni una vez qué pasaba
 al otro lado del push.** Mi lectura es que **`confirmar` protege publicar TAREAS, no endurecer el
 repo ni escribir documentos**, y sigo pensando que es la correcta. **Pero es una lectura mía de una
 regla sobre mis propios límites, y ésas no me las interpreto yo a favor.**
+📌 **Y la Directora me devolvió la culpa, con un argumento que acepto:** esto **no es indisciplina
+mía, es una regla de la fábrica a la que le falta la otra mitad.** `CLAUDE.md` dice *cierra con
+commit*; **no dice en ningún sitio que la rama que commiteas es la que un servicio externo
+observa.** Cumplí la regla escrita y el coste salió por un lado que la regla no menciona. **El
+arreglo es de diseño —que los documentos de la fábrica no vivan en la rama que Railway mira— y ya
+está enrutado al Factory Architect.**
 📌 **Lo que sí es tuyo de decidir, y va junto al aviso del plan gratuito de Convex del §0:** si
 Railway cobra o limita por build, **73 reconstrucciones de madrugada para cambios de texto son un
 coste que nadie autorizó.** El arreglo, si lo quieres, es de proceso y barato —los documentos de
