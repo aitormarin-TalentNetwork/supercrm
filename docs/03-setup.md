@@ -184,6 +184,50 @@ NEXT_PUBLIC_DEMO_SALES_PASSWORD=<mismo valor que SEED_SALES_PASSWORD>
 
 Desde AIT-60, además del login por contraseña, existe un botón "Continuar con Google" en `/login` — ninguno sustituye al otro. Hace falta un proyecto en [Google Cloud Console](https://console.cloud.google.com/apis/credentials) con credenciales OAuth 2.0 tipo "Aplicación web":
 
+**Qué proyecto de Google Cloud es (verificado en consola el 2026-09-08, AIT-90):**
+
+| | |
+|---|---|
+| **Proyecto** | `supercrm-506513` (número `164759808809`) |
+| **Organización** | `talent-network.org` (el Workspace) |
+| **Administrador** | Aitor (`aitor.marin@talent-network.org`) |
+| **Tipo de usuario** | **Interno** — solo cuentas del Workspace |
+| **Clientes OAuth** | uno solo: **"SuperCRM Web"** (creado 2026-08-24), el del login. `AUTH_GOOGLE_ID` es su Client ID. |
+
+⚠️ **No confundirlo con `model-nexus-506915-n9`** ("My First Project"), que existe en la
+misma cuenta y no tiene nada que ver con el CRM. Es el que sale por defecto al abrir la
+consola, y ya se ha entrado en él por error una vez.
+
+**La app se pasó de Externa/Testing a INTERNA el 2026-09-08** (AIT-90) para poder pedir
+`gmail.readonly` sin auditoría CASA. Efectos colaterales, que alcanzan también al login
+porque **la pantalla de consentimiento es del proyecto entero, no de cada cliente**:
+desaparecen el modo Testing, el tope de 100 usuarios y la lista de cuentas de prueba, y
+**solo pueden entrar cuentas de `talent-network.org`**. Hoy eso no deja fuera a nadie
+—`admin@` y `aitor.marin@` son las dos únicas cuentas Google dadas de alta, ambas del
+dominio—, pero **si algún día hay que dar acceso por Google a alguien de fuera del
+dominio, esto es lo que hay que revertir** (y con ello vuelve la exigencia de auditoría
+para Gmail).
+
+**El cliente OAuth de Gmail todavía NO existe, y es a propósito.** Será un cliente
+*aparte* del login (decidido en AIT-90: añadir permisos de Gmail al del login cambiaría
+la pantalla de consentimiento de todo el mundo al entrar). Un cliente de Google necesita
+su URI de redirección, y esa dirección tiene dos mitades:
+
+- **El dominio ya se sabe**, y es el mismo `CONVEX_SITE_URL` de siempre — el intercambio
+  de token tiene que ocurrir en Convex, porque el token de refresco no puede pasar por el
+  navegador: `https://third-goldfinch-805.convex.site` (dev) y
+  `https://stoic-impala-857.convex.site` (producción). Nunca el dominio de Railway.
+- **La ruta todavía no existe.** La del login (`/api/auth/callback/google`) no la
+  escribimos nosotros: la instala Convex Auth con `auth.addHttpRoutes(http)` en
+  `convex/http.ts`. La de Gmail no es un login, así que necesita una ruta propia que
+  alguien tiene que añadir a ese mismo fichero — y eso es trabajo de **AIT-92**.
+
+Por eso el cliente se crea *cuando* AIT-92 defina su ruta, no antes: inventarle una
+dirección ahora obligaría a rehacerlo, o a atar la implementación a un camino que eligió
+quien no la ha construido. Las URIs de redirección **se pueden añadir y editar después
+sin recrear el cliente**, así que esperar no cuesta nada.
+
+
 - **URI de redirección autorizado:** `https://<CONVEX_SITE_URL>/api/auth/callback/google` (hoy, en dev: `https://third-goldfinch-805.convex.site/api/auth/callback/google` — `CONVEX_SITE_URL` es el dominio `.convex.site`, no el `.convex.cloud` de `NEXT_PUBLIC_CONVEX_URL`).
 - Da de alta el Client ID/Secret en el deployment de Convex (nombres exactos que espera `@auth/core`, no elegibles):
 
