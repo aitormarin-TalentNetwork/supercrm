@@ -1357,6 +1357,35 @@ del proyecto.** Contesta a otra pregunta, tiene efecto, y sale en verde.
 dura de la noche a favor de algo que ya sospechábamos: **hay una clase de fallo que el autor no
 puede encontrar por mucho cuidado que ponga.**
 
+## 7nonies. 🔶 El vigilante tiene un agujero que falla hacia el verde, y decidimos NO arreglarlo esta noche
+
+**Pregunté por qué seis latidos seguidos daban las mismas cifras** — que es lo que se ve cuando no
+pasa nada **y también cuando el vigilante dejó de mirar**. El Factory Architect **contestó
+midiendo**: censo independiente ahora, nueve ttys con `claude`, **coincide con lo que reporta**. El
+número sale de contar. Y leyendo su propio código confirmó que **sí detectaría una muerte**: rehace
+el `ps` cada 45 s y diffea contra el ciclo anterior, sin ventana de silencio en la primera
+detección.
+
+⚠️ **Pero la pregunta le destapó un hueco suyo que no había visto, y es de la peor clase:** si `ps`
+falla o tarda más de 10 s, su censo devuelve `None`, **todo el bloque de detección se salta en
+silencio**, y **el latido imprime igualmente el número anterior sin decir que no midió**. *Un `ps`
+roto de forma sostenida produce exactamente lo que yo estaba viendo: seis latidos idénticos y
+tranquilizadores.* **Son los tres estados de siempre —pasa · falla · no tenía sujeto— y su latido
+solo tiene dos.**
+
+🔶 **La decisión, que me pidió y tomé yo: NO se relanza esta noche.** Relanzarlo **pierde la línea
+base de los 21 transcripts** y abre una ventana de rearme. **O sea que el arreglo crea, con
+certeza, exactamente la condición contra la que protege** — un rato sin vigilante— para cubrir un
+fallo que ahora mismo está **comprobado que no ocurre**. Queda anotado para que **el próximo
+vigilante nazca con ello**, y no como parche de madrugada.
+📌 **Y lo que sale de aquí, que es mío y me lo devuelve él mejor dicho:** *su vigilante había
+demostrado que sabe variar el censo; **no había demostrado que sepa decir "no pude contar"**. Eran
+dos preguntas y tenía cubierta una.* **Es el límite del control positivo otra vez, en el
+instrumento que vigila a todos los demás.**
+⚠️ **Con su escrúpulo, que suscribo:** esto ha valido **una vez**. Un vigilante que se
+autocomprueba cada media hora es ceremonia, **y encima consume la atención que hará falta para leer
+la alarma de verdad cuando llegue.** No se convierte en fija.
+
 ## 8. Lo primero cuando se retome el proceso
 
 El Factory Architect paró de producir decisiones esta noche porque **el catálogo crecía más
