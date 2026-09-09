@@ -8,6 +8,14 @@ import { normalizePhone } from "../lib/phone";
 // AIT-81: el catálogo de canales y su primer paso, en un solo sitio. Antes el
 // mapa vivía aquí y el union se repetía a mano en `createQuick`.
 import { FIRST_STEP_BY_SOURCE } from "../lib/customerSource";
+// AIT-82: qué es un cliente válido, en un solo sitio. Antes estas reglas vivían
+// aquí sin exportar y estaban copiadas en las otras tres puertas.
+import {
+  normalizeCustomerEmail,
+  validateCustomerEmail,
+  validateCustomerName,
+  validateCustomerPhone,
+} from "../lib/customerValidation";
 import { customerSourceValidator } from "./model/customerSource";
 import { isAtRisk } from "../lib/risk";
 
@@ -38,8 +46,6 @@ const NEXT_STEP_BY_STAGE: Record<
 // llamada directa a la mutation, sin depender de que el formulario valide.
 // Se usa tanto para el importe estimado como para el importe final de cierre.
 const MAX_AMOUNT = 100_000_000;
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // AIT-33: ciclo de cobro, solo hacia adelante (nunca "cobrado" ->
 // "facturado"). `null` en "cobrado" marca el final de la cadena — no hay
@@ -103,25 +109,20 @@ export const createQuick = mutation({
       return { status: "created" as const, opportunityId: ownRequest.opportunityId };
     }
 
+    // AIT-82: las reglas viven en `lib/customerValidation.ts`, no aquí. Esta es
+    // una de las cuatro puertas a `customers` y todas validan con las mismas
+    // funciones, así que ya no pueden separarse.
+    const nameError = validateCustomerName(args.name);
+    if (nameError) throw new Error(nameError);
     const name = args.name.trim();
-    if (name.length === 0) throw new Error("El nombre es obligatorio.");
 
     const phone = args.phone.trim();
-    if (!/^[\d\s+()-]+$/.test(phone)) {
-      throw new Error("El teléfono solo puede tener números y separadores.");
-    }
-    const phoneDigits = phone.replace(/\D/g, "");
-    if (phoneDigits.length < 9) {
-      throw new Error("Introduce un teléfono válido (9 dígitos).");
-    }
-    if (phoneDigits.length > 15) {
-      throw new Error("El teléfono es demasiado largo.");
-    }
+    const phoneError = validateCustomerPhone(phone);
+    if (phoneError) throw new Error(phoneError);
 
-    const email = args.email?.trim().toLowerCase() || undefined;
-    if (email !== undefined && !EMAIL_RE.test(email)) {
-      throw new Error("El email no tiene un formato válido.");
-    }
+    const emailError = validateCustomerEmail(args.email);
+    if (emailError) throw new Error(emailError);
+    const email = normalizeCustomerEmail(args.email);
 
     // AIT-80: el duplicado SEMÁNTICO — la misma persona dada de alta dos
     // veces en momentos distintos. No confundir con la idempotencia de

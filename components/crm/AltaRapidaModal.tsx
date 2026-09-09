@@ -15,6 +15,13 @@ import {
   CUSTOMER_SOURCES,
   type CustomerSource,
 } from "@/lib/customerSource";
+// AIT-82: qué es un cliente válido, en un solo sitio — las mismas funciones que
+// aplica el servidor.
+import {
+  validateCustomerEmail,
+  validateCustomerName,
+  validateCustomerPhone,
+} from "@/lib/customerValidation";
 
 interface AltaRapidaModalProps {
   open: boolean;
@@ -97,6 +104,8 @@ function AltaRapidaBlancoModal({
   const [amount, setAmount] = useState("");
   const [nameError, setNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  // AIT-82: antes este formulario no tenía error de email — no lo validaba.
+  const [emailError, setEmailError] = useState("");
   const [amountError, setAmountError] = useState("");
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -132,6 +141,7 @@ function AltaRapidaBlancoModal({
     setAmount("");
     setNameError("");
     setPhoneError("");
+    setEmailError("");
     setAmountError("");
     setFormError("");
     setDuplicate(null);
@@ -148,27 +158,23 @@ function AltaRapidaBlancoModal({
     if (loading) return;
 
     let hasError = false;
-    if (!name.trim()) {
-      setNameError("El nombre es obligatorio.");
-      hasError = true;
-    } else {
-      setNameError("");
-    }
-    if (!phone.trim()) {
-      setPhoneError("El teléfono es obligatorio.");
-      hasError = true;
-    } else if (!/^[\d\s+()-]+$/.test(phone.trim())) {
-      setPhoneError("El teléfono solo puede tener números y separadores.");
-      hasError = true;
-    } else if (phone.replace(/\D/g, "").length < 9) {
-      setPhoneError("Introduce un teléfono válido (9 dígitos).");
-      hasError = true;
-    } else if (phone.replace(/\D/g, "").length > 15) {
-      setPhoneError("El teléfono es demasiado largo.");
-      hasError = true;
-    } else {
-      setPhoneError("");
-    }
+    // AIT-82: las reglas salen de lib/customerValidation.ts, las mismas que
+    // aplica el servidor.
+    const nameError = validateCustomerName(name);
+    setNameError(nameError ?? "");
+    if (nameError) hasError = true;
+
+    const phoneError = validateCustomerPhone(phone);
+    setPhoneError(phoneError ?? "");
+    if (phoneError) hasError = true;
+
+    // AIT-82: este formulario NO validaba el email en cliente y el de edición
+    // sí. Los dos lo rechazaban —manda el servidor— pero solo uno avisaba antes
+    // de enviar; aquí volvía como error genérico del formulario, sin decir qué
+    // campo era. Cambio de comportamiento declarado en el plan.
+    const emailError = validateCustomerEmail(email);
+    setEmailError(emailError ?? "");
+    if (emailError) hasError = true;
 
     const parsedAmount = parseEuroAmount(amount);
     if (parsedAmount === null) {
@@ -393,6 +399,7 @@ function AltaRapidaBlancoModal({
               label="Email (opcional)"
               placeholder="nombre@correo.com"
               leftIcon={<Mail size={16} />}
+              error={emailError}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
