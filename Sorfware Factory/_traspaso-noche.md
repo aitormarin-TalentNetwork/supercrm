@@ -54,6 +54,12 @@ audita treinta, se miran por encima.)*
   de ficheros para T3 antes de mandarla a idle.
   ⚠️ **Si mañana dices "haber solapado, hombre", tendrás razón y esto es mío, no un accidente.**
   El coste real está abajo.
+- **T3 pasa a AIT-87 en vez de solapar o quedarse parada.** La tercera vía existía: la Directora
+  verificó rama por rama que AIT-87 toca `convex/nextSteps.ts` y **ninguna rama sin publicar lo
+  toca**. Además **su verificación es una query (`npx convex run`), sin pasar por el login**, así
+  que AIT-102 no la bloquea — de las pocas cosas verificables de verdad esta noche. **Nadie
+  solapa y nadie está parada.**
+- **Mandé renombrar una rama y dejar el mapeo escrito** (ver §7ter).
 - *(Se irán añadiendo aquí las que tome durante la noche, con su motivo.)*
 
 ⚠️ **Tres precisiones que me puso el Factory Architect sobre este reparto, y que aplico:**
@@ -210,6 +216,32 @@ es la primera cuando se retome:
 
 Salió de él mismo reportando que, cuando la suite murió a mitad, **abandonó los pasos finales
 (Linear y archivado) dos veces seguidas**.
+
+---
+
+## 7ter. Una rama con el nombre equivocado — el Integrador tiene que saberlo
+
+Apareció una rama **`aitormarin/ait-85-…`** con commits de **AIT-92** dentro, y **AIT-85 está
+Done**. Dos fallos a la vez: quien busque la rama de AIT-92 **no la encuentra**, y una rama con
+nombre de issue cerrada y sin mergear **es justo lo que alguien borra creyendo que es residuo**.
+**El trabajo se pierde y el borrado se siente como limpieza.**
+
+**Decidí renombrarla a la de su issue Y dejar el mapeo viejo→nuevo escrito** en el fichero de
+tarea y en la issue. Renombrar sin dejar el mapeo cambia *un nombre podrido* por *una referencia
+rota* — el mismo fallo que nos costó dos horas esta noche con los nombres de sesión.
+
+**Que conste para mañana: si el Integrador tenía algo apuntado con el nombre viejo, ya no
+resuelve.** Está avisado.
+
+---
+
+## 7quater. Una issue mal dimensionada, para el PM
+
+**AIT-89 está marcada "Low"** y en realidad pide **cuatro pruebas unitarias versionadas** — y
+este proyecto **no tiene runner de unitarias**: ni script, ni `vitest.config`, ni `jest.config`.
+La ficha arrastra **introducir una infraestructura de pruebas nueva**. No es imposible; **no es
+el relleno de una noche**, y la etiqueta hace que parezca que sí. Enrutada al PM para
+redimensionar.
 
 ---
 
