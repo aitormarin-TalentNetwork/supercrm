@@ -396,6 +396,24 @@ una vez que el trabajo pasa auditoría.
           que la sesión se renombró o se relanzó, que es lo normal. Dar por abandonado un
           cerrojo vivo es como se acabó, en agosto, con una terminal reclamando un turno
           ajeno y borrando funciones de otra.
+          COMANDOS CONCRETOS, en orden de fuerza (aportados por T3, 2026-09-08 — "un
+          criterio que hay que interpretar vuelve a ser una costumbre"). W = la ruta
+          absoluta del worktree del titular, o sea .../Sorfware Factory/_worktrees/T<n>:
+            git -C "$W" log -1 --format='%cr'          # último commit, hace cuánto
+            git -C "$W" status --short                 # ¿cambios vivos sin commitear?
+            ls -lt "$W" | head                         # mtimes recientes
+            lsof -nP -iTCP -sTCP:LISTEN                # ¿hay un dev server escuchando?
+            lsof -a -p <PID> -d cwd -Fn                # ...y ¿su cwd es ESE worktree?
+          Lo que las hace mejores que `ListAgents` es que MIDEN EL EFECTO Y NO LA
+          IDENTIDAD: un worktree con cambios sin commitear de hace tres minutos tiene a
+          alguien dentro, se llame como se llame su sesión y aunque la hayan relanzado
+          dos veces. Es la misma regla que aplicas al código: comprueba el efecto, no el
+          retorno.
+          ⚠️ Y EL CASO AMBIGUO, QUE HAY QUE NOMBRAR O VUELVE: worktree quieto + cerrojo
+          puesto NO ES "abandonado". Puede ser alguien pensando, leyendo, o esperando un
+          veredicto de auditoría — media hora sin tocar un fichero es normal con trabajo
+          a medias. Ahí NO SE DEDUCE: se le pregunta al titular por su worktree, y si no
+          contesta, se escala al CEO. LA DUDA SE RESUELVE PREGUNTANDO, NO INTERPRETANDO.
         - **Liberarlo:** cuando termines de usarlo (paras de iterar, cambias de tarea, o
           vas a quedarte idle), borra `titular.txt` y haz `rmdir
           "Sorfware Factory/_turno-convex.lock"`.
