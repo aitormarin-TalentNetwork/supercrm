@@ -1013,6 +1013,28 @@ día obliga a alguien a hacer algo?*
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
 cinco donde puede bastar una y media.
+🚪 **LA CONCLUSIÓN DE LA NOCHE, y es la que yo pondría primera en el repaso:**
+> **Tres decisiones malas cayeron esta noche y NINGUNA se cazó por sospecha.** La 71 la tumbó una
+> devolución; el *"ocho porque las terminales están paradas"*, un censo; la autorización de los
+> tokens, la condición de medir antes de actuar. **Las tres chocaron contra una medida
+> obligatoria.**
+**Por qué es una decisión y no una anécdota: es la única defensa que no depende de que alguien esté
+especialmente lúcido a las seis de la mañana.** *Un aviso bien redactado se lee y se acepta; una
+condición que obliga a producir un número **no se puede cumplir por accidente**. La vigilancia no
+escala y se agota — una puerta que exige una medición, sí.*
+
+⚠️ **Y le falta la mitad que la Directora aporta contra sí misma, sin la cual es demasiado
+optimista:**
+> **Ella autorizó desde su imagen de la herramienta, no desde la herramienta** — "cerrar esas dos
+> sesiones" no es una operación que exista con ese alcance. **Ninguna de sus tres condiciones lo
+> habría detectado: las tres vigilan CÓMO se ejecuta, y el error estaba en QUÉ se autorizó.** Lo
+> cazó T2 al ir a hacerlo.
+> **La puerta protege la ejecución, no la autorización.**
+📌 **Y su segunda mitad, que explica por qué los tres empujábamos a actuar:** *me dio un menú de
+pasos en vez del modelo de amenaza.* **Cuando el menú solo contiene formas de actuar, actuar parece
+la única respuesta seria y "no hacer nada" no se compara nunca con las demás.** El modelo de
+amenaza va **antes** del menú, no al final como argumento para descartar opciones.
+
 🔑 **Lo que las une, y es de T2:** *el error no está en la medición, sino en el **emparejamiento**
 entre lo medido y aquello sobre lo que se afirma.* Criterio recordado, mecanismo mal leído,
 mecanismo no activado — **tres ángulos del mismo hueco.**
