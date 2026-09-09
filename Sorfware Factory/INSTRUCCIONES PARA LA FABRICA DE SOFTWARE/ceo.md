@@ -597,6 +597,22 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### ⚠️ NO USES EL TÍTULO DE LA VENTANA PARA SABER QUIÉN ES UNA TERMINAL (2026-09-09)
+
+Los títulos —*"T1 - Desarrollador"*— **no los pone la sesión: los mantienen tres bucles de shell en
+`/tmp/title-loop-t{1,2,3}.sh`** que reescriben el título con `osascript` **cada 2 segundos**, y que
+llevan 13-14 h corriendo. **No están mencionados en ningún documento de rol** —comprobado con
+control positivo: el mismo método encuentra `cola` en 5 documentos y esto en 0—. **Existen solo
+porque una sesión los montó.**
+
+🔴 **Por qué te importa a ti en concreto:** el título es una de las señales que usas para
+identificar una terminal **desde fuera del transcript**, y **falla hacia el verde**. Si el bucle
+muere, el título **no desaparece: se queda congelado con el último valor**, porque nadie lo
+reescribe. **Seguirías leyendo "T1 - Desarrollador" en una ventana que ya es otra cosa** — la
+medición te daría la respuesta correcta por el motivo equivocado, y para siempre.
+**Usa `ListAgents` y `ps` con `etime`, que sí miden el proceso.** El título, como mucho, como
+confirmación de algo que ya sabes por otra vía.
+
 ### ⛔ ANTES DE LEER NINGUNA COMPROBACIÓN FIJA: ESTE DOCUMENTO NO LAS EJECUTA
 
 **Todo lo que sigue es inerte hasta que lo copias al prompt de tu `/loop`.** `ceo.md` es donde
