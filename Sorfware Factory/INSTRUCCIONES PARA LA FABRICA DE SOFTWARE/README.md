@@ -423,7 +423,13 @@ misma pregunta ("¿esto se adopta como estándar de un rol?") se reinventa cada 
    backlog normal. *(a)*
 2. **El modo de publicación** — una palabra suelta sin autor ni fecha, imposible de
    distinguir de un residuo. *(b)*
-3. **El comentario de código de T1** — cierto al escribirse, falso al leerse.
+3. **El comentario de código de T1** — cierto al escribirse, falso al leerse. *(Segunda
+   instancia el mismo día, y peor: `docs/03-setup.md` afirmaba que el bloque de credenciales de
+   la pantalla de login "solo se usa si `NODE_ENV !== production`". **Falso desde hacía
+   tiempo** — las credenciales salen en la página pública de producción, que es una decisión
+   explícita y documentada, pero **el documento decía lo contrario**. Lo encontró el PM pidiendo
+   el HTML sin navegador ni cookies, y lo corrigió. **Es el peor tipo: un comentario que
+   envejeció hasta ser mentira TRANQUILIZA a quien lo lee**, así que nadie va a comprobarlo.)*
 4. **Las condiciones de desbloqueo cumplidas** — no envejecen mal: **envejecen bien, y por
    eso engañan**. *(i)*
 5. **El nombre de sesión en `titular.txt`** — y esta es la peor, porque **el dato podrido
@@ -1611,10 +1617,44 @@ que conviene diseñar todo lo demás.)*
 descansa en la palabra de la Directora**. Lo señaló ella, **contra su propio interés** — la
 versión débil la dejaba a ella como fuente de autoridad.
 
+### El falso ROJO: un fallo del arnés vendido como fallo del producto (2026-09-08)
+
+**Este catálogo entero trata del falso verde. Su simétrico existe y es más barato, pero no es
+gratis** — y merece estar escrito aquí, junto a los otros, para que no se descubra como si fuera
+nuevo.
+
+*El caso:* el PM intentó verificar el login de Google de producción después de que AIT-90
+cambiara la app a Interna. La petición a `accounts.google.com` **murió con
+`net::ERR_CONNECTION_CLOSED`**. Google **no contestó nada** — no es un rechazo suyo: **desde ese
+entorno no se llega a su servidor.**
+
+> **Ese rojo no cuenta como rojo.** Reportarlo como *"el login de Google está roto"* habría sido
+> el falso rojo simétrico del falso verde: **un fallo del arnés vendido como fallo del
+> producto.**
+
+**Por qué es más barato pero no gratis:** un falso verde no se investiga nunca; un falso rojo
+**sí se investiga** —esa es la asimetría de la Directora— pero **gasta el tiempo de quien
+investiga, y en producto ajeno**. Y tiene un modo de fallo propio: **desprestigia una parte sana
+del sistema**, y la siguiente vez que dé rojo de verdad ya nadie lo mira.
+
+**La comprobación:** *antes de declarar roto algo de terceros, distinguir "me han contestado que
+no" de "no he llegado a preguntar".* Una conexión cerrada, un DNS que no resuelve o un timeout
+**no son respuestas**.
+
+📌 **Y lo que el PM sí sacó, que es el modelo de cómo se reporta esto:** aunque no pudo cerrar la
+verificación, **midió lo que sí llegó a ocurrir** —la petición real que salió del navegador, no
+el código— y de ahí quedaron **tres hechos verificados**: que `AUTH_GOOGLE_ID` sigue apuntando al
+proyecto correcto, que el `scope` sigue siendo `openid profile email` **sin rastro de Gmail** (el
+criterio de fallo de AIT-90, medido y no declarado), y que `/api/auth` responde 200. **Nuestro
+lado está sano; lo que queda sin verificar es exactamente una cosa: si Google deja pasar a una
+cuenta del dominio con la app ya Interna.** Eso es la 57.3 bien hecha: **qué se verificó y qué
+no**, delimitado hasta el punto exacto.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **Un error de red al llamar a un servicio de terceros, leído como "su servicio falla"** | **Confunde "me han contestado que no" con "no he llegado a preguntar".** `net::ERR_CONNECTION_CLOSED`, un DNS que no resuelve o un timeout **no son respuestas**: son la ausencia de una. Caso del 2026-09-08: verificando el login de Google tras AIT-90, la petición a `accounts.google.com` murió sin respuesta **desde ese entorno**; reportarlo como "el login está roto" habría sido un **falso rojo** — fallo del arnés vendido como fallo del producto | **mirar la petición real y su respuesta**, no el resultado agregado. Y separar los tres estados: *contestó que sí* · *contestó que no* · **no contestó**. El tercero no es un veredicto sobre el producto, es un veredicto sobre el entorno |
 | **"El proceso no tiene terminal asociada, luego es un resto huérfano"** | **Es cierto y no significa nada.** Un proceso lanzado por un servidor MCP **nunca tiene tty** — igual que ninguno de los nuestros. La señal **no distingue huérfano de hijo de un servidor sano**. Caso del 2026-09-08: el QA leyó así 12 procesos de Chrome; los dos `playwright-mcp` padre estaban **vivos**, y uno de los navegadores se había arrancado **siete minutos antes**. Matarlos habría tirado la sesión de otro | **mirar el padre: `ps -p <ppid>`. Si vive, no es un resto.** Y por la 60.2, esta comprobación es **obligatoria** aquí: el siguiente paso era destructivo |
 | **Medir algo sobre el texto de un documento que se describe a sí mismo** | **Cuenta la explicación como si fuera un caso.** El contador de filas verificadas del índice hacía `grep -c '✅'` sobre el fichero entero y contaba **el ✅ de la cabecera que explica qué significa la marca**: reportó *"1 de 56 verificadas"* con **cero** verificadas. Hermano de `grep <herramienta>` sobre un transcript (decisión 20): **el documento contiene los datos y además el texto que habla de los datos** | acotar la medición a la parte estructurada —`grep -E '^\|'` antes de contar, o parsear la tabla— **nunca al fichero entero**. Y sospechar por sistema de cualquier métrica sobre un documento que explica su propia notación (decisión 58.3) |
 | **Empezar una espera con `rm -f <marker>` para no leer el de la ronda anterior** | **Borra los markers RECIÉN CREADOS por trabajo que terminó antes de que armaras la espera**, y entonces esperas para siempre algo que ya pasó. En palabras de la Directora, 2026-09-08: *"no es un dato viejo leído como nuevo: es el dato nuevo destruido por defenderse del viejo"*. Y no deja rastro: un marker ausente se ve igual que un trabajo que no ha terminado | **la ambigüedad temporal se resuelve comparando fechas, jamás borrando.** El `rm -f` va **después** de detectar el marker, nunca antes de esperarlo (decisión 50.2). Mejor aún: usa una señal observable —el proceso vivo o muerto— en vez de una marca (50.1) |
