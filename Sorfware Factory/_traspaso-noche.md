@@ -135,7 +135,69 @@ fichero compartido.**
 
 ---
 
-## 0quater. 🔴 EL REPOSITORIO VIVE DENTRO DE iCLOUD — y eso explica media noche
+## 0quater. 🔴🔴 EL REPOSITORIO ESTÁ DENTRO DE iCLOUD DRIVE — Y ESO TUMBA UNA DECISIÓN MÍA
+
+> ⛔ **LO PRIMERO, PORQUE INVALIDA LO QUE ESCRIBÍ ANTES.** Cerré el incidente de los tokens con
+> este argumento: *"quien pueda leer ese blob ya tiene acceso al disco de Aitor, así que no
+> necesita el token"*. **Esa premisa era falsa y la levantó T2.** Si la carpeta sincroniza,
+> **el commit con las dos credenciales está en servidores de Apple**, y hacer falta "el disco"
+> deja de ser cierto.
+>
+> **Lo verifiqué y sincroniza. Prueba decisiva —mismo device, mismo inodo por las dos rutas—:**
+>
+> ```
+> 16777234:248240311  ~/Documents/…/CRM curso Vibe Coding/.git
+> 16777234:248240311  ~/Library/Mobile Documents/com~apple~CloudDocs/Documents/…/.git
+> ```
+>
+> **No es una copia: es la misma carpeta por dos caminos, y uno de ellos es la raíz de
+> sincronización de iCloud Drive.** Confirmado además desde la ruta de iCloud:
+> `git cat-file -t 79456d8` → `commit`, y sus ficheros son `e2e/.auth/owner.json`,
+> `e2e/.auth/sales.json` e `INVENTARIO.md`. **Las credenciales filtradas salieron de la máquina.**
+>
+> 🔬 **Lo que NO he verificado, y hay que decirlo:** que Apple los haya subido **de hecho** —el
+> estado de subida no lo puedo consultar sin tocar los ajustes de Aitor, y no lo hago—. Lo
+> verificado es que **están dentro del ámbito de sincronización**. *(Cero ficheros `.icloud` en el
+> repo, dato que no discrimina: es igual de compatible con "todo descargado y sincronizado" que con
+> "sin sincronizar".)*
+
+### 🔴 Y esto es MUCHO más grande que los dos tokens
+
+**iCloud no lee `.gitignore`.** Todo lo que hemos protegido con cuidado de que no entrara en git
+está, aun así, dentro de la carpeta que sincroniza:
+
+```
+.env.local  x5   (raíz + los cuatro worktrees T1/T2/T3/QA)   -> IGNORADOS por git
+```
+
+> **La protección de `.gitignore` y la sincronización de iCloud son ortogonales.** Un fichero
+> ignorado no está "fuera": está fuera **de git**. Esta noche montamos dos capas para que
+> `e2e/.auth/` no entrara en un commit — **y las dos capas eran irrelevantes para esta puerta.**
+
+**Qué cambia en la decisión de los tokens:** la regla de `CLAUDE.md` que ayer no aplicaba
+—*"secretos volcados en una salida visible o registrada… se rota de inmediato"*— **ahora sí tiene
+su supuesto cumplido**: el secreto viajó. Corrijo lo que escribí: **no es que el supuesto no se
+cumpliera; es que yo creía que no había viajado y sí viajó.**
+
+**Lo que sigue siendo cierto de mi argumento**, y por eso no te desperté: quien acceda a esos
+ficheros vía iCloud tiene **todos tus documentos**, que es incomparablemente más que una sesión de
+un Convex **de dev con dos usuarios de demo**. **El riesgo sigue siendo bajo; lo que ya no es
+cierto es que fuera nulo.** Y `git gc` **ya no lo arregla del todo**: borrar en local propaga un
+borrado, pero no deshace lo que ya se subiera ni las versiones que Apple retenga.
+
+### Lo que explica, y que tratamos como incidentes sueltos
+
+- **Los duplicados con sufijo `" N"`** — patrón exacto de la resolución de conflictos de iCloud.
+  **Tuvieron `tsc --noEmit` en rojo con el código sano desde el 20 de agosto**, porque el
+  `tsconfig` generado compilaba los `.next/types/*.d N.ts`. Costó una cuarentena y AIT-115.
+- **El `_traspaso-noche 2.md`** que apareció mientras cuatro sesiones editaban este fichero.
+
+*Lo levantó T3 (que el repo estaba en iCloud) y lo levantó T2 (que eso tumbaba mi premisa).
+Verificado por mí las dos veces antes de escribirlo.*
+
+---
+
+## 0quinquies. Detalle técnico de la sincronización
 
 *Lo levantó T3; **lo verifiqué yo entero a las 06:35 UTC (03:35 local)** antes de escribirlo, con
 los cinco comandos de abajo. No es inferencia.*
