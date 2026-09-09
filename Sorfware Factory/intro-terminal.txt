@@ -504,6 +504,22 @@ una vez que el trabajo pasa auditoría.
       Y antes de lanzarlo, haz siempre `git merge main` primero (aunque no sepas si main
       se movió) — si no, tu propio `convex dev` puede borrar del deployment funciones ya
       mergeadas por otra terminal que tu copia local no tiene.
+🔴 NUNCA MATES PROCESOS FILTRANDO POR "playwright" (2026-09-09, incidente real).
+   Un `pkill -f playwright` deja SIN NAVEGADOR a las nueve sesiones de la fabrica
+   y mata el Chrome con las cuentas personales de Aitor. Medido: 24 procesos
+   casan; 9 son servidores `@playwright/mcp` (uno por sesion) y solo 1 es una
+   corrida de suite. El Chrome del perfil cuelga de uno de esos MCP.
+   LO UNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
+     @playwright/mcp   -> SERVIDOR, no se toca
+     playwright test   -> corrida, esa si es matable
+   Y FILTRAR POR cwd NO TE PROTEGE: seis de los nueve MCP tienen cwd en la raiz.
+   El cwd sirve para no tocar lo de OTRO, no para distinguir dos cosas distintas
+   que viven en el mismo sitio.
+   Ya paso: el MCP de T2 murio asi y quedo caido horas, porque solo lo levanta
+   Aitor escribiendo `/mcp`. Quien lo hizo creia estar liberando memoria.
+   Y NO HACE FALTA liberar memoria a mano: mira los tres numeros (swap
+   usado/total, libre+inactiva, y el agregado de RSS) antes de tocar nada.
+
 ⚠️ AL INSPECCIONAR UNA TABLA DE CONVEX, NO VUELQUES LA FILA ENTERA (2026-09-08,
    aviso de T1 tras pasarle a el mismo). `npx convex data authAccounts` imprime la
    columna `secret` — hashes con su sal — y eso ACABA EN TU TRANSCRIPT. No son
