@@ -1389,6 +1389,26 @@ que estar viva para pensar. **Si una de las dos cae, la otra sigue.** *Pero eso 
 dos sesiones de hoy, no algo escrito en ningún rol: **si mañana montas la fábrica sin uno de los
 dos, el hueco vuelve sin avisar.***
 
+🆕 **La 78 SÍ se escribió hoy (`7b9a358`) — es la única excepción, y con motivo:** era lo único de
+la jornada que **caducaba al reiniciar la fábrica**. Diferir algo que vive en un fichero es
+diferirlo; diferir esto era **arriesgarse a que no existiera nunca**, porque quien tendría que
+escribirlo mañana no sabría que faltaba.
+⚠️ **Pero la escribí a medias A PROPÓSITO y esto es lo que queda para ti.** La regla dice *cada rol
+declara qué deja de existir cuando él no está*, y **solo está aplicada a un par: el CEO y el
+Factory Architect.** No fui rol por rol porque **una respuesta mala a "¿qué se pierde sin mí?" es
+peor que ninguna: parece que la pregunta ya se contestó, y entonces nadie la vuelve a hacer.** *(Y
+porque esa pregunta solo la puede contestar cada rol sobre sí mismo — yo adivinando qué pierde la
+fábrica sin el PM sería atribuir una función sin abrir el sitio donde ocurre.)*
+✅ **Con el discriminador que lo hace seguro de diferir, y es del Factory Architect:**
+> **Una respuesta válida nombra un MECANISMO que deja de ejecutarse. Una inválida nombra una
+> responsabilidad que queda desatendida.**
+> ❌ *"Sin el PM nadie prioriza"* — describe el rol, no lo que se apaga.
+> ✅ *"Sin el Factory Architect no hay vigilante armado, y la única señal de fábrica parada pasa a
+> depender de que el CEO esté vivo"* — se puede comprobar que no está corriendo.
+**Y con el permiso explícito que evita la lista de relleno: un rol que NO encuentre ningún
+mecanismo que muera con él está dando una respuesta legítima** — significa que su ausencia se nota
+por otras vías. *La lista tranquilizadora aparece justo cuando se obliga a todos a rellenar algo.*
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
