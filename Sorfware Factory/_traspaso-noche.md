@@ -453,20 +453,51 @@ Y la frase que me hizo aceptarlo: ***"lo he verificado contenido" es la versión
 exactamente lo que esa regla prohíbe*** — el incidente del 2026-08-21 se rotó teniendo la misma
 pinta de acotado.
 
-🕐 **ACTUALIZACIÓN DE LAS 05:50, y hace la decisión MENOS urgente sin cerrarla — con una tensión
-que declaro en vez de resolver.** T2 informa de dos cosas: que **el JWT filtrado caducó solo a las
-03:11 UTC**, y que la maniobra dejó los refresh tokens **usados**, lo que *"en la práctica los
-inutiliza para entrar"*.
-⚠️ **Pero eso choca con lo que dijo la Directora sobre el mismo mecanismo:** *consumir un refresh
-token NO es invalidarlo; la detección de reuso necesita un refresco de por medio.* **Un token
-usado que aún sirve y un token usado que no sirve no son la misma afirmación**, y las dos me
-llegan **relayadas, de dos sesiones que ya se equivocaron sobre este mismo mecanismo esta noche.**
-**No lo arbitro: ni yo ni ellos podemos comprobarlo sin abrir el token, y abrirlo es volcar el
-secreto.** *Lo único firme es la caducidad del JWT, y también me llega relayada.*
-📌 **Qué cambia para ti:** ya no es *"hay credenciales vivas ahí fuera"*, es **"probablemente
-inertes, por dos vías distintas que nadie ha comprobado a la vez"**. Sigue siendo tuya la decisión
-y sigue congelada, pero **con menos prisa y con la pregunta concreta ya formulada: ¿un refresh
-token consumido de Convex Auth sirve para entrar, sí o no?** Nadie de nosotros lo sabe.
+🔴 **ACTUALIZACIÓN DE LAS 06:00, Y VA EN LA DIRECCIÓN MALA: LOS DOS TOKENS FILTRADOS SIRVEN PARA
+ENTRAR. AHORA MISMO.** Diez minutos antes yo había escrito aquí *"probablemente inertes"*. **Era
+falso, y lo corrijo antes que nada porque esto lo lees tú solo.**
+
+**Y no hace falta abrir ningún secreto para saberlo: está en el código instalado**, que he leído
+yo mismo para no relayarlo. `@convex-dev/auth/.../mutations/refreshSession.js` trata un token ya
+usado con **tres ramas, en este orden**:
+
+```
+ 1) si el token ACTIVO de la sesión tiene como PADRE al presentado  -> CONCEDE  (línea 47)
+ 2) si estamos dentro de la ventana de reuso de 10 s                -> concede  (línea 58)
+ 3) si no                                                           -> invalida y mata la sesión
+```
+
+**La rama 1 va PRIMERO y no caduca por tiempo.** T2 midió que **los dos ficheros filtrados son
+justo el padre del token activo de su sesión** — o sea, caen en la rama 1. *(El orden de las ramas
+lo verifiqué yo en la fuente; la relación padre/activo me llega de él, y no puedo comprobarla sin
+tocar los tokens.)*
+
+⚠️ **Y la maniobra que se ejecutó lo empeoró:** antes estaban *sin usar* —servían una vez—; ahora
+están *usados y son padre del activo*, o sea **siguen sirviendo y por una vía que no expira**.
+**Retiro lo que escribí antes de que "lo que nos salvó fue que la acción era inocua": no nos salvó
+nada.**
+
+✅ **Cómo encaja con lo de la Directora, que seguía siendo correcto:** *consumir ≠ invalidar* era
+cierto. Lo falso era el *"y por tanto ya no sirven"* añadido encima **como si se siguiera de
+ello**. Y el diagnóstico de T2 sobre su propio fallo vale más que el dato: **abrió el fichero de
+la fuente que confirmaba lo que ya creía y no se preguntó si había una rama antes.**
+
+🔶 **MI DECISIÓN, y es la más discutible de la noche — dime mañana si me pasé:** **he autorizado a
+T2 a correr su propia suite en su propio deployment.** No es una maniobra de seguridad: **es la
+operación normal de su worktree**, y del mismo código que leí se sigue que **un refresco cualquiera
+avanza la cadena, el filtrado deja de ser el padre del activo y pasa a caer en la rama 3** — de
+conceder acceso a matar la sesión. **Reversible, sin datos reales, sin tocar producción ni el
+compartido.**
+**Por qué esto no te lo dejo congelado como lo demás:** lo que te dejé era la EXCEPCIÓN a la regla
+de `CLAUDE.md` —*no* rotar—, y ésa sigue siendo tuya. **Rotar es cumplirla, no exceptuarla.** Y
+dejar credenciales confirmadas vivas cinco horas más con un arreglo rutinario a mano **es una
+decisión tan de peso como la contraria, solo que se disfraza de prudencia.**
+⚠️ **Con dos condiciones:** que **T2 verifique el resultado en vez de suponerlo** —es su segunda
+teoría de la noche sobre este mecanismo y la primera era falsa—, y que **la evidencia se congele
+antes**, porque correr la suite **destruye la reproducibilidad del hallazgo**. *Lo segundo ya lo
+hizo él por su cuenta antes de que yo se lo pidiera:
+`_copias-congeladas-por-revisar/T2_evidencia-tokens-filtrados_2026-09-09.txt`, con la condición de
+caducidad escrita arriba del todo.*
 
 **Lo que NO he hecho, y el argumento por el que no:**
 La regla de `CLAUDE.md` dice que un secreto expuesto se rota de inmediato. **No la he aplicado, y
