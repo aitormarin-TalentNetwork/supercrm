@@ -8,9 +8,14 @@ silencio desde el primer cambio que nadie anotó**. Lo que aquí hay son las
 no leyéndola.
 
 Cada pregunta lleva la fecha y el commit de la última vez que alguien la corrió.
-Eso no es la respuesta: es **cuándo se supo por última vez**. Si esa fecha es
-vieja, la pregunta está sin contestar — que es una información útil y honesta,
-al contrario que un número caducado.
+Eso no es la respuesta: es **cuándo se supo por última vez**.
+
+Y la frescura **también es un comando**, no un juicio: `git merge-base
+--is-ancestor <commit> HEAD` falla si esa respuesta se midió sobre otro código.
+Va pegado a cada pregunta y no aquí arriba a propósito — **un modificador
+separado de lo que modifica no protege a quien no leyó la cabecera**, que es
+justo el que se lleva el dato viejo. La fecha se queda para el humano; el commit
+es lo comprobable.
 
 > Regla de mantenimiento: **lo actualiza quien lo usa.** Si corres un comando de
 > aquí, cambia su línea de "última corrida". No hace falta correrlos todos, ni
@@ -21,13 +26,37 @@ Todos los comandos se ejecutan **desde la raíz del worktree**.
 
 ---
 
+## 0. ¿Están las precondiciones que todos los demás dan por supuestas?
+
+**Empieza por aquí si el arnés es nuevo para ti.** Los comandos de abajo suponen
+un mundo montado —dependencias, navegador, credenciales, backend vivo— y quien
+escribió este documento lo tenía todo puesto, así que **no podía ver lo que
+falta**. Esto falla nombrando la precondición ausente, en vez de dejarte un error
+que habla de otra cosa.
+
+```bash
+[ -f .env.local ] || echo "FALTA: .env.local (CONVEX_DEPLOYMENT y NEXT_PUBLIC_CONVEX_URL)"
+[ -d node_modules/@playwright/test ] || echo "FALTA: npm install"
+npx playwright --version >/dev/null 2>&1 || echo "FALTA: npx playwright install (navegadores)"
+npx convex data authSessions --limit 1 >/dev/null 2>&1 || echo "FALTA: el deployment de Convex no responde"
+```
+
+Silencio = todo presente. Cada línea que salga es una pregunta que **todavía no
+puedes hacerte**.
+
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
+
+---
+
 ## 1. ¿Cuántos tests hay y cómo se reparten por fichero?
 
 ```bash
 npx playwright test --list
 ```
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -38,7 +67,8 @@ grep -c 'loginAs(' e2e/*.spec.ts
 grep -ho 'loginAs([a-zA-Z0-9_]*, "[a-z]*"' e2e/*.spec.ts | sort | uniq -c
 ```
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -59,7 +89,8 @@ Se cuenta en `authSessions`, el registro del backend, **no** las peticiones a
 `/api/auth`: por ahí pasan también las rotaciones de token, y contarlas mezcla
 peticiones con sesiones.
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -88,7 +119,8 @@ de `playwright test` no sirve** — hay que buscar la línea `1 passed`. Un
 `&& echo PASS` sobre el exit code de una tubería devuelve el del último comando,
 no el del test.
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -101,7 +133,8 @@ time npx playwright test
 Ojo al leerlo: **una corrida con fallos tarda MUCHO más que una limpia**, porque
 cada fallo agota su timeout. Un tiempo alto suele ser un síntoma, no un coste.
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -117,7 +150,8 @@ comando no imprime nada, es que **AIT-96 todavía no está en esta rama** — no
 no haya puerto. Y si el número no es el que esperas, **para**: significa que
 estás midiendo otra cosa.
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -130,7 +164,8 @@ borra el contador, solo cuentan los fallos.
 grep -rlE 'getByLabel\(.(Email|Contraseña)' e2e/*.spec.ts
 ```
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
@@ -147,7 +182,35 @@ npx convex data authRateLimits --format jsonl
 Y el control positivo, que es más barato que razonar: correr **un** test con
 login aislado. Si pasa, la cuenta no está bloqueada y el rojo es otra cosa.
 
-Última corrida: 2026-09-09 · `34647f2`
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
+
+---
+
+## 9. ¿Cómo sé que esta suite PUEDE fallar?
+
+La pregunta que sostiene a todas las demás. Un verde solo vale si existe un mundo
+en el que ese mismo comando sale rojo; si no, no está midiendo nada.
+
+Se rompe el mundo a propósito —apuntando a un backend que no existe— y **la suite
+tiene que ponerse ROJA**:
+
+```bash
+NEXT_PUBLIC_CONVEX_URL=https://no-existe-0000.convex.cloud \
+  npx playwright test e2e/02-seguimiento-diario.spec.ts
+```
+
+**Si esto pasa en verde, la suite no está mirando el backend** y cualquier verde
+suyo sobre datos no significa nada. No hace falta correrlo a menudo: hace falta
+correrlo **antes de fiarte de un verde importante**.
+
+⚠️ Antes de creerte el resultado, mira la pregunta 6: **si AIT-96 todavía no está
+publicada en tu rama, la suite apunta al 3000 y reutiliza el servidor que
+encuentre allí**. Un rojo daría igual, pero un verde podría ser de la app de otro
+y no probaría nada.
+
+Última corrida: 2026-09-09 · `34647f2` ·
+¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
 ---
 
