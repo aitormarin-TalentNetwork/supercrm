@@ -1596,7 +1596,7 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 06:03 UTC (= 03:03 local)**, medida con `date -u`.*
+*Última actualización: **2026-09-09 06:10 UTC (= 03:10 local)**, medida con `date -u`.*
 
 ⚠️ **Y esta línea también caduca: la he tocado tres veces sin actualizarla, y decía 05:22 cuando ya
 había entrado toda la sección de las ocho tareas.** Una hora fija en un documento vivo miente sin
@@ -1618,9 +1618,20 @@ Directora ha retirado su red de seguridad **porque se quedó sin sujeto**, no po
 **Cerrojo libre · modo `confirmar` · nada sin subir · cero auditorías en curso ·
 `core.hooksPath` AUSENTE, ciclo 20.**
 
-**Lo que te espera, por orden:** las **ocho tareas** con GO · las **credenciales declaradas y no
-tocadas**, con sus tres salidas · **AIT-102**, que desatasca toda la verificación · el resto de §1.
+⚠️ **Y a las ~06:20, con la fábrica ya parada, entró el hallazgo más grande de la noche: el
+repositorio está dentro de iCloud Drive.** Lo levantó T2 al final del todo. **No cambia que la
+noche cerrara ordenada; sí cambia el orden de tu lista.** Está en **§0quater** y en **§6ter**.
+
+**Lo que te espera, por orden:** **el ámbito de sincronización (§0quater), que es lo primero** ·
+las **ocho tareas** con GO · las **credenciales declaradas y no tocadas**, con sus tres salidas ·
+**AIT-102**, que desatasca toda la verificación · el resto de §1.
 **Nada quedó a medias esperando que alguien se acordara.**
+
+📌 **Y una nota sobre este cierre, que se ganó a pulso:** lo escribí a las 06:03 diciendo que la
+noche había cerrado limpia, **y veinte minutos después hubo que reabrirlo.** Es la última instancia
+de lo que llena este documento: *un cierre es una afirmación sobre el futuro y caduca igual que un
+número.* **Lo dejo con la costura a la vista en vez de reescribirlo como si siempre hubiera dicho
+esto.**
 
 **Estado al cerrar:** **nueve sesiones vivas y ninguna caída.** T1 y T3 llevan más de una hora
 ociosas **por falta de trabajo disjunto, no por avería** —comprobado que sus procesos siguen vivos,
