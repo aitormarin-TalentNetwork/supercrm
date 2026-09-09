@@ -1450,6 +1450,56 @@ quien interpretó.** Cerrado añadiendo los literales de rol —`QA`, `Integrado
 conjunto válido (ejecución de la 34.1, no decisión nueva: completar un conjunto de valores para
 que la regla sea aplicable **no es decidir, es hacerla ejecutable**).
 
+### Decisión 61 — «Pendiente de otro» nunca significa «nada mío pendiente» (2026-09-08)
+
+> **Atribuir un pendiente enteramente a otro apaga la pregunta de qué nos toca a nosotros.**
+
+**Todo bloqueo anotado registra qué queda de nuestra parte para cuando se desbloquee** — y **si
+no queda nada, se dice también**, porque eso es información.
+
+*De dónde sale:* el CEO llevaba **nueve ciclos** reportando `core.hooksPath` como pendiente de
+Aitor. Al escribir la 60.1 se dio cuenta de que **su ejecución no cierra el asunto: lo abre** —
+el control solo ha visto su caso positivo, así que **la verificación se completa en el momento
+en que Aitor ejecute el comando**, y hay que mirarla entonces. Esa mitad **no estaba escrita en
+ninguna parte**.
+
+**Falla hacia el verde**, que es lo que lo hace peligroso: la lista de pendientes **parecía
+completa**.
+
+⚠️ **Y el coste real, que no es el olvido sino el momento en que llega:** sin esa mitad escrita,
+**el desbloqueo llega y nadie está preparado**. Aitor ejecuta el comando, el asunto se da por
+cerrado, y el control **se queda sin estrenar en su dirección negativa** — exactamente lo que la
+60.1 impidió por los pelos.
+
+#### La lista aplicada (2026-09-08)
+
+| Bloqueo | De Aitor | **Y qué queda de nuestra parte al desbloquearse** |
+|---|---|---|
+| **`core.hooksPath` + `.githooks/`** | ejecutar un comando y crear el hook | ⚠️ **Bastante, y atado al evento:** (1) el ciclo siguiente confirma que el control **dejó de reportarlo** — si sigue avisando, lleva nueve ciclos roto (60.1); (2) el hook se **estrena contra un secreto de prueba** antes de darlo por armado (58.1); (3) se estrena **con el estado ya limpio**, no confiando en que el primer ciclo salga tranquilo (46) |
+| **Aislar el perfil del navegador** (47) | cambiar la configuración del MCP | (1) **el perfil aislado se estrena vacío y VERIFICADO vacío**, no reutilizando uno que "parece limpio" (47.4); (2) retirar la contención vigente —solo la app, no tocar el perfil— y **decirlo explícitamente**, o quedará viva sin motivo; (3) comprobar que **desaparece la serialización**: dos sesiones con navegador a la vez |
+| **La prueba de Gmail de T3** | hacerla él; nadie más puede | (1) T3 retoma en cuanto llegue el resultado; (2) **anotar qué queda descubierto** si la prueba solo cubre parte del caso (57.3) |
+| **Las tres ediciones de `CLAUDE.md`** | aprobarlas y editarlas | **nada más**, salvo avisar a las sesiones vivas de que el documento cambió — un documento de arranque no llega solo a quien ya arrancó (§2quinquies (m)) |
+| **`settings.local.json` 17.1/17.2** | editarlo | (1) **probar que la voz llega al rol correcto**, que es el fallo original; (2) **verificarlo en las dos direcciones** (60.1): que suena para quien debe **y que no suena para quien no** |
+| **Permiso de Grabación de Pantalla** | concederlo en Ajustes | **estrenar `screencapture` contra un positivo conocido**: capturar una ventana y **abrir la imagen para mirarla** — el fallo documentado es que devuelve exit 0 con un rectángulo en blanco |
+
+#### Cuándo reordenar un documento es ejecutar, y cuándo es decidir (2026-09-08)
+
+> **Reordenar por retórica es decidir. Reordenar porque un hecho nuevo cambia la naturaleza del
+> asunto es ejecutar.**
+>
+> **El test: si puedes nombrar el hecho nuevo, es ejecución. Si no puedes, era énfasis** — y
+> entonces la decisión es del Factory Architect.
+
+Es el criterio de T3 —*«cubierto por otra vía» exige señalar la vía*— aplicado a **por qué
+cambias un orden**.
+
+*Caso:* la **47** listaba dos vectores (salida y entrada) y pasó a listar tres, con
+**disponibilidad el primero**. El hecho nuevo se puede nombrar: **el QA perdió una ronda entera
+el 2026-09-08 porque otra sesión tenía el perfil cogido.** Y no es presentación — **es que la
+decisión cambió de clase**: con dos vectores era una decisión de seguridad, que compite con el
+trabajo; con el tercero es un **bloqueo operativo**, que no compite con nada. **Un documento que
+no refleja eso está desactualizado, no neutral.**
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
