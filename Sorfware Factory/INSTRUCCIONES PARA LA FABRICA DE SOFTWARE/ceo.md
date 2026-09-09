@@ -597,6 +597,31 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### ⛔ ANTES DE LEER NINGUNA COMPROBACIÓN FIJA: ESTE DOCUMENTO NO LAS EJECUTA
+
+**Todo lo que sigue es inerte hasta que lo copias al prompt de tu `/loop`.** `ceo.md` es donde
+viven las comprobaciones; **el prompt recurrente es lo único que las ejecuta.** Si armas el bucle
+con un prompt genérico —*"revisa cómo va la fábrica"*—, **las fijas no se hacen**, y su ausencia se
+lee exactamente igual que su verde.
+
+> **Al asumir el rol: lee las comprobaciones fijas de este documento y métela s TODAS, con sus
+> números, en el prompt del `/loop` que armes.** Y cada vez que añadas una aquí, **añádela también
+> allí en el mismo momento** — si no, la has documentado, no implantado.
+
+⚠️ **Por qué está escrito y por qué va primero:** el 2026-09-09 el CEO tenía seis comprobaciones
+fijas en este fichero **y ninguna se ejecutaba por estar aquí** — se ejecutaban porque esa sesión
+concreta las había copiado a su prompt. **Un CEO nuevo habría leído las seis y no habría hecho
+ninguna**, sin que nada se lo dijera. *Es la misma forma que la decisión 78: algo que funciona
+porque una sesión lo montó y no porque el rol lo mande.*
+
+📌 **Y la regla general que hay detrás, que sirve para cualquier control de esta fábrica** —del PM,
+tras abrirse AIT-117—:
+> **Un comprobador que nadie ejecuta no es una protección a medias: es una protección que solo
+> existe en el momento de escribirla. A partir de ahí, su ausencia es indistinguible de su verde.**
+**Lo que sí funciona tiene una forma reconocible: está dentro de algo que alguien tiene que correr
+igualmente** —el gancho de `test:e2e`, o el prompt de tu bucle—. **Un documento no se ejecuta
+solo; un comando que ya estabas ejecutando, sí.**
+
 ### ⛔ EL CRITERIO QUE VALE PARA TODAS TUS COMPROBACIONES (2026-09-09)
 
 > ### **Una comprobación toma MEDICIONES como entrada, nunca afirmaciones — incluidas las de un compañero fiable.**
