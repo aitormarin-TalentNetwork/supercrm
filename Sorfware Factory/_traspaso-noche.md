@@ -258,6 +258,15 @@ producir.** Todas con **GO del auditor y revisión final del Integrador hecha**.
 > que nadie lo pidiera. Tenía dueño y era él: verificar despliegues es su trabajo. **Mi criterio
 > era bueno para mí y falso como etiqueta** — pero declararlo abierto sirvió igual, porque el
 > dueño real lo leyó y lo cerró en cinco minutos.)*
+>
+> ✅ **Y una duda que se abrió y se cerró sobre la cola, 06:05 UTC (03:05 local).** El Factory
+> Architect detectó que la huella de tres exports —**AIT-83, AIT-93 y AIT-96**— se había medido con
+> `git diff main <rama>` (**dos puntos**), que **puede esconder ficheros** cuando `main` se mueve.
+> **Lo medí bien las tres, y no ocultó nada:** AIT-93 y AIT-96 tocan **cero ficheros de producto**
+> (solo `playwright.config.ts` y un spec), y AIT-83 toca cinco **porque es una tarea de producto**,
+> el aviso de versión nueva. **AIT-96 es la única de las tres que sigue en la cola y queda
+> verificada limpia antes de publicarse.** No hay re-auditoría pendiente, y no es «riesgo aceptado»:
+> está medido.
 
 | Tarea | Qué es | Huella |
 |---|---|---|
