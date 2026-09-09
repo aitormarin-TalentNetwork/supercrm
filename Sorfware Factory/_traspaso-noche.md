@@ -1412,6 +1412,41 @@ instrumento que vigila a todos los demás.**
 autocomprueba cada media hora es ceremonia, **y encima consume la atención que hará falta para leer
 la alarma de verdad cuando llegue.** No se convierte en fija.
 
+## 9. 🔴 LO QUE PASÓ AL AMANECER, Y ES UN FALLO MÍO — decisión 77
+
+**Tú lo notaste al volver:** *"la directora debería seguir trabajando y, si para, el CEO debería
+haberlo notado y ponerla a trabajar."* **Tenías razón.** Medido: **T1 292 min parada, T3 186, T2
+175, la Directora 165 — con SIETE issues empezables.** Y mis **diez barridos seguidos** dijeron
+*"todas ociosas, sin cambios"*.
+
+**Por qué no lo vi, que es lo que importa:** `ceo.md` llamaba a ese caso **"una sesión ociosa
+legítima"**, e `intro-terminal.txt` le decía al desarrollador literalmente **"hay que esperar"**.
+Todo mi marco de detección preguntaba *"¿está atascada?"* y trataba *ocioso* como el falso
+positivo a descartar. **La fábrica se paró exactamente como estaba escrito que se comportara.**
+> **Un fallo que se produce por CUMPLIR las instrucciones no se corrige esforzándose más en
+> cumplirlas.** Por eso el arreglo es el texto, no más atención.
+
+✅ **Ya está hecho** (`f49395d`, decisión del Factory Architect, ejecutada por mí): los siete roles
+cambiados. Mi barrido pasa a contar **N con tarea · M sin tarea · backlog disponible K**, y con
+`M>0 y K>0` **no puede cerrarse con "sin cambios"**. Y **la Directora parada pasa a ser mi
+disparador** — hasta hoy yo solo entraba si ella *escalaba*, y **una coordinadora parada no escala
+nada: su silencio me llegaba igual que su calma.**
+
+⚠️ **Con dos trampas que aparecieron al ejecutarlo, las dos reales:** *«backlog» no es «backlog
+disponible»* —de 18 issues, cuatro te esperan a ti y una está parada— y *«está bloqueado» se mide,
+no se asume*: se dio por hecho que las ocho ramas sin publicar bloqueaban todo el reparto, y
+**AIT-115 y AIT-111 no tocan `e2e/` y podían haber empezado anoche.**
+
+🔑 **Y la lección que cierra el documento entero, que supera al límite del control positivo de
+§7septies:**
+> **El agujero no era que el instrumento pudiera fallar: era lo que nunca fue su pregunta.**
+Un control positivo comprueba que el instrumento **sabe contestar la suya**; no dice nada de las
+que nunca se le hicieron. El vigilante contestaba *"¿está atascada?"* impecablemente, y *"¿está
+trabajando?"* **no era una pregunta suya**, así que ninguna verificación lo iba a destapar — ni la
+mía ni la suya. **Por eso hicieron falta tres horas y que llegaras tú:** para ver un hueco de
+cobertura hay que **enunciar la pregunta que debería contestarse y no se contesta**, y eso lo trae
+casi siempre alguien de fuera con una expectativa distinta.
+
 ## 8. Lo primero cuando se retome el proceso
 
 El Factory Architect paró de producir decisiones esta noche porque **el catálogo crecía más
