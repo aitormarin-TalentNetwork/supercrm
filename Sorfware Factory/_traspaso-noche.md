@@ -444,6 +444,21 @@ Y la frase que me hizo aceptarlo: ***"lo he verificado contenido" es la versión
 exactamente lo que esa regla prohíbe*** — el incidente del 2026-08-21 se rotó teniendo la misma
 pinta de acotado.
 
+🕐 **ACTUALIZACIÓN DE LAS 05:50, y hace la decisión MENOS urgente sin cerrarla — con una tensión
+que declaro en vez de resolver.** T2 informa de dos cosas: que **el JWT filtrado caducó solo a las
+03:11 UTC**, y que la maniobra dejó los refresh tokens **usados**, lo que *"en la práctica los
+inutiliza para entrar"*.
+⚠️ **Pero eso choca con lo que dijo la Directora sobre el mismo mecanismo:** *consumir un refresh
+token NO es invalidarlo; la detección de reuso necesita un refresco de por medio.* **Un token
+usado que aún sirve y un token usado que no sirve no son la misma afirmación**, y las dos me
+llegan **relayadas, de dos sesiones que ya se equivocaron sobre este mismo mecanismo esta noche.**
+**No lo arbitro: ni yo ni ellos podemos comprobarlo sin abrir el token, y abrirlo es volcar el
+secreto.** *Lo único firme es la caducidad del JWT, y también me llega relayada.*
+📌 **Qué cambia para ti:** ya no es *"hay credenciales vivas ahí fuera"*, es **"probablemente
+inertes, por dos vías distintas que nadie ha comprobado a la vez"**. Sigue siendo tuya la decisión
+y sigue congelada, pero **con menos prisa y con la pregunta concreta ya formulada: ¿un refresh
+token consumido de Convex Auth sirve para entrar, sí o no?** Nadie de nosotros lo sabe.
+
 **Lo que NO he hecho, y el argumento por el que no:**
 La regla de `CLAUDE.md` dice que un secreto expuesto se rota de inmediato. **No la he aplicado, y
 el motivo es que su precondición no se cumple:** dice *expuesto* —volcado a una salida visible o
