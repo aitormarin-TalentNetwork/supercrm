@@ -1262,6 +1262,39 @@ uno sin él.
 resultados, nunca dos — *pasa* · *falla* · **no tenía sujeto**. Un censo que solo sabe decir
 verde y rojo **convierte la ausencia de trabajo en evidencia de salud**.
 
+### Decisión 57 — Un defecto puede vivir en el espacio ENTRE comprobaciones correctas (2026-09-08)
+
+**Hay que separarla de todo lo demás de esta sección: aquí ninguna comprobación mintió.**
+
+- El desarrollador reportó **20/20** y era cierto **en su entorno**.
+- El auditor declaró que **no repite la suite** — y hace bien: es de solo lectura por diseño.
+- El Integrador **verificó el build**, y un build no corre e2e.
+
+**Las tres correctas dentro de su alcance. Y `main` en rojo.**
+
+> **Una comprobación lenta acaba corriendo. Un hueco entre comprobaciones no se cierra nunca —
+> la ventana no es larga, es infinita.**
+
+**Y la pregunta que se deriva, que es la que no nos hacíamos:** ante una cadena de puertas, lo
+que hay que preguntar **no es si cada una es correcta, sino qué es lo que no mira ninguna.**
+
+**57.1 — Corrida periódica de la suite sobre `main` limpio, desacoplada de las publicaciones.**
+Propuesta del Integrador, **asignada al QA**: ya tiene cadencia propia y disciplina de `/loop`,
+tiene el instrumental, y **es el único rol cuyo trabajo entero es "¿esto funciona de verdad?"**
+—esto es exactamente eso, una capa antes—. Reclama el cerrojo de Convex como cualquiera y
+aplica su convención de datos fijos.
+
+*Y lo que se descarta, con su motivo:* correrla **antes de cada merge** escribiría en el Convex
+compartido y **disputaría el cerrojo justo en el momento crítico** — coste recurrente alto para
+un fallo raro. Desacoplada, **acota la ventana a un intervalo conocido en vez de a la
+casualidad**. No la cierra: la acota, y eso ya es una propiedad y no una esperanza.
+
+**57.2 — El resultado se reporta con el número de los 47, no el de los 5.** Obligatorio, no
+preferencia: un arreglo que toca `webServer.env` cambia el entorno de **toda** la suite, y el
+modo de fallo sería **arreglar cinco y romper dos que nadie mire**. Es el patrón de
+`helpers.ts` de AIT-78, y es la enmienda 9 — **si la comprobación solo mira lo que se arregló,
+no podía dar otro resultado.**
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
@@ -1566,6 +1599,29 @@ cuidado de todos no impidió la deriva; **volver a la fuente sí la detectó**.
 ⚠️ **Y la ironía que la hace difícil de ver: una hora es el dato más fácil de relevar mal,
 porque una hora equivocada sigue pareciendo una hora.** No se distingue de una buena por su
 forma. Es la misma propiedad que hace peligrosa a la enmienda 8 con los husos.
+
+#### 57.3 — El silencio se lee como cobertura (2026-09-08)
+
+**Hermana de la regla de arriba, y hay que leerlas juntas: allí se deforma el dato; aquí se
+pierden sus límites.** En los dos casos el eslabón intermedio transmite el resultado y **deja
+atrás la parte que decía cuánto valía**.
+
+> ### **El silencio se lee como cobertura.**
+
+*El hallazgo es el autoinforme de la Directora, y por eso vale.* Escribió **"publicada y
+verificada" doce veces**. Lo exacto era *"verificado que se construye, se despliega y las rutas
+que comprobé responden"*. **Ninguno de los doce informes mintió** — y entre los doce
+construyeron la impresión de que alguien mira la suite antes de `main`. **Nadie la mira. La
+cobertura imaginaria la construyó lo que no decían.**
+
+**La regla: todo informe de publicación declara qué se verificó Y QUÉ NO.** No es una coletilla
+defensiva — es **la única forma de que el lector sepa qué queda descubierto**.
+
+⚠️ **Y su mitad menos evidente: quien relaya una verificación ajena hereda la obligación de
+declarar sus límites, no solo su resultado.** Es §2ter(b) aplicado al relevo.
+
+*En sus propias palabras, que es como conviene que se lea:* **"se lo he pedido toda la noche a
+las tres terminales y no me lo he aplicado al informar"**.
 
 ### Un control nuevo se estrena con el estado ya conciliado (decisión 46, 2026-09-08)
 

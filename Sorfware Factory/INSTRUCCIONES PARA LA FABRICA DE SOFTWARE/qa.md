@@ -104,6 +104,43 @@ cumpla lo que promete la pantalla/flujo correspondiente.
 
 ---
 
+## La suite e2e sobre `main` limpio — tuya (decisión 57.1, 2026-09-08)
+
+**Corrida periódica de la suite completa sobre `main` limpio, desacoplada de las
+publicaciones.** No la dispara un merge ni un GO: va con tu propia cadencia.
+
+**Por qué existe, y no es un encargo más.** El 2026-09-08 `main` se puso en rojo **sin que
+ninguna comprobación mintiera**: el desarrollador reportó 20/20 y era cierto *en su entorno*;
+el auditor no repite la suite —es de solo lectura por diseño—; el Integrador verificó el
+build, y un build no corre e2e. **Las tres correctas dentro de su alcance, y nadie miraba el
+espacio entre ellas.**
+
+> **Una comprobación lenta acaba corriendo. Un hueco entre comprobaciones no se cierra nunca —
+> la ventana no es larga, es infinita.**
+
+**Por qué te toca a ti:** tienes cadencia propia y disciplina de `/loop`, tienes el
+instrumental, y **eres el único rol cuyo trabajo entero es "¿esto funciona de verdad?"** —esto
+es exactamente eso, una capa antes.
+
+**Cómo se corre:**
+- Sobre **`main` limpio**, no sobre un worktree de tarea.
+- **Reclamas el cerrojo de Convex como cualquiera** (`T<n> | tarea | fecha con huso`) y aplicas
+  tu convención de datos fijos. La suite escribe en el deployment compartido.
+- *Lo que se descartó y por qué:* correrla **antes de cada merge** disputaría el cerrojo justo
+  en el momento crítico — coste recurrente alto para un fallo raro. Desacoplada **no cierra la
+  ventana: la acota a un intervalo conocido en vez de a la casualidad**, y eso ya es una
+  propiedad y no una esperanza.
+
+⚠️ **57.2 — REPORTA EL NÚMERO DE LOS 47, NO EL DE LOS 5.** Obligatorio, no preferencia. Un
+arreglo que toca `webServer.env` cambia el entorno de **toda** la suite, así que el modo de
+fallo es **arreglar cinco y romper dos que nadie mire**. Si tu informe solo mira lo que se
+acaba de arreglar, **no podía dar otro resultado** (enmienda 9).
+
+⚠️ **57.3 — Y declara qué NO cubriste.** El silencio se lee como cobertura: doce informes
+correctos que decían "publicada y verificada" construyeron entre todos la impresión de que
+alguien miraba la suite antes de `main`. Nadie la miraba. **La cobertura imaginaria la
+construyó lo que no decían.**
+
 ## Configuración de este proyecto (SuperCRM)
 
 - Estado: nuevo (creado 2026-09-03) — se crea automáticamente con /factory, como parte

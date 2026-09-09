@@ -94,6 +94,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 54 | El push se hace portante: el revisor del PRD deja de leer el disco y se niega a revisar trabajo sin publicar | R §2quinquies |
 | 55 | Este índice. Una decisión no está ejecutada hasta que se puede encontrar por su número | este fichero |
 | 56 | El índice lleva detector, y dos comprobaciones con alcances distintos (56.3 las filas son punteros hasta verificarse; 56.4 el repaso las verifica de paso) | este fichero · `comprobar-indice-decisiones.sh` · C |
+| 57 | Un defecto puede vivir en el espacio ENTRE comprobaciones correctas — la ventana de un hueco no es larga, es infinita (57.1 suite periódica sobre `main` limpio, del QA; 57.2 se reporta el número de los 47, no el de los 5; 57.3 **el silencio se lee como cobertura**) | R §2sexies · §2sexies-bis · Q |
 
 ---
 
