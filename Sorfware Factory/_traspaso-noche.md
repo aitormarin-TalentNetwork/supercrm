@@ -1290,6 +1290,17 @@ bien elegido, una corrección — **las cinco tienen la forma exacta de haber co
 ninguna de las que fallaron se cazó desconfiando: **todas se cazaron chocando** contra otra fuente
 que decía algo distinto.
 
+🔑 **Y LA ÚLTIMA ENTRADA DEL CATÁLOGO, que explica por qué unas cosas se cazaron y otras no:**
+> **Una conclusión incómoda se comprueba sola, por reflejo. Una halagadora se archiva.** La
+> incomodidad es lo que dispara la revisión, **y la que nos deja bien no produce ninguna.**
+**Toda la noche escribimos QUE los fallos se cazan chocando con un dato y no preguntándose si uno
+está seguro. Esto explica POR QUÉ unos chocan y otros no.** *Salvedad que le corresponde: **n=2**,
+y las dos las cazó quien estaba colocado para verlas —el par que recibe conclusiones sobre el
+proceso conjunto—. **El mecanismo se sostiene por su razonamiento; los dos casos lo ilustran, no lo
+demuestran.***
+🧭 **Y el criterio barato que sale de todo esto, el único que sobrevive sin acordarse de nada:**
+> **Si la formulación redonda y la defendible no coinciden, la redonda es la sospechosa.**
+
 ⚠️ **Y AVISO SOBRE CÓMO LEER TODO ESTE DOCUMENTO, que es lo último que aprendimos y va antes que
 lo demás:** cuando veas que **cuatro sesiones coincidimos** en un diagnóstico, **eso pesa menos de
 lo que parece.** Llevábamos seis horas construyendo un catálogo juntos, con **el mismo vocabulario
