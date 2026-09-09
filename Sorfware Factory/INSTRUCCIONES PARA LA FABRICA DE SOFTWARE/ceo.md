@@ -650,6 +650,37 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 - **Si no responde en 10 minutos, asignas tú directamente y lo dices.** Repartir no es tu rol, y
   por eso se declara cuando lo haces — pero **dejar tres terminales paradas tampoco lo es.**
 
+### ⛔ Comprobación fija Nº3: ¿sigue vivo el vigilante? (2026-09-09)
+
+**Una línea: si no ha llegado latido en 35 minutos, está muerto.** El intervalo es de 30, así que
+un retraso de más de un ciclo ya no es ruido.
+
+⚠️ **Por qué existe:** el vigilante del Factory Architect **lo mató el sistema por falta de
+memoria** (`"stopped because the system is running low on memory"`). Se enteró **porque el sistema
+se lo notificó**; muerto de otra manera, no se habría enterado nadie. **Nadie vigilaba al
+vigilante**, y es la forma pura del fallo de esta jornada: **su silencio se lee exactamente igual
+que su calma.**
+
+⚠️ **Y un modo de fallo que hay que tener presente todo el día:** un proceso matado por falta de
+memoria **no deja veredicto**. Una corrida de la suite, un `next build` o el propio Codex del
+auditor pueden morir así, y el resultado **se lee como "aún corriendo" o como "no dio nada"**. Si
+una corrida vuelve inexplicablemente vacía, **ésta es la PRIMERA hipótesis, no la última.**
+
+### ⚠️ Y cómo NO leer la memoria — un error mío, dos barridos seguidos
+
+Yo venía informando *"el swap no es presión: es que macOS encoge el total"*, apoyándome en que el
+**usado** no crecía. **Estaba mal**, y lo demuestra un hecho, no un número: **el sistema mató un
+proceso.**
+
+> **Los indicadores de memoria se contradicen entre sí y el tranquilizador siempre está
+> disponible.** Ahora mismo, con el OOM habiendo matado ya un proceso: `memory_pressure` dice
+> **"48% libre"**, y el swap está al **88%** con 2,19 M de *swapouts* y 1,3 GB en el compresor.
+> **Si eliges el primero, no pasa nada. Si eliges el segundo, pasa.**
+
+**Regla:** para la memoria, como para todo lo demás de este documento, **el efecto manda sobre el
+indicador** — *¿ha muerto algo?* vale más que cualquier porcentaje. Y si vas a dar un número, da
+**swap usado/total + compresor + procesos más pesados**, nunca uno solo.
+
 ### Comprobación fija de tu barrido: `core.hooksPath`
 
 Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso en uno visible:
