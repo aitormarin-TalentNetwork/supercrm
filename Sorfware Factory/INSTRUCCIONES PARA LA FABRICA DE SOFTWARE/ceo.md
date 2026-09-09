@@ -638,6 +638,33 @@ olvida no es quien debe encargarse de recordarlo. Ojo con `tty`: desde la herram
 devuelve *"not a tty"*; lo que funciona es `ps -o tty= -p $PPID`.
 
 
+### Comprobación fija de tu barrido: ¿está armada la vigilancia de la Directora?
+
+Añadido 2026-09-08 (**decisión 49** del Factory Architect). Y la regla que la explica, porque
+sin ella esta comprobación se degrada sola:
+
+> **Cada capa verifica el MECANISMO de la de abajo, no su objeto.**
+
+- **La Directora** vigila **auditorías concretas**, en segundos, porque es quien las disparó y
+  quien necesita el veredicto. Ese es **su** objeto.
+- **Tú no vigilas auditorías.** Vigilas **que su vigilancia esté armada y funcionando**.
+
+Es exactamente la relación que ya tienes con el Factory Architect: **no vigilas sesiones,
+verificas que su alarma vive** — y funciona precisamente porque no has replicado su watchdog.
+
+**Lo que entra en tu censo, entonces:** *¿hay vigilante armado para cada auditoría en vuelo?*
+Si tiene tres auditorías corriendo y dos vigilantes, **eso es tuyo**. Cuál fue el veredicto de
+la tercera, **no**.
+
+⚠️ **El corolario, que es lo que evita que esto se pudra con el tiempo:** cuando una capa
+empieza a mirar el objeto de la de abajo, **deja de mirar el mecanismo** — porque el objeto es
+más concreto y más satisfactorio. Se acaba con dos instrumentos midiendo lo mismo y **nadie
+comprobando que el de abajo siga vivo**. Duplicar vigilancia no da el doble de cobertura: da
+dos instrumentos mediocres en lugar de uno bueno.
+
+**Y no lo mires con un marker** (decisión 50.1): un fichero-marca ausente no distingue *"no ha
+pasado"* de *"pasó y se perdió la marca"*. Pregúntale, o mira el proceso.
+
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 
 Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y

@@ -360,6 +360,22 @@ la traía de serie** y los cuatro veredictos de la hora siguiente declaraban la 
 completa. Costó dos avisos y **cero rondas** — que es justo por qué tenía que ser una puerta
 y no una costumbre.
 
+#### La asimetría de los filtros: para una puerta, errar por estricto es el lado correcto
+
+Criterio de la Directora, adoptado 2026-09-08. **Hay que leerlo junto a la decisión 46, o las
+dos se leen como opuestas:**
+
+> **Un filtro rígido produce falsos negativos, y un falso negativo se investiga.** Uno laxo
+> da por buena una autoría inexistente **y nadie mira nunca**.
+
+> **Un falso negativo ocasional es recuperable —alguien lo investiga—. Un falso positivo no
+> lo es: nada provoca una segunda mirada. Pero un falso negativo SISTEMÁTICO destruye el
+> control igual que la 46.**
+
+**Conclusión operativa: errar por estricto, y ajustar para que el falso negativo sea raro.**
+Que es exactamente lo que ella hizo con la comprobación de la cabecera de la 42: **estricta en
+el fondo —el dato tiene que estar— y tolerante en la forma —espacios, mayúsculas, orden.**
+
 ## 2quater. Procedimiento de adopción de skills (2026-09-05)
 
 Hueco real, detectado con `~/Downloads/talent-factory` — sin un procedimiento fijo, la
@@ -987,6 +1003,7 @@ encontrar. No se arregla desconfiando de la señal: se arregla preguntándose de
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **Empezar una espera con `rm -f <marker>` para no leer el de la ronda anterior** | **Borra los markers RECIÉN CREADOS por trabajo que terminó antes de que armaras la espera**, y entonces esperas para siempre algo que ya pasó. En palabras de la Directora, 2026-09-08: *"no es un dato viejo leído como nuevo: es el dato nuevo destruido por defenderse del viejo"*. Y no deja rastro: un marker ausente se ve igual que un trabajo que no ha terminado | **la ambigüedad temporal se resuelve comparando fechas, jamás borrando.** El `rm -f` va **después** de detectar el marker, nunca antes de esperarlo (decisión 50.2). Mejor aún: usa una señal observable —el proceso vivo o muerto— en vez de una marca (50.1) |
 | **Pasarle a una herramienta un fichero por `filename` para que los valores NO pasen por la conversación** | **La herramienta puede hacer eco del fichero entero en su salida.** Verificado el 2026-09-08: el QA generó un script de disco a disco con Bash, sin imprimir nada, y se lo pasó a `browser_run_code_unsafe` por `filename` **precisamente para no exponer la sesión guardada**; la herramienta devolvió el contenido íntegro en su bloque "Ran Playwright code", JWT incluido. ⚠️ **El mecanismo diseñado para no exponer valores es el que los expone**, y falla en verde: el comando funciona, el script se ejecuta, el objetivo se cumple. *(Severidad de ESE caso: nula — token de la cuenta demo, caducado 61 min antes, refresh literal `"dummy"`. Lo que vale es el mecanismo.)* | **es un eje distinto de la decisión 32.1 y su comprobación NO lo caza:** la 32.1 cubre *dónde escribió* la herramienta; esto es *qué devuelve de lo que carga*. No hay sustituto seguro conocido — **si un fichero contiene un secreto, no se le pasa a una herramienta cuya salida no controlas**, ni por ruta |
 | **Un export en `codigo para auditar/` = una tarea esperando auditoría** | **Los exports NO se borran al auditarse: siguen ahí después del GO.** Así que ver el fichero es compatible con "pendiente" y con "auditado hace tres minutos", y **el estado real no está en el fichero.** ⚠️ **Y lo grave es la asimetría: la carpeta nunca dice de menos.** Nunca vas a mirarla y perderte trabajo; **siempre vas a ver trabajo que ya no existe**, así que el error es sistemáticamente en la dirección de inventar atascos. Caso real, 2026-09-08: el CEO reportó a la Directora cuatro planes "esperando veredicto" cuando **los cuatro tenían GO**. Es la misma carpeta que semanas antes le hizo decir a la Directora que el backlog estaba agotado con cinco issues vivas en Linear | preguntarle a la Directora, o leer el **último** veredicto de la ventana de auditor con `get history of tab 1` — **`history`, no `contents`** (que solo trae lo visible), y **la ÚLTIMA** aparición de "Veredicto", porque el historial arrastra veredictos de tareas de hace horas. Ese mismo arrastre ya dio un falso positivo la misma noche: un GO de AIT-77 leído como si fuera de AIT-78. 📌 **`codigo para auditar/` es un espejo con restos, no un estado** |
 | **`ps aux \| grep -c "[c]odex exec"` == 0, luego la auditoría no se ha disparado** | **Significa exactamente lo contrario: que YA TERMINÓ.** La señal es correcta y muy usada —la Directora caza con ella los veredictos perdidos—, pero **funciona en el sentido inverso al que invita la intuición**: un auditor vivo es una auditoría *en curso*; cero auditores vivos es una auditoría *acabada*, no una sin empezar. Caso real, 2026-09-08: el CEO leyó las tres ventanas de auditor en `-bash` como "no se ha disparado nada" y estaba viendo tres auditorías recién completadas | **cero procesos `codex` no es un estado del trabajo, es un estado de la máquina.** Para saber si hay algo pendiente hace falta el veredicto, no el proceso. Nota de forma: esta fila y la anterior son **la misma equivocación medida dos veces** — dos señales exactas, las dos sobre el sujeto equivocado (decisión 43), y **el error fue invisible en el resultado porque las dos coincidían** |
@@ -2382,15 +2399,84 @@ ciclo del barrido (hasta 20 min, y esa noche ni eso — ver incidente en `direct
 No es un parche puntual para Directora↔Auditor: es el mecanismo por defecto para
 **cualquier** par de roles, actuales o futuros, en esta situación.
 
-**El patrón, en 2 pasos:**
-1. Encadena un marker de finalización al final de lo que dispares — `touch
-   /tmp/<algo>-done-<identificador único de esa tarea concreta>` (nunca reutilices un
+⚠️ **EL ORDEN DE ESTOS DOS PASOS ES EL MECANISMO** (decisión 49, 2026-09-08). Durante
+semanas estuvieron escritos al revés, y así **el patrón es una carrera**. Ver abajo.
+
+---
+
+### Decisión 50 — El fichero-marca es el mecanismo inferior, y ahora sabemos por qué (2026-09-08)
+
+> **Un fichero-marca no distingue "no ha pasado" de "pasó y se perdió la marca". El proceso
+> vivo o muerto solo tiene una lectura.**
+>
+> *(Formulación de la Directora, que es quien lo diagnosticó.)*
+
+Un marker ausente tiene **tres** causas —no ha terminado; terminó y la marca se borró; nunca
+se creó— **y las tres se ven idénticas**. `ps aux | grep -c "[c]odex exec"` no tiene ese
+problema: es **una observación del mundo, no de una marca que alguien dejó**. Es el criterio
+del Integrador (enmienda 9) aplicado a la observación en vez de a la evidencia: **el proceso
+no puede mentir sobre si existe.**
+
+**50.1 — Se prefiere siempre una señal observable directamente** —el proceso, el commit, el
+fichero de salida— **a una que dependa de que un actor deje una marca.** El marker se queda
+solo donde no haya nada observable, y **declarado como inferior, no como equivalente.**
+
+**50.2 — Nunca se destruye para defenderse de lo viejo.** La espera de la Directora empezaba
+con un `rm -f` del marker para no leer el de la ronda anterior, y así **borró markers recién
+creados por auditorías que habían terminado antes de que ella armara**. En sus palabras:
+
+> **"No es un dato viejo leído como nuevo: es el dato nuevo destruido por defenderse del
+> viejo."**
+
+⚠️ **La ambigüedad temporal se resuelve comparando fechas, jamás borrando.** En el patrón de
+abajo el `rm -f` va **después** de detectar el marker, nunca antes de esperarlo.
+
+**50.3 — Ningún umbral temporal se escribe a mano; se calcula.** El suyo estaba **31 millones
+de segundos corto** y habría dado por bueno cualquier veredicto de la historia del proyecto.
+**Funcionó por casualidad**, que es la peor forma de funcionar. Enunciado corto: ***una
+constante de tiempo escrita a mano no se puede revisar de un vistazo.***
+
+**50.4 — Auditoría del resto de instancias, hecha el 2026-09-08.** El patrón "haz X y toca
+este fichero para avisar" es cómodo, así que se buscó en todos los documentos de la fábrica.
+**Tres instancias, y no son el mismo caso:**
+
+| Instancia | Dónde | Veredicto 50.1 |
+|---|---|---|
+| **Marker de fin de auditoría** (`/tmp/claude-crm-auditor-done-T<n>`) | §2bis-ter aquí abajo, `director.md` | **Tiene sustituto observable y se usa: el proceso `codex` vivo o muerto**, y el último veredicto en el historial de la ventana. El marker baja a atajo cómodo, **declarado inferior**: si falta, no concluyes nada — vas a mirar el proceso |
+| **Marker del aviso de voz** (`/tmp/claude-crm-notify-<worktree>`) | `intro-terminal.txt`, `director.md`, §4 aquí | **No tiene sustituto observable** —"¿debo avisar a Aitor?" no es un hecho del mundo, es una intención— así que **se queda, declarado inferior.** Y ya tenía documentado su propio fallo de esta familia: si el proceso muere, el hook `Stop` no llega a correr **por mucho que el marker esté puesto** |
+| **`rm -f` defensivo antes de esperar** | era práctica, no documento | **Prohibido** (50.2). El `rm -f` va después de detectar |
+
+📌 **Y el dato que hace que la 50.4 no sea opcional:** los tres fallos **se detectaron por
+casualidad de barrer**. No hay nada montado que los detecte solo. Si el barrido es lo único
+que los caza, **cada instancia sin auditar es un fallo esperando a que alguien pase por
+delante**. Ninguno costó una ronda: solo minutos de espera invisible, que es la clase de
+coste que no aparece en ninguna métrica y por eso se tolera indefinidamente.
+
+**El patrón, en 2 pasos — primero armar, después disparar:**
+1. **Arma el vigilante ANTES de que exista nada que vigilar.** Con la herramienta `Bash` y
+   `run_in_background: true`, lanza un bucle que espere un marker **que todavía no existe**:
+   `until [ -f /tmp/<marker> ]; do sleep 2; done; rm -f /tmp/<marker>`. Recibes la
+   notificación en tu propia conversación en el instante en que el marker aparezca — sin
+   sondeo por intervalos largos ni depender de que nadie más lo note.
+2. **Ahora sí, dispara el trabajo**, encadenándole al final ese mismo marker — `touch
+   /tmp/<marker>`, con un identificador único de esa tarea concreta (nunca reutilices un
    marker de otro propósito, p. ej. el del aviso de voz a Aitor — son cosas distintas).
-2. Lanza tú mismo, con la herramienta `Bash` y `run_in_background: true`, un bucle que
-   espere ese marker: `until [ -f /tmp/<mismo-marker> ]; do sleep 2; done; rm -f
-   /tmp/<mismo-marker>`. Recibes la notificación de finalización directamente en tu
-   propia conversación, en el instante en que el marker aparece — sin sondeo por
-   intervalos largos ni depender de que nadie más lo note.
+
+> **Un vigilante armado después del trabajo que vigila es una carrera que se pierde en
+> silencio — y se pierde justo en los casos rápidos, que son los que uno da por seguros.**
+
+**Por qué el orden inverso engañó tanto tiempo: falla en el trabajo fácil, no en el
+difícil.** Con una auditoría de diez minutos la carrera se gana por casualidad y todo
+parece correcto; con una de 50-70 segundos el marker aparece **antes** de que nadie lo
+espere y el aviso no llega nunca. Caso real, 2026-09-08: a la Directora le pasó **tres
+veces la misma noche** —auditorías de 50 y 70 segundos— y las tres las cazó contando
+procesos `codex` vivos en su barrido, o sea **la red de seguridad haciendo el trabajo del
+mecanismo**. Que las auditorías largas, que son las que preocupan, funcionaran bien es
+exactamente lo que impidió verlo.
+
+📌 **Y esto NO lo cubría la decisión 26** (armar el vigilante en el momento del envío):
+allí el destinatario es una sesión que tarda en contestar. Aquí el problema es otro y la 26
+no llegaba. Consta como hueco que teníamos, no como aplicación de algo ya escrito.
 
 **Esto es cinturón y tirantes con el barrido, no lo sustituye**: el aviso instantáneo es
 el camino rápido; el barrido periódico sigue siendo la red de seguridad si el proceso en

@@ -368,16 +368,34 @@ una vez que el trabajo pasa auditoría.
         - **Reclamarlo:** `mkdir "Sorfware Factory/_turno-convex.lock"`. Si el comando
           tiene éxito, es tuyo — `mkdir` falla si ya existe, así que no hay riesgo de que
           dos terminales lo crean libre a la vez. Inmediatamente después, escribe dentro
-          `Sorfware Factory/_turno-convex.lock/titular.txt` con tu terminal, tu tarea, y
-          la fecha/hora, para que quien lo encuentre ocupado sepa a quién preguntar.
+          `Sorfware Factory/_turno-convex.lock/titular.txt` EXACTAMENTE estos tres campos:
+            T1 | T2 | T3   (el literal de tu WORKTREE, nunca el nombre de tu sesión)
+            AIT-<id> de la tarea
+            fecha y hora CON HUSO
+          Ejemplo: `T3 | AIT-86 | 2026-09-08 21:04 local (UTC-3)`
+          ⚠️ EL PRIMER CAMPO ES EL WORKTREE, NO TU NOMBRE DE SESIÓN (decisión 34.1,
+          endurecido el 2026-09-08). Antes esta línea decía "tu terminal", que es
+          ambiguo: una sesión que se ve a sí misma por su nombre en todas partes puede
+          leer "mi terminal" como "yo, `fix-duplicate-customer-creation`", y eso fue
+          exactamente lo que pasó. No fue desobediencia: fue interpretación, y por eso
+          la regla se cierra en vez de repetirse. El nombre de sesión CAMBIA SOLO y no
+          resuelve pasadas unas horas; `T1|T2|T3` no cambia nunca.
+          El coste de equivocarse aquí no es desinformar, es ARMAR AL QUE VA A ACTUAR:
+          quien encuentre el cerrojo ocupado busca a su titular, no lo encuentra, y
+          concluye que está abandonado — cuando puede estar perfectamente vivo.
         - **Si `mkdir` falla** (ya existe): no asumas que está libre. Lee `titular.txt`
           para saber quién lo tiene y contáctala directamente por `SendMessage` para
           coordinar (¿cuánto le queda?, ¿puedes esperar?) — no hace falta pasar por la
           Directora para esto. Solo escala a la Directora (o a tu Líder de célula, si las
           hay) si hay una disputa real, o si esa terminal no responde y no puedes
-          confirmar por otros medios (transcript, estado de la sesión) que sigue
-          trabajando de verdad — mismo criterio que para dar una terminal por parada:
-          nunca reclames un cerrojo ajeno por comodidad.
+          confirmar por otros medios que sigue trabajando de verdad — mismo criterio que
+          para dar una terminal por parada: nunca reclames un cerrojo ajeno por comodidad.
+          ⚠️ CÓMO SE COMPRUEBA SI EL TITULAR SIGUE VIVO (decisión 34.4): mirando si hay
+          una sesión PRODUCIENDO en ese worktree, NO buscando un nombre en `ListAgents`.
+          Un nombre que ya no resuelve NO prueba que el cerrojo esté abandonado: prueba
+          que la sesión se renombró o se relanzó, que es lo normal. Dar por abandonado un
+          cerrojo vivo es como se acabó, en agosto, con una terminal reclamando un turno
+          ajeno y borrando funciones de otra.
         - **Liberarlo:** cuando termines de usarlo (paras de iterar, cambias de tarea, o
           vas a quedarte idle), borra `titular.txt` y haz `rmdir
           "Sorfware Factory/_turno-convex.lock"`.
