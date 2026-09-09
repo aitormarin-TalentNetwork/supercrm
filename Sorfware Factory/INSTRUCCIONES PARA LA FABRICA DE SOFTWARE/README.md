@@ -1945,6 +1945,23 @@ mueve nada"* — la 31 aplicada contra el propio equipo.
 demás: **inventarse un criterio a las tres de la mañana es exactamente lo que este documento
 existe para evitar.**
 
+#### Los supervivientes de un cambio enmascaran el cambio (observación, 2026-09-08)
+
+> **Preguntarle a quien ya funcionaba si algo funciona devuelve "sí" — y es cierto y engañoso a
+> la vez.**
+
+**Variante de la 43 que no teníamos:** no es medir el sujeto equivocado, es **preguntarle a la
+población equivocada** — la que **precede al defecto**.
+
+*El caso:* cualquiera que hubiera comprobado *"¿funciona la migración de §3bis?"* preguntándoles
+a **T1 y T2** habría obtenido un **sí** rotundo —T1 tiene 18 logins con contraseña seguidos que
+lo demuestran— y habría sido **cierto**. Sus cuentas son de **seis horas antes** del merge que
+rompió el mecanismo. **El QA lo destapó por ser el primero en migrar después**, es decir, **por
+ser el único con la población correcta.**
+
+📌 **Y la pregunta que se deriva, que es la parte útil y sigue abierta:** **¿cuántas cosas damos
+por buenas porque quien las usa las montó antes del cambio que las rompería?**
+
 ### Registro vivo de comprobaciones desacreditadas
 
 ⚠️ **Cabecera del registro (decisión 66):** **una fila de aquí no es un control — describe uno
@@ -2873,7 +2890,11 @@ deployment propio y puede ignorar esa regla.
 > construirlo:** `convex/auth.ts:141` llama a `createAccount` dentro del flujo `signUp` del
 > proveedor Password — **falta invocarlo**, no crearlo. *(Y un segundo hilo, de T1: la tercera
 > fila de su `authAccounts` es del 26 de agosto, posterior a AIT-60, con `emailVerified` — **no
-> sale del bootstrap**, así que hay otra vía viva que conviene identificar.)*
+> sale del bootstrap**. ⚠️ **DOS hipótesis, y solo una dice "hay otra vía viva":** (a) existe otro
+> camino automático que crea cuentas de contraseña hoy; (b) **alguien la creó a mano** y no hay
+> ninguna vía. **La (b) es más barata y no está descartada** — y si es la buena, **buscar el
+> código no encuentra nada y el tiempo se va en confirmar una ausencia**, que es de lo que peor
+> se sale. **Se resuelve preguntándole a Aitor si la creó él**, y eso cuesta una línea.)*
 >
 > 📌 **Y la consecuencia de proceso, que no se ve mirando ninguna decisión por separado: la 57.1
 > y la 59.1 se anulan mutuamente.** En el compartido el QA contamina lo que otros miden; en el
