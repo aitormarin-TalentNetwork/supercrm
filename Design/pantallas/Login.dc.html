@@ -223,6 +223,12 @@ class Component extends DCLogic {
     if (e) e.focus();
   }
 
+  // AIT-85 (2026-09-08): divergencia a favor del CÓDIGO, que va por DELANTE
+  // del diseño. Aquí `forgot` solo enseña un aviso ("pide a la dueña que la
+  // restablezca"); en `app/login/page.tsx` el enlace abre un diálogo real de
+  // recuperación (`components/auth/PasswordResetDialog.tsx`). Gana el código;
+  // se anota en vez de recortarlo porque el mockup no promete de más, promete
+  // de MENOS: quien parta de aquí construiría algo peor de lo que ya existe.
   forgot(e) {
     if (e && e.preventDefault) e.preventDefault();
     this.setState({ toast: { variant: 'info', title: 'Recuperar contraseña', message: 'Pide a la dueña de tu empresa que restablezca tu acceso.' } });

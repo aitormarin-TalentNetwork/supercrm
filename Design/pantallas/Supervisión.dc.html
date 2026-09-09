@@ -113,7 +113,7 @@
         </div>
         <sc-for list="{{ comerciales }}" as="c" hint-placeholder-count="3">
           <div class="sup-row" onClick="{{ c.onFicha }}" style="padding:13px 22px;border-top:1px solid var(--color-border);background:{{ c.rowBg }}">
-            <span style="flex:1.8;min-width:0;display:flex;align-items:center;gap:10px"><x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ c.nombre }}" size="sm" hint-size="32px,32px"></x-import><span style="min-width:0"><span style="font-weight:600;font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.nombre }}</span><span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--color-primary);font-weight:600"><i data-lucide="id-card" style="width:12px;height:12px"></i>Ver ficha</span></span></span>
+            <span style="flex:1.8;min-width:0;display:flex;align-items:center;gap:10px"><x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ c.nombre }}" size="sm" hint-size="32px,32px"></x-import><span style="min-width:0"><span style="font-weight:600;font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.nombre }}</span></span></span>
             <span style="flex:2.2;display:flex;align-items:center;gap:12px;min-width:0"><span style="flex:1;min-width:40px;height:10px;background:var(--color-neutral-100);border-radius:var(--radius-pill);overflow:hidden"><span style="display:block;height:100%;width:{{ c.barW }};background:var(--color-primary);border-radius:var(--radius-pill)"></span></span><span style="font-family:var(--font-mono);font-size:13.5px;font-weight:600;white-space:nowrap">{{ c.valor }}</span></span>
             <span style="flex:.8;text-align:center;font-size:14px;font-weight:600">{{ c.count }}</span>
             <span style="flex:.9;text-align:center;font-size:14px;color:var(--color-text-secondary)">{{ c.interacciones }}</span>
@@ -144,57 +144,23 @@
         </sc-for>
       </section>
 
-      <!-- FICHA COMERCIAL -->
-      <sc-if value="{{ fichaOpen }}" hint-placeholder-val="">
-      <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ fichaOpen }}" on-close="{{ closeFicha }}" width="{{ 540 }}" hint-size="0,0">
-        <div style="max-height:74vh;overflow-y:auto;margin:-2px;padding:2px">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-          <x-import component-from-global-scope="DesignSystem_ddd184.Avatar" name="{{ ficha.nombre }}" size="lg" hint-size="48px,48px"></x-import>
-          <div style="min-width:0">
-            <h2 style="margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em">{{ ficha.nombre }}</h2>
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-secondary);margin-top:2px"><i data-lucide="circle" style="width:9px;height:9px;fill:var(--color-success);color:var(--color-success)"></i>Comercial · última actividad {{ ficha.ultima }}</div>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
-          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Abiertas</div><div style="font-size:20px;font-weight:700;margin-top:3px">{{ ficha.count }}</div></div>
-          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Valor</div><div style="font-size:20px;font-weight:700;margin-top:3px;font-family:var(--font-mono)">{{ ficha.valor }}</div></div>
-          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Interacc.</div><div style="font-size:20px;font-weight:700;margin-top:3px">{{ ficha.interacciones }}</div></div>
-          <div style="background:var(--color-neutral-50);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:10px 12px"><div style="font-size:11px;font-weight:600;color:var(--color-text-muted)">Atrasados</div><div style="font-size:20px;font-weight:700;margin-top:3px;color:{{ ficha.atrasFg }}">{{ ficha.atrasados }}</div></div>
-        </div>
-
-        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:10px">Actividad reciente</div>
-        <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:20px">
-          <sc-for list="{{ ficha.acts }}" as="a" hint-placeholder-count="4">
-            <div style="display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--color-border)">
-              <span style="width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:{{ a.bg }};color:{{ a.fg }}"><i data-lucide="{{ a.icon }}" style="width:15px;height:15px"></i></span>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13.5px;font-weight:600">{{ a.cliente }}</div>
-                <div style="font-size:12.5px;color:var(--color-text-secondary);line-height:1.45">{{ a.nota }}</div>
-              </div>
-              <span style="font-size:11.5px;color:var(--color-text-muted);white-space:nowrap;padding-top:1px">{{ a.cuando }}</span>
-            </div>
-          </sc-for>
-        </div>
-
-        <div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:10px">Próximos seguimientos</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <sc-for list="{{ ficha.prox }}" as="p" hint-placeholder-count="3">
-            <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:{{ p.bg }};border:1px solid {{ p.bd }};border-radius:var(--radius-md)">
-              <i data-lucide="{{ p.icon }}" style="width:15px;height:15px;color:{{ p.fg }};flex:none"></i>
-              <span style="flex:1;font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.cliente }}</span>
-              <span style="font-size:12px;font-weight:600;color:{{ p.fg }};white-space:nowrap">{{ p.cuando }}</span>
-            </div>
-          </sc-for>
-        </div>
-
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px">
-          <x-import component-from-global-scope="DesignSystem_ddd184.Button" variant="secondary" onClick="{{ closeFicha }}" hint-size="90px,40px">Cerrar</x-import>
-          <x-import component-from-global-scope="DesignSystem_ddd184.Button" onClick="{{ ficha.verOpps }}" hint-size="170px,40px">Ver sus oportunidades</x-import>
-        </div>
-        </div>
-      </x-import>
-      </sc-if>
+      <!-- AIT-85 (2026-09-08): RETIRADA la ficha por comercial (diálogo con
+           KPIs, "Actividad reciente", "Próximos seguimientos" y los botones
+           "Cerrar" / "Ver sus oportunidades"). Gana el código: no está
+           construida en app/supervision/page.tsx.
+           NO se descarta — queda declarada CANDIDATA POST-MVP por decisión del
+           PM. Motivo: con dos vendedores una ficha por persona aporta poco
+           sobre unos KPIs y un filtro; con ocho, mucho. No es una vista que
+           sobre, es una vista PREMATURA. El diseño retirado sigue en el
+           historial de git de este fichero si se retoma.
+           Desglose de lo que se adjudicó, porque no era una sola cosa:
+             · "Ver sus oportunidades" -> función YA CUBIERTA por el filtro por
+               comercial que sí existe en el código.
+             · el disparador "Ver ficha" (fila clicable) -> ausente, retirado.
+             · el contenido de la ficha (actividad reciente, próximos
+               seguimientos) -> ausente, candidato Post-MVP.
+           No se cierra como "cubierto por el filtro": lo primero entierra la
+           decisión, esto la deja escrita. -->
 
     </div>
   </main>
