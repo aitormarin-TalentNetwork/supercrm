@@ -467,6 +467,27 @@ una vez que el trabajo pasa auditoría.
   no config). Formato, una línea por check-in, se añade con `>>` sin borrar lo anterior:
   `timestamp | sesión | rol | terminal/carpeta | motivo`. Ejemplo:
   `date '+%Y-%m-%d %H:%M:%S'` seguido de `| T2 | Desarrollador | T2 | arranque`.
+- 🔴 **ANTES DE CUALQUIER COMANDO `convex`: respalda tu `.env.local` y compara el hash
+  después.** No es paranoia — está MEDIDO (T2, 2026-09-09, sonda de AIT-114):
+
+      md5 antes .... 7518ba3e5d97adf47b60d96850d50c93
+      md5 después .. 8d6fb5ae1328d0e5093aeae7280a80a6   <- sin CONVEX_DEPLOYMENT
+
+  `npx convex dev --env-file <otro-fichero>` **BORRÓ la línea `CONVEX_DEPLOYMENT` del
+  `.env.local` del worktree que lo invocó.** Creíamos justo lo contrario: que `--env-file`
+  servía para NO tocar el fichero de nadie. **Esa mitigación era falsa**, y la dimos por
+  buena dos roles a la vez (T2 y el PM) sin comprobarla.
+
+  **Por qué muerde y no avisa:** un `.env.local` sin `CONVEX_DEPLOYMENT` no da error — deja
+  a tu worktree sin saber contra qué backend corre. El siguiente que ejecute la suite mide
+  otra cosa, o falla sin motivo aparente, y nada apunta al comando que lo causó.
+
+      cp .env.local /tmp/env.bak && md5 .env.local     # antes
+      md5 .env.local                                   # después: ¿el mismo?
+      # si cambió y no querías: cp /tmp/env.bak .env.local
+
+  Lo cazó T2 SOLO porque había respaldado y comparaba hashes. Hazlo igual.
+
 - **Turno de recurso compartido — Convex:** antes de CUALQUIER `npx convex dev` (no
   solo la primera vez), mira primero `CONVEX_DEPLOYMENT` en tu propio `.env.local`:
     - Si es un deployment propio de tu terminal (no `third-goldfinch-805`): ya estás
