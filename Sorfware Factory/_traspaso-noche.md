@@ -996,6 +996,38 @@ traían control ejecutado y cuántas de ésas se devolvieron.** *(Me lo devolvi�
 Architect, y tenía razón: **sería raro que la única conclusión que se salvara del criterio fuese
 la que habla bien de nosotros.**)*
 
+## 7octies. Lo que llega VIVO al repaso sin escribir — cuatro candidatas y una meta-regla
+
+**Ninguna se ha escrito como decisión a propósito.** Todas nacieron de madrugada, y la que se
+escriba mañana tiene que pasar antes la prueba de la 68.1: *con el sistema sano, ¿cuántas veces al
+día obliga a alguien a hacer algo?*
+
+| | enunciado | de quién |
+|---|---|---|
+| **73** | El barrido al retirar / no fijar lo no adoptado — **desdoblada**, ver §6 | FA + Directora |
+| **75** | **Al afirmar sobre un mecanismo, se dice qué se leyó y qué no.** La parte no leída no deja hueco visible: la conclusión suena igual de completa | Directora → FA |
+| **76** | **Verificar el mecanismo y verificar que lo activas son dos verificaciones, no una.** *Ejecutable: nombra qué observable cambia si el mecanismo se activó, y mídelo antes y después. Si no puedes nombrarlo, no estás actuando sobre el mecanismo: estás esperando que se active.* | T2, con 4 instancias propias |
+| **meta** | **Una condición que otro puede cumplir sin enterarse no es una condición: es una dependencia oculta.** *Test: ¿puedes escribir ahora un comando que la conteste? Sí → estado. No → evento, y necesita destinatario* | mía, con el test del FA |
+
+📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
+**una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
+redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
+cinco donde puede bastar una y media.
+🔑 **Lo que las une, y es de T2:** *el error no está en la medición, sino en el **emparejamiento**
+entre lo medido y aquello sobre lo que se afirma.* Criterio recordado, mecanismo mal leído,
+mecanismo no activado — **tres ángulos del mismo hueco.**
+
+⚠️ **Y un dato que el Factory Architect pone POR ENCIMA de sus cuatro candidatas, y coincido.** Se
+pidió que el inventario de la suite lo corriera en frío **alguien que no fuera su autor**. Ese
+filtro encontró que `npx playwright --version`, en un clon limpio, **se descarga playwright del
+registro, contesta EXIT 0, no deja ni un navegador instalado, y devuelve una versión que no es la
+del proyecto.** Contesta a otra pregunta, tiene efecto, y sale en verde.
+> **Era invisible desde el worktree del autor por construcción**, porque `npx` resuelve primero lo
+> local. **No es que no mirara: es que desde ahí no se podía ver.**
+**Eso convierte "corrida en frío por otro" en proceso y no en cortesía**, y es la evidencia más
+dura de la noche a favor de algo que ya sospechábamos: **hay una clase de fallo que el autor no
+puede encontrar por mucho cuidado que ponga.**
+
 ## 8. Lo primero cuando se retome el proceso
 
 El Factory Architect paró de producir decisiones esta noche porque **el catálogo crecía más
