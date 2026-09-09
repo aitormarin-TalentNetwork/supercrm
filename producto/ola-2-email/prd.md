@@ -1,11 +1,11 @@
-<!-- prd: estado=DRAFT version=0.10 supersedes=- appetite=completo -->
+<!-- prd: estado=DRAFT version=0.11 supersedes=- appetite=completo -->
 
 # PRD — SuperCRM Ola 2: Email de clientes dentro del CRM
 
 | Campo | Valor |
 |---|---|
 | Estado | DRAFT |
-| Version | 0.10 |
+| Version | 0.11 |
 | Supersedes | — (sigue en DRAFT; 0.1 a 0.4 corregidas, no superseded) |
 | Fase actual | **6 — documento** (premisas cerradas en la 0.5, alcance en la 0.6; listo para una ronda nueva de review) |
 | Appetite | completo |
@@ -369,6 +369,10 @@ significaba tres cosas distintas y se confundian (hallazgo H11 del ciclo 2):
 - PASA si: un email dirigido a `Nombre Apellido <CLIENTE@Ejemplo.COM>` se empareja con
   el cliente cuyo `email` es `cliente@ejemplo.com`, y uno dirigido a
   `cliente+loquesea@ejemplo.com` tambien.
+- PASA si: un cliente guardado como `cliente+crm@ejemplo.com` **NO** se empareja con un
+  email dirigido a `cliente@ejemplo.com`, y ese email queda visible como "sin cliente".
+  Es el unico caso que la regla de la seccion 21 deja fuera a proposito, y se prueba
+  para que nadie lo "arregle" mas adelante creyendo que es un fallo.
 - FALLA si: la comparacion distingue mayusculas, no descarta el nombre de la cabecera,
   o si dos clientes de la misma tienda que comparten direccion provocan que el mismo
   email se guarde dos veces.
@@ -991,10 +995,13 @@ tabla entera en cada mensaje. Por tanto:
   **inservible para escribir** — que es justo lo que promete la seccion 4.
   Por tanto: `customers.email` guarda **la direccion tal cual**, con `trim()` +
   `toLowerCase()`, que es lo que ya hace `createQuick` hoy (corrige lo que decian las
-  versiones anteriores de este PRD, que daban esa normalizacion por inexistente). El
-  emparejamiento compara **formas canonicas calculadas al vuelo en los dos lados**:
-  quitando el nombre de la cabecera (`Nombre <a@b.com>` → `a@b.com`) y descartando la
-  etiqueta tras `+`. El dominio no se normaliza mas alla de minusculas.
+  versiones anteriores de este PRD, que daban esa normalizacion por inexistente).
+  **El emparejamiento normaliza SOLO la direccion entrante** (corregido en la v0.11; hasta
+  la v0.10 esta linea decia "en los dos lados", que contradecia al parrafo siguiente y
+  llevaba a dos implementaciones distintas). De la cabecera se quita el nombre
+  (`Nombre <a@b.com>` -> `a@b.com`), se pasa a minusculas, y se genera **ademas** la
+  variante sin la etiqueta posterior a `+`. El dominio no se normaliza mas alla de
+  minusculas. **Lo guardado no se toca ni se recalcula nunca.**
   **Como se busca con indice sin indexar una forma calculada** (aclarado en la v0.10, que
   la v0.8 dejo contradictorio). No se indexa una forma canonica: se **generan las variantes
   de la direccion entrante y se busca cada una por el indice**. De un `Nombre <Cliente+crm@
@@ -1004,6 +1011,19 @@ tabla entera en cada mensaje. Por tanto:
   **La diferencia con el telefono**: alli el valor canonico SI es el que se guarda, porque
   normalizar un numero no pierde nada. Aqui perderia, asi que se guarda entero y la
   normalizacion vive en la **consulta**, no en el almacenamiento.
+  **El limite que esto deja, declarado a proposito y no descubierto luego.** La regla es
+  **asimetrica**, porque solo se normaliza un lado:
+  - Cliente guardado como `cliente@ejemplo.com` y correo dirigido a
+    `cliente+crm@ejemplo.com` -> **empareja**: una de las variantes de la entrante es
+    exactamente lo que hay guardado.
+  - Cliente guardado como `cliente+crm@ejemplo.com` y correo dirigido a
+    `cliente@ejemplo.com` -> **NO empareja**. Y es correcto que no lo haga: son dos
+    direcciones distintas y nadie ha declarado que sean la misma persona. Ese correo
+    cae en "sin cliente" (seccion 19-CU3), que es un estado previsto y visible, **no
+    una perdida silenciosa**.
+  Se acepta a cambio de no volver a tocar lo almacenado. Si algun dia estorba, se
+  arregla dando de alta la direccion corta en la ficha del cliente — no cambiando la
+  regla ni normalizando lo guardado.
 - **Un correo que coincide con DOS clientes de la misma tienda**: se guarda **un solo
   registro** —la clave `(storeId, Message-ID)` no admite dos— y **cuelga de un unico
   cliente**, elegido en este orden, sin ambiguedad posible:
