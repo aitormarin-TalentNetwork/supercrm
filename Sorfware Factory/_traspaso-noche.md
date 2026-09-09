@@ -243,6 +243,20 @@ paró de producir y respetamos la pausa—:
   si hay alguien delante esperando al instrumento.** Una puerta se sufre; un vigilante se
   ignora. *Nadie ha escrito eso todavía, y "errar por estricto" suelto es un consejo peligroso
   fuera de las puertas.*
+  ✅ **Hecho esta noche, y era lo único urgente: hay una nota cruzada en LOS DOS sitios** —§2ter
+  y §2bis-ter— diciendo que la otra existe, que dice lo contrario para otro tipo de instrumento,
+  y que la frontera está sin resolver. **Ninguna de las dos se puede aplicar ya sin ver a la
+  otra.** *Una contradicción señalada es una pregunta; una contradicción suelta es una trampa* —
+  y **el traspaso lo leemos nosotros, pero las reglas las aplica quien las encuentra.**
+  💡 **HIPÓTESIS del Factory Architect, anotada COMO HIPÓTESIS y no como resolución** (si mañana
+  no se sostiene, mejor que no esté escrita como regla): la frontera no es *"si hay alguien
+  delante"*, es **quién nota cada error**. En una **puerta**, el falso negativo **lo sufre
+  alguien en el acto y lo reporta** — uno de los dos errores se autodenuncia, y por eso **se
+  puede permitir un sesgo**. En un **vigilante**, **ninguno de los dos tiene quien lo note**: el
+  falso positivo se ignora en silencio y el falso negativo **es** silencio. Si se sostiene, la
+  conclusión sería que **un vigilante no admite sesgo en ninguna dirección: exige discriminación
+  probada en las dos** — que es, dice él, *"exactamente lo que he estado haciendo toda la noche
+  con los autotests sin saber por qué, y por qué nunca escribí uno para una puerta"*.
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.

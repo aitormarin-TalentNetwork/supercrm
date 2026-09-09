@@ -362,6 +362,18 @@ y no una costumbre.
 
 #### La asimetría de los filtros: para una puerta, errar por estricto es el lado correcto
 
+> ## ⚠️ ANTES DE APLICAR ESTO, LEE LA OTRA MITAD — están sin conciliar (2026-09-08)
+>
+> **Esta regla vale para una PUERTA. Para un VIGILANTE hay escrito lo contrario**, y también con
+> razón: ahí el falso negativo es peor, porque **no avisar nunca es silencioso**. Ver §2bis-ter,
+> el patrón del vigilante.
+>
+> **La frontera entre los dos tipos de instrumento NO está resuelta.** *"Errar por estricto"*
+> **suelto es un consejo peligroso fuera de las puertas.** Está anotado en
+> `_traspaso-noche.md` como tensión pendiente, con una hipótesis del Factory Architect que hay
+> que pensar despierto.
+
+
 Criterio de la Directora, adoptado 2026-09-08. **Hay que leerlo junto a la decisión 46, o las
 dos se leen como opuestas:**
 
@@ -3761,6 +3773,16 @@ observar.**
    📌 **Y por qué la precisión del orden no es un detalle: sin ella habríamos cambiado un falso
    positivo por un falso negativo, que es el cambio malo.** De *avisar seis minutos antes* a **no
    avisar nunca**. El primero se nota; el segundo no.
+
+   > ## ⚠️ ANTES DE APLICAR ESTO, LEE LA OTRA MITAD — están sin conciliar (2026-09-08)
+   >
+   > **Lo anterior vale para un VIGILANTE. Para una PUERTA hay escrito lo contrario** —*"errar
+   > por estricto es el lado correcto", un falso negativo se investiga y un falso positivo no*—,
+   > y también con razón. Ver §2ter, "la asimetría de los filtros".
+   >
+   > **La frontera entre los dos tipos de instrumento NO está resuelta.** Anotada en
+   > `_traspaso-noche.md` con una hipótesis del Factory Architect, pendiente de pensarse
+   > despierto.
 2. **Ahora sí, dispara el trabajo**, encadenándole al final ese mismo marker — `touch
    /tmp/<marker>`, con un identificador único de esa tarea concreta (nunca reutilices un
    marker de otro propósito, p. ej. el del aviso de voz a Aitor — son cosas distintas).
