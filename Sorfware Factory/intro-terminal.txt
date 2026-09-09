@@ -276,11 +276,27 @@ una vez que el trabajo pasa auditoría.
    worktree de OTRA rama y reportándolo como tuyo. Y `playwright.config.ts` tiene
    `reuseExistingServer: true`, así que Playwright se engancha a lo que haya
    escuchando sin preguntar de quién es.
-   Compruébalo antes, siempre:
+   ⚠️⚠️ CORRECCIÓN IMPORTANTE (2026-09-09): EL MÉTODO DEL `cwd` YA NO SIRVE.
+   Hasta hoy este mismo párrafo mandaba mirar el `cwd` del proceso y comprobar que
+   fuera tu worktree. **Eso ya no discrimina nada, y creerlo sale caro: T1 dio por
+   ajeno su propio servidor y mató el proceso equivocado.**
+   *La causa:* **Next.js 16 infiere el "workspace root"**. Al encontrar varios
+   `package-lock.json` elige el de la RAÍZ del repo y hace `chdir` allí. Así que el
+   `cwd` de un `next-server` lanzado desde un worktree **apunta a la raíz**, y la
+   comprobación dice "no es mío" **también para el tuyo**.
+   (Es comportamiento de Next.js 16 y puede cambiar con una versión: si algún día el
+   `cwd` vuelve a apuntar al worktree, esta nota se revisa en vez de arrastrarse.)
+
+   EL MÉTODO QUE SÍ DISCRIMINA es mirar QUÉ BINARIO ejecuta el proceso:
      lsof -nP -iTCP:3000 -sTCP:LISTEN -t     # PID del que tiene el puerto
-     lsof -a -p <PID> -d cwd -Fn             # su directorio de trabajo
-   El `cwd` tiene que ser TU worktree. Si es el de otra terminal, no arranques
-   encima: usa otro puerto o coordínalo con la coordinadora.
+     ps -axo pid,command | grep <PID>        # con qué binario arrancó
+   Si el binario es `.../CRM curso Vibe Coding/node_modules/.bin/next` (sin
+   `_worktrees/` en medio), lo sirve **el checkout raíz**, no tu worktree.
+   Si es el de OTRO worktree, tampoco es tuyo.
+
+   Y si no es tuyo: **no arranques encima y no lo mates**. Usa otro puerto (T1 corrió
+   contra un 3010 propio) o coordínalo con la coordinadora. Matar el proceso de otra
+   terminal le tira el trabajo, y —como se vio— es fácil equivocarse de dueño.
 
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
