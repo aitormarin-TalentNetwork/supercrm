@@ -652,8 +652,32 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 
 ### ⛔ Comprobación fija Nº3: ¿sigue vivo el vigilante? (2026-09-09)
 
-⚠️ **La pregunta NO es "¿ha latido?" — es "¿EXISTE un vigilante Y ha latido en los últimos 35
-minutos?"** (el intervalo es de 30, así que un retraso de más de un ciclo ya no es ruido).
+**Se lee de un fichero, no de un mensaje** (corregido 2026-09-09, ver abajo):
+
+```bash
+cat /tmp/fa-vigilante-estado.txt   # 2026-09-09 10:08:17 UTC | vivo | 7 produciendo, 1 quietas | T1=0min...
+stat -f '%Sm' -t '%H:%M:%S' /tmp/fa-vigilante-estado.txt
+```
+**El ciclo es de 60 s: si el fichero tiene más de 3 minutos, el vigilante NO está corriendo.** Lo
+compruebas **tú solo**, con la fábrica dormida o con el Factory Architect ocupado.
+
+⚠️ **La pregunta NO es "¿ha latido?" — es "¿EXISTE un vigilante Y está corriendo?"**
+> **Ausencia-por-muerte y ausencia-por-inexistencia se ven exactamente igual, y se arreglan
+> distinto.**
+
+🔻 **Por qué se lee de un fichero y no de un latido relayado — tres fallos reales, todos del mismo
+día, y uno es mío:**
+1. **El relayo dependía de que el FA estuviera activo**, así que la comprobación medía *"¿está vivo
+   y atento el Factory Architect?"*, **no** *"¿está vivo el vigilante?"*. **El instrumento
+   contestando otra pregunta, otra vez.**
+2. **Un vigilante que solo demuestra estar vivo cada 30 min se queda a oscuras 30 min después de
+   cada reinicio** — o sea **justo durante el mantenimiento, que es cuando menos confianza hay en
+   él**. Tres relanzamientos en 40 minutos produjeron **76 minutos de silencio** que parecían una
+   muerte y eran el arreglo. *(El remedio creando la condición contra la que protege, en pequeño.)*
+3. **Y el mío:** en el barrido anterior **me salté esta comprobación por contacto reciente** — el
+   FA me había escrito cinco veces y me dijo *"la v15 sigue latiendo"*. **La v15 no había latido
+   nunca**: llevaba diez minutos armada. **Contacto no es latido, y un dato en indicativo de un
+   compañero fiable tampoco es una medición.**
 > **Ausencia-por-muerte y ausencia-por-inexistencia se ven exactamente igual, y se arreglan
 > distinto.** Si no hay Factory Architect activo, **el respaldo de máquina NO EXISTE**: eso se
 > **dice en el barrido**, no se acepta como silencio normal. *Es el cero sin control positivo
