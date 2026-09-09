@@ -8,12 +8,37 @@ Léelo en este orden. Lo de arriba es lo que necesita que decidas; lo de abajo e
 
 ---
 
+## 0. 🔴 LO PRIMERO: Convex avisa de que se acerca al límite del plan gratuito
+
+Textual del aviso que le salió a T3:
+
+> *"Your projects are approaching the Free plan limits. **Consider upgrading to avoid service
+> interruption.**"*
+
+**No afecta a ninguna tarea de esta noche.** Va el primero porque **"service interruption"
+alcanza a producción**, y porque **no es decisión de ningún rol de la fábrica**: es tuya y
+probablemente cuesta dinero.
+
+**El contexto que te ayuda a decidir, y es lo que lo hace urgente hoy y no la semana que viene:**
+tenemos **cinco deployments vivos** —producción, los tres de terminal, el del QA— más el
+compartido. Si la cuenta está cerca del límite, **es probable que sea por tenerlos todos, no por
+producción**.
+
+⚠️ **Y dos de las decisiones que te íbamos a pedir mañana AÑADEN deployments:** la del Integrador
+(hoy bloqueada por AIT-99) y rehacer el compartido (AIT-102). **Míralas juntas, no por separado**
+— aprobar cualquiera de las dos sin ver este aviso podría ser lo que dispare la interrupción.
+
+*(Hallazgo de T3, relayado por la Directora. No lo he medido yo: no tengo acceso al panel de
+facturación de Convex, y no voy a entrar en tu cuenta para verlo.)*
+
+---
+
 ## 1. Lo que solo puedes hacer tú (nada de esto avanzó de noche)
 
 | Qué | Por qué está parado | Qué desbloquea |
 |---|---|---|
 | **La prueba de Gmail en un móvil real** — abrir un hilo, copiar la URL, ver si la app de Gmail del móvil la captura y llega al hilo correcto | Ningún agente tiene un móvil | **AIT-91**, y con ella la cadena **91 → 92 → AIT-101**, que es la funcionalidad Urgente de la Ola 2 ("los correos de un cliente aparecen en su ficha") |
-| **`git config core.hooksPath .githooks`** + crear el hook | Un comando tuyo | El control de secretos deja de ser un principio. ⚠️ **Y avísame cuando lo hagas**: ese control lleva 11 ciclos viendo solo su caso de alarma y **nunca el de silencio**, así que hay que confirmar que **deja de reportarlo**. Si sigue avisando, llevaba 11 ciclos roto |
+| **`git config core.hooksPath .githooks`** + crear el hook — ⚠️ **YA SON DOS MOTIVOS INDEPENDIENTES, no uno.** Se pidió para **secretos**; el segundo apareció esta noche: en el árbol de T1 salieron `e2e/06-avisos-de-bloqueo.spec 2.ts` y **`app/clientes/[id]/page 2.tsx`**, copias byte a byte de macOS. Hoy inertes —Playwright lista 18 tests y no 36— pero **un `page 2.tsx` dentro de una carpeta de ruta de Next es exactamente lo que entra con un `git add -A` a las tres de la mañana**, y ninguna revisión de diff lo mira con atención a esa hora | Un comando tuyo | El control de secretos deja de ser un principio. ⚠️ **Y avísame cuando lo hagas**: ese control lleva 11 ciclos viendo solo su caso de alarma y **nunca el de silencio**, así que hay que confirmar que **deja de reportarlo**. Si sigue avisando, llevaba 11 ciclos roto |
 | **Aislar el perfil del navegador del MCP** (issue **AIT-97**) | Es configuración de tu MCP | Hoy **cortó al QA tres veces**. Y lleva tus sesiones reales de Google, Notion, LinkedIn |
 | **¿Creaste tú a mano la cuenta `aitor.marin@` del 26 de agosto** en el deployment de T1? | Dos hipótesis, y la barata es esa | Si fue manual, **buscar ese código no encuentra nada** y alguien se pasará horas confirmando una ausencia |
 | **`settings.local.json`** (el aviso de voz anuncia mal el rol) y **permiso de Grabación de Pantalla** | Ajustes tuyos | Menores |
@@ -319,6 +344,20 @@ aparentar avance. Las dos cosas están prohibidas y las dos habrían pasado desa
 **Si mañana preguntas cuánto costó parar las publicaciones, la respuesta empieza aquí: una
 terminal bloqueada en la primera noche.** Sigue pareciéndome el cambio correcto —era la peor
 noche para publicar a ciegas— pero el precio existe y no debe descubrirse por sorpresa.
+
+---
+
+## 7quinquies. `tsc --noEmit` ha dejado de significar nada
+
+En el worktree de T3, **`npx tsc --noEmit` sale con exit 2 pase lo que pase**. **Cero errores en
+código del proyecto**: los ocho que reporta están en `.next/types/`, en **artefactos duplicados
+con sufijo numérico** (`cache-life.d 4.ts`, `routes.d 5.ts`) — la misma plaga de copias de macOS
+del punto anterior, **ahora atacando a una herramienta de verificación**.
+
+> **Un código de salida que ya no significa nada entrena a la siguiente terminal a ignorarlo.**
+
+Es el falso verde del catálogo **con el signo cambiado: un falso ROJO permanente**, que se
+aprende a ignorar igual de rápido. Enrutado al PM para issue.
 
 ---
 
