@@ -301,10 +301,26 @@ test.describe("Los avisos dicen CUÁNTOS", () => {
     await page.getByRole("link", { name: nombre }).click();
     await expect(page).toHaveURL(/\/clientes\//);
 
+    const aviso = page.getByRole("dialog", { name: "Eliminar cliente" });
     await page.getByRole("button", { name: "Eliminar cliente" }).click();
-    await expect(
-      page.getByRole("dialog", { name: "Eliminar cliente" }),
-    ).toContainText("tiene 1 oportunidad(es)");
+    await expect(aviso).toContainText("tiene 1 oportunidad(es)");
+    await page.keyboard.press("Escape");
+    await expect(aviso).toBeHidden();
+
+    // M3 del NO-GO: con UN SOLO valor, sustituir {opportunities.length} por un
+    // `1` cableado dejaría esta prueba en verde. Se le añade una segunda
+    // oportunidad con el flujo de AIT-74 y se comprueba que la cifra SIGUE al
+    // dato.
+    await page.getByRole("button", { name: "Nueva oportunidad para este cliente" }).click();
+    const alta = page.getByRole("dialog", { name: "Nueva oportunidad" });
+    await alta.getByLabel("Producto / interés").fill("Segunda venta");
+    await alta.getByRole("button", { name: "Crear oportunidad" }).click();
+    await expect(page).toHaveURL(/\/oportunidades\//);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/clientes\//);
+    await page.getByRole("button", { name: "Eliminar cliente" }).click();
+    await expect(aviso).toContainText("tiene 2 oportunidad(es)");
   });
 });
 
@@ -359,5 +375,151 @@ test.describe("Guardar etapa y prioridad ya no se quedan grises sin explicar", (
     // otra mitad de la prueba — sin ésta, aquélla podría estar pasando porque
     // ese texto no aparece nunca.
     await expect(page.getByText("Enviar el presupuesto")).toBeVisible();
+  });
+});
+
+// M1 del NO-GO de la ronda 1: faltaban caminos. Los números de la prueba de
+// mutación lo decían y los leí solo como discriminación: si romper el corte de
+// #2 Y #3 tumbaba UNA sola prueba, era porque solo había una prueba de los dos.
+// El mismo número contesta "¿discrimina?" y "¿cubre?".
+
+/** Crea un producto de catálogo (hace falta para poder guardar un presupuesto). */
+async function garantizaProductoEnCatalogo(browser: import("@playwright/test").Browser) {
+  const nombre = uniqueCustomerName("Producto E2E Bloqueo");
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  await loginAs(p, "owner");
+  await p.goto("/catalogo");
+  await p.getByLabel("Nombre del producto").fill(nombre);
+  await p.getByLabel("Precio (€)").fill("50,00");
+  await p.getByRole("button", { name: "Añadir" }).click();
+  await expect(p.getByText(nombre)).toBeVisible();
+  await ctx.close();
+  return nombre;
+}
+
+/** Deja creado un presupuesto en la oportunidad abierta actual. */
+async function creaPresupuesto(page: Page) {
+  await page.getByRole("button", { name: "Crear presupuesto" }).click();
+  const editor = page.getByRole("dialog", { name: "Presupuesto" });
+  if ((await editor.getByLabel("Producto").count()) === 0) {
+    await editor.getByRole("button", { name: "Añadir línea" }).click();
+    await expect(editor.getByLabel("Producto")).toBeVisible({ timeout: 2000 });
+  }
+  await editor.getByLabel("Producto").selectOption({ index: 1 });
+  await editor.getByRole("button", { name: "Guardar presupuesto" }).click();
+  await expect(editor).toBeHidden();
+}
+
+test.describe("#3 Nueva versión · el camino que faltaba", () => {
+  test("BLOQUEADO con la venta cerrada: avisa y el editor SIGUE CERRADO", async ({
+    page,
+    browser,
+  }) => {
+    await garantizaProductoEnCatalogo(browser);
+    await loginAs(page, "sales");
+    await creaOportunidadYAbreDetalle(page, "E2E Bloqueo NuevaVer");
+    await creaPresupuesto(page);
+
+    await page.getByRole("button", { name: "Ganada" }).click();
+    const ganada = page.getByRole("dialog", { name: "Marcar como ganada" });
+    await ganada.getByLabel("Importe final (€)").fill("50");
+    await ganada.getByRole("button", { name: "Marcar ganada" }).click();
+    await expect(ganada).toBeHidden();
+
+    const disparador = page.getByRole("button", { name: "Nueva versión" });
+    await disparador.click();
+
+    const aviso = page.getByRole("dialog", { name: "Presupuesto" });
+    await expect(aviso).toContainText("La oportunidad está cerrada");
+    await expect(aviso.getByRole("button", { name: "Guardar presupuesto" })).toHaveCount(0);
+    await expect(aviso.getByRole("button", { name: "Entendido" })).toBeVisible();
+
+    await esperaCicloDeFocoCompleto(page, "Presupuesto", disparador);
+  });
+
+  test("PERMITIDO con la venta abierta: abre el editor real", async ({ page, browser }) => {
+    await garantizaProductoEnCatalogo(browser);
+    await loginAs(page, "sales");
+    await creaOportunidadYAbreDetalle(page, "E2E Permitido NuevaVer");
+    await creaPresupuesto(page);
+
+    await page.getByRole("button", { name: "Nueva versión" }).click();
+    const editor = page.getByRole("dialog", { name: "Presupuesto" });
+    await expect(editor.getByRole("button", { name: "Entendido" })).toHaveCount(0);
+    // Con un presupuesto ya existente el botón del editor cambia de etiqueta
+    // (`existingQuote ? "Guardar nueva versión" : "Guardar presupuesto"`), así
+    // que buscar la de creación aquí daría un falso negativo.
+    await expect(
+      editor.getByRole("button", { name: "Guardar nueva versión" }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("#4 Eliminar cliente · el camino permitido que faltaba", () => {
+  test("PERMITIDO sin oportunidades: abre la confirmación real", async ({ page }) => {
+    await loginAs(page, "owner");
+    const { nombre, url } = await creaOportunidadComoOwner(page, "E2E Permitido Cliente");
+
+    // Un cliente sin oportunidades hoy solo se consigue quitándole la única que
+    // tiene — nacen todos con una (es justo lo que viene a cambiar AIT-88).
+    await page.getByRole("button", { name: "Eliminar oportunidad" }).click();
+    const confirmar = page.getByRole("dialog", { name: "Eliminar oportunidad" });
+    await confirmar.getByRole("button", { name: "Eliminar oportunidad" }).click();
+    await expect(page).toHaveURL(/\/clientes\//);
+
+    const disparador = page.getByRole("button", { name: "Eliminar cliente" });
+    await disparador.click();
+
+    const confirmacion = page.getByRole("dialog", { name: "Eliminar cliente" });
+    await expect(
+      confirmacion.getByRole("button", { name: "Eliminar cliente" }),
+    ).toBeVisible();
+    await expect(confirmacion.getByRole("button", { name: "Entendido" })).toHaveCount(0);
+    expect(url).toContain("/oportunidades/");
+    expect(nombre).toBeTruthy();
+  });
+});
+
+test.describe("Guardar prioridad · el botón que modifiqué y no estaba probado", () => {
+  // M2: `ChangePriorityDialog` cambia igual que el de etapa y la ronda 1 solo
+  // probaba etapa. Media del criterio funcional tocado, sin red.
+
+  test("habilitado sin cambios, y guardar sin cambiar nada NO escribe", async ({
+    page,
+  }) => {
+    await loginAs(page, "sales");
+    await creaOportunidadYAbreDetalle(page, "E2E Prioridad");
+
+    await page.getByRole("button", { name: "Cambiar prioridad" }).click();
+    const dialogo = page.getByRole("dialog", { name: "Cambiar prioridad" });
+    const guardar = dialogo.getByRole("button", { name: "Guardar prioridad" });
+
+    await expect(guardar).toBeEnabled();
+    await guardar.click();
+    await expect(dialogo).toBeHidden();
+
+    // El observable de "no se llamó" aquí NO es releer la prioridad —saldría la
+    // misma tanto si no se llamó como si se llamó y escribió lo mismo—, sino la
+    // AUSENCIA DE ERROR: `changePriority` lanza "La oportunidad ya tiene esa
+    // prioridad" si se la invoca sin cambio, así que una llamada accidental se
+    // vería. El diálogo cierra limpio.
+    await expect(page.getByText("ya tiene esa prioridad")).toHaveCount(0);
+    await expect(page.getByText("Media")).toBeVisible();
+  });
+
+  test("y con un cambio real sigue guardando", async ({ page }) => {
+    await loginAs(page, "sales");
+    await creaOportunidadYAbreDetalle(page, "E2E Prioridad Cambio");
+
+    await page.getByRole("button", { name: "Cambiar prioridad" }).click();
+    const dialogo = page.getByRole("dialog", { name: "Cambiar prioridad" });
+    await dialogo.getByLabel("Prioridad").selectOption("alta");
+    await dialogo.getByRole("button", { name: "Guardar prioridad" }).click();
+    await expect(dialogo).toBeHidden();
+
+    // Gemela positiva de la anterior: sin ésta, aquélla podría estar pasando
+    // porque el guardado no funciona en absoluto.
+    await expect(page.getByText("Alta")).toBeVisible();
   });
 });

@@ -1428,14 +1428,20 @@ function ChangePriorityDialog({
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (loading) return;
-    // AIT-84: igual que en el diálogo de etapa — sin cambios no hay nada que guardar, así que se cierra en vez de
-    // llamar a la mutation —que lo rechazaría con un error rojo por no haber
-    // tocado nada— y en vez de dejar el botón gris sin explicar por qué. El
-    // botón deja de estar `disabled` por este motivo: un control apagado no
-    // comunica nada en táctil ni con teclado (AIT-66), y el diseño
-    // (Design/pantallas/Detalle de oportunidad.dc.html) no deshabilita ninguno
-    // en esta pantalla. La guarda del servidor se conserva como respaldo: una
-    // llamada directa con el mismo valor sigue rechazándose.
+    // AIT-84: mismo comportamiento que el diálogo de etapa — sin cambios no hay
+    // nada que guardar, así que se cierra en vez de llamar a la mutation, que lo
+    // rechazaría con un error rojo por no haber tocado nada.
+    //
+    // OJO AL FUNDAMENTO, que NO es el mismo que en etapa: la maqueta
+    // `Design/pantallas/Detalle de oportunidad.dc.html` **no contiene el flujo
+    // de prioridad** (medido: cero apariciones de "prioridad" en ella), así que
+    // no puede instruir sobre este botón. Aquí se habilita **por consistencia
+    // con etapa**, no porque el diseño lo diga. Se anota porque invocar el
+    // diseño para esto sería apoyarse en algo que no existe.
+    //
+    // La razón de fondo sí es común: un control apagado no comunica nada en
+    // táctil ni con teclado (AIT-66). Y la guarda del servidor se conserva como
+    // respaldo: una llamada directa con el mismo valor sigue rechazándose.
     if (priority === currentPriority) {
       handleClose();
       return;
