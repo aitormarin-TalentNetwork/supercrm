@@ -892,10 +892,20 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 # los 3 workers quietos a la vez >40 min = fabrica parada
 for d in ~/.claude/projects/*Sorfware-Factory--worktrees-T[123]; do
   f=$(ls -t "$d"/*.jsonl | head -1)
-  ts=$(tail -c 60000 "$f" | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
+  # el filtro NO es un detalle: es el "segun quien" del timestamp. Sin el, coge el ultimo
+  # evento de CUALQUIER tipo —incluidos los mensajes que RECIBE— y una terminal parada que
+  # recibe mensajes parece que produce. Medido: una sesion muerta divergia 3.216 min (53 h).
+  ts=$(tail -c 60000 "$f" | grep '"type":"assistant"' | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
   echo "$(basename $d | tail -c 3): $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
 done
 ```
+🔴 **Y el control positivo de ESTE comando no puede hacerse contra una sesión sana: los dos
+comandos —con filtro y sin él— dan IDÉNTICO cuando la terminal está produciendo.** *El defecto solo
+aparece en el caso para el que existe la comprobación.* **Busca un transcript cuyo último evento no
+sea del `assistant`** y comprueba que las dos versiones divergen; si coinciden, **no has probado
+nada.** *(La primera vez di por corroborado el comando porque coincidía con otra fuente en las tres
+terminales activas. No corroboraba: las dos fuentes se equivocaban igual en el caso sano.)*
+
 ⚠️ **Con su control positivo, y hazlo con los valores MEDIDOS, no con valores fijos:** con umbral 0
 tiene que **disparar** los tres; con 40, **callar**. *La primera vez que lo escribí puse `[0,0,0]` a
 mano y el control no probaba nada — daba "calla" en los dos umbrales y parecía correcto.*
