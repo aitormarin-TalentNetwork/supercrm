@@ -758,8 +758,28 @@ propone que **una corrida normal de la suite avanza la cadena**: el filtrado dej
 del activo, su uso caería en la rama 3 y **mataría la sesión en vez de conceder**. Invalidar no
 pide ninguna maniobra rara, pide correr la suite una vez.
 
-**AUTORIZADO por la Directora y el CEO a las 06:05 UTC (03:05 local), y en ejecución.** No lo
-mandamos correr a ciegas: va con tres condiciones, que son la lección de la noche.
+⏸️ **AUTORIZADO A LAS 06:05 UTC Y RETIRADO A LAS 06:20 (03:20 local), antes de ejecutarse.
+Las dos credenciales SIGUEN VIVAS, a propósito y declaradas.** Abajo, por qué — y **no es
+prudencia disfrazada**, es que las tres condiciones que le puse tumbaron la acción entera.
+
+**Lo que se autorizó:** cerrar **dos** sesiones. **Lo que la herramienta permite** —medido por T2,
+no supuesto—: `invalidateSessions({userId})` borra **todas las de un usuario**, o sea **356
+sesiones** (112 de Marta + 244 de Carlos) para cerrar 2. Y `auth:store`, por donde se llama, está
+declarada **`internal`** en el deployment: **llamarla exige rodear un límite de acceso que alguien
+puso a propósito.**
+
+🔴 **Y el argumento que decide, que no es el tamaño:** **quien pueda leer ese blob ya tiene acceso
+de lectura a tu disco — y con eso no necesita el token.** El blob no tiene referencia, nunca salió
+a `origin`, y da acceso a un deployment **de dev con dos usuarios de demo**. El acceso que hace
+falta para obtenerlo es **estrictamente más potente** que el que concede. **Cerrarlo no cierra
+nada real**, y en cambio pide escribir código a las tres de la mañana para saltarse un `internal`.
+
+**Lo que te queda por decidir por la mañana, en dos minutos:** o se borran las 356 (inofensivo en
+dev: no hay dato de negocio, el arnés vuelve a loguear solo), o **caducan solas el 9 de octubre**,
+o se lanza un `git gc` que se lleva el blob —**que es el arreglo de verdad**, y no se hizo de noche
+porque el repo lo comparten cuatro checkouts y ocho sesiones vivas—.
+
+*Las tres condiciones abajo se mantienen escritas porque son lo que hizo que esto no se ejecutara.*
 
 1. **Medir antes.** *"Correr la suite avanza la cadena"* **es una predicción sobre el mismo
    mecanismo que ya nos engañó una vez.** El `globalSetup` hace un **login NUEVO**, que
@@ -772,6 +792,13 @@ mandamos correr a ciegas: va con tres condiciones, que son la lección de la noc
 
 **Nada de esto toca el Convex compartido, producción, ni tus cuentas.** Es el deployment de T2 y es
 reversible: el propio arnés vuelve a loguear en la siguiente corrida.
+
+✅ **El paso 1 se midió y la predicción era falsa, así que la puerta funcionó.** T2 contó las
+sesiones creadas **después** de la filtrada: **31 en owner y 30 en sales.** Treinta corridas de la
+suite y **la cadena filtrada sigue exactamente donde estaba** — porque `global-setup.ts` hace un
+**login nuevo** y abre su propia sesión. **Correr la suite habría sido el cuarto movimiento a
+ciegas y no habría invalidado nada.** Es la tercera predicción fallada sobre este mismo mecanismo
+en una noche.
 
 🔶 **Por qué lo decidimos nosotros y no te esperamos, para que puedas decirnos que nos pasamos.**
 Porque **la excepción era la que estaba en pie, no la decisión de ahora**: `CLAUDE.md` dice que un
