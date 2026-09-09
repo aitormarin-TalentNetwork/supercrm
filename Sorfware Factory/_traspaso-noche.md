@@ -249,6 +249,15 @@ producir.** Todas con **GO del auditor y revisión final del Integrador hecha**.
 > arreglo correcto que choca con otro arreglo correcto**, no un defecto de la tarea.
 > **El Integrador ya lo tiene, con la resolución verificada**, porque la que circulaba era errónea
 > y le habría hecho borrar el ignore de `/audiencia.md`. **Tú no tienes que hacer nada con esto.**
+>
+> ✅ **Y la base de la que partirías está sana, comprobada por el Integrador a las 05:55 UTC
+> (02:55 local):** producción sirve `1ba98a8`, deployment `5f6dc2b0`, **Online**, `0` commits por
+> detrás de `main`, y **contiene `d917c90`** — o sea que **el build del push a `main` pasó**.
+> **Publicar las ocho encima no hereda ningún riesgo.**
+> *(Yo había declarado esto «abierto y de nadie» por no querer mirar producción de madrugada sin
+> que nadie lo pidiera. Tenía dueño y era él: verificar despliegues es su trabajo. **Mi criterio
+> era bueno para mí y falso como etiqueta** — pero declararlo abierto sirvió igual, porque el
+> dueño real lo leyó y lo cerró en cinco minutos.)*
 
 | Tarea | Qué es | Huella |
 |---|---|---|
