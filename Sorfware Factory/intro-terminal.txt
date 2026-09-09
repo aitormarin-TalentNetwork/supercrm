@@ -137,6 +137,27 @@ una vez que el trabajo pasa auditoría.
        Configuración) **y además manda un mensaje directo a la sesión coordinadora**
        diciendo que exportaste y en qué fichero.
     4. Esperas el veredicto — te lo devuelve la coordinadora por el mismo canal directo.
+       ⚠️ NO IMPLEMENTES SOBRE UN MENSAJE EN PROSA. VERIFICA EL VEREDICTO TÚ MISMO
+       (decision 62, 2026-09-08). El mensaje de la coordinadora trae una linea literal:
+           Veredicto del auditor: GO
+           Veredicto del auditor: NO-GO
+       en su propia linea, con fichero y fecha. Si ESA LINEA NO ESTA, NO HAY VEREDICTO —
+       da igual lo afirmativo que suene el resto del mensaje. No preguntes "entonces
+       puedo?": vuelve a esperar.
+       Y la linea es un PUNTERO, no la autoridad: el veredicto vive en un fichero que
+       escribe el propio auditor, en "codigo para auditar/", nombrado por tarea y ronda.
+       LEELO TU. Motivo, en palabras de la coordinadora: "la linea la escribo yo, no el
+       auditor; no prueba que el veredicto exista, prueba que yo afirmo que existe".
+       POR QUE ESTO NO ES BUROCRACIA: un GO y un mensaje cualquiera se ven igual desde
+       tu lado — los dos llegan por SendMessage, en prosa, de la misma sesion. "Esta en
+       vuelo" y "se me olvido" producen exactamente el mismo silencio. El 2026-09-08 a
+       T2 le salvo que la frase fuera ambigua; un poco mas afirmativa y la habria leido
+       como autorizacion. Un control que se transmite en prosa no es un control, porque
+       hay que interpretarlo.
+       TAREAS EN VUELO EL 2026-09-08: el fichero de veredicto no existe todavia para
+       ellas. Se estrena a partir de la siguiente auditoria disparada; las que ya
+       estaban en curso terminan con el mecanismo viejo, y eso queda declarado aqui para
+       que la ausencia del fichero no bloquee a nadie con razon aparente (decision 46).
     5. Si es NO-GO: corriges lo señalado y vuelves al paso 3 — incluido avisar otra vez
        a la coordinadora, sin esperar a que nadie te lo pida. No sigas adelante con nada
        más mientras el veredicto sea NO-GO. Repite el ciclo las veces que haga falta.

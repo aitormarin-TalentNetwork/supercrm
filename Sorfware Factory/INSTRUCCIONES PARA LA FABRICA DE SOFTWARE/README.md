@@ -762,9 +762,15 @@ renombrado a las 18:27) y falló dos. Eso es exactamente la **decisión 37** —
   identifica a T3 **pase lo que pase**: sobrevive al renombrado, al relanzamiento y a que
   nadie se acuerde de escribir nada. Es la **decisión 34** (identificador que no caduca) y
   **no necesita mantenimiento humano**, que es justo lo que lo hace mejor que un registro.
-- **45.2 — Los seis roles de raíz sí dependen del registro, y se indexan por `ref`.**
+- **45.2 — Los roles de raíz dependen del registro, y se indexan por `ref`.**
   Comparten `cwd`, así que el worktree no los distingue —mismo problema que los hooks de
   voz—. La clave pasa a ser el `[ref]` de `ListAgents`, no el nombre.
+  ⚠️ **Matizado el 2026-09-08: "de raíz" es una situación, no una propiedad del rol.** El QA
+  se creó `_worktrees/QA` para la corrida periódica (59.1) y **pasó a ser auto-identificable
+  por su `cwd`**, sin registro — el CEO lo resolvió así al atender una alarma del watchdog, y
+  `git worktree list` lo confirmó. **La 45.1 funcionó en un rol para el que no se escribió.**
+  Regla general: **cualquier rol que gane un worktree propio sale de la dependencia del
+  registro**, y su línea pasa a informativa como la de un desarrollador (45.4).
 - **45.3 — Y esto es lo que lo convierte en control:** el barrido del CEO compara, cada
   ciclo, **todo `ref` de `ListAgents` contra el registro**, y reporta como discrepancia el
   que no esté. No impide el olvido: **garantiza que se vea en menos de veinte minutos**,
@@ -1536,6 +1542,74 @@ el 2026-09-08 porque otra sesión tenía el perfil cogido.** Y no es presentaci�
 decisión cambió de clase**: con dos vectores era una decisión de seguridad, que compite con el
 trabajo; con el tercero es un **bloqueo operativo**, que no compite con nada. **Un documento que
 no refleja eso está desactualizado, no neutral.**
+
+### Decisión 62 — El gate más duro de la fábrica viajaba en prosa (2026-09-08)
+
+De la Directora y T2, y es del tamaño de la 42. **El diagnóstico de ella es el que decide:**
+
+> **"Un GO y un mensaje tuyo se ven igual desde aquí: los dos llegan por `SendMessage`, en
+> prosa, de la misma sesión. «Está en vuelo» y «se me olvidó» producen exactamente el mismo
+> silencio."**
+
+Y el remate, que lo convierte en fallo de diseño y no en descuido de nadie:
+
+> **"Hoy me salvó que la frase fuera ambigua. Si hubiera sido un poco más afirmativa, la habría
+> leído como autorización."**
+
+⚠️ **Todos los controles cerrados el 2026-09-08 tienen valores fijos. El más duro de todos
+—nunca implementar sin GO— no tenía ninguno.**
+
+**62.1 — Línea literal y fija, inmediata:** `Veredicto del auditor: GO` / `NO-GO`, **en su
+propia línea**, con fichero y fecha. Con eso **"no está esa línea" significa inequívocamente "no
+hay veredicto"**, y deja de depender de cómo suene el resto del mensaje. Es la 42 exacta y
+cuesta una línea en un mensaje que ya se escribe.
+
+**62.2 — Pero eso no basta, y la objeción de la Directora es la que fija el diseño:**
+
+> *"La línea la escribo yo, no el auditor. **No prueba que el veredicto exista: prueba que yo
+> afirmo que existe.**"*
+
+Eso es **más débil que la 42**, donde el dato lo pone la herramienta. Así que **el veredicto pasa
+a ser un artefacto que el desarrollador puede leer por su cuenta**: el `codex exec` que ya se
+dispara **vuelca su salida a un fichero** en `codigo para auditar/`, nombrado por tarea y ronda.
+
+- **El desarrollador verifica el GO él mismo antes de implementar**, en vez de confiar en el
+  relevo.
+- **La línea de la Directora pasa a ser un puntero, no la autoridad.**
+- **La ausencia la detecta quien va a actuar**, no solo quien lee un mensaje.
+
+Es la **50** —observable antes que afirmado— y la **54** —darle a la comprobación la capacidad
+de rechazar— aplicadas al mismo sitio. **Y cuesta un `tee` en un comando que ya existe.**
+
+⚠️ **Estreno, por la 46:** el fichero de veredicto **no existe para las tareas en vuelo ahora
+mismo**. Si el desarrollador empieza a exigirlo hoy, las cuatro en curso se bloquean con razón
+aparente. **Se estrena a partir de la siguiente auditoría disparada**; las que ya están en vuelo
+terminan con el mecanismo viejo, **declarado**.
+
+#### La idea que llevaba todo el día suelta, en palabras de T2
+
+> ### **"Un control que se transmite en prosa no es un control, porque hay que interpretarlo."**
+>
+> **"La regla no me pedía decirlo mejor, me pedía decirlo igual."**
+
+Esa segunda frase es **la mejor definición de por qué existen los valores fijos** que se fueron
+poniendo ese día. **La 42** (línea de autoría), **la 34.1** (`T1|T2|T3`, nunca un nombre de
+sesión), **el campo sin valor válido** y **esta 62.1** son la misma idea, y hasta ahora estaban
+sueltas.
+
+**Y la que cierra el día, también de T2, sobre su propio acierto:**
+
+> **"Mi decisión de parar fue correcta y no tuvo mérito: no había otra salida que no dependiera
+> de acertar."**
+>
+> ### **Cuando la única defensa disponible es que alguien elija bien bajo ambigüedad, el sistema está apoyado en la suerte.**
+
+*(Un agente diciendo que **su propio buen juicio no cuenta como control** es el criterio con el
+que conviene diseñar todo lo demás.)*
+
+📌 **Y cómo llegó aquí, que importa:** la 62.1 sola habría sido **un control que parece fuerte y
+descansa en la palabra de la Directora**. Lo señaló ella, **contra su propio interés** — la
+versión débil la dejaba a ella como fuente de autoridad.
 
 ### Registro vivo de comprobaciones desacreditadas
 

@@ -477,6 +477,39 @@ compartidos" arriba): si lleva abandonado más de lo razonable, es el mismo tipo
 problema que una terminal parada — nadie más tiene por qué notarlo si no lo necesita
 todavía.
 
+### El veredicto se vuelca a un fichero, y tu mensaje lleva una línea literal (decisión 62)
+
+**Dos cambios, y el segundo es el que importa.**
+
+**62.1 — Tu mensaje a la terminal lleva esta línea, literal y en su propia línea:**
+
+```
+Veredicto del auditor: GO
+Veredicto del auditor: NO-GO
+```
+
+…con fichero y fecha. **Sin esa línea, no hay veredicto** — y así deja de depender de cómo
+suene el resto del mensaje. Tu propio diagnóstico es el motivo: *"un GO y un mensaje mío se ven
+igual desde allí: los dos llegan por `SendMessage`, en prosa, de la misma sesión"*.
+
+**62.2 — Y al disparar el auditor, vuelca su salida a un fichero.** Un `tee` en el comando que
+ya usas:
+
+```bash
+codex exec "Audita el fichero '<ruta>' siguiendo tu rol de auditor ya cargado desde AGENTS.md" \
+  2>&1 | tee "…/codigo para auditar/T<n>_AIT-<id>_<slug>_veredicto-loop<N>.txt"
+```
+
+**Por qué, y es tu propia objeción la que lo decide:** *"la línea la escribo yo, no el auditor.
+No prueba que el veredicto exista: prueba que yo afirmo que existe."* Con el fichero, **el
+desarrollador verifica el GO por su cuenta antes de implementar**, tu línea pasa a ser **un
+puntero y no la autoridad**, y **la ausencia la detecta quien va a actuar**, no solo quien lee
+un mensaje.
+
+⚠️ **Estreno (decisión 46):** el fichero **no existe para las tareas en vuelo**. Se estrena **a
+partir de la siguiente auditoría que dispares**; las que ya están en curso terminan con el
+mecanismo viejo. Dilo al avisar, o alguien se bloqueará con razón aparente.
+
 **Camino rápido, ya no dependas solo del barrido para enterarte de un veredicto:**
 cuando dispares al auditor (`README.md` §"El auditor deja de ser invisible"), encadena
 el marker de finalización y lanza tú misma la espera en segundo plano — mecanismo

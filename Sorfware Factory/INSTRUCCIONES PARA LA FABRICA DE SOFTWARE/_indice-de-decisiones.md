@@ -99,6 +99,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 59 | Todo consumidor nuevo de un recurso compartido nace con el suyo — la suite periódica del QA va a deployment propio (59.2 lo ya contaminado se declara) | R §2sexies · Q |
 | 60 | 60.1 un control está verificado cuando se le ha visto ladrar **y** callarse — las dos direcciones o ninguna · 60.2 **segundo eje del triaje**: ¿la conclusión lleva a decir o a hacer? Antes de actuar destructivamente, la medición se verifica contra su sujeto | R §2sexies |
 | 61 | «Pendiente de otro» nunca significa «nada mío pendiente» — todo bloqueo registra qué queda de nuestra parte al desbloquearse, y si no queda nada se dice también | R §2sexies · C |
+| 62 | El gate más duro viajaba en prosa: línea literal `Veredicto del auditor: GO/NO-GO` (62.1) y **el veredicto pasa a ser un fichero que el desarrollador lee por su cuenta** (62.2) — un control que se transmite en prosa no es un control | R §2sexies · D · IT |
 
 ---
 
