@@ -729,8 +729,14 @@ caducan por tiempo"* y **no es exacto**: `refreshTokenIfValid` corre **antes que
 y sí mira **dos relojes** —la caducidad del propio token y la de la sesión—. Lo correcto es que
 **dejaron de estar limitados por la ventana corta de 10 s y pasaron a estarlo por el reloj largo de
 la sesión.** No es *válidos para siempre*, es *válidos lo que le quede a la sesión*.
-**Y se autoextinguen en el siguiente refresco de esa sesión**: el activo pasaría a ser nieto, el
-filtrado dejaría de ser su padre, caería a la ventana vencida e **invalidaría el subárbol**.
+**Se autoextinguirían en el siguiente refresco de esa sesión** —el activo pasaría a ser nieto, el
+filtrado dejaría de ser su padre, caería a la ventana vencida e invalidaría el subárbol—, ⛔ **pero
+NADA VA A REFRESCARLAS.** Los únicos que tienen esos tokens son el objeto huérfano de git y quien
+los tuviera en disco; **la suite abre sesiones nuevas y nunca los presenta** (verificado en
+`e2e/global-setup.ts` de la rama AIT-108: hace `goto("/login")` y pulsa el autorrelleno, y **escribe**
+`e2e/.auth/*.json` en vez de leerlos). **Así que la autoextinción NO va a ocurrir sola**, y no debe
+leerse como "se resuelve solo": los únicos cierres reales son **cerrarlas explícitamente** o
+**esperar al reloj** (9 de octubre).
 *(Medido por el Factory Architect leyendo `refreshSession.ts` entero y parte de `refreshTokens.ts`.
 Lo dejo escrito porque **decir algo más grave de lo que es le quita fuerza al siguiente aviso**.)*
 
