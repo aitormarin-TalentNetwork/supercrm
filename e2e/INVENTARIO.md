@@ -209,6 +209,11 @@ publicada en tu rama, la suite apunta al 3000 y reutiliza el servidor que
 encuentre allí**. Un rojo daría igual, pero un verde podría ser de la app de otro
 y no probaría nada.
 
+Corrido el 2026-09-09 sobre la rama de AIT-108: sale **rojo, y nombrando la
+causa** — `[e2e] no se pudo autenticar como "owner" contra http://localhost:3102`.
+Que el rojo diga **qué precondición falta** en vez de un `toBeVisible` agotado es
+lo que hace útil este control; un rojo mudo solo demuestra que algo se rompió.
+
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
