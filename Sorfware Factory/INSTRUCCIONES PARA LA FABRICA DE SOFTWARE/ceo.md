@@ -597,6 +597,37 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### ⛔ CÓMO SE LEE UN VEREDICTO DEL AUDITOR — me equivoqué y se propagó tres veces (2026-09-09)
+
+```bash
+# CORRECTO: la ULTIMA linea de veredicto, del fichero de la ULTIMA ronda (por mtime)
+grep -n "Veredicto del auditor:" <fichero> | tail -1
+```
+
+🔴 **NUNCA la primera coincidencia de `GO`/`NO-GO` en el fichero.** Yo hice
+`grep -oiE '\b(GO|NO-GO)\b' | head -1` **y leí el veredicto al revés en dos tareas**.
+
+**Por qué falla, y es la parte que hay que entender:** el fichero **empieza con el prompt que se le
+dio al auditor**, y ese prompt contiene literalmente *"termina con una línea literal: `Veredicto
+del auditor: GO` o `Veredicto del auditor: NO-GO`"*. **O sea que la primera coincidencia está en la
+línea 15 y es el MENÚ de respuestas posibles, no la respuesta.**
+> **El patrón encontró la especificación de la respuesta, no la respuesta.** Y como el menú
+> contiene siempre las dos opciones, **el resultado depende de cuál aparezca antes en la
+> plantilla** — es decir, de nada.
+
+⚠️ **Consecuencia real:** dije que AIT-95 y AIT-110 eran `GO · NO-GO · NO-GO` cuando eran
+**`NO-GO · … · GO`**. **Invertidas.** Con mi tabla, dos tareas terminadas tras seis rondas se
+habrían quedado sin publicar — *y el error tiene la forma de la prudencia, así que nadie lo
+discute.*
+
+🔻 **Y lo que lo hizo viajar, que es de la Directora y es lo más útil de todo esto:**
+> **Un caso que ilustra bien una lección se transmite sin verificarse, porque lo que se audita es
+> la moraleja y no el ejemplo.**
+Mi tabla ilustraba *"un patrón rígido devuelve el veredicto de otra ronda"* — **una lección
+verdadera, un peligro real, y una conclusión operativa correcta**. Todo cierto menos los datos.
+**Pasó por el PM, por mí, y otra vez por mí sin que nadie le pidiera la fuente.** *La verificó quien
+tenía que actuar sobre ella, que es el único que no podía permitirse creerla.*
+
 ### ⛔ UN `replace` QUE NO ENCUENTRA NADA NO FALLA — y tu commit lo afirma igual (2026-09-09)
 
 **Cuando edites un documento con un script, cada sustitución lleva su `assert`:**
