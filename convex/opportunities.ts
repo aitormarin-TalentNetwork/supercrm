@@ -728,6 +728,115 @@ export const markLost = mutation({
   },
 });
 
+// AIT-86: reabrir una oportunidad cerrada. Hasta ahora cerrar era
+// IRREVERSIBLE — ni ganada ni perdida se podían deshacer desde la aplicación,
+// aunque `remove` sí permitía borrar la oportunidad entera. Se podía destruir
+// un registro pero no deshacer un cambio de estado.
+//
+// Reabrir es DESHACER, no empezar de cero. De ahí las tres cosas que más
+// fácilmente se harían mal aquí:
+//  1. NO se toca `stage`. Ni markWon ni markLost lo modifican, así que la
+//     etapa que tenía al cerrarse sigue guardada: reabrir consiste en NO
+//     tocarla. Mandarla a "contacto" borraría avance comercial real (decisión
+//     del PM). Ojo: la maqueta `Detalle de oportunidad.dc.html` fija
+//     'negociacion' en su `reopen()`; eso es el valor de la demo, no la regla.
+//  2. Se limpia lo que escribió el cierre. Una oportunidad ABIERTA con fecha
+//     de cierre, con importe FINAL o con motivo de pérdida es un estado
+//     incoherente. `estimatedAmount` no se toca: ése es de la oportunidad
+//     viva, no del cierre.
+//  3. Nunca vuelve al pipeline sin seguimiento — es el fallo que este CRM
+//     combate, así que reabrir sin próximo paso sería reintroducirlo por otra
+//     puerta.
+export const reopen = mutation({
+  args: { opportunityId: v.id("opportunities") },
+  handler: async (ctx, { opportunityId }) => {
+    const user = await requireUser(ctx);
+    // `loadOpportunityOrThrow` y no `loadOpenOpportunityOrThrow`: la nuestra
+    // está cerrada por definición. Mismo criterio de acceso (tienda + dueño
+    // salvo rol store-wide) y NO `requireOwner`: un comercial arregla su
+    // propio error sin depender de la dueña.
+    const opportunity = await loadOpportunityOrThrow(ctx, user, opportunityId);
+
+    if (opportunity.status === "open") {
+      throw new Error("Esta oportunidad ya está abierta.");
+    }
+
+    // Con dinero ya facturado o cobrado no se deshace desde un botón: abre un
+    // agujero contable que este producto no lleva (decisión del PM). La
+    // frontera está entre `listo_para_facturar` y `facturado`, que es donde
+    // aparece un documento fiscal.
+    // `listo_para_facturar` SÍ se reabre, y no por ser inofensivo: es el
+    // estado donde el error es MÁS probable —marcas ganada, se pone en listo
+    // para facturar, y acto seguido ves que era la oportunidad equivocada—,
+    // así que bloquearlo sería bloquear el caso principal de esta issue.
+    // La interfaz ya lo evita, pero la barrera es ésta: la mutation es
+    // llamable directamente.
+    if (
+      opportunity.billingStatus === "facturado" ||
+      opportunity.billingStatus === "cobrado"
+    ) {
+      throw new Error(
+        "No se puede reabrir: esta venta ya está facturada. Anula la factura primero.",
+      );
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(opportunityId, {
+      status: "open",
+      closedAt: undefined,
+      finalAmount: undefined,
+      lostReason: undefined,
+      billingStatus: undefined,
+      // Reabrir ES actividad. Además evita que entre en la lista de riesgo
+      // arrastrando la inactividad de mientras estuvo cerrada.
+      lastActivityAt: now,
+    });
+
+    // Los pasos que había los cerró `closePendingNextSteps` al cerrar, y no
+    // se pueden "des-cerrar": quedaron como `done` y no se distinguen de los
+    // que ya estaban hechos. Se crea uno nuevo. La etiqueta sale del diseño
+    // (`reopen()` de la maqueta), no me la invento; y no se usa
+    // NEXT_STEP_BY_STAGE porque ése describe ENTRAR en una etapa, y aquí no
+    // se entra en ninguna: se vuelve a una en la que ya se estaba.
+    await ctx.db.insert("nextSteps", {
+      opportunityId,
+      action: "Retomar el seguimiento",
+      dueDate: now,
+      status: "pending",
+      // Del dueño de la oportunidad, no de quien pulsa — mismo criterio que
+      // createForCustomer.
+      assigneeId: opportunity.ownerId,
+    });
+
+    // El recordatorio de recompra lo creó `markWon` automáticamente. Si la
+    // venta deja de estar ganada, ese recordatorio pide recontactar por una
+    // compra que ya no existe — y la query de Reactivar filtra por el estado
+    // del RECORDATORIO, no por el de la oportunidad, así que sobreviviría
+    // callado y saldría meses después, sin nada que lo conecte con este botón.
+    //
+    // Se borran TODOS los pendientes, no el primero: el schema no garantiza
+    // unicidad, y quedarse uno vivo reintroduce el fallo entero.
+    // Y solo los `pending`: uno ya atendido o descartado NO es efecto del
+    // cierre, es trabajo que hizo una persona. Deshacer el cierre no puede
+    // reescribir eso.
+    // Sin índice `by_opportunity` en `repurchaseReminders` — mismo patrón que
+    // `remove` más abajo: se consulta por cliente y se filtra en memoria.
+    const reminders = (
+      await ctx.db
+        .query("repurchaseReminders")
+        .withIndex("by_customer", (q) =>
+          q.eq("customerId", opportunity.customerId),
+        )
+        .collect()
+    ).filter(
+      (r) => r.opportunityId === opportunityId && r.status === "pending",
+    );
+    for (const reminder of reminders) {
+      await ctx.db.delete(reminder._id);
+    }
+  },
+});
+
 // AIT-12: listado para el Pipeline (embudo por etapas). Mismo criterio de
 // acceso que el resto de este archivo — storeId siempre, y ownerId además
 // si el usuario NO ve toda la tienda (isStoreWideRole). AIT-31 (hallazgo
