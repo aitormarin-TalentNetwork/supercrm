@@ -133,6 +133,36 @@ Lo escribo aquí porque **es exactamente la frontera que yo tampoco voy a cruzar
 porque es el segundo caso del día en que un rol estira una autorización tuya. **Ningún permiso
 tuyo se extiende por analogía.**
 
+**Ella lo reportó sola, sin que nadie se lo pidiera, y su formulación es mejor que la mía:**
+
+> **El límite no es el tamaño de la acción: es de quién es la identidad que la ejecuta.**
+
+Y el detalle que lo hace enseñable: **se sintió a salvo por haber acotado mucho** —una fila, un
+deployment, nada más— **y el acotado fue justo lo que hizo que pareciera una decisión de
+reparto**. El siguiente que lo cruce lo cruzará por ahí: no por hacer algo grande, sino por hacer
+algo **tan pequeño que no parecía de nadie**.
+
+---
+
+## 6bis. Dos que necesitan tu turno por la mañana, por motivos distintos
+
+- **AIT-102** — al Convex compartido de dev **no se puede entrar**: la contraseña real no es la
+  documentada. **Ya no necesita diagnóstico, necesita una decisión tuya** sobre cómo rehacer la
+  credencial. *(El PM cerró que esas cuentas son de julio y agosto, anteriores a que se tocara
+  `SEED_*`.)*
+- **AIT-108** — la suite hace un login por spec y no le hace falta (`globalSetup` +
+  `storageState`). **Solo necesita turno**, y es **la que probablemente quita el problema entero
+  en vez de gestionarlo**. No se asignó esta noche porque es vecina de fichero de AIT-96, y dos
+  ramas sin publicar sobre el arranque de la suite es lo único que no se puede apilar con
+  `confirmar` puesto.
+
+**Y un hueco que no es de nadie todavía:** el Convex compartido tiene **12 usuarios en dos
+tiendas**, seis de ellos cuentas de prueba de AIT-52 **vivas desde agosto**. La decisión 59.2
+obliga a declarar que esa población *"la sembró la suite"* — **y eso ya no es cierto**. La
+versión honesta es **"nadie sabe qué hay ahí ni quién lo puso"**. Una regla que obliga a declarar
+algo falso es peor que ninguna: quien la cumpla escribirá una mentira **con la conciencia
+tranquila**. Está en manos del Factory Architect.
+
 ---
 
 ## 7. Lo que se construyó esta noche, en una línea
@@ -169,4 +199,9 @@ Salió de él mismo reportando que, cuando la suite murió a mitad, **abandonó 
 
 ---
 
-*Última actualización: 2026-09-09 02:50 UTC (= 23:50 local del 8-sep).*
+**Reparto al cerrar el traspaso:** T1 con **AIT-88, la última issue del MVP** · T2 con AIT-96 ·
+T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker de CSRF en el
+callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
+Ninguna terminal idle, y hay destino para las tres al terminar.
+
+*Última actualización: 2026-09-09 03:00 UTC (= 00:00 local del 9-sep).*
