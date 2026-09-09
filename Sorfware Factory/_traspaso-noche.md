@@ -1342,6 +1342,31 @@ día obliga a alguien a hacer algo?*
 | **76** | **Verificar el mecanismo y verificar que lo activas son dos verificaciones, no una.** *Ejecutable: nombra qué observable cambia si el mecanismo se activó, y mídelo antes y después. Si no puedes nombrarlo, no estás actuando sobre el mecanismo: estás esperando que se active.* | T2, con 4 instancias propias |
 | **meta** | **Una condición que otro puede cumplir sin enterarse no es una condición: es una dependencia oculta.** *Test: ¿puedes escribir ahora un comando que la conteste? Sí → estado. No → evento, y necesita destinatario* | mía, con el test del FA |
 
+🆕 **Y dos cosas más que llegaron ya de día, las dos sin escribir como decisión:**
+
+**(a) Los indicadores se contradicen entre sí, el tranquilizador siempre está a mano, y elegirlo
+no se siente como elegir.** *Teníamos esto para las explicaciones —la que aparece rápido mide lo
+disponible que estaba, no lo cierta que es— y no lo teníamos para **instrumentos que conviven**.
+Con tres medidas del mismo sistema, una diciendo "48% libre" y otra "88% ocupado", **no hay un
+acto de decisión que auditar después: se lee la que responde primero.*** Yo elegí la
+tranquilizadora dos barridos seguidos y `memory_pressure` **sigue diciendo lo mismo con un proceso
+muerto encima de la mesa.** → **Regla: el efecto manda sobre el indicador.** *¿Ha muerto algo?* no
+admite matices; *"48% libre"*, sí.
+
+**(b) La separación que corrige una conclusión mía y cambia qué se puede atacar.** Yo escribí que
+los dos fallos invisibles de hoy *"los trajo un observador externo, los dos por casualidad, y no
+tenemos mecanismo, solo suerte con testigos"*. **El Factory Architect me corrigió el segundo y
+tiene razón:**
+```
+"un proceso ha muerto"   -> YA hay notificador externo fiable (el runtime avisó de la salida)
+"nadie está trabajando"  -> NO hay ninguno. Lo trajiste tú, y ESO sí fue suerte
+```
+> **No es que no tengamos mecanismo: es que tenemos uno para los fallos de PROCESO y ninguno para
+> los fallos SEMÁNTICOS** —que nadie trabaje, que se mida la cosa equivocada, que el instrumento
+> conteste una pregunta que no es la que hace falta.
+**Y la diferencia no es académica:** *"necesitamos testigos"* invita a no hacer nada; *"nos falta
+un disparador para los fallos semánticos"* **se puede atacar.**
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
