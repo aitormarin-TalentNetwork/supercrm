@@ -618,6 +618,23 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### ⚠️ Al resolver roles en el censo: directorio de proyecto, NUNCA el `cwd` de los eventos
+
+**Corregido el 2026-09-09 después de leerlo mal dos ciclos.** La 45.1 dice *"el desarrollador se
+resuelve por su worktree"*, y hay dos formas de leer eso — **una es estable y la otra no**:
+
+- ✅ **El DIRECTORIO DE PROYECTO donde vive el `.jsonl`** (`…-worktrees-T3/`). Se fija al arrancar
+  la sesión y **no cambia nunca**.
+- ❌ **El campo `cwd` de los eventos.** Se mueve **cada vez que la sesión hace `cd`**.
+
+*Caso medido:* una sesión **de raíz** había pasado por los tres worktrees —2.493 eventos en la
+raíz, 256 en T1, 63 en T2, 58 en T3— y **su último `cwd` era T1**. El censo la presentó como
+desarrollador T1, **al lado de la fila del T1 real**. **Dos filas reclamando el mismo puesto es
+justo la ambigüedad que la 45 existía para quitar.**
+
+> **Un identificador estable al arrancar puede dejar de serlo durante la sesión.** El directorio
+> de proyecto lo es; el `cwd` no.
+
 ### Comprobación fija de tu barrido: todo `ref` de `ListAgents` está en el registro
 
 Añadido 2026-09-08 (**decisión 45.3** del Factory Architect). Misma forma que la anterior:

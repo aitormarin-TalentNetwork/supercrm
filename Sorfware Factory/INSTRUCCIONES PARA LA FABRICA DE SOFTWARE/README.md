@@ -776,8 +776,18 @@ renombrado a las 18:27) y falló dos. Eso es exactamente la **decisión 37** —
 **Lo que decide la 45:**
 
 - **45.1 — Un desarrollador NO se resuelve por el registro: se resuelve por su worktree.**
-  Su transcript vive bajo un directorio que codifica su `cwd`, así que `…/_worktrees/T3/…`
-  identifica a T3 **pase lo que pase**: sobrevive al renombrado, al relanzamiento y a que
+  ⚠️ **Y "por su worktree" significa el DIRECTORIO DE PROYECTO donde vive el transcript, NO el
+  campo `cwd` de sus eventos** (precisión medida el 2026-09-09, tras leerlo mal dos ciclos). El
+  directorio de proyecto se fija al arrancar la sesión y **no cambia**; el `cwd` **se mueve cada
+  vez que alguien hace `cd`**. Caso real: una sesión **de raíz** había pasado por los tres
+  worktrees —2.493 eventos en la raíz, 256 en T1, 63 en T2, 58 en T3— y **su último `cwd` era
+  T1**, así que el censo la presentó como si fuera el desarrollador T1, **junto a la fila del T1
+  de verdad**. Dos filas reclamando el mismo puesto es exactamente la ambigüedad que la 45
+  existía para quitar.
+  📌 **Y la forma general, que es la de toda esta sección: un identificador estable al arrancar
+  puede no serlo durante la sesión.** El directorio de proyecto lo es; el `cwd` no.
+  Su transcript vive bajo un directorio que codifica el `cwd` **de arranque**, así que
+  `…/_worktrees/T3/…` identifica a T3 **pase lo que pase**: sobrevive al renombrado, al relanzamiento y a que
   nadie se acuerde de escribir nada. Es la **decisión 34** (identificador que no caduca) y
   **no necesita mantenimiento humano**, que es justo lo que lo hace mejor que un registro.
 - **45.2 — Los roles de raíz dependen del registro, y se indexan por `ref`.**
