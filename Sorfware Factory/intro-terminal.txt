@@ -607,6 +607,34 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- **LA HUELLA DE LA TAREA NO SE ESCRIBE A MANO** (decision 74, 2026-09-09): se pega
+  la salida de estos dos comandos, LOS DOS.
+
+      # 1. la huella
+      git diff --name-only <base>...HEAD
+
+      # 2. su control positivo: la union de lo que tocaron TUS commits
+      git log <base>..HEAD --format= --name-only | grep -v '^$' | sort -u
+
+  Los dos listados TIENEN que coincidir. Si el 1 no cubre al 2, la huella esta
+  mintiendo y NO se exporta hasta saber por que.
+  ⚠️ OJO A LOS PUNTOS. `A...B` (TRES) es "lo que aporto la rama". `A B` (DOS) es "en
+  que se distinguen las dos puntas", que NO es lo mismo: si la base acabo con el
+  mismo contenido que tu rama en un fichero, los dos puntos LO OCULTAN — un fichero
+  tuyo desaparece de tu propia huella. No es un error de tecleo, es un atractor: es
+  la forma que sale sola al pensar "comparar A con B", y "comparar dos ramas" es como
+  lo decimos todos en voz alta. Paso seis veces en una noche, en tres sesiones.
+  ⚠️ Y si tu rama YA esta mergeada, `<base>...HEAD` da VACIO por construccion — un
+  cero que no distingue "limpio" de "no supe mirar". Ahi se usa la horquilla del
+  merge: `M^1...M^2`.
+  ⚠️ El control 2 funciona porque se calcula de los commits de TU rama, asi que no le
+  afecta que la base se mueva. Por eso es una referencia estable.
+
+- **JUNTO A LA HUELLA VA CITADO EL CRITERIO, literal del export, nunca de memoria**
+  (misma decision). Un comando bien elegido contra un criterio mal recordado produce
+  un hallazgo falso CON TODA LA APARIENCIA DE RIGOR. Caso real: se recordaba "cero
+  producto tocado" para tres tareas y en el papel eran tres criterios distintos.
+
 - **Punto de control — aviso por voz** (en los dos puntos de control: listo para
   auditar / GO recibido — NO en ningún otro momento, no lo uses para narrar el trabajo
   en curso): lanza esto en una terminal, con tu propio número y la tarea actual:
