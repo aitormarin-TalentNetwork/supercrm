@@ -192,8 +192,33 @@ borrado, pero no deshace lo que ya se subiera ni las versiones que Apple retenga
   `tsconfig` generado compilaba los `.next/types/*.d N.ts`. Costó una cuarentena y AIT-115.
 - **El `_traspaso-noche 2.md`** que apareció mientras cuatro sesiones editaban este fichero.
 
-*Lo levantó T3 (que el repo estaba en iCloud) y lo levantó T2 (que eso tumbaba mi premisa).
-Verificado por mí las dos veces antes de escribirlo.*
+### 📦 El lote que tiene que moverse junto, si decides sacar credenciales del árbol
+
+**Medido ahora (03:5x local), no supuesto:**
+
+| Qué | Estado | Desde |
+|---|---|---|
+| `.env.local` **x5** (raíz, T1, T2, T3, QA) | **presentes** | 9-ago a 8-sep — **llevan un mes ahí** |
+| `e2e/.auth/*.json` | **cero ficheros en los cinco checkouts** | superficie **futura**, no presente |
+
+**La segunda fila la levanta T2 sobre su propio código, y conviene leerla bien:** AIT-108 crea
+`e2e/.auth/` y escribe ahí instantáneas de sesión reales en cada corrida. **Hoy está vacía** —él la
+limpió—, así que **no hay nada expuesto por esa vía ahora mismo**; pero **cuando AIT-108 se
+publique, esa carpeta se llenará en cada corrida, dentro del árbol sincronizado.**
+
+> **Su protección declarada —`.gitignore` + `info/exclude`— cubre git y NO cubre la
+> sincronización.** Si decides sacar credenciales del árbol del repo, **`e2e/.auth/` entra en el
+> mismo lote que los `.env.local`**, y el arreglo natural es una ruta fuera del repo decidida en un
+> solo sitio (estilo `PLAYWRIGHT_BROWSERS_PATH`).
+
+**Y la lectura que vale más que el caso**, de T2 sobre su propio diseño: eligió `e2e/.auth/` porque
+*"cuelga del árbol de trabajo, así que cada worktree tiene la suya sin acordar nada"* — **razonamiento
+correcto para el aislamiento entre worktrees, y ciego para un riesgo que no sabía que existía.**
+**Una protección hereda el alcance de la pregunta que la motivó, no el del riesgo real.**
+
+*Lo levantó T3 (que el repo estaba en iCloud) y lo levantó T2 (que eso tumbaba mi premisa, y luego
+que su propio código añadía superficie a esa puerta). Verificado por mí las tres veces antes de
+escribirlo.*
 
 ---
 
