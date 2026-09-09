@@ -1409,6 +1409,17 @@ fábrica sin el PM sería atribuir una función sin abrir el sitio donde ocurre.
 mecanismo que muera con él está dando una respuesta legítima** — significa que su ausencia se nota
 por otras vías. *La lista tranquilizadora aparece justo cuando se obliga a todos a rellenar algo.*
 
+⚠️ **Y UNA ADVERTENCIA SOBRE EL CATÁLOGO MISMO, que es lo último que aprendimos y va al repaso
+antes que ninguna candidata:**
+> **Un catálogo que solo crece da la impresión de que vamos ganando.**
+**Y el nombre técnico de por qué, que le puso el Factory Architect: el catálogo NO TIENE
+DENOMINADOR.** Cuenta lo que cazamos, **nunca lo que se nos escapó**, así que **no puede decir si
+estamos mejorando** — solo que seguimos encontrando cosas. *Es nuestra propia entrada "una
+expectativa negativa no se verifica, se cuenta", aplicada al fichero donde la escribimos.*
+📌 **No se arregla hoy:** un denominador honesto exigiría **contar los fallos que llegaron a
+producción o hasta ti**, que es un recuento distinto y **probablemente más útil que el catálogo
+entero.** Va al repaso enunciado, no resuelto.
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja

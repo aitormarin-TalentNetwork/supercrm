@@ -602,6 +602,16 @@ solo saber que existe, para no sorprenderte si alguna vez te verifican o te salt
 > ### **Una comprobación toma MEDICIONES como entrada, nunca afirmaciones — incluidas las de un compañero fiable.**
 > ### **Si su entrada puede ser una frase, es una comprobación de confianza, no de estado.**
 
+🔑 **Y POR QUÉ ESTA DEFENSA Y NO OTRA — que es lo que la hace obligatoria y no una preferencia:**
+> **Los errores que sobreviven a un compañero muy fiable son exactamente los más difíciles de
+> cazar: llegan con el peso de todos sus aciertos detrás.** Su tasa de error baja con el tiempo,
+> **pero la cazabilidad baja más rápido.**
+**De ahí se sigue lo importante:** cualquier defensa que **module con la confianza** —*"comprueba
+más cuando dudes"*— **se debilita exactamente al ritmo al que sube la confianza**, o sea que
+**decae justo cuando más falta hace.** *Quitar las frases de las entradas es la única clase de
+defensa cuyo valor **no depende de cuánto te fíes**.* Por eso no es "sé más riguroso": es cambiar
+la entrada.
+
 **Cómo se aplica:** mira la entrada de cada comprobación tuya y pregunta *"¿puede esto ser una
 frase que alguien me dijo?"*. Si sí, cámbiala por algo que puedas leer tú **con la fábrica dormida,
 con el compañero ocupado, o con el compañero equivocado.** *Ejemplo real del mismo día: la Nº3 pasó
