@@ -558,22 +558,25 @@ una vez que el trabajo pasa auditoría.
    la salida antes de que se vea. Misma familia que el aviso de `npx convex env
    list` que ya esta en CLAUDE.md, con otro comando.
 
-⚠️ HAY UNA PROTECCION QUE NO VERAS EN `.gitignore`, Y ESTE ES EL UNICO SITIO
-   DONDE ESTA ESCRITA (2026-09-09, incidente real). `e2e/.auth/` esta ignorado por
-   `.git/info/exclude`, no por `.gitignore`. Consecuencias que te importan:
-     - **No se clona y no esta en ningun commit.** En una maquina nueva NO existe.
-     - **Un `grep` a `.gitignore` no la encuentra**, asi que "no esta ignorado"
-       leido ahi es un falso negativo. Comprueba con `git check-ignore -v <fichero>`,
-       que mira las dos fuentes, y nunca leyendo un fichero de reglas.
-   Por que existe: el arnes e2e escribe en `e2e/.auth/*.json` **tokens de sesion
-   vivos** en cada corrida. La linea que lo ignora de verdad vive en el `.gitignore`
-   de AIT-108, **sin publicar**, asi que cualquier rama sacada de `main` no la tiene.
-   Un dia esos ficheros acabaron commiteados por eso, haciendo lo correcto: alguien
-   verifico que estaban ignorados **en la rama donde si lo estaban**.
+⚠️ `e2e/.auth/` ESTA IGNORADO POR DOS SITIOS A LA VEZ, Y ES A PROPOSITO
+   (2026-09-09, incidente real). El arnes e2e escribe en `e2e/.auth/*.json`
+   **tokens de sesion vivos** en cada corrida, y una noche acabaron commiteados.
+     1. `.gitignore` (trackeado)     -> se clona, se hereda, lo ve cualquiera.
+     2. `.git/info/exclude` (local)  -> NO se clona, NO esta en ningun commit,
+                                        y un `grep` a `.gitignore` NO lo encuentra.
+   **Nunca leas un fichero de reglas para saber si algo esta ignorado: leerlo da
+   falsos negativos.** Se comprueba con `git check-ignore -v <fichero>`, que mira
+   las dos fuentes y te dice cual gana.
+   POR QUE LA CAPA LOCAL, Y CUANDO DEJA DE HACER FALTA: la linea trackeada se
+   anadio a `main` el 2026-09-09. **Las ramas abiertas antes de esa fecha no la
+   tienen** —salieron de un `main` que aun no la llevaba—, y son varias, en vuelo,
+   a punto de publicarse. `info/exclude` es lo unico que las cubre.
+   **Cuando esas ramas hayan mergeado, la capa local sobra y se puede quitar.**
+   Si estas leyendo esto y ya no queda ninguna rama anterior a esa fecha, quitarla
+   es correcto — y borra tambien este parrafo.
    > Una proteccion que vive en una rama sin publicar no protege a las demas ramas.
-   Cuando AIT-108 se publique, **la de `info/exclude` se queda igual** (cubre a quien
-   salte a una rama vieja) — lo que hay que quitar es este aviso solo si deja de ser
-   cierto. Dos capas estan bien; **una capa invisible y sin documentar, no.**
+   > Y una capa es peligrosa cuando es ILEGIBLE, no cuando es redundante: por eso
+   > la local se documenta aqui en vez de borrarse.
 
 ⚠️ RUTA ABSOLUTA, SIEMPRE, PARA TODO LO DE "codigo para auditar/" Y "cola/"
    (corregido 2026-09-08, hallazgo de T1). Esa carpeta está en `.gitignore`, así que
