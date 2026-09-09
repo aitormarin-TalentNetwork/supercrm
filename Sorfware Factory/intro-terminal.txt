@@ -642,6 +642,36 @@ cancelarla**. Quien la hubiera cogido habría medido, no habría encontrado nada
 de su propia medición antes que de la ficha** — porque **una tarea asignada tiene más autoridad que
 una medición fresca** en la cabeza de quien la ejecuta.*
 
+🔻 **AMPLIACIÓN (Directora, mismo día): el que recibe la ficha NO puede ser el único control.**
+*Ya está escrito que una tarea asignada tiene más autoridad que una medición fresca. La
+consecuencia que faltaba: **un control cuya activación le cuesta algo al que lo activa, no se
+activa.** Decir "la ficha está mal" **se siente como admitir que no supiste hacer la tarea**.*
+**Y no se arregla animando a avisar —eso es pedir carácter—: se arregla invirtiendo la carga de la
+prueba.**
+
+> **Una ficha es una medición CON FECHA. El `grep` de quien la ejecuta es una medición de hace un
+> minuto. Ante una discrepancia, gana la reciente POR DEFECTO, y es la FICHA la que tiene que
+> defenderse.**
+
+```
+· Si mides y NO encuentras lo que la ficha promete: NO SIGAS BUSCANDO. Avisa con la medicion.
+· Quien escribio la ficha lo trata como HALLAZGO, no como duda del ejecutor.
+· Si no, el que mide bien PIERDE DOS VECES: contra el rotulo y contra la sensacion de fallar.
+```
+**No es deferencia al ejecutor:** es la jerarquía de evidencia de siempre —*una medición fresca y
+reproducible por encima de una afirmación recordada*— aplicada al par ficha/ejecutor. **Una ficha
+es exactamente un dato correcto que caduca.**
+
+⚠️ **Y por qué la corrección no llega sola, que es la forma del problema y no un accidente:**
+> *"Medí durante una auditoría — **el sitio de máximo contexto y mínimo tráfico** que existe en
+> esta fábrica. La corrección no podía caer más lejos de donde se lee."*
+**El punto de máxima calidad de medición es también el de mínima difusión.** *Por eso esta decisión
+dice **"primero el rótulo"** en vez de confiar en que la corrección llegue sola.*
+📌 **Y el caso de hoy salió bien por poco: T1 midió, encontró que el comprobador no existía y lo
+dijo — pero lo midió porque la Directora se lo pidió.** El buen resultado dependió de **una
+instrucción, no del comportamiento por defecto** — *y el comportamiento por defecto es el que
+aplica cuando nadie está pidiendo nada, que es casi siempre.*
+
 - ⛔ QUÉ GARANTIZA UN FICHERO DE VEREDICTO (decisión 83, 2026-09-09)
 
 > **GARANTÍA: este fichero significa que un auditor INDEPENDIENTE leyó el export E y el commit C,
