@@ -1,28 +1,79 @@
 import { Page, Locator, expect } from "@playwright/test";
+import {
+  capturarEstadoRodado,
+  HOME_BY_ROLE,
+  readState,
+  refreshTokenOf,
+  type Role,
+  writeStateAtomically,
+} from "./authState";
 
-/** Nombre visible en el botón de autorrelleno de /login (componente
- * DEMO_ACCOUNTS en app/login/page.tsx) para cada rol. */
-const DEMO_ACCOUNT_LABEL = {
-  owner: "Marta Ledo",
-  sales: "Carlos Vega",
-} as const;
+/** AIT-108 — Siembra la sesión desde la instantánea que escribió
+ * `e2e/global-setup.ts` y deja al usuario en su pantalla de arranque por rol.
+ *
+ * MISMA FIRMA Y MISMA POSTCONDICIÓN que la versión que hacía el login por la
+ * UI: los 29 puntos de llamada no cambian. Lo que cambia es que la suite
+ * entera hace 2 logins en vez de 29, y ese número ya no crece al añadir specs.
+ *
+ * SE SIEMBRA EL CONTEXTO, NO EL NAVEGADOR. Cada test recibe un contexto nuevo,
+ * y los dos specs que abren dos sesiones a la vez (03 y 05) le dan una a cada
+ * rol: `ownerContext` y `salesContext` son contextos distintos, así que sembrar
+ * uno no pisa el otro.
+ *
+ * LO QUE SE COMPARTE ES UNA INSTANTÁNEA, NO UNA SESIÓN VIVA: se escribe una vez
+ * en el global setup y a partir de ahí solo se lee.
+ *
+ * ⚠️ LA TERCERA VÍA NO ERA HIPOTÉTICA. De las tres por las que la instantánea
+ * puede quedarse obsoleta —que alguien la MUTE, que un contexto herede el de
+ * otro, o que un test provoque un REFRESCO y Convex Auth ROTE el token—, la
+ * tercera ocurre SIEMPRE, en cada test, y es lo que obliga a que la instantánea
+ * ruede. Y siguen siendo las tres vías **alcanzables por los consumidores de
+ * hoy**, no una enumeración universal: Convex Auth permite además invalidarla
+ * con `signOut` o desactivando el usuario, y ningún spec de hoy hace ninguna de
+ * las dos. Si mañana alguien añade un test que cierre sesión, esta enumeración
+ * deja de ser cierta sin que nada avise — por eso queda escrita como lo que es.
+ *
+ * ⚠️ ESTO EXIGE `workers: 1` Y `fullyParallel: false` (playwright.config.ts).
+ * Ya estaban por otra razón —los tests escriben datos reales en el mismo
+ * deployment—, pero desde AIT-108 no son una elección: son un REQUISITO DE
+ * CORRECCIÓN. Con tests en paralelo, dos contextos consumirían el mismo refresh
+ * token, el segundo lo reusaría fuera de la ventana de 10 s y la sesión moriría
+ * para todos. Si algún día se paraleliza la suite, hay que dar una sesión por
+ * worker ANTES de subir `workers`. */
+export async function loginAs(page: Page, role: Role) {
+  const estado = readState(role);
+  const contexto = page.context();
 
-/** URL a la que redirige app/page.tsx tras el login, según rol. */
-const HOME_BY_ROLE = {
-  owner: "/panel",
-  sales: "/hoy",
-} as const;
+  // Solo cookies. En este modo el localStorage guarda un marcador ("dummy") y
+  // una marca de tiempo, no la sesión; sembrarlo con `addInitScript` además la
+  // reescribiría en CADA navegación del test, pisando lo que el cliente hubiera
+  // actualizado. Medido: sembrar solo cookies autentica igual.
+  await contexto.addCookies(estado.cookies);
 
-/** Login vía el autorrelleno de cuentas de prueba de /login (no hardcodea
- * contraseñas en el test: usa el mismo botón "Usar" que expone la propia
- * UI). Deja al usuario en su pantalla de arranque por rol. */
-export async function loginAs(page: Page, role: "owner" | "sales") {
-  await page.goto("/login");
-  await page
-    .getByRole("button", { name: DEMO_ACCOUNT_LABEL[role], exact: false })
-    .click();
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.goto(HOME_BY_ROLE[role]);
+
+  // `proxy.ts` decide con la COOKIE, en el servidor: si la instantánea no
+  // autentica, esto ya ha rebotado a /login. Sin este corte, el fallo saldría
+  // treinta segundos después como un `waitForURL` agotado que no dice por qué.
+  if (new URL(page.url()).pathname.startsWith("/login")) {
+    throw new Error(
+      `[e2e] la instantánea de "${role}" no autentica: ${HOME_BY_ROLE[role]} rebotó a /login. ` +
+        `Si el deployment cambió de credenciales, borra e2e/.auth/ y vuelve a correr.`,
+    );
+  }
+
   await page.waitForURL(`**${HOME_BY_ROLE[role]}`);
+
+  // LA INSTANTÁNEA RUEDA (ver `capturarEstadoRodado` en authState.ts): este
+  // test acaba de consumir el refresh token y el servidor ya emitió el
+  // siguiente. Se guarda para que el test que venga consuma el vigente en vez
+  // de reusar uno muerto — que pasados 10 s no da un error de sesión, sino que
+  // INVALIDA LA SESIÓN ENTERA. Sin esta línea la suite pasa 3 tests y luego
+  // cae en bloque; medido: 22 rojos de 54.
+  writeStateAtomically(
+    role,
+    await capturarEstadoRodado(contexto, refreshTokenOf(estado)),
+  );
 }
 
 /** Nombre de cliente único por ejecución, para no colisionar entre corridas

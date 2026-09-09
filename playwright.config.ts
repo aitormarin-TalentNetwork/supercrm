@@ -114,6 +114,10 @@ const BASE_URL = `http://localhost:${E2E_PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // AIT-108: una autenticación por rol y por corrida, en vez de una por spec.
+  // Corre DESPUÉS del webServer de abajo (en el runner, `globalSetup` va detrás
+  // de los plugins y el webServer es uno).
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: false, // los tests escriben datos reales en el mismo deployment de Convex
   workers: 1,
   retries: 0,
