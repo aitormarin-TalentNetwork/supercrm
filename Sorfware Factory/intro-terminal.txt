@@ -482,24 +482,33 @@ una vez que el trabajo pasa auditoría.
   a tu worktree sin saber contra qué backend corre. El siguiente que ejecute la suite mide
   otra cosa, o falla sin motivo aparente, y nada apunta al comando que lo causó.
 
-      cp .env.local .env.local.bak && md5 .env.local   # antes
-      md5 .env.local                                   # después: ¿el mismo?
-      cp .env.local.bak .env.local                     # si cambió y no querías
-      rm .env.local.bak                                # al terminar, siempre
+      md5 .env.local          # ANTES. Apunta el hash. No copies nada todavía.
+      md5 .env.local          # DESPUÉS: ¿el mismo?
 
-  🔴 **EL NOMBRE DEL RESPALDO NO ES LIBRE: tiene que empezar por `.env`.** El
-  `.gitignore:37` protege con el patrón `.env*` y NADA MÁS. Medido con
-  `git check-ignore -v`, no leído:
+  **Por defecto NO se copia el fichero: se apunta su `md5`.** Un hash no es un
+  secreto y detecta el cambio igual. La copia solo hace falta para RESTAURAR, y
+  entonces va al scratchpad de TU sesión, que es `drwx------` y tuyo:
 
-      .env.local.bak        ignorado        ✅
-      .env.local.backup     ignorado        ✅
-      env-backup.txt        NO ignorado     🔴 commiteable
-      copia-env.txt         NO ignorado     🔴 commiteable
+      cp .env.local "$SCRATCH/env.bak"    # solo si vas a necesitar restaurar
+      cp "$SCRATCH/env.bak" .env.local    # restaurar
+      rm "$SCRATCH/env.bak"               # al terminar, siempre
 
-  Y `env-backup.txt` o `copia-env.txt` son justo los nombres que salen con prisa.
-  **Un respaldo de credenciales en ruta commiteable es peor que no respaldar.**
-  Tampoco `/tmp`: es compartido con todo lo que corra en la máquina y el fichero
-  se queda ahí. Si quieres otro sitio, el scratchpad de tu propia sesión.
+  🔴 **NO copies el `.env.local` dentro del repo, ni siquiera con un nombre
+  gitignoreado.** Que git lo ignore no es la única fuga: **el repo lo sincroniza
+  iCloud**, así que un respaldo ahí SALE DE LA MÁQUINA aunque nunca se commitee.
+  No es teórico — iCloud ya ha duplicado ficheros de credenciales dentro del repo:
+
+      _worktrees/T1/e2e/.auth/owner 2.json    <- tokens de sesión, duplicados
+      _worktrees/T1/e2e/.auth/sales 2.json       por iCloud, no por nosotros
+
+  Y si aun así lo pones en el repo, **el nombre no es libre**: `.gitignore:37`
+  protege con el patrón `.env*` y nada más — medido con `git check-ignore -v`,
+  `.env.local.bak` ✅ pero `env-backup.txt` y `copia-env.txt` 🔴 son commiteables,
+  y son justo los nombres que salen con prisa.
+
+  **Tampoco `/tmp` a secas** (`drwxrwxrwt`, compartido con todo lo que corra en
+  la máquina). El scratchpad de sesión sí: `/private/tmp/claude-501/…` es
+  `drwx------`.
 
   ⚠️ **La huella se toma con `md5`, NUNCA abriendo el fichero "para ver si está
   bien".** `.env.local` lleva contraseñas en claro: abrirlo las mete en el
