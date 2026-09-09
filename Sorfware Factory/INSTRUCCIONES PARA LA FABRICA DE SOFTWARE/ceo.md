@@ -737,6 +737,11 @@ que el pipeline está vigilado.
 *"no cubre X, Y, Z"* fijo se lee dos veces y luego es decoración; con dueño deja de ser un
 descargo y pasa a ser **un mapa de cobertura**. Modelo:
 
+⚠️ **Y con la 64.3: además de qué no cubre el barrido, declara qué NO PUEDE VER TU CRITERIO.**
+Son cosas distintas — *"no miro si el trabajo es correcto"* es alcance; *"mi censo filtra por
+actividad en la última hora, así que una sesión dormida a propósito y una muerta se ven igual"*
+es **una ceguera del instrumento**. La primera se delega; la segunda solo se puede declarar.
+
 > **Qué NO cubre este barrido:** si el trabajo es correcto → *el auditor*. Regresiones laterales
 > en `main` → *la corrida periódica del QA (57.1)*. Si alguien está atascado **sin que se le note
 > en el transcript** → **nadie**.

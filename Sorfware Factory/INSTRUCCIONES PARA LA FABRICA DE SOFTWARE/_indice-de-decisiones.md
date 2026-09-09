@@ -101,6 +101,8 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 61 | «Pendiente de otro» nunca significa «nada mío pendiente» — todo bloqueo registra qué queda de nuestra parte al desbloquearse, y si no queda nada se dice también | R §2sexies · C |
 | 62 | El gate más duro viajaba en prosa: línea literal `Veredicto del auditor: GO/NO-GO` (62.1) y **el veredicto pasa a ser un fichero que el desarrollador lee por su cuenta** (62.2) — un control que se transmite en prosa no es un control | R §2sexies · D · IT |
 | 63 | Un checklist que enumera un estado mutable caduca en silencio — no fijar la lista, mandar mirarla (63.2 auditoría de las demás; **63.3 un secreto no se copia entre entornos: se genera**, y los de terceros no viajan a pruebas) | R §2sexies · §3bis |
+| 64 | Antes de creerte un negativo, comprueba que la herramienta sabe dar positivos — *un código de salida no dice «fue bien», dice «la pregunta de esta herramienta se contestó que sí»* (64.3 todo barrido declara qué no puede ver) | R §2sexies · C |
+| 65 | El arnés declara sus precondiciones y falla nombrando la que falta; no se parchean una a una (**65.1 tercer eje del triaje: ¿el fallo nombra su causa o hay que buscarla?**) | R §2sexies |
 
 ---
 

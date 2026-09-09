@@ -1711,6 +1711,80 @@ y en vez de copiar las trece variables **se paró a preguntarse cuáles debían 
 entorno**. Un checklist ejecutado al pie de la letra habría esparcido tres secretos reales a un
 deployment nuevo sin que nada se quejara.
 
+### Decisión 64 — Antes de creerte un negativo, comprueba que la herramienta sabe dar positivos (2026-09-08)
+
+**Cuatro instancias el mismo día, en cuatro personas distintas.** Y **ninguna regla del tipo
+"revisa tus comandos" las caza, porque los cuatro comandos eran correctos**: contestaban
+perfectamente a una pregunta **parecida y distinta**.
+
+> **Lo que las hace invisibles: la respuesta correcta a la pregunta equivocada se lee como la
+> respuesta que esperabas.** `0` es *"no hay errores"*. `0` es *"estoy al día"*. Una línea de
+> veredicto es *"el veredicto"*.
+
+**Formulación de T3, y es la mejor que se ha escrito sobre esto:**
+
+> ### **"Un código de salida no dice «fue bien», dice «la pregunta de esta herramienta se contestó que sí»."**
+
+**64.1 — La regla, que es lo único que funcionó las cuatro veces:**
+
+> **Antes de aceptar que una herramienta no encuentra algo, comprueba que encuentra algo que
+> sabes que existe.**
+
+*Caso:* la Directora se salvó de mandar un falso negativo — su `grep` dio cero con el patrón mal
+escrito, y **buscó `markWon`, que sí estaba, antes de creerse el cero**.
+
+**64.2 — Extiende la 58 fuera de los controles.** La 58 dice que **un detector** se estrena
+apuntando al positivo conocido. La 64 dice lo mismo de **cualquier consulta puntual** — un
+`grep`, un `rev-list`, un conteo.
+
+⚠️ **Los controles los estrenamos con cuidado; las consultas del día a día, no.** Y el coste de
+ese día: **reportar 31 verdes sobre un checkout de 19 commits atrás**, **relayar el veredicto de
+otra tarea**, y **casi fijar un criterio de aceptación con un número equivocado**.
+
+**64.3 — Corolario de T3: todo barrido declara qué NO puede ver con su criterio.** Es la **57.3
+aplicada al instrumento en vez de al informe**, y lo sacó ella analizando un barrido propio que
+no podía ver un caso.
+
+### Decisión 65 — El arnés declara sus precondiciones; no se parchean una a una (2026-09-08)
+
+> **Una suite que depende de precondiciones las comprueba al arrancar y falla nombrando la que
+> falta.** No N fallos confusos al final: **uno claro al principio.**
+
+**Arreglar dos precondiciones concretas deja la tercera para descubrirse igual** — con otra media
+hora de diagnóstico y otro `main` en rojo que no era de `main`.
+
+**Y el diagnóstico de T3 explica por qué esto se rearma solo, así que hay que atacarlo por la
+clase y no por el caso:**
+
+> **"`git pull` te trae el código fuente de una función de Convex; no la mete en tu
+> deployment."**
+
+Con tres worktrees con deployment propio, **eso vuelve a pasar cada vez que alguien mergea algo
+de `convex/`**. **No es un incidente: es una propiedad de la topología que montamos** — y la
+factura la paga quien la hereda sin saberlo.
+
+⚠️ **Límite de alcance, y se respeta:** **construir eso es producto y lo decide el PM.** Lo que
+fija el Factory Architect es que **el arnés debe declarar sus precondiciones** y que **la forma
+general vale más que los dos parches**. Si AIT-93 se amplía o se abre otra issue, es decisión
+suya.
+
+#### 65.1 — El TERCER eje del triaje: ¿el fallo nombra su causa, o hay que buscarla?
+
+**Este fallo no era de los silenciosos: los cinco rojos gritaban.** Lo que costó media hora **no
+fue detectarlos, fue saber de qué eran.**
+
+> **Un fallo ruidoso pero inatribuible cuesta casi lo mismo que uno silencioso, porque el tiempo
+> se va en el diagnóstico, no en el descubrimiento.**
+
+**Los tres ejes del triaje, juntos:**
+
+1. **¿Falla hacia el verde o hacia el rojo?** — lo que falla hacia el verde no tiene quien lo
+   cuente.
+2. **¿La conclusión lleva a decir o a hacer?** — una afirmación se corrige; una acción
+   destructiva, no. *(Y su tercer grado: escribir/configurar es irreversible **y** silencioso.)*
+3. **¿El fallo nombra su causa, o hay que buscarla?** — un rojo inatribuible se paga en horas de
+   diagnóstico, no en detección.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
