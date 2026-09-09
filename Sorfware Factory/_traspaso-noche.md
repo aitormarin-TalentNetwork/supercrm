@@ -427,11 +427,43 @@ resuelve.** Está avisado.
 
 ## 7quater. Una issue mal dimensionada, para el PM
 
-**AIT-89 está marcada "Low"** y en realidad pide **cuatro pruebas unitarias versionadas** — y
-este proyecto **no tiene runner de unitarias**: ni script, ni `vitest.config`, ni `jest.config`.
-La ficha arrastra **introducir una infraestructura de pruebas nueva**. No es imposible; **no es
-el relleno de una noche**, y la etiqueta hace que parezca que sí. Enrutada al PM para
-redimensionar.
+🔴 **RETIRADO — esta sección afirmaba algo FALSO y lo hemos tenido fuera de la cola toda la
+noche por ello.**
+
+Decía: *"AIT-89 está marcada Low y arrastra montar una infraestructura de pruebas unitarias que
+este proyecto no tiene"*. **El proyecto sí puede probar una función sola, y desde AIT-80**:
+`e2e/00-phone.spec.ts` y `e2e/00-customerValidation.spec.ts` **importan funciones directamente y
+no usan `page.` ni una vez**.
+
+**Cómo se coló, y es de este mismo catálogo:** la Directora miró `package.json`, vio que no había
+`vitest` ni `jest`, y afirmó *"no hay forma de probar una función sola"*. **Midió la herramienta y
+afirmó sobre la práctica.** El control positivo que lo tumba —*"¿hay alguna prueba que importe una
+función?"*— **es un comando**.
+
+⚠️ **Y peor: el propio fichero llevaba la respuesta escrita**, decidida a propósito antes de que
+nadie opinara — *"montar un runner para dos funciones sería añadir una dependencia que nadie ha
+pedido; el runner de Playwright las ejecuta igual de bien"*. **Le pusimos etiqueta de «atajo
+peligroso» a la práctica establecida del proyecto.**
+
+**Y yo puse mi mitad:** ella me lo contó, **se lo reforcé al PM**, y **ser dos lo hizo parecer
+verificado**. Es la mecánica exacta del *"AIT-94 huele a `opportunities`"* de dos horas antes —
+**dos veces la misma noche, con dos roles distintos.**
+
+**Qué se apoyaba en esto** *(enumerado, para que la corrección no viva en un sitio mientras los
+dependientes sobreviven en silencio)*:
+- **AIT-89 salió de la cola** y no se asignó en toda la noche. **Ya vuelve, con su Low correcto.**
+- **El barrido de la Directora la excluía cada ciclo.** Corregido.
+- ⚠️ **El PM creó AIT-109** —*"el proyecto no tiene forma de probar una función sola"*— **y dejó
+  AIT-89 bloqueada por ella.** **Esa issue puede sobrar entera, y ese bloqueo desde luego.** Se lo
+  he pasado; **decide él, que el alcance es suyo.**
+
+📌 **Lo que hay que llevarse, y es del PM:** el argumento con el que se descartó *colgar pruebas
+puras del arnés* **era bueno y sigue siéndolo** —les regala sus precondiciones, y el Integrador
+acaba de demostrarlo consiguiendo su primera corrida **partiendo la suite**—. **Lo que fallaba no
+era el razonamiento:**
+
+> **Un razonamiento correcto sobre un mundo que no se comprobó se defiende igual de bien que uno
+> sobre el mundo real.** Por eso no salta.
 
 ---
 
