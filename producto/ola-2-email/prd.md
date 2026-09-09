@@ -1,11 +1,11 @@
-<!-- prd: estado=DRAFT version=0.9 supersedes=- appetite=completo -->
+<!-- prd: estado=DRAFT version=0.10 supersedes=- appetite=completo -->
 
 # PRD — SuperCRM Ola 2: Email de clientes dentro del CRM
 
 | Campo | Valor |
 |---|---|
 | Estado | DRAFT |
-| Version | 0.9 |
+| Version | 0.10 |
 | Supersedes | — (sigue en DRAFT; 0.1 a 0.4 corregidas, no superseded) |
 | Fase actual | **6 — documento** (premisas cerradas en la 0.5, alcance en la 0.6; listo para una ronda nueva de review) |
 | Appetite | completo |
@@ -403,7 +403,10 @@ significaba tres cosas distintas y se confundian (hallazgo H11 del ciclo 2):
    emails de **un solo contacto conocido**, de los ultimos dias; se ven en la ficha de
    ese cliente. Punta a punta: consentimiento → token → llamada a Gmail → filtro por
    contacto y tienda → guardado → pantalla.
-2. **Ensanchar la lectura**: todos los contactos de la tienda, el historico completo
+2. **Ensanchar la lectura** — ⚠️ **esta fase NO empieza sin haber ejecutado el
+   `checklist de salida a produccion real`** (secciones 18 y 24): es el punto donde entra
+   correo de personas reales en produccion y deja de haber marcha atras. Contenido: todos
+   los contactos de la tienda, el historico completo
    (desde la oportunidad mas antigua a la que el vendedor tiene acceso, sin tope — ver
    seccion 4), y sincronizacion incremental. Este historico **no toca `lastActivityAt`**
    (seccion 21).
@@ -649,7 +652,19 @@ no un porcentaje — coherente con lo que declara esta seccion. La formulacion a
   veterano puede tener miles de emails, asi que **la ficha no los carga todos**: muestra
   los mas recientes y carga el resto bajo demanda al desplazarse. El umbral de 200 de
   abajo es el objetivo de rendimiento de **lo que se pinta**, no un limite de lo que se
-  guarda (hallazgo H10 del ciclo 2).
+  guarda.
+  **Como se pagina un historial que mezcla dos tablas** (aclarado en la v0.10): el
+  historial de la ficha entremezcla `emails` con `interactions`, y **hoy
+  `interactions.listByCustomer` hace `.collect()` sin paginar**. No se pagina cada tabla
+  por su lado y luego se intercala — eso da huecos y repeticiones al pasar de pagina.
+  Se pagina **por fecha**: cada peticion pide *"los N mas recientes anteriores a esta
+  marca de tiempo"* a las dos tablas, se mezclan, se corta a N y **la fecha del ultimo
+  elemento devuelto es el cursor de la siguiente**. Requiere indice por
+  (`customerId`, fecha) en las dos tablas.
+  **Consecuencia que hay que aceptar y decir**: `interactions.listByCustomer` deja de
+  devolver todo de golpe, asi que **esta ola tambien toca esa query** — no solo añade una
+  nueva. Y la maqueta de la ficha no dibuja carga incremental: hay que resolverlo con el
+  design system, sin inventar pantalla.
 - **Latencia de lectura**: la ficha de un cliente con 200 emails carga en < 1 s.
   **Umbral NUEVO de esta ola** — no existe un umbral de rendimiento documentado en
   `docs/01-arquitectura.md` al que remitirse (hallazgo H12 de la review).
@@ -737,6 +752,11 @@ no un porcentaje — coherente con lo que declara esta seccion. La formulacion a
   tumba la premisa madre. **Bloquea todo lo demas.**
 - **Tambien antes de la fase 1**: probar a mano que se puede abrir Gmail en un hilo
   concreto por URL. Si no se puede, H5 cambia de forma antes de diseñarse.
+- **Antes de la fase 2, y es lo primero de la lista**: ejecutar el **`checklist de salida
+  a produccion real`** (`checklist-produccion-real.md`). No es burocracia ni va al final:
+  la fase 1 sincroniza un solo contacto y es reversible, pero **a partir de la fase 2 hay
+  correspondencia de personas reales en la base de produccion** y ya no hay vuelta atras.
+  Lo dispara el PM, lo ejecuta el Director/CEO. Detalle en la seccion 24.
 - **Antes de la fase 2**: contar cuantos `customers` tienen `email` relleno. Si son
   pocos, la fase siguiente no es sincronizar mas: es conseguir que los contactos
   tengan email.
@@ -975,14 +995,27 @@ tabla entera en cada mensaje. Por tanto:
   emparejamiento compara **formas canonicas calculadas al vuelo en los dos lados**:
   quitando el nombre de la cabecera (`Nombre <a@b.com>` → `a@b.com`) y descartando la
   etiqueta tras `+`. El dominio no se normaliza mas alla de minusculas.
-  **Consecuencia para el indice, y es la diferencia con el telefono**: no se puede indexar
-  por una forma que no se guarda, asi que `by_store_email` va sobre el campo tal cual y el
-  emparejamiento busca **tambien** la forma sin etiqueta. En el telefono el valor canonico
-  SI es el que se guarda, porque normalizarlo no pierde nada; en el email si pierde.
-- **Dos clientes de la misma tienda con la misma direccion**: el email se guarda **una
-  sola vez**, asociado al cliente cuyo `ownerId` sea el dueño del buzon; si ninguno lo
-  es o lo son varios, al de creacion mas antigua. La colision se registra para operacion
-  (seccion 25).
+  **Como se busca con indice sin indexar una forma calculada** (aclarado en la v0.10, que
+  la v0.8 dejo contradictorio). No se indexa una forma canonica: se **generan las variantes
+  de la direccion entrante y se busca cada una por el indice**. De un `Nombre <Cliente+crm@
+  Ejemplo.com>` salen dos claves concretas — `cliente+crm@ejemplo.com` y
+  `cliente@ejemplo.com` — y se consulta `by_store_email` con cada una. Son dos lecturas por
+  indice, no un recorrido de tabla, y el numero de variantes esta acotado por construccion.
+  **La diferencia con el telefono**: alli el valor canonico SI es el que se guarda, porque
+  normalizar un numero no pierde nada. Aqui perderia, asi que se guarda entero y la
+  normalizacion vive en la **consulta**, no en el almacenamiento.
+- **Un correo que coincide con DOS clientes de la misma tienda**: se guarda **un solo
+  registro** —la clave `(storeId, Message-ID)` no admite dos— y **cuelga de un unico
+  cliente**, elegido en este orden, sin ambiguedad posible:
+  1. El cliente cuyo `ownerId` sea **el dueño del buzon** que aporto el correo.
+  2. Si ninguno lo es, o lo son los dos, **el de creacion mas antigua** — criterio
+     arbitrario pero determinista, que es lo que hace falta aqui: lo importante no es
+     acertar, es que dos sincronizaciones den el mismo resultado.
+  El correo **no se duplica** para que aparezca en las dos fichas: eso romperia el criterio
+  "un solo registro por email" de la seccion 6.
+  **La colision se registra para operacion** (seccion 25), porque casi siempre significa
+  un cliente duplicado en el CRM — y desde AIT-80 el alta avisa antes de crearlos, asi que
+  cada colision nueva merece mirarse.
   **Cuanto de esperable es, actualizado al 2026-09-08 por la tarde.** Cuando se escribio
   esta regla, `createQuick` insertaba **incondicionalmente** y no habia forma de editar
   un cliente, asi que el producto fabricaba duplicados solo. **Las dos cosas se
@@ -1092,12 +1125,13 @@ review, que demostro que la version 0.1 describia una logica inexistente):
   tanto, **sacar una oportunidad de la lista de avisos** — que es el comportamiento
   correcto y buscado, pero conviene decirlo porque significa que esta ola toca un canal
   que ya llega al movil del vendedor, no solo pantallas (hallazgo H12 de la ronda 3).
-  **Y hay una segunda marca que tocar, no solo `lastActivityAt`**: el envio de avisos se
-  capa con `lastRiskPushSentAt` para no repetir la misma notificacion. Si una oportunidad
-  sale de la lista de riesgo por un email y vuelve a entrar semanas despues, esa marca
-  vieja puede **silenciar el aviso nuevo**. Al mover `lastActivityAt` por un email hay que
-  decidir explicitamente que pasa con ella — lo mas probable es limpiarla, porque el ciclo
-  de riesgo ha empezado de cero (hallazgo H13 de la ronda 2 del ciclo 2).
+  **Y no hay que tocar `lastRiskPushSentAt`** — la v0.9 de este documento decia que si y
+  **era falso** (verificado en `convex/pushInternal.ts`): esa marca se compara **contra
+  `lastActivityAt`, no contra el reloj**, con la condicion
+  `lastRiskPushSentAt < lastActivityAt`. Asi que un email que sube la actividad **vuelve a
+  habilitar el aviso por si solo**, sin que nadie limpie nada. El mecanismo ya estaba
+  pensado para esto y funciona igual venga la actividad de una interaccion o de un correo.
+  Se deja escrito para que nadie "arregle" algo que no esta roto.
 - **Un email ENTRANTE no actualiza nada.** Que el cliente escriba no significa que
   Carlos haya hecho seguimiento; marcar la oportunidad como activa la sacaria de la
   lista de riesgo justo cuando hay algo pendiente de atender. Es lo contrario de lo
