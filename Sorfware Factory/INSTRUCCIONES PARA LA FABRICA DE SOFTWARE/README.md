@@ -1090,6 +1090,22 @@ lo pidiera.
 el verde** —siguen adelante mintiendo—; la de T3 falló **hacia el rojo** —abortó—, y por eso
 se supo en el acto. Mismo mecanismo, direcciones opuestas, costes incomparables.
 
+### Una comprobación sin sujeto no es una comprobación que pasa (2026-09-08)
+
+> **Si no había nada que comprobar, el resultado no es verde: es "sin sujeto".** Reportarlo
+> como verde es un falso verde **en el propio instrumento de vigilancia**, que es el peor
+> sitio donde tenerlo.
+
+*Caso:* el barrido del CEO comprueba *"¿hay vigilante armado para cada auditoría en curso?"*.
+Con **cero procesos `codex` vivos** no hay ninguna auditoría en curso, así que la comprobación
+**no tiene sujeto ese ciclo**. Escribirla como "todo en orden" habría acumulado ciclos verdes
+que **no prueban nada**, y a las diez lecturas nadie distinguiría ya un verde con sujeto de
+uno sin él.
+
+**La forma general, que aplica a cualquier tabla de estado:** distingue siempre **tres**
+resultados, nunca dos — *pasa* · *falla* · **no tenía sujeto**. Un censo que solo sabe decir
+verde y rojo **convierte la ausencia de trabajo en evidencia de salud**.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
@@ -1374,6 +1390,26 @@ gate de AIT-79 comprobando que el diff no tocara los ficheros protegidos. **Eso 
 intención, no el resultado** — es la distinción hecho/intención (enmienda 10) aplicada a una
 verificación. En sus palabras: ***"él lo vio y yo no."*** El Integrador lo reejecutó por
 efecto, y esa es la diferencia entre las dos filas de arriba y una nota en un documento.
+
+#### La otra mitad de la 31: un dato relevado no es un dato medido (2026-09-08)
+
+> **La precisión no sobrevive a un relevo, por cuidadoso que sea cada eslabón — porque cada
+> uno copia en vez de medir.**
+>
+> **El último que va a usar un dato lo mide.**
+
+**Son las dos mitades del mismo problema:** la 31 —*manda la tabla, no la conclusión*— evita
+que el dato **se pierda** por el camino. Esta evita que **llegue deformado**. Y lo que la caza
+no es más cuidado en el relevo: **es que el consumidor final vuelva a la fuente.**
+
+*Caso del día, y lo que lo hace regla:* una hora llegó **23 minutos desviada al final de una
+cadena en la que los tres eslabones iban con cuidado** — la Directora midió, el Factory
+Architect avisó explícitamente de que él no lo había verificado, y el CEO lo verificó. El
+cuidado de todos no impidió la deriva; **volver a la fuente sí la detectó**.
+
+⚠️ **Y la ironía que la hace difícil de ver: una hora es el dato más fácil de relevar mal,
+porque una hora equivocada sigue pareciendo una hora.** No se distingue de una buena por su
+forma. Es la misma propiedad que hace peligrosa a la enmienda 8 con los husos.
 
 ### Un control nuevo se estrena con el estado ya conciliado (decisión 46, 2026-09-08)
 
