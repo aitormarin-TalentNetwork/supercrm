@@ -119,7 +119,21 @@ export function refreshTokenOf(state: StorageState): string {
  *
  *  Depende de `workers: 1` y `fullyParallel: false` (playwright.config.ts): con
  *  tests en paralelo, dos contextos consumirían el mismo token y volveríamos al
- *  problema de arriba. */
+ *  problema de arriba.
+ *
+ *  ⚠️ LÍMITE CONOCIDO, Y ES UN FALLO SILENCIOSO. Al agotarse el presupuesto esto
+ *  devuelve el estado que haya, AUNQUE EL TOKEN NO HAYA CAMBIADO, y no
+ *  distingue dos situaciones que se parecen y no lo son:
+ *      · "no hubo consumo"  → guardar el token actual es lo correcto;
+ *      · "se esperaba la rotación y no llegó a tiempo" → se guarda un token YA
+ *        CONSUMIDO, y el siguiente test lo reusará fuera de la ventana de 10 s,
+ *        matando la sesión para toda la corrida.
+ *  Hoy no pasa: la rotación tarda ~850 ms contra un presupuesto de 10 s, y dos
+ *  suites completas seguidas dieron el mismo número exacto de rotaciones. Pero
+ *  si algún día la latencia se va, esto se rompe SIN DECIRLO — que es
+ *  exactamente el defecto que esta tarea vino a arreglar, un nivel más abajo.
+ *  Para cerrarlo haría falta saber si el token se consumió, no solo si cambió.
+ *  Señalado por la auditoría de AIT-108 (S2, no bloqueante). */
 export async function capturarEstadoRodado(
   context: BrowserContext,
   tokenPrevio: string,
