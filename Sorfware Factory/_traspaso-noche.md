@@ -611,6 +611,15 @@ paró de producir y respetamos la pausa—:
   que se escribe la regla es el contrario** — retirar algo relayado hace horas a alguien ya
   ocioso, reconstruyendo a quién se le mandó. Coste real medido, pero **no el del que va a
   decidir.**
+  🆕 **INSTANCIA SEIS, y es la forma que más cuesta ver porque ocurre DENTRO del remedio.** Mi
+  primer arreglo del reloj fue **declarar en la cabecera** que las horas del cuerpo son
+  aproximadas. **Esa declaración es ella misma un modificador separado de lo que modifica:** tú no
+  vas a leer esto de arriba abajo a las nueve de la mañana, vas a caer en una sección, vas a leer
+  *"02:31"*, y eso **se lee como una hora** con el aviso doscientas líneas más arriba. **Un
+  arreglo que consiste en declarar una limitación hereda el defecto de que la declaración se
+  separa de lo declarado.** *(Lo vio el Factory Architect. Remedio: un `~` pegado a cada hora
+  tecleada — cuesta un carácter y el modificador ya no tiene de dónde caerse.)*
+
   🔑 **Y SI MAÑANA SOLO LEES UNA LÍNEA DE TODA LA CANDIDATA, QUE SEA ÉSTA:**
   > **El coste de que un modificador se caiga escala con la ausencia de alguien que pueda
   > desmentirlo.**
