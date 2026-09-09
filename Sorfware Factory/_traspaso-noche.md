@@ -13,10 +13,15 @@ del final para saber hasta cuándo llega.**
 > **La hora de verdad de cualquier párrafo es la del commit que lo trajo:**
 > `TZ=UTC git log --date=format-local:'%F %T' --pretty='%ad %s' -- "Sorfware Factory/_traspaso-noche.md"`
 > **Para que no dependas de acordarte de este aviso al caer en una sección suelta, cada hora
-> tecleada del cuerpo lleva ahora una tilde delante: `~02:31`.** La tilde significa *"la escribí
-> yo de memoria, va adelantada"*. **Una hora SIN tilde está anclada** a algo medible —un commit,
-> una fecha de deployment, `date -u`— o es una cita literal de otro. Así el aviso viaja pegado a
-> lo que avisa y no puede caerse. **No las he reauditado una a una** y no las voy a cambiar a ojo
+> insegura del cuerpo lleva una tilde delante: `~02:31`.** La tilde significa *"va adelantada"*.
+> **Una hora SIN tilde está anclada** a algo comprobable —un commit, una fecha de deployment,
+> `date -u`— o es una cita literal de otro. Así el aviso viaja pegado a lo que avisa.
+> ⚠️ **Y el criterio NO es "las que recuerdo haber tecleado" — ése fue mi primer intento y estaba
+> podrido por dentro: el censo de los datos poco fiables lo estaba levantando con la facultad poco
+> fiable.** El criterio es **por defecto lleva tilde, y solo se le quita si ahora mismo puedo
+> engancharla a un ancla.** Recordar mal cuáles tecleé deja una hora sospechosa leyéndose como
+> defendible; no encontrar el ancla solo cuesta un carácter. **Las he recorrido todas una a una,
+> no de memoria.** *(El agujero lo vio el Factory Architect.)* **No las he reauditado una a una** y no las voy a cambiar a ojo
 > por segunda vez: **el orden de los hechos es bueno, el reloj va corrido, y nada de lo que
 > importa depende de ellas.**
 > *Me lo cazó el Factory Architect, y a él le costó dar por perdido su propio latido 18 minutos
@@ -749,7 +754,18 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 05:22 UTC (= 02:22 local)** — medida con `date -u`, no deducida.*
+*Última actualización: **2026-09-09 05:28 UTC (= 05:28 local)**, medida con `date -u`.*
+
+⚠️ **Y esta línea también caduca: la he tocado tres veces sin actualizarla, y decía 05:22 cuando ya
+había entrado toda la sección de las ocho tareas.** Una hora fija en un documento vivo miente sin
+avisar. **La verdad de cuándo se actualizó esto por última vez no está aquí, está en `git`:**
+
+```
+TZ=UTC git log -1 --date=format-local:'%F %T' --pretty='%ad UTC — %s' -- "Sorfware Factory/_traspaso-noche.md"
+```
+
+*Y ése es el patrón que se repitió toda la noche en cosas más caras que una hora: **una regla no
+fija un valor que se mueve, dice dónde consultarlo.***
 
 **Estado al cerrar:** **nueve sesiones vivas y ninguna caída.** T1 y T3 llevan más de una hora
 ociosas **por falta de trabajo disjunto, no por avería** —comprobado que sus procesos siguen vivos,
