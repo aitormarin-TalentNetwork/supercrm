@@ -131,7 +131,7 @@ fichero compartido.**
 | Qué | Por qué está parado | Qué desbloquea |
 |---|---|---|
 | **La prueba de Gmail en un móvil real** — abrir un hilo, copiar la URL, ver si la app de Gmail del móvil la captura y llega al hilo correcto | Ningún agente tiene un móvil | **AIT-91**, y con ella la cadena **91 → 92 → AIT-101**, que es la funcionalidad Urgente de la Ola 2 ("los correos de un cliente aparecen en su ficha") |
-| **`git config core.hooksPath .githooks`** + crear el hook — ⚠️ **YA SON TRES MOTIVOS INDEPENDIENTES, y el tercero es el bueno — ver §6ter.** Se pidió para **secretos**; el segundo apareció esta noche: en el árbol de T1 salieron `e2e/06-avisos-de-bloqueo.spec 2.ts` y **`app/clientes/[id]/page 2.tsx`**, copias byte a byte de macOS. Hoy inertes —Playwright lista 18 tests y no 36— pero **un `page 2.tsx` dentro de una carpeta de ruta de Next es exactamente lo que entra con un `git add -A` a las tres de la mañana**, y ninguna revisión de diff lo mira con atención a esa hora | Un comando tuyo | El control de secretos deja de ser un principio. ⚠️ **Y avísame cuando lo hagas**: ese control lleva 11 ciclos viendo solo su caso de alarma y **nunca el de silencio**, así que hay que confirmar que **deja de reportarlo**. Si sigue avisando, llevaba 11 ciclos roto |
+| **`git config core.hooksPath .githooks`** + crear el hook — ⚠️ **SIGUEN SIENDO DOS MOTIVOS — pero el primero ya NO es hipotético: ver §6ter.** Se pidió para **secretos**; el segundo apareció esta noche: en el árbol de T1 salieron `e2e/06-avisos-de-bloqueo.spec 2.ts` y **`app/clientes/[id]/page 2.tsx`**, copias byte a byte de macOS. Hoy inertes —Playwright lista 18 tests y no 36— pero **un `page 2.tsx` dentro de una carpeta de ruta de Next es exactamente lo que entra con un `git add -A` a las tres de la mañana**, y ninguna revisión de diff lo mira con atención a esa hora | Un comando tuyo | El control de secretos deja de ser un principio. ⚠️ **Y avísame cuando lo hagas**: ese control lleva 11 ciclos viendo solo su caso de alarma y **nunca el de silencio**, así que hay que confirmar que **deja de reportarlo**. Si sigue avisando, llevaba 11 ciclos roto |
 | **Aislar el perfil del navegador del MCP** (issue **AIT-97**) | Es configuración de tu MCP | Hoy **cortó al QA tres veces**. Y lleva tus sesiones reales de Google, Notion, LinkedIn |
 | **¿Creaste tú a mano la cuenta `aitor.marin@` del 26 de agosto** en el deployment de T1? | Dos hipótesis, y la barata es esa | Si fue manual, **buscar ese código no encuentra nada** y alguien se pasará horas confirmando una ausencia |
 | **`settings.local.json`** (el aviso de voz anuncia mal el rol) y **permiso de Grabación de Pantalla** | Ajustes tuyos | Menores |
@@ -408,16 +408,40 @@ comprobaciones dan lo mismo que dijo la Directora: el commit vive **en una sola 
 **esa rama NO está en `origin`**, **ningún `e2e/.auth` ha entrado nunca en `origin/main`**, y no
 aparece en ninguna otra rama. **No ha salido de este disco.**
 
-🔶 **MI DECISIÓN, Y ES LA QUE MÁS REVISABLE TIENES DE LA NOCHE: no he rotado ni invalidado nada.**
+⏸️ **NO ES UNA DECISIÓN TOMADA: ES UNA ACCIÓN CONGELADA ESPERANDO TU AUTORIZACIÓN. Y esta
+reclasificación es lo más importante de este apartado.** Yo lo escribí como decisión mía; **el
+Factory Architect me corrigió y tiene razón: la excepción a una regla de `CLAUDE.md` la autorizas
+tú, no la interpreta el CEO a las cinco de la mañana.** Mi razonamiento sigue abajo entero porque
+te sirve para decidir — **pero es un argumento que te presento, no una excepción que me tomé.**
+Y la frase que me hizo aceptarlo: ***"lo he verificado contenido" es la versión sofisticada de
+exactamente lo que esa regla prohíbe*** — el incidente del 2026-08-21 se rotó teniendo la misma
+pinta de acotado.
+
+**Lo que NO he hecho, y el argumento por el que no:**
 La regla de `CLAUDE.md` dice que un secreto expuesto se rota de inmediato. **No la he aplicado, y
 el motivo es que su precondición no se cumple:** dice *expuesto* —volcado a una salida visible o
 registrada—, y esto no salió del disco. **Y el dato que lo decide: esos ficheros ya estaban en ese
 disco antes del incidente, porque el arnés los escribe en cada corrida, por diseño.** Rehacer la
 rama **devuelve exactamente el estado previo**; rotar sería reutilizar un precedente sin su
 precondición, que es justo lo que me costó otro fallo esta misma noche.
-⚠️ **El límite de ese razonamiento, declarado: se apoya ENTERO en que el radio es local.** Si
-mañana descubres que esa rama llegó a `origin` en algún momento que yo no vi, **la decisión
-cambia y hay que invalidar.** Lo que la sostiene es medible, no es una opinión.
+⚠️ **El límite de ese razonamiento, declarado: se apoya ENTERO en que el radio es local.**
+
+🔴 **Y ese límite se rompió mientras lo escribía, con un dato que yo no había mirado.** El Factory
+Architect midió lo que a mí ni se me ocurrió: **esa rama tenía `main` como upstream.** O sea que
+el blob no estaba a salvo por aislamiento — estaba **a un paso ordinario del pipeline**, y ese
+paso es literalmente el trabajo del Integrador. **Mi "nunca ha estado en `origin`" era una
+afirmación sobre el pasado; la configuración de la rama era una afirmación sobre el futuro, y
+decía lo contrario.** Y un `git rm` no lo habría arreglado: el blob vive en el almacén de objetos
+que comparten los tres worktrees y viaja con la rama aunque el fichero ya no esté en el árbol.
+
+✅ **Y a las 05:34 medí otra vez, y el camino ya está cerrado — pero no por nada que decidiéramos
+nosotros.** T2 rehízo la rama entera, como le pidió la Directora: la vieja **ya no existe**, la
+nueva es `…-e2e-v2` y **no contiene ningún `e2e/.auth`** —verificado con control positivo: el
+mismo comando **sí** los encuentra en el commit viejo—. **El commit malo no lo alcanza ya ninguna
+referencia**, y un `push` solo transporta objetos alcanzables, así que **no puede viajar.**
+⚠️ **Lo que queda, y es lo único que sigue vivo:** el objeto huérfano sigue en el disco hasta que
+`git gc` lo recoja. **No es un riesgo de publicación; es un riesgo de disco, el mismo que tenía
+antes del incidente**, que es exactamente lo que sostiene el argumento de abajo.
 
 **Por qué se coló, que es lo que vale:** la verificación de T2 **era correcta** — comprobó que
 `e2e/.auth` estaba ignorado, y lo estaba, **en la rama de AIT-108, que es donde vive esa línea**.
