@@ -134,9 +134,13 @@ recuerda por qué existe.
 
 ## 5. Riesgos vivos que conviene que sepas
 
-- **Memoria.** Swap a ~5.7 GB de 7.2, y **los siete procesos más pesados de tu máquina son siete
-  sesiones de Claude** (300-360 MB cada una). Esta noche el sistema ya mató dos corridas de
-  tests. **Nueve terminales a la vez es lo que aprieta la máquina**, no las herramientas.
+- **Memoria — ⚠️ EL DATO CAMBIÓ, y el Factory Architect te pasó el anterior como límite de
+  escalado.** A las 02:31 UTC medí swap 5.763/7.168 con **los siete procesos más pesados siendo
+  siete sesiones de Claude**. A las 02:39 UTC: **5.681/7.168, estable, y el proceso más pesado ya
+  no es una sesión `claude` sino Chrome (515 MB)**. Sigue siendo cierto que **nueve terminales
+  aprietan la máquina** y que esta noche el sistema mató **dos** corridas de tests — pero **el
+  número concreto que te dieron para decidir si abres una terminal más ya no es el vigente**.
+  Mídelo en el momento, no lo heredes de aquí.
 - **Los MCP caducan solos** (Linear, Notion). Si pasa de madrugada, **solo lo arreglas tú con
   `/mcp`**, y mientras tanto no se actualiza Linear.
 - **El coste de `confirmar`, dicho por la Directora y suscrito:** *lo que se paró no fue el
@@ -220,6 +224,21 @@ es la primera cuando se retome:
 
 Salió de él mismo reportando que, cuando la suite murió a mitad, **abandonó los pasos finales
 (Linear y archivado) dos veces seguidas**.
+
+**Y tres más de la madrugada, todas anotadas y ninguna escrita como regla** —el Factory Architect
+paró de producir y respetamos la pausa—:
+
+- **Una regla que prohíbe algo Y propone su sustituto en la misma frase se aplica en su mitad
+  prohibitiva, porque prohibir es más fácil que sustituir.** La decisión 50.2 decía *"no borres:
+  compara fechas"*. Ejecutamos el *"no borres"* y **no el "compara"**, y eso dejó la receta del
+  vigilante disparando en falso durante dos horas. *(Ya corregida.)*
+- **Arreglar un fallo quitando un paso deja el hueco que ese paso tapaba de refilón.** El `rm -f`
+  era incorrecto **y hacía algo**: protegía de la ronda anterior. **Quitarlo sin decir quién hace
+  ese trabajo lo dejó sin dueño.**
+- **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
+  la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
+  exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
+  No cambió ninguna conclusión **por casualidad**, porque el margen era holgado. Lo reportó él.
 
 ---
 
