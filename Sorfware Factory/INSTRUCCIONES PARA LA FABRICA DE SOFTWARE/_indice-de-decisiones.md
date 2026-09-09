@@ -108,6 +108,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 68 | La dirección del fallo protege; **la frecuencia gasta esa protección** (68.1 test: con el sistema sano, ¿cuántas veces grita? · 68.2 un criterio puede quedar insatisfecho con la cosa BIEN, y retirarlo se declara) | R §2sexies-bis · IT |
 | 69 | **La cuarentena vive FUERA del repo** (`~/.cuarentena-fabrica/<fecha>-<motivo>/` con LEEME) — dentro no hay sitio neutro. **Un precedente se reutiliza con su precondición, o no se reutiliza** | R §2sexies-bis |
 | 70 | Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export — va además a la coordinadora por mensaje directo, y ella no la archiva con la tarea | R §2sexies-bis · IT · D |
+| 71 | **El crudo viaja con la conclusión** — y va ARRIBA (71.2), y rinde en proporción a que el receptor NO comparta tu conclusión (71.3). *El crudo no protege a quien lo manda: protege a quien lo lee.* ⚠️ Alcance estrechado por el CEO, pendiente de confirmación | R §2sexies-bis |
 
 ---
 

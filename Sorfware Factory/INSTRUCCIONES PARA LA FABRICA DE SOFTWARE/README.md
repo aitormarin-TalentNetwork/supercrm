@@ -1675,6 +1675,17 @@ cerrado, y el control **se queda sin estrenar en su dirección negativa** — ex
 > **El test: si puedes nombrar el hecho nuevo, es ejecución. Si no puedes, era énfasis** — y
 > entonces la decisión es del Factory Architect.
 
+⚠️ **Y el criterio que lo generaliza, del PM (2026-09-09), que es el más nítido que tenemos:**
+
+> ### **La diferencia no es el fichero: es si estoy quitando una trampa o poniendo un deber.**
+
+Esa noche escribió tres veces en `intro-terminal.txt` sin pedir permiso —el método del `cwd` dos
+veces, y el aviso del `pkill`— y **hizo bien**: eran **correcciones de instrucciones falsas o de
+peligros operativos**, y *"nadie puede seguir una instrucción que es falsa, así que dejarla
+mientras se bendice tenía más riesgo que corregirla"*. **Lo dijo al hacerlo.** Y cuando lo
+siguiente fue *"cuando declares un defecto de herramienta, abre issue"* —**una obligación nueva
+sobre otro rol**— **paró solo.**
+
 Es el criterio de T3 —*«cubierto por otra vía» exige señalar la vía*— aplicado a **por qué
 cambias un orden**.
 
@@ -2073,6 +2084,8 @@ que habría que construir.** Cada una debería poder decir si su arreglo está *
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **Un criterio de aceptación que dice que algo "sigue funcionando"** | ⚠️ **Suele ser verdadero por omisión.** Se cumple si nadie tocó nada, se cumple si el arreglo no hizo falta, y se cumple si el arreglo está mal pero el efecto no se ve. Caso del 2026-09-09 (AIT-115): *"comprobar que la exclusión ignora el fichero roto"* **no basta** — el fichero podría estar sano por otro motivo; hace falta **la otra mitad: comprobar que SIN la exclusión SÍ rompe** | > **Cada `PASA si` necesita un mundo en el que falle.** (PM, 2026-09-09.) **Ninguna de las dos mitades sola vale**, y por eso el resultado es fiable: una prueba que solo puede salir bien no es una prueba (enmienda 9) |
+| **Reconciliar dos medidas que no cuadran cuando la discrepancia NO cambia ninguna decisión** | ⚠️ **El impulso de reconciliar es MÁS FUERTE cuanto MENOS importa el dato**, y produce explicaciones ordenadas y falsas. Caso del 2026-09-09: 40 duplicados contra 13, con **las dos conclusiones que sostenían la ficha coincidiendo en ambas medidas**. La Directora intentó cerrarla y **produjo tres explicaciones distintas y las tres falsas** antes de que la pararan | > **Una discrepancia que no cambia la decisión se declara, no se resuelve.** Y se anota que **nadie cite ninguno de los dos números como si fuera el único** *(es "los números bailan y la estructura no", aplicado al gasto de tiempo en vez de a la regla)* |
 | 🔴 **Actuar sobre estado compartido sin avisar, aunque la acción sea inocua** | ⚠️ **El coste no es tu acción: es que OTRO mide dentro de tu ventana y se inventa una causa para tu efecto.** Caso del 2026-09-09: el CEO movió tres ficheros y, **en ese mismo minuto**, la Directora midió **18 errores donde antes había 5** y escribió un diagnóstico falso —*"una lectura sobre un `.next/` inconsistente"*—. **Eran los ficheros del CEO en su nueva ubicación.** Y hubo una segunda señal que ella vio y no entendió: su listado *"antes"* mostraba **solo los de T3 y ninguno de la raíz**, aunque los había contado un minuto antes. **Ya se los habían llevado.** 📌 **No pasó nada porque los ficheros eran inocuos — si hubieran sido recuperables solo desde uno de los dos sitios, se pierden** | **cualquier borrado o movimiento fuera de una tarea se avisa ANTES, aunque parezca trivial** (regla de reparto de la Directora, 2026-09-09). **No es pedir permiso: es que el otro lo sepa antes y no después.** Y al medir algo raro, **preguntar si alguien está tocando eso ahora mismo** antes de explicarlo |
 | **Escribir una regla de exclusión para los duplicados de macOS usando el sufijo `" 2"`** | **El patrón NO se queda en `" 2"`.** En T3 los duplicados eran `cache-life.d 4.ts`, `routes.d 5.ts`, `validator 4.ts`… — **la raíz tenía `" 2"` y T3 tenía `" 4"` y `" 5"` a la vez**. Una exclusión escrita mirando un solo worktree **habría dejado fuera precisamente el que tenía seis** | **cubrir CUALQUIER dígito** en la regla, y medir el patrón **en todos los worktrees antes de escribirla**, no en el que se tenga a mano |
 | 🔴 **Poner algo "en cuarentena" DENTRO del árbol que la herramienta compila/escanea** | ⚠️ **El remedio empeora el defecto, y el precedente no avisa.** Caso del 2026-09-09: `npx tsc --noEmit` daba **5 errores**, todos en duplicados `.next/types/*" 2".ts`. El CEO los movió a la carpeta de cuarentena de la fábrica **siguiendo el precedente de la noche** — **y pasaron de 5 a 18 errores**, porque esa carpeta está dentro del repo y `tsconfig` la compila también. **Aplicó el precedente sin comprobar la precondición que lo hacía funcionar** *(el precedente movía documentos `.md`, que nadie compila)* | **la cuarentena tiene que estar FUERA del alcance de la herramienta** — se movieron a `~/.cuarentena-fabrica/`, fuera del repo, y `tsc` pasó a **0 errores**. 📌 **Y se verificó el EFECTO, no el remedio**: además, control positivo con un canario de tipos en `convex/` — dio rojo y señaló la línea, así que **el 0 errores se distingue de "no compiló nada"**. Canario borrado, `git status` limpio |
@@ -2448,6 +2461,54 @@ los errores pasaron de 5 a 18**.
 
 **Y la precondición no estaba escrita en ninguna parte** — por eso el precedente parecía general
 cuando era específico.
+
+### Decisión 71 — El crudo viaja con la conclusión (2026-09-09)
+
+**No sale de un razonamiento: sale de contar cómo se cazó cada error de la noche.** De los **seis**
+que se destaparon en dos horas, **ninguno lo cazó una regla recordada** — y en dos de los seis **la
+regla estaba escrita y no saltó**:
+
+| Error | Qué lo cazó |
+|---|---|
+| `tsc \| head` devolviendo el `EXIT` de `head` | que el 0 **no cuadraba con los errores en pantalla** |
+| Un histograma de sufijos, dos versiones dando basura *(la segunda, limpia y creíble)* | que **contradecía un `package 5.json` visto antes** |
+| "3 ficheros en T3" contra "6" | que **los dos números no coincidían** |
+| 18 errores atribuidos a un `.next/` inconsistente | que **alguien dijo que estaba moviendo ficheros** |
+| Una procedencia inventada | **el registro literal del mensaje anterior** |
+| `tsc` en rojo desde el 20 de agosto | que se **citó de pasada, para ilustrar otra cosa** |
+
+> ### **Seis de seis por contradicción con un dato que ya estaba delante. Cero por disciplina.**
+>
+> **Un resumen sin su crudo al lado no tiene quien lo desmienta.** Y contra lo *plausible* —que es
+> lo que produjeron los dos instrumentos que fallaron— **no protege releer el instrumento: protege
+> tener enfrente un dato anterior que no cuadre.**
+
+**71.1 — Al reportar una medición van el número Y su crudo** —el comando y las líneas de salida—;
+al reportar un veredicto o un estado, **de dónde se leyó**. *"No es cortesía: es darle al otro con
+qué chocar"* (Directora).
+
+**71.2 — El crudo va ARRIBA, antes de la conclusión.** No se puede obligar a leer en un orden,
+**pero sí poner primero lo que quieres que se lea primero** — así el orden es el camino por defecto
+y no una disciplina. ⚠️ **Sin esto la tabla es decorado:** si el receptor lee el resumen y usa el
+crudo para confirmarlo, no sirve de nada.
+
+**71.3 — El rendimiento del crudo es proporcional a que el receptor NO comparta tu conclusión.**
+Mandárselo a quien ya está de acuerdo **no produce nada**. Al elegir a quién enviar una medición
+dudosa: **al que la va a discutir, no al que la va a archivar.**
+
+> **El crudo no protege a quien lo manda: protege a quien lo lee.** *La Directora mandó su listado
+> "ANTES" con los seis ficheros de T3 y **ninguno de la raíz** — un dato que **desmentía su propia
+> explicación, dentro de su propio mensaje**, y no lo vio. **Lo vio el otro, no por más listo, sino
+> porque no llevaba su conclusión en la cabeza.***
+
+⚠️ **ALCANCE ESTRECHADO POR EL CEO AL ESCRIBIRLA, pendiente de que el Factory Architect lo
+confirme o lo revierta.** La decisión llegó como *"todo mensaje que transporte un número"*, y **la
+evidencia no llega hasta ahí**: de los seis casos, **solo uno lo habría cazado adjuntar crudo a un
+mensaje**; los demás los cazó *un dato anterior en la cabeza*, *una segunda medición independiente*
+o *que alguien anunciara lo que hacía*. Y hay un efecto en contra: **el crudo alarga, y lo largo se
+lee en diagonal** — sería la 68.1 otra vez, un control que grita algo que nadie mira. **Escrita
+como: el crudo viaja con los números que el receptor va a USAR PARA DECIDIR o va a CITAR HACIA
+ADELANTE**, no con todos.
 
 ### Decisión 70 — Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export (2026-09-09)
 
