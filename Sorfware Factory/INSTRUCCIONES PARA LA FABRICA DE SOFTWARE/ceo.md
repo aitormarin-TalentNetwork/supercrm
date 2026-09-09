@@ -613,6 +613,33 @@ medición te daría la respuesta correcta por el motivo equivocado, y para siemp
 **Usa `ListAgents` y `ps` con `etime`, que sí miden el proceso.** El título, como mucho, como
 confirmación de algo que ya sabes por otra vía.
 
+📌 **Y son CINCO, no tres** —T1, T2, T3, el del PM y `titulo_ceo.sh`—, **todos de 13 a 15 h**.
+⚠️ **El quinto es el que más dice: vive en el scratchpad de una sesión de CEO que YA NO EXISTE.**
+Sobrevivió a quien lo creó, sigue reescribiendo un título, y **ningún documento sabe que está ahí.**
+⚠️ **Y los dos últimos aparecieron porque el Factory Architect rehízo mi búsqueda:** yo busqué en
+`/tmp/*.sh` **porque los tres primeros estaban ahí**. Los otros dos estaban en `scratchpad/`.
+> **Un patrón de búsqueda escrito contra los ejemplos que ya tienes delante encuentra justo esos.**
+> Para barrer procesos: **`ps` entero, y filtrar después.** Nunca un directorio.
+
+### 🔑 Indicador MANTENIDO contra indicador DERIVADO (2026-09-09) — vale para todo lo que leas
+
+> **Un indicador MANTENIDO —que alguien escribe— se congela al morir su escritor.**
+> **Uno DERIVADO —que el lector calcula— no puede mentir así.**
+
+| mantenido (se congela) | derivado (no puede) |
+|---|---|
+| el título de la ventana | `ps` con `etime` |
+| un fichero que dice `vivo` | el `mtime` de ese fichero |
+| un panel refrescado por un cron | `ListAgents` |
+
+**La regla operativa, y es del Factory Architect contra su propio artefacto:** *un fichero de
+estado **no debe afirmar que está vivo**: lleva hechos con su marca de tiempo, y **la vivacidad la
+calcula el lector desde la frescura.*** Su fichero decía `| vivo |` —una palabra que **se queda
+escrita cuando el proceso muere**— y la cambió por *"si esta marca tiene más de 3 min, el vigilante
+NO corre"*, **dentro del propio fichero**, para que no dependa de que tú recuerdes la regla ni de
+que él esté para contarla.
+*(Fue el mismo defecto del título, **dentro del artefacto construido para arreglar el título**.)*
+
 ### ⛔ ANTES DE LEER NINGUNA COMPROBACIÓN FIJA: ESTE DOCUMENTO NO LAS EJECUTA
 
 **Todo lo que sigue es inerte hasta que lo copias al prompt de tu `/loop`.** `ceo.md` es donde
