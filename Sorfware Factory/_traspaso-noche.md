@@ -320,6 +320,16 @@ paró de producir y respetamos la pausa—:
   **La forma propuesta, que es la parte que importa:** cada ciclo, rotando, **coger UN número
   concreto que ese instrumento produjo y preguntar de dónde sale** — *no "¿cómo mides?"*, que se
   contesta con el mismo párrafo cada vez y **no puede fallar**.
+  ⚠️ **Y el refinamiento sin el cual no sirve: se pregunta por el NÚMERO, no por la ETIQUETA —
+  porque la etiqueta es la que se arregla primero.** Caso que lo demuestra: el contador del
+  Factory Architect llevaba **cuatro horas con el nombre corregido y el contenido viejo**. Si se
+  le hubiera preguntado *"¿qué significa esa etiqueta?"*, habría dado la definición buena —la
+  había escrito él— **y no se habría encontrado nada.** *Es la diferencia entre un mecanismo que
+  encuentra cosas y uno que las confirma.*
+  📊 **Resultado de la única vuelta que se hizo (madrugada del 9-sep):** dos instrumentos
+  revisados, **dos defectos encontrados**, un hueco declarado abierto **y cerrado en la misma
+  vuelta**, y **una tarea de mañana que dejó de existir** —*"revisar qué alertas no se
+  emitieron"*— porque una medición barata la borró.
   ⚠️ **Yo lo escribí como comprobación fija y el Factory Architect lo devolvió, con razón:**
   añadir una comprobación a mi barrido es ejecución; **imponer una obligación recurrente sobre
   el trabajo de otros cuatro roles, no.** Queda **autorizado solo para esta noche**. *Si mañana
