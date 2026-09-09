@@ -831,6 +831,28 @@ Decisión del Factory Architect, ejecutada por el CEO. Es **la otra mitad de §2
 >
 > ### **"Los criterios escritos no protegen del error: protegen de uno mismo cuando el error saldría gratis."**
 
+> ## EL EJE DE TODA ESTA SECCIÓN — la dirección del fallo (2026-09-08)
+>
+> ### **Un defecto que falla hacia el ROJO se anuncia solo. Uno que falla hacia el VERDE no tiene quien lo cuente.**
+>
+> **Por eso este catálogo tiene la forma que tiene: no recoge errores — recoge errores que no
+> avisan.**
+>
+> Es la misma asimetría que la Directora formuló con los filtros (*un falso negativo se
+> investiga; un falso positivo no*), y apareció **tres veces el mismo día por caminos
+> distintos**. Eso ya no es coincidencia: es el eje.
+
+**⚠️ Regla de triaje, que es lo que hace accionable el eje.** Ante cualquier defecto nuevo, la
+primera pregunta no es *"¿qué de grave es?"* sino **¿hacia dónde falla?**
+
+- **Falla hacia el rojo** — aborta, grita, rompe la ejecución: **molesta, y se arregla cuando
+  toque.** Alguien lo va a volver a encontrar sin querer.
+- **Falla hacia el verde** — sigue adelante como si nada: **es urgente aunque parezca menor**,
+  porque **nadie lo va a volver a encontrar**. Su única oportunidad de arreglarse es esta.
+
+*(Y da, por fin, el criterio para ordenar las 52 decisiones en el repaso pendiente: **no por
+importancia aparente, sino por dirección del fallo**.)*
+
 **Regla de diseño, que es la parte accionable: cuando una comprobación pueda mentir en
 verde, se verifica el EFECTO, no el código de retorno ni la ausencia de error.** "No
 falló" nunca es evidencia de "hizo lo que le pedí".
@@ -1018,6 +1040,42 @@ sea **cambiando de sujeto**, no midiendo mejor.
 mala** — la Directora la usa a diario para cazar veredictos perdidos. Es **la misma
 observación leída del revés**, y sirve para dos conclusiones opuestas según qué esperes
 encontrar. No se arregla desconfiando de la señal: se arregla preguntándose de qué es señal.
+
+### Decisión 51 — El código de salida contesta a una pregunta, y no siempre es la que crees (2026-09-08)
+
+**Formulación de la Directora. Sustituye a la del Integrador porque cubre las cuatro
+instancias, y la suya cubría tres.**
+
+La del Integrador —*nunca encadenes `&&` detrás de una tubería cuyo último comando no sea el
+que te interesa*— es correcta y es el caso más frecuente. Pero **el caso de T3 no encaja: su
+tubería SÍ terminaba en el comando que le interesaba.** Lo que falló fue otra cosa:
+
+> **No es que el idioma destruya el código de salida. Es que el código de salida contesta a
+> una pregunta distinta de la que se hizo.**
+
+`grep -c` no dice *"¿falló?"*, dice *"¿encontré algo?"*. Así que **"no hay errores" —el
+resultado bueno— abortó la verificación.**
+
+**La regla que va escrita, más incómoda y más útil: antes de encadenar con `&&`, saber qué
+pregunta contesta el código de salida de la izquierda.** La del Integrador se conserva como
+su caso más frecuente, **subordinada a esta**.
+
+**Las instancias, y hay que marcar cuál es cuál, porque el sustituto es distinto:**
+
+| Instancia | Familia | Qué hacer |
+|---|---|---|
+| `npm test \| tail` | **el idioma lo destruye** — el exit de una tubería es el del último eslabón | leer la línea `N passed`/`N failed` |
+| `grep <patrón> f \| head -1 && echo "APARECE"` | **el idioma lo destruye** — `head` devuelve 0 aunque `grep` no encuentre nada | `grep -c` y mirar el número |
+| `grep -c <patrón> && <siguiente paso>` (T3) | **contesta a otra pregunta** — la tubería termina donde debe; es que `grep -c` responde *"¿encontré algo?"*, no *"¿falló?"* | comparar el número explícitamente (`[ "$(grep -c …)" -eq 0 ]`), nunca encadenar sobre el exit |
+
+⚠️ **Falta una cuarta instancia por documentar.** El Factory Architect cuenta cuatro —tres de
+"el idioma lo destruye" y una de "contesta a otra pregunta"— y aquí solo constan tres
+verificadas. **No se inventa la que falta:** se pide y se añade. *(Aplicación literal del
+criterio de T3: «cubierto» sin nombrar por dónde es «no lo he mirado».)*
+
+📌 **Y la observación que dio origen al eje de esta sección:** las tres primeras fallan **hacia
+el verde** —siguen adelante mintiendo—; la de T3 falló **hacia el rojo** —abortó—, y por eso
+se supo en el acto. Mismo mecanismo, direcciones opuestas, costes incomparables.
 
 ### Registro vivo de comprobaciones desacreditadas
 
@@ -1261,6 +1319,37 @@ y era correcto — lo que falló fue el paso siguiente.
 📌 **Y el fallo era de los dos lados, que es lo que lo hace regla y no anécdota:** uno mandó
 un resumen, y el otro **lo usó como si fuera una medición**. Quien pide artefacto para un
 `/loop` no puede aceptar una conclusión agregada para un censo.
+
+### Decisión 52 — Un gate que solo se ejecuta una vez es documentación (2026-09-08)
+
+Frase del Integrador, literal:
+
+> ***"Un gate que solo se ejecuta una vez es documentación. Ejecutable, es una prueba de
+> regresión."***
+
+**Y el hallazgo operativo es que ya teníamos uno y nadie lo sabía:** el gate de AIT-79 estaba
+escrito desde entonces, **cuesta veinte segundos**, y se había ejecutado **una sola vez**.
+
+**52.1 — Todo gate que se escriba para una publicación concreta se anota como reejecutable**,
+con **su coste** y **su condición de disparo**: qué tiene que pasar para que merezca volver a
+correrse. El del Integrador es el ejemplo: *cuando se publique un consumidor de lo que este
+gate protege.*
+
+**52.2 — Esto convierte los gates existentes en una suite de regresión gratis.** No hay que
+construir nada: **hay que anotar lo que ya está escrito.**
+
+**Inventario, barrido el 2026-09-08 sobre los 133 ficheros de `codigo para auditar/`:**
+
+| Gate | Cuándo corre | Coste | Condición de disparo |
+|---|---|---|---|
+| **AIT-79** — el identificador de versión sigue a los despliegues (`T2_AIT-79_..._gate.txt`) | **después** de publicar, por diseño | ~20 s | **cuando se publique un consumidor** de lo que protege. **Ya se disparó una vez:** al publicar AIT-83 se reejecutó completo **por efecto, no por diff**, y siguió pasando |
+| **AIT-81** — contrato de `customers.source` (`T2_AIT-81_..._publicacion.txt`) | inmediatamente **antes** del merge | segundos | cuando se toque el catálogo de valores de `source`, o cualquier escritura que lo alimente |
+
+**Y la autocrítica de la Directora, que es la parte que enseña, con su nombre:** ella cruzó el
+gate de AIT-79 comprobando que el diff no tocara los ficheros protegidos. **Eso demuestra la
+intención, no el resultado** — es la distinción hecho/intención (enmienda 10) aplicada a una
+verificación. En sus palabras: ***"él lo vio y yo no."*** El Integrador lo reejecutó por
+efecto, y esa es la diferencia entre las dos filas de arriba y una nota en un documento.
 
 ### Un control nuevo se estrena con el estado ya conciliado (decisión 46, 2026-09-08)
 
