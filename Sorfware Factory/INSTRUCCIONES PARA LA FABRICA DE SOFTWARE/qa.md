@@ -104,7 +104,29 @@ cumpla lo que promete la pantalla/flujo correspondiente.
 
 ---
 
-## La suite e2e sobre `main` limpio — tuya (decisión 57.1, 2026-09-08)
+## ⚠️ La suite e2e sobre `main` limpio — YA NO ES TUYA (retirada el 2026-09-08, misma noche)
+
+**Se te asignó y se ha retirado el mismo día. Léelo, porque el motivo te sirve.**
+
+**Pasó al Integrador**, y lo decide la 53: el disparo de la versión revisada es *"voy a publicar
+algo que toca un fichero compartido por varios specs"*, y **ese es un momento que él vive y tú
+no**. La versión que era tuya se anclaba a una **cadencia**; esa cadencia desapareció al
+descubrirse que **la suite completa no cabe en memoria** (el sistema la mató: 12,6 GB de 16).
+**Cambió el ancla, cambió el dueño.**
+
+**Y el segundo motivo es tuyo y lo encontraste tú:** en tu deployment propio **no puedes
+autenticarte** —el agujero de §3bis—, así que la responsabilidad **habría nacido bloqueada**.
+Dejarla contigo habría repetido lo de la 59.1, que no se vio hasta que lo pisaste.
+
+**Lo que sí sigue siendo tuyo de todo aquello:**
+- **Reportar el TOTAL de `main`, no el subconjunto tocado ni el total de una rama** (57.2).
+- **Declarar qué no cubriste** (57.3): *el silencio se lee como cobertura*.
+- **La precondición de tres campos** al aceptar o emitir una medición de la suite: contra qué
+  commit, con qué deployment, y de quién era el puerto.
+
+---
+
+## [HISTÓRICO — ya no aplica] La suite e2e sobre `main` limpio (decisión 57.1, 2026-09-08)
 
 **Corrida periódica de la suite completa sobre `main` limpio, desacoplada de las
 publicaciones.** No la dispara un merge ni un GO: va con tu propia cadencia.

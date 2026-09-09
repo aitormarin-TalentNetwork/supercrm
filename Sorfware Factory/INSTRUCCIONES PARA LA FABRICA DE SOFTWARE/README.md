@@ -1403,9 +1403,24 @@ que hay que preguntar **no es si cada una es correcta, sino qué es lo que no mi
 > y sin dueño para todo lo otro.** Que nadie lea *"hay corrida antes de publicar"* y entienda que
 > `main` está vigilado.
 >
-> ❓ **Pendiente de una línea: DE QUIÉN es la corrida revisada.** La 57.1 original se la asignó al
-> QA por su cadencia propia; la versión nueva **se dispara en el momento de publicar**, que es
-> del Integrador. **No se resuelve por inferencia** — está preguntado al Factory Architect.
+> ✅ **DUEÑO: el Integrador. Y lo decide la 53, no la conveniencia.** El disparo de la versión
+> revisada es *"voy a publicar algo que toca un fichero compartido"* — **un momento que el
+> Integrador vive y el QA no**. La 57.1 original era del QA porque el ancla era una **cadencia**,
+> y esa cadencia desapareció con la propuesta vieja: **cambió el ancla, cambia el dueño.**
+>
+> *(Y el dato lo confirma por el otro lado: si fuera del QA **nacería bloqueada** por el agujero
+> de §3bis — repetiríamos exactamente lo de la 59.1, que no se vio hasta que él lo pisó.)*
+>
+> 🔴 **CONDICIÓN SIN LA CUAL ESTO NO SE ESCRIBE: si no cabe, SE DECLARA.**
+>
+> Acabamos de medir que **la suite puede no caber en memoria**. Así que esto le da al Integrador
+> una responsabilidad que **la máquina puede impedirle cumplir** — y sin cubrir eso, **el gate se
+> vuelve opcional en la práctica bajo presión de memoria y nadie se entera.**
+>
+> > **El Integrador publica DICIENDO que no pudo correrla y por qué. No publica sin más.**
+>
+> Convierte una omisión invisible en un dato visible. Es **§2ter(b) en el sitio donde más
+> tentador es callarse: cuando el obstáculo es real y la excusa es buena.**
 
 **57.1 — [RETIRADA, ver arriba] Corrida periódica de la suite sobre `main` limpio, desacoplada de las publicaciones.**
 Propuesta del Integrador, **asignada al QA**: ya tiene cadencia propia y disciplina de `/loop`,

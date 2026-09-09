@@ -10,6 +10,38 @@ documento entero antes de tocar nada.
 
 ---
 
+## La suite e2e antes de publicar un fichero compartido — tuya (57.1 revisada, 2026-09-08)
+
+**Disparo, y es una condición observable en el diff, no un reloj:** vas a publicar algo que
+**toca un fichero compartido por varios specs** —`e2e/helpers.ts` es el caso—. Entonces corres
+la suite **antes del merge**, con **`--workers=1`**.
+
+**Por qué así y no periódica:** la versión periódica se retiró la misma noche en que se escribió
+porque **la suite completa no cabe** — el sistema la mató por memoria, 12,6 GB de 16 con nueve
+sesiones vivas.
+
+> **La vigilancia compite por memoria con el trabajo que debería vigilar** — y se degrada
+> **precisamente cuando hay más trabajo en marcha**, o sea cuando más probable es que haya algo
+> que detectar. No falla al azar: **falla en correlación con el riesgo.**
+
+**Y corre donde puede discriminar:** una corrida ciega sobre ficheros que nadie tocó **no podía
+dar otro resultado que verde** (enmienda 9).
+
+🔴 **SI NO CABE, SE DECLARA. NO SE SALTA EN SILENCIO.**
+
+> **Publicas DICIENDO que no pudiste correrla y por qué. No publicas sin más.**
+
+Sin esto, el gate **se vuelve opcional bajo presión de memoria y nadie se entera** — que es
+justo el fallo que esta regla existe para evitar. Es §2ter(b) **en el sitio donde más tentador
+es callarse: cuando el obstáculo es real y la excusa es buena.**
+
+⚠️ **Y el límite, para que no lo leas como más de lo que es: ESTRECHA el hueco de la 57, NO lo
+cierra.** Cubre **la regresión lateral por fichero compartido**; no cubre las demás. **Nadie
+corre la suite completa sobre `main`**, y ese hueco sigue **declarado y sin dueño**.
+
+**Al reportar:** el **total de `main`** (no el subconjunto tocado), y los tres campos de
+procedencia — contra qué commit, con qué deployment, y de quién era el puerto.
+
 ## Parte genérica (aplica a cualquier proyecto)
 
 ### Al terminar de arrancar, preséntate
