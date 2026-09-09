@@ -36,23 +36,54 @@ que habla de otra cosa.
 
 ```bash
 [ -f .env.local ] || echo "FALTA: .env.local (CONVEX_DEPLOYMENT y NEXT_PUBLIC_CONVEX_URL)"
-[ -d node_modules/@playwright/test ] || echo "FALTA: npm install"
-npx playwright --version >/dev/null 2>&1 || echo "FALTA: npx playwright install (navegadores)"
-npx convex data authSessions --limit 1 >/dev/null 2>&1 || echo "FALTA: el deployment de Convex no responde"
+[ -x node_modules/.bin/playwright ] || echo "FALTA: npm install (no está node_modules/.bin/playwright)"
+P="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/Library/Caches/ms-playwright}"
+ls "$P"/chromium-* >/dev/null 2>&1 || echo "FALTA: navegadores (npx playwright install) — no hay chromium en $P"
+if [ -f .env.local ] && [ -x node_modules/.bin/convex ]; then
+  err=$(node_modules/.bin/convex data authSessions --limit 1 2>&1 >/dev/null) || case "$err" in
+    *"No CONVEX_DEPLOYMENT"*) echo "FALTA: CONVEX_DEPLOYMENT dentro de .env.local (es configuración, no el deployment)" ;;
+    *) echo "FALTA: el deployment de Convex no responde" ;;
+  esac
+fi
 ```
+
+**Nada de `npx` aquí, y no es cosmético.** La versión anterior de estas cuatro
+líneas usaba `npx` y la probó T3 en un clon en frío: **`npx playwright --version`
+se BAJA Playwright del registro y contesta `Version 1.63.0` con exit 0**, en un
+entorno sin un solo navegador instalado. O sea que la línea escrita para detectar
+que faltan los navegadores **contestaba a otra pregunta** —*"¿llega npm al
+registro?"*—, **tenía efecto** (instalaba un paquete al comprobar una
+precondición) y **devolvía una versión que ni siquiera es la del proyecto**
+(`package.json` fija `^1.62.1`). Desde un worktree caliente eso es invisible,
+porque `npx` resuelve local y todo parece bien.
+
+Por eso ahora: **binarios locales** (`node_modules/.bin/…`), y los navegadores se
+comprueban **mirando su caché**, que es donde viven, en vez de preguntándole la
+versión a algo que puede aparecer de la nada.
+
+**Y la última línea distingue dos causas que antes confundía.** `No
+CONVEX_DEPLOYMENT set` **no** es *"el deployment no responde"*: es el mismo
+`.env.local` que ya reportó la primera línea. Atribuirlo a Convex manda a quien lo
+lea a mirar el deployment compartido —justo lo que costó tiempo en AIT-102—
+cuando lo que falta es un fichero de configuración.
 
 Silencio = todo presente. Cada línea que salga es una pregunta que **todavía no
 puedes hacerte**.
 
 ⚠️ **Alcance exacto de la última línea**, sondeado: detecta que el *deployment*
-no responde, y **nada más**. `npx convex data unaTablaQueNoExiste` devuelve
-**exit 0**. Si lo lees como "las tablas están", te equivocas.
+no responde o que falta su configuración, y **nada más**. `convex data
+unaTablaQueNoExiste` devuelve **exit 0**. Si lo lees como "las tablas están", te
+equivocas.
 
-⚠️ **Y el silencio prueba menos de lo que parece.** Esto se corrió en dos
-worktrees que llevaban horas trabajando —dependencias, navegadores y Convex ya
-calientes—, así que el verde dice *"aquí hoy está bien"*, **no** *"un checkout
-nuevo estaría bien"*. La pregunta 0 solo se contesta de verdad **en un clon
-recién hecho**, y eso está pendiente.
+⚠️ **Comprobado en un clon en frío de verdad** (`git clone --local` a un
+temporal, sin red y sin `npm install`, T3 el 2026-09-09). Ahí es donde se cazaron
+los dos fallos de arriba. Si vuelves a tocar este bloque, **pruébalo así**: desde
+un worktree caliente estas líneas pasan en verde estén bien o mal.
+
+⚠️ **Esta pregunta ya no descarga nada** — antes sí, y por eso conviene decirlo:
+la versión con `npx` se bajaba `playwright` y `convex` al caché compartido **como
+efecto secundario de comprobar precondiciones**. Con binarios locales es de solo
+lectura.
 
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
