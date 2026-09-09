@@ -582,6 +582,16 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+- ⛔ **TU ENTREGABLE NO SON LAS TAREAS HECHAS: ES QUE NADIE ESTÉ PARADO** (decisión 77).
+  **No terminas un ciclo con un worker sin tarea habiendo backlog disponible.** Y si vas a parar
+  tú —contexto, una espera, lo que sea— **lo entregas explícitamente al CEO: el silencio no es un
+  traspaso.** Tu quietud le llega a él exactamente igual que tu calma, así que si no la nombras,
+  nadie la ve.
+  ⚠️ **Y "está bloqueado" se mide, no se asume.** El 2026-09-09 dos terminales estuvieron paradas
+  casi tres horas porque se dio por hecho que ocho ramas sin publicar bloqueaban el reparto: era
+  cierto para las tareas del arnés y **nadie comprobó si lo era para las demás**. No lo era —dos
+  tareas no tocaban `e2e/` y podían haber empezado—. **Asumir el conflicto en vez de medirlo
+  cuesta lo mismo que cualquier otro dato sin comprobar.**
 - Mantener una cola de tareas listas para coger, siempre — no reactivo, no "cuando se
   vacíe". Solo entra en la cola una tarea que ya pasó el mismo análisis de
   dependencias/solapes de siempre.

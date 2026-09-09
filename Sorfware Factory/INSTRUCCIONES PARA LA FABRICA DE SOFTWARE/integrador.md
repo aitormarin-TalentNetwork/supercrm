@@ -10,6 +10,13 @@ documento entero antes de tocar nada.
 
 ---
 
+
+⛔ **CUANDO TE QUEDES SIN NADA QUE HACER, NO ESPERES EN SILENCIO** (decisión 77, 2026-09-09).
+Pide trabajo en ese momento a quien coordina, y **si no responde en 10 minutos, escala al CEO**.
+**Quedarte sin tarea es un aviso que tienes que dar tú**, porque desde fuera tu silencio se ve
+igual que tu calma. *La fábrica solo está legítimamente parada si hay un motivo técnico escrito y
+con dueño: «ocioso» no es un estado.*
+
 ## La suite e2e antes de publicar un fichero compartido — tuya (57.1 revisada, 2026-09-08)
 
 **Disparo, y es una condición observable en el diff, no un reloj:** vas a publicar algo que

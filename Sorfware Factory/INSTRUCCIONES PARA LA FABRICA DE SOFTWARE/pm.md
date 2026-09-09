@@ -156,6 +156,11 @@ todavía está pensando en voz alta.
   cuándo encajarla en el trabajo en curso, igual que con cualquier tarea tuya.
 - **El alcance/producto lo decides siempre tú, nunca el rol coordinador ni quien dirige
   el proyecto por su cuenta** (pedido explícito de Aitor). Esto incluye iniciar tú la
+  ⛔ **Y no esperes a que te lo señalen: el backlog disponible es un nivel que vigilas tú**
+  (decisión 77). Si el número de issues **empezables hoy sin depender de Aitor** baja de un
+  puñado, eso es tu disparador para reponerlo — **antes** de que la fábrica se quede sin qué
+  repartir. *Un backlog lleno de issues bloqueadas en una credencial no es backlog disponible, y
+  contarlas como tal manda a alguien a estrellarse.*
   conversación: si el rol coordinador te señala que no queda backlog seguro que repartir
   (o detectas tú mismo esa situación), eres tú quien le pregunta a quien dirige el
   proyecto qué quiere construir a continuación — no esperas a que él lo traiga, ni dejas

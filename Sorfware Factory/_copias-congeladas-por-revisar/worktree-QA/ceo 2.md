@@ -311,9 +311,7 @@ tiene bloqueada, que es lo accionable — porque cada uno se resuelve distinto:
 - `ExitPlanMode` → hay que pedir que respondan **esa** pantalla, diciendo qué opción (las
   tres llevan a programar; solo una respeta el gate de plan).
 - `AskUserQuestion` → hay que pedir que cierren el selector.
-- Ninguna llamada reciente y nada encolado → **NO está atascada, pero eso NO significa que
-  esté sana.** Comprueba si **tiene tarea asignada**. Sin tarea y con backlog disponible es una
-  **INCIDENCIA, no un estado**: la acción es tuya **en ese mismo barrido** (decisión 77).
+- Ninguna llamada reciente y nada encolado → puede ser una sesión ociosa legítima.
 - Ninguna llamada reciente **con** mensajes encolados → mírala de verdad, puede estar
   muerta.
 
@@ -346,9 +344,7 @@ decisión 11 del Factory Architect). Dicen literalmente **qué mensajes le han l
 sesión y todavía no ha procesado**, con su hora exacta. Eso responde la pregunta que de
 verdad importa — *"¿le han escrito y no lo atiende?"* — y la separa de *"nadie le ha
 escrito, por eso está quieta"*. No es un paso más de una lista: es la única señal que
-distingue una sesión **sin trabajo asignado** de una atascada — *y ojo, que responde solo a
-"¿le han escrito?", no a "¿tiene algo que hacer?": la segunda pregunta es otra y hay que hacerla
-aparte (decisión 77)*. **"El fichero no crece" nunca
+distingue una sesión ociosa legítima de una atascada. **"El fichero no crece" nunca
 respondió esa pregunta**, y de ahí sus falsos positivos.
 
 Caso real que la validó el mismo día: T3 aparecía como `waiting` estando en fase de plan
@@ -597,41 +593,6 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
-### ⛔ Comprobación fija Nº1 de tu barrido: ¿cuántos trabajan, y cuántos podrían? (decisión 77)
-
-**Va la primera, antes que cualquier otra**, y **ninguna ronda puede cerrarse con "sin cambios"
-si esta línea sale con números que no cuadran.** Se escribe siempre así:
-
-```
-    N con tarea asignada  ·  M sin tarea  ·  backlog disponible = K
-```
-
-**Si `M > 0` y `K > 0`, eso NO es un estado: es una incidencia y la acción es tuya en ESE
-barrido**, no en el siguiente. `K` no es "issues en Backlog": es **issues que se pueden empezar
-hoy sin depender de Aitor** — hay que mirarlas, porque un backlog entero bloqueado por una
-credencial **no es trabajo disponible** y decir que lo es manda a alguien a estrellarse.
-
-⚠️ **Por qué existe esta comprobación, y es un fallo real mío, no una precaución teórica.** La
-noche del 2026-09-09 la fábrica estuvo **unas tres horas parada con trabajo disponible** —T1 292
-minutos, T3 186, T2 175, la Directora 165— **y mis diez barridos seguidos dijeron "todas ociosas,
-sin cambios".** No se me pasó por descuido: **este documento decía "puede ser una sesión ociosa
-legítima", y la palabra «legítima» apagó la alarma diez veces.** Todo mi marco preguntaba *"¿está
-atascada?"* y trataba *ocioso* como el falso positivo a descartar. **Cumplí el rol; el rol estaba
-mal escrito.** *(Lo diagnosticó el Factory Architect a partir de que Aitor lo notara al volver.)*
-
-> **La fábrica solo está legítimamente parada si hay un motivo técnico escrito y con dueño.**
-> **«Ocioso» no es un estado: con backlog disponible es una incidencia.**
-
-### ⛔ Comprobación fija Nº2: la Directora parada es TU disparador (decisión 77)
-
-Tu documento dice que entras cuando ella **escala** algo. **Una coordinadora parada no escala
-nada**: su silencio te llega exactamente igual que su calma, y ésa es la avería que no ves.
-
-- **Si la Directora lleva un ciclo de barrido sin producir y hay backlog disponible, la pones a
-  trabajar.** No preguntas si está bien: le dices que reparta.
-- **Si no responde en 10 minutos, asignas tú directamente y lo dices.** Repartir no es tu rol, y
-  por eso se declara cuando lo haces — pero **dejar tres terminales paradas tampoco lo es.**
-
 ### Comprobación fija de tu barrido: `core.hooksPath`
 
 Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso en uno visible:
@@ -639,13 +600,6 @@ Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso 
 ```bash
 git config --get core.hooksPath || echo "⚠️ SIN control de secretos en los commits"
 ```
-
-⚠️ **PENDIENTE ATADO A UN EVENTO, no "cuando toque" (decisión 60.1):** este control **solo ha
-visto el positivo** — lleva nueve ciclos reportando AUSENTE y **nunca ha visto el caso
-negativo**, así que **no sabemos si sabe callarse**. Su verificación se completa **en el momento
-en que Aitor ejecute el comando**: el ciclo siguiente confirma explícitamente que **dejó de
-reportarlo**. Si sigue avisando con el hook ya configurado, **el control está roto y llevaríamos
-nueve ciclos sin saberlo**.
 
 **Por qué está aquí y no es una manía:** el control que impide que un secreto entre en un
 commit vive en un hook, y un hook solo se activa si ese comando está configurado en **esa
@@ -656,152 +610,6 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 *(Nota: en este proyecto los worktrees comparten el `.git/config` de la raíz —
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
-
-### ⚠️ Contar `codex exec` (o cualquier proceso) exige DOS llamadas, no una
-
-**Corregido dos veces el 2026-09-09, la segunda por caer en ello en el propio censo.**
-
-El barrido reportó **1 auditoría viva** cuando había **cero**: el único proceso que casaba era
-**el wrapper `bash -c` de la propia comprobación**, que lleva el script entero —patrón incluido—
-en su línea de comando.
-
-> **Volcar `ps` a un fichero y buscar después NO basta si las dos cosas van en el mismo comando.**
-> El wrapper ya existe cuando `ps` corre. **La separación tiene que ser de PROCESOS, no de
-> líneas.**
-
-✅ **Cómo se hace bien:**
-1. **Una llamada** que solo tome el snapshot, **sin que el patrón aparezca en ningún sitio de esa
-   llamada**: `ps -A -o pid=,ppid=,command= > /tmp/snapA.txt`
-2. **Otra llamada** que busque en el fichero.
-
-📌 **Y el dato que lo hace memorable: el fallo ocurrió en la casilla del catálogo escrita para
-avisar de este fallo**, dos horas después de escribirla. **Saberlo no protege; separar los
-procesos sí.**
-
-### ⚠️ La memoria no se mide con el swap a secas — tres números, no uno
-
-**Corregido el 2026-09-09.** El barrido reportaba `sysctl vm.swapusage`, y **ese número solo
-engaña**: en macOS **el total del swap es dinámico**. Esa madrugada bajó de **7.168 a 6.144 MB**
-sin que nadie hiciera nada, así que **el "libre" cayó de 1.487 a 921 MB** y parecía un
-empeoramiento **cuando el uso real había BAJADO** (5.481 → 5.223).
-
-**Los tres que hay que dar juntos:**
-
-```bash
-sysctl -n vm.swapusage                      # swap: used / total  (el total SE MUEVE)
-vm_stat | awk '/Pages free/{f=$3} /Pages inactive/{i=$3}   END{gsub(/\./,"",f); gsub(/\./,"",i); printf "%d MB\n",(f+i)*16384/1048576}'
-                                            # libre + inactiva = lo REALMENTE reclamable
-ps -eo rss,tty,command | grep "[c]laude --permission-mode" \
-  | awk '$2!="??"{s+=$1} END{printf "%d MB\n", int(s/1024)}'
-                                            # lo que pesa la fábrica entera, agregado
-```
-
-*Esa noche:* swap **5.223 / 6.144**, **libre+inactiva 4.345 MB**, y **las nueve sesiones sumaban
-3.162 MB**. Con el swap solo, la lectura era *"quedan 921 MB, esto revienta"*; con los tres,
-**hay 4,3 GB reclamables y la fábrica pesa 3,2**.
-
-📌 **Y el agregado es el número que le sirve a Aitor para decidir si abre otra terminal** —no
-"los procesos más pesados son sesiones `claude`", que es una observación sin escala. **~350 MB
-por sesión es el dato accionable.**
-
-### ⚠️ El «cero colas» se mide contra el último evento USER, no contra el último de cualquier tipo
-
-**Corregido el 2026-09-09 preparando la revisión cruzada, antes de que nadie preguntara.**
-
-El censo cuenta los `enqueue` **posteriores a la última actividad**. La pregunta es **a qué
-actividad**, y hay dos candidatos:
-
-- ❌ **El último evento de cualquier tipo (`user` o `assistant`).** Es lo que hacía.
-- ✅ **El último evento `user`**, que es cuando la entrada encolada se consume de verdad.
-
-**Y no son intercambiables: el primero solo puede CONTAR DE MENOS.** Como el último de cualquier
-tipo es siempre ≥ que el último `user`, **los mensajes encolados en la ventana entre ambos son
-invisibles**.
-
-> ⚠️ **Y esa ventana es exactamente la que se abre cuando una sesión está trabajando sin drenar
-> —emitiendo `assistant` con un mensaje esperando—, o sea el caso que el barrido existe para
-> detectar.** El fallo está **correlacionado con el sujeto**, y va **hacia el verde**.
-
-📌 **Medido al corregirlo: los dos criterios daban lo mismo** (1 encolado, drenando). *Otra vez
-plausiblemente estable* — y otra vez eso **no es argumento para dejarlo**.
-
-**Y el contraste que conviene tener a mano para no volver al error de agosto:** en ese mismo
-censo había **1.220 `enqueue` totales** en las sesiones vivas y **0 pendientes**. Contar el total
-en vez de los posteriores no es un matiz: **es reportar 1.220 mensajes sin leer donde no hay
-ninguno.**
-
-### ⏳ PROVISIONAL, SOLO PARA LA NOCHE DEL 2026-09-09: mirar el instrumento de otro
-
-⚠️ **Esto NO es una comprobación fija. Está autorizado para una noche y la decisión permanente
-está en el traspaso, pendiente de tomarse despierto.** *(El CEO lo escribió como fila fija y el
-Factory Architect lo devolvió: añadir una comprobación a tu propio barrido es ejecución;
-**imponer una obligación recurrente sobre el trabajo ajeno no lo es**. Y una regla que carga a
-cuatro roles es justo de las que no se fijan de madrugada: si mañana no se sostiene, se pierde
-una noche de rotación; si se fija hoy y está mal, queda una obligación permanente que nadie se
-atreve a quitar.)*
-
-**La forma, que importa más que la idea:**
-
-> **Cada ciclo, rotando, coges UN NÚMERO CONCRETO que ese instrumento haya producido en ese
-> ciclo y preguntas de dónde sale.**
-
-⚠️ **Y CUÁL ELEGIR, que es mejor regla que la que teníamos: no el más dudoso — EL QUE MÁS CARO
-SALE SI ESTÁ MAL.** *"Aquel error lo pagábamos nosotros; este lo paga él."* Esa madrugada el
-elegido fue **«intersección vacía entre las cuatro acumuladas»**, porque **Aitor iba a publicar
-cuatro tareas seguidas apoyándose en él, sin suite que cazara un choque y sin nadie mirando**. Y
-salió algo: **el número era ajeno y se había relayado como propio.** No *"¿cómo mides?"* sino ***"este 9, este 21, este «cero
-> colas» — ¿de dónde sale?"***
-
-⚠️ **Y por qué así: *"enséñame cómo mides" NO PUEDE FALLAR.*** Se contesta con el mismo párrafo
-cada vez y a las cinco rondas nadie lo lee — **la 46 esperando**. Una derivación concreta **sí
-puede rastrearse y sí puede estar mal**. Es la **enmienda 9 aplicada a la propia revisión: si no
-habría podido salir mal, no es una revisión.**
-
-📌 **Y es como salieron de verdad las cuatro de esa noche:** ninguna salió de una explicación
-general. **Salieron de alguien mirando un número concreto y preguntándose de dónde venía.**
-
-**Es recíproca**, y el Factory Architect pidió empezar por el suyo — *"tengo el instrumento que
-más veces ha fallado esta noche, doce versiones"*.
-
-📌 **No confundirlo con la vigilancia recíproca**, que comprueba si el instrumento del otro está
-**VIVO**. Esto mira **cómo está construido**, y esa pregunta no la cubría nadie.
-
-### ⚠️ Y dentro de cada worktree: el MÁXIMO de todos los transcripts, no el más reciente por `mtime`
-
-**Corregido el 2026-09-09, y el fallo era estructural aunque ese día no mordiera.** Hay **varias
-sesiones por worktree** —esa noche 3, 4 y 6— porque cada relanzamiento deja su `.jsonl`. Coger
-**el más reciente por `mtime`** y leerle su última actividad *funciona porque la sesión viva es la
-que está escribiendo*… **y eso es una suposición, no una garantía.**
-
-> **Basta con que algo toque un `.jsonl` viejo para que "T3: hace 0 min" sea de una sesión
-> muerta.** Y falla **hacia el verde**: daría *activa* a una terminal parada, que es **justo lo
-> contrario de lo que el barrido existe para detectar**.
-
-✅ **Lo correcto:** el **máximo timestamp de `assistant` entre TODOS los `.jsonl`** del
-directorio. Una línea más, y quita la suposición entera.
-
-📌 **Cuando se corrigió, los tres worktrees daban el mismo resultado por los dos métodos.** Eso
-**no es un argumento para dejarlo**: es la definición de *plausiblemente estable* — el criterio
-que **acierta siempre hasta el día que no**, y ese día no avisa. *(Lo encontró la Directora
-midiendo el instrumento del CEO, no revisando el suyo. Van tres veces la misma noche que el
-hallazgo sale de ir a comprobar lo de otro.)*
-
-### ⚠️ Al resolver roles en el censo: directorio de proyecto, NUNCA el `cwd` de los eventos
-
-**Corregido el 2026-09-09 después de leerlo mal dos ciclos.** La 45.1 dice *"el desarrollador se
-resuelve por su worktree"*, y hay dos formas de leer eso — **una es estable y la otra no**:
-
-- ✅ **El DIRECTORIO DE PROYECTO donde vive el `.jsonl`** (`…-worktrees-T3/`). Se fija al arrancar
-  la sesión y **no cambia nunca**.
-- ❌ **El campo `cwd` de los eventos.** Se mueve **cada vez que la sesión hace `cd`**.
-
-*Caso medido:* una sesión **de raíz** había pasado por los tres worktrees —2.493 eventos en la
-raíz, 256 en T1, 63 en T2, 58 en T3— y **su último `cwd` era T1**. El censo la presentó como
-desarrollador T1, **al lado de la fila del T1 real**. **Dos filas reclamando el mismo puesto es
-justo la ambigüedad que la 45 existía para quitar.**
-
-> **Un identificador estable al arrancar puede dejar de serlo durante la sesión.** El directorio
-> de proyecto lo es; el `cwd` no.
 
 ### Comprobación fija de tu barrido: todo `ref` de `ListAgents` está en el registro
 
@@ -921,11 +729,6 @@ que el pipeline está vigilado.
 ⚠️ **La línea nombra qué no se cubre Y QUIÉN lo cubre. Un hueco sin dueño es el hallazgo** — un
 *"no cubre X, Y, Z"* fijo se lee dos veces y luego es decoración; con dueño deja de ser un
 descargo y pasa a ser **un mapa de cobertura**. Modelo:
-
-⚠️ **Y con la 64.3: además de qué no cubre el barrido, declara qué NO PUEDE VER TU CRITERIO.**
-Son cosas distintas — *"no miro si el trabajo es correcto"* es alcance; *"mi censo filtra por
-actividad en la última hora, así que una sesión dormida a propósito y una muerta se ven igual"*
-es **una ceguera del instrumento**. La primera se delega; la segunda solo se puede declarar.
 
 > **Qué NO cubre este barrido:** si el trabajo es correcto → *el auditor*. Regresiones laterales
 > en `main` → *la corrida periódica del QA (57.1)*. Si alguien está atascado **sin que se le note

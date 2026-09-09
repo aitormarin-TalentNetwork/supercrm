@@ -131,44 +131,12 @@ una vez que el trabajo pasa auditoría.
        excepción de verdad, se le pide a Aitor a través del Factory Architect; nadie más
        puede concederla.
     2. Desarrollas.
-       ⚠️ ANTES DE LANZAR CUALQUIER SCRIPT QUE REESCRIBA FICHEROS DEL WORKING TREE,
-       COMMITEA (decision 67, 2026-09-09). El working tree NO tiene reflog: lo
-       commiteado se recupera aunque lo pierdas de vista; lo que solo esta en disco,
-       no. Entran en esta clase `git checkout <ref> -- <fichero>`, `git restore
-       --source`, `git stash`, copiar desde un backup, y `sed -i` sobre un fichero que
-       ademas tienes abierto. `git checkout <ref> -- <fichero>` no avisa, no pregunta y
-       no deja rastro: si te lleva por delante tu propio arreglo sin commitear, no hay
-       forma de recuperarlo ni de saber que perdiste. Caso real: T2, midiendo el "antes"
-       de AIT-96, se borro `e2e/helpers.ts`; lo salvo tenerlo fresco en la sesion, que
-       es suerte, no metodo.
-       Esto amplia "commitea al exportar" a un SEGUNDO evento: tambien antes de medir.
     3. Exportas TODO para el auditor en UN ÚNICO fichero (formato en Configuración) —
        nunca varios ficheros sueltos, para que no haya nada que se pueda perder o
        confundir. Avisa en tu punto de control de "listo para auditar" (mecanismo en
        Configuración) **y además manda un mensaje directo a la sesión coordinadora**
        diciendo que exportaste y en qué fichero.
     4. Esperas el veredicto — te lo devuelve la coordinadora por el mismo canal directo.
-       ⚠️ NO IMPLEMENTES SOBRE UN MENSAJE EN PROSA. VERIFICA EL VEREDICTO TÚ MISMO
-       (decision 62, 2026-09-08). El mensaje de la coordinadora trae una linea literal:
-           Veredicto del auditor: GO
-           Veredicto del auditor: NO-GO
-       en su propia linea, con fichero y fecha. Si ESA LINEA NO ESTA, NO HAY VEREDICTO —
-       da igual lo afirmativo que suene el resto del mensaje. No preguntes "entonces
-       puedo?": vuelve a esperar.
-       Y la linea es un PUNTERO, no la autoridad: el veredicto vive en un fichero que
-       escribe el propio auditor, en "codigo para auditar/", nombrado por tarea y ronda.
-       LEELO TU. Motivo, en palabras de la coordinadora: "la linea la escribo yo, no el
-       auditor; no prueba que el veredicto exista, prueba que yo afirmo que existe".
-       POR QUE ESTO NO ES BUROCRACIA: un GO y un mensaje cualquiera se ven igual desde
-       tu lado — los dos llegan por SendMessage, en prosa, de la misma sesion. "Esta en
-       vuelo" y "se me olvido" producen exactamente el mismo silencio. El 2026-09-08 a
-       T2 le salvo que la frase fuera ambigua; un poco mas afirmativa y la habria leido
-       como autorizacion. Un control que se transmite en prosa no es un control, porque
-       hay que interpretarlo.
-       TAREAS EN VUELO EL 2026-09-08: el fichero de veredicto no existe todavia para
-       ellas. Se estrena a partir de la siguiente auditoria disparada; las que ya
-       estaban en curso terminan con el mecanismo viejo, y eso queda declarado aqui para
-       que la ausencia del fichero no bloquee a nadie con razon aparente (decision 46).
     5. Si es NO-GO: corriges lo señalado y vuelves al paso 3 — incluido avisar otra vez
        a la coordinadora, sin esperar a que nadie te lo pida. No sigas adelante con nada
        más mientras el veredicto sea NO-GO. Repite el ciclo las veces que haga falta.
@@ -287,68 +255,11 @@ una vez que el trabajo pasa auditoría.
    worktree de OTRA rama y reportándolo como tuyo. Y `playwright.config.ts` tiene
    `reuseExistingServer: true`, así que Playwright se engancha a lo que haya
    escuchando sin preguntar de quién es.
-   PRIMERO, LO QUE RESUELVE SIN NECESIDAD DE IDENTIFICAR NADA: **si el puerto está
-   ocupado, no arranques encima y NO MATES EL PROCESO. Usa otro puerto** (T1 corrió
-   contra un 3010 propio; T2 contra un 3102). Esta regla no depende de acertar de quién
-   es el servidor, y es la que habría evitado el incidente del 2026-09-09. Lo de abajo
-   solo hace falta si necesitas saber contra qué estás midiendo.
-
-   COMPRUÉBALO ASÍ:
-     lsof -nP -iTCP:<puerto> -sTCP:LISTEN -t   # PID del que escucha
-     lsof -a -p <PID> -d cwd -Fn               # su directorio de trabajo
-   **El `cwd` tiene que ser TU worktree.** Si es otro worktree, o la raíz del repo, ese
-   servidor no es tuyo.
-
-   ⚠️ OJO CON ESTO, QUE NOS COSTÓ UNA NOCHE (2026-09-09): al arrancar desde un worktree,
-   **Next.js emite un aviso de "workspace root" porque encuentra varios
-   `package-lock.json`**. Ese aviso da miedo y hace pensar que el proceso se ha ido a la
-   raíz. **NO es así: el `cwd` sigue apuntando a tu worktree**, en el proceso y en su
-   padre. Medido tres veces por separado (T1, T2 y la Directora) con Next.js 16.2.10.
-   *El aviso de workspace root NO implica un `chdir`.* No lo uses para descartar tu
-   propio servidor.
-
-   Y si quieres una segunda confirmación por el BINARIO, **tiene que ser sobre el
-   proceso PADRE**:
-     ps -o ppid= -p <PID>                      # el padre
-     ps -axo pid,command | grep <PPID>         # su línea de comando completa
-   El proceso que escucha **se retitula `next-server (v16.x)` y no lleva ruta**, así que
-   sobre él este método no dice nada; y `ps -p <pid> -o comm=` da solo el nombre corto.
-   La ruta del padre sí distingue: `…/_worktrees/T2/node_modules/.bin/next` es de T2;
-   `…/CRM curso Vibe Coding/node_modules/.bin/next`, sin `_worktrees/`, es de la raíz.
-
-   *Historia de este párrafo, porque explica por qué está tan detallado:* el 2026-09-09
-   se dio por roto el método del `cwd` y se reescribió esta sección **dos veces sobre
-   una premisa falsa**. Lo que había pasado en realidad es que alguien midió el `cwd` de
-   un servidor que **de verdad era de la raíz**, obtuvo "la raíz" —o sea, la respuesta
-   correcta— y concluyó que el método fallaba, cuando lo que fallaba era su suposición
-   de que aquel servidor era suyo. **El método siempre funcionó.** Lección: un hallazgo
-   que explica bien un incidente no es por eso cierto; antes de escribirlo aquí, que
-   alguien lo reproduzca.
-
-⚠️ NUNCA MATES PROCESOS FILTRANDO POR "playwright" (añadido 2026-09-09)
-   Un `pkill -f playwright` **deja sin MCP a todas las sesiones de Claude a la vez** y
-   se lleva por delante el navegador con las sesiones reales de Aitor. Ya pasó: **el MCP
-   de T2 murió así y estuvo horas caído**, porque levantarlo exige que Aitor escriba
-   `/mcp` — ninguna terminal puede arreglarlo sola. Quien lo mató creía estar liberando
-   memoria.
-
-   Medido por el CEO y **reproducido por el PM** (2026-09-09, dos medidas separadas):
-   de los ~22 procesos que casan con "playwright", **8 son servidores MCP —uno por
-   sesión— y ninguno es matable**. El Chrome del perfil cuelga de uno de ellos.
-
-   LO ÚNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
-     …@playwright/mcp…   → SERVIDOR de una sesión. NO SE TOCA.
-     …playwright test…   → corrida de la suite. Eso sí es matable.
-   Comprueba SIEMPRE con `ps -axo pid,command` antes de matar nada, y mata por PID
-   concreto, nunca por patrón.
-
-   ⚠️ **Y el `cwd` NO protege aquí**: seis de esos servidores tienen su `cwd` en la raíz.
-   El `cwd` sirve para saber si algo es de otro, **no para distinguir dos cosas distintas
-   que viven en el mismo sitio**. Son preguntas diferentes.
-
-   Y antes de matar nada "para liberar memoria": **mira lo reclamable, no solo el swap.**
-   El swap se mueve solo, y leer "quedan 900 MB" a partir de él da una lectura falsa de
-   emergencia — el 2026-09-09 había 4,3 GB reclamables mientras alguien mataba procesos.
+   Compruébalo antes, siempre:
+     lsof -nP -iTCP:3000 -sTCP:LISTEN -t     # PID del que tiene el puerto
+     lsof -a -p <PID> -d cwd -Fn             # su directorio de trabajo
+   El `cwd` tiene que ser TU worktree. Si es el de otra terminal, no arranques
+   encima: usa otro puerto o coordínalo con la coordinadora.
 
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
@@ -370,25 +281,6 @@ una vez que el trabajo pasa auditoría.
        "=== ruta/al/archivo.ts ===") antes de su contenido.
     3. Evidencias — qué se comprobó y cómo (tipos/lint, pruebas manuales, capturas de
        comportamiento, lo que corresponda), al final del mismo fichero.
-    4. Criterios retirados o reinterpretados — si algun criterio de aceptacion que ya
-       tenia GO ha dejado de aplicar con el arreglo puesto, dilo aqui con el motivo
-       (decision 68.2, 2026-09-09). Un criterio puede quedar insatisfecho con la cosa
-       BIEN: T2 retiro "cero refrescos" porque con el arreglo funcionando hay 34 y son
-       correctos — exigir cero habria sido exigir que Convex Auth no hiciera su trabajo.
-       No se cambia en silencio: quien lo aprobo en planificacion tiene derecho a
-       enterarse de que ya no esta.
-    5. Herramienta rota o esquivada — si has tenido que rodear una herramienta del
-       proyecto (tipos, lint, tests, build) porque da un resultado que NO es del
-       codigo, dilo aqui Y MANDASELO ADEMAS A LA COORDINADORA POR MENSAJE DIRECTO
-       (decision 70, 2026-09-09). El export va al auditor, y el auditor no arregla
-       herramientas: si solo lo escribes aqui, tu aviso muere con la ronda. Caso real:
-       T3 declaro impecablemente que `tsc` salia en rojo por artefactos duplicados y no
-       por el codigo; el defecto llevaba desde el 20 de agosto y siguio otro mes.
-       Y ABRE TU LA ISSUE en Linear: titulo y una linea, sin analisis. No estas
-       decidiendo alcance —eso es del PM, que decide si sobrevive y con que tamano—:
-       estas dejando constancia mientras tienes el diagnostico en la mano. Es el
-       momento mas barato que va a existir para arreglar eso, y es justo cuando el
-       canal lo tiraba (decision 70, 2026-09-09).
   Si en una ronda posterior hay que corregir algo (NO-GO): **borra el fichero de la
   ronda anterior** y crea el de la ronda siguiente con la versión actualizada completa.
   Nunca dejes más de un fichero activo a la vez para la misma tarea — el auditor debe
@@ -447,12 +339,8 @@ una vez que el trabajo pasa auditoría.
   la cola de tareas preparadas del proyecto (ubicación en Configuración): coge la
   siguiente disponible (otra terminal puede habértela ganado si tardas — si la que ibas
   a coger ya no está, prueba con la siguiente), reclámala, y ponte a trabajar según lo
-  que diga. Si la cola está vacía: **NO esperes en silencio.** Pide a la coordinadora la
-  siguiente tarea EN ESE MOMENTO, y si no responde en 10 minutos, escala al CEO.
-  **Terminar una tarea sin tener la siguiente es un aviso que tienes que dar tú**
-  (decisión 77, 2026-09-09): desde fuera, tu silencio se ve igual que tu calma, y
-  esa noche tres terminales estuvieron paradas horas habiendo trabajo disponible
-  porque cada una esperaba educadamente y nadie lo dijo.
+  que diga. Si la cola está vacía, dilo — no hay tarea lista y hay que esperar a que la
+  coordinadora prepare la siguiente.
 
 - Sigue las reglas de alcance y arquitectura del proyecto (documento raíz del
   proyecto — cuál es, en Configuración).
@@ -538,59 +426,6 @@ una vez que el trabajo pasa auditoría.
       Y antes de lanzarlo, haz siempre `git merge main` primero (aunque no sepas si main
       se movió) — si no, tu propio `convex dev` puede borrar del deployment funciones ya
       mergeadas por otra terminal que tu copia local no tiene.
-🔴 NUNCA MATES PROCESOS FILTRANDO POR "playwright" (2026-09-09, incidente real).
-   Un `pkill -f playwright` deja SIN NAVEGADOR a las nueve sesiones de la fabrica
-   y mata el Chrome con las cuentas personales de Aitor. Medido: 24 procesos
-   casan; 9 son servidores `@playwright/mcp` (uno por sesion) y solo 1 es una
-   corrida de suite. El Chrome del perfil cuelga de uno de esos MCP.
-   LO UNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
-     @playwright/mcp   -> SERVIDOR, no se toca
-     playwright test   -> corrida, esa si es matable
-   Y FILTRAR POR cwd NO TE PROTEGE: seis de los nueve MCP tienen cwd en la raiz.
-   El cwd sirve para no tocar lo de OTRO, no para distinguir dos cosas distintas
-   que viven en el mismo sitio.
-   Ya paso: el MCP de T2 murio asi y quedo caido horas, porque solo lo levanta
-   Aitor escribiendo `/mcp`. Quien lo hizo creia estar liberando memoria.
-   Y NO HACE FALTA liberar memoria a mano: mira los tres numeros (swap
-   usado/total, libre+inactiva, y el agregado de RSS) antes de tocar nada.
-
-⚠️ AL INSPECCIONAR UNA TABLA DE CONVEX, NO VUELQUES LA FILA ENTERA (2026-09-08,
-   aviso de T1 tras pasarle a el mismo). `npx convex data authAccounts` imprime la
-   columna `secret` — hashes con su sal — y eso ACABA EN TU TRANSCRIPT. No son
-   contrasenas en claro, pero es material de credenciales y queda registrado.
-   Pide solo las columnas que necesitas (`provider`, `providerAccountId`) o filtra
-   la salida antes de que se vea. Misma familia que el aviso de `npx convex env
-   list` que ya esta en CLAUDE.md, con otro comando.
-
-⚠️ `e2e/.auth/` ESTA IGNORADO POR DOS SITIOS A LA VEZ, Y ES A PROPOSITO
-   (2026-09-09, incidente real). El arnes e2e escribe en `e2e/.auth/*.json`
-   **tokens de sesion vivos** en cada corrida, y una noche acabaron commiteados.
-     1. `.gitignore` (trackeado)     -> se clona, se hereda, lo ve cualquiera.
-     2. `.git/info/exclude` (local)  -> NO se clona, NO esta en ningun commit,
-                                        y un `grep` a `.gitignore` NO lo encuentra.
-   **Nunca leas un fichero de reglas para saber si algo esta ignorado: leerlo da
-   falsos negativos.** Se comprueba con `git check-ignore -v <fichero>`, que mira
-   las dos fuentes y te dice cual gana.
-   POR QUE LA CAPA LOCAL, Y CUANDO DEJA DE HACER FALTA: la linea trackeada se
-   anadio a `main` el 2026-09-09. **Las ramas abiertas antes de esa fecha no la
-   tienen** —salieron de un `main` que aun no la llevaba—, y son varias, en vuelo,
-   a punto de publicarse. `info/exclude` es lo unico que las cubre.
-   **Cuando esas ramas hayan mergeado, la capa local sobra y se puede quitar.**
-   La condicion es "ninguna rama SIN MERGEAR anterior al 2026-09-09", y ojo con la
-   diferencia: hay 68 ramas locales y 58 ya estan dentro de `main`. Si cuentas las
-   que EXISTEN en vez de las que siguen abiertas, la condicion no se cumple nunca
-   — y una instruccion que nunca se dispara es tan inutil como una que se dispara
-   cuando no debe. Se comprueba con:
-       git branch --no-merged main --format='%(refname:short)'
-   Vacia (o solo con ramas creadas despues de esa fecha) = ya se puede quitar la
-   capa local, y borrar tambien este parrafo. Medido el 2026-09-09: salian 10.
-   ⚠️ Y OJO CON LO CONTRARIO: `info/exclude` protege **mientras** una rama esta
-   sacada sin mergear, no "despues". Ninguna de las pendientes toca `.gitignore`,
-   asi que al mergearlas la linea de `main` sobrevive y quedan cubiertas por ella.
-   > Una proteccion que vive en una rama sin publicar no protege a las demas ramas.
-   > Y una capa es peligrosa cuando es ILEGIBLE, no cuando es redundante: por eso
-   > la local se documenta aqui en vez de borrarse.
-
 ⚠️ RUTA ABSOLUTA, SIEMPRE, PARA TODO LO DE "codigo para auditar/" Y "cola/"
    (corregido 2026-09-08, hallazgo de T1). Esa carpeta está en `.gitignore`, así que
    **NO EXISTE dentro de tu worktree** — comprobado en T1, T2 y T3. Si la buscas por
@@ -611,34 +446,6 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
-- **LA HUELLA DE LA TAREA NO SE ESCRIBE A MANO** (decision 74, 2026-09-09): se pega
-  la salida de estos dos comandos, LOS DOS.
-
-      # 1. la huella
-      git diff --name-only <base>...HEAD
-
-      # 2. su control positivo: la union de lo que tocaron TUS commits
-      git log <base>..HEAD --format= --name-only | grep -v '^$' | sort -u
-
-  Los dos listados TIENEN que coincidir. Si el 1 no cubre al 2, la huella esta
-  mintiendo y NO se exporta hasta saber por que.
-  ⚠️ OJO A LOS PUNTOS. `A...B` (TRES) es "lo que aporto la rama". `A B` (DOS) es "en
-  que se distinguen las dos puntas", que NO es lo mismo: si la base acabo con el
-  mismo contenido que tu rama en un fichero, los dos puntos LO OCULTAN — un fichero
-  tuyo desaparece de tu propia huella. No es un error de tecleo, es un atractor: es
-  la forma que sale sola al pensar "comparar A con B", y "comparar dos ramas" es como
-  lo decimos todos en voz alta. Paso seis veces en una noche, en tres sesiones.
-  ⚠️ Y si tu rama YA esta mergeada, `<base>...HEAD` da VACIO por construccion — un
-  cero que no distingue "limpio" de "no supe mirar". Ahi se usa la horquilla del
-  merge: `M^1...M^2`.
-  ⚠️ El control 2 funciona porque se calcula de los commits de TU rama, asi que no le
-  afecta que la base se mueva. Por eso es una referencia estable.
-
-- **JUNTO A LA HUELLA VA CITADO EL CRITERIO, literal del export, nunca de memoria**
-  (misma decision). Un comando bien elegido contra un criterio mal recordado produce
-  un hallazgo falso CON TODA LA APARIENCIA DE RIGOR. Caso real: se recordaba "cero
-  producto tocado" para tres tareas y en el papel eran tres criterios distintos.
-
 - **Punto de control — aviso por voz** (en los dos puntos de control: listo para
   auditar / GO recibido — NO en ningún otro momento, no lo uses para narrar el trabajo
   en curso): lanza esto en una terminal, con tu propio número y la tarea actual:
