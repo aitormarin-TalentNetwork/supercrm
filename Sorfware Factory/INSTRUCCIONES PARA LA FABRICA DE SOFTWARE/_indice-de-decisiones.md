@@ -103,6 +103,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 63 | Un checklist que enumera un estado mutable caduca en silencio — no fijar la lista, mandar mirarla (63.2 auditoría de las demás; **63.3 un secreto no se copia entre entornos: se genera**, y los de terceros no viajan a pruebas) | R §2sexies · §3bis |
 | 64 | Antes de creerte un negativo, comprueba que la herramienta sabe dar positivos — *un código de salida no dice «fue bien», dice «la pregunta de esta herramienta se contestó que sí»* (64.3 todo barrido declara qué no puede ver) | R §2sexies · C |
 | 65 | El arnés declara sus precondiciones y falla nombrando la que falta; no se parchean una a una (**65.1 tercer eje del triaje: ¿el fallo nombra su causa o hay que buscarla?**) | R §2sexies |
+| 66 | Una fila del catálogo no es un control: describe uno que habría que construir (66.1 tres estados: arreglado · enrutado con issue · sin dueño; 66.2 **enrutar no es que exista** — se comprueba en Linear; 66.3 el repaso mira primero qué arreglos nadie ha hecho) | R §2sexies · C |
 
 ---
 

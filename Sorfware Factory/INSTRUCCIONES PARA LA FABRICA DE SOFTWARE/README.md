@@ -1824,7 +1824,59 @@ fue detectarlos, fue saber de qué eran.**
 3. **¿El fallo nombra su causa, o hay que buscarla?** — un rojo inatribuible se paga en horas de
    diagnóstico, no en detección.
 
+### Decisión 66 — Una fila de este catálogo no es un control (2026-09-08)
+
+> ## **Una fila de este catálogo no es un control: describe uno que habría que construir.**
+>
+> **Y un catálogo de defectos conocidos sin dueño es una lista de cosas que hemos acordado
+> seguir sufriendo.**
+
+*Lo que la provocó:* el arreglo del puerto 3000 llevaba **horas escrito en su propia casilla**
+—*"el puerto sale de una variable de entorno"*, hallazgo de T2— y **nadie lo ejecutó**. Cobró
+**dos víctimas el mismo día**, y la segunda fue **el instrumento que acabábamos de crear para
+cerrar otro hueco**: la primera corrida periódica del QA no midió `main`, midió el servidor de
+T1.
+
+**66.1 — Toda fila declara si su arreglo está construido, y si no, quién lo tiene.** Tres
+estados, como en el censo del CEO: **arreglado · enrutado a tarea (con su issue) · sin dueño**.
+**El tercero es el hallazgo.**
+
+**66.2 — Y el hueco que nos costó esto: enrutar no es que exista.** La 41.1 decía *"necesita
+issue, y crear issues es del PM"*, **y eso se hizo**. Lo que nadie comprobó es **si la issue
+llegó a existir**. Llevábamos toda la noche escribiendo que *una marca que alguien deja no es
+una observación del mundo* — **y nos lo aplicábamos a los markers y no a nuestras propias
+derivaciones.**
+
+**Comprobación añadida al barrido del CEO:** de las decisiones enrutadas a tarea, **¿existe la
+issue?** Es una consulta a Linear, es barata, y **convierte *"se lo pasé al PM"* en un hecho
+comprobable en vez de en una intención registrada.**
+
+**Primera ejecución, 2026-09-08 (consulta a Linear, no relevo):**
+
+| Arreglo enrutado | Issue | Estado |
+|---|---|---|
+| El puerto 3000 se saca a variable de entorno | **AIT-96** | ✅ **existe** · Backlog · High |
+| El arnés declara sus precondiciones (65) | **AIT-93** | ✅ existe · **In Progress** · High |
+| La suite comprueba que el backend esté desplegado | **AIT-95** | ✅ existe · Backlog · High |
+| Exponer qué versión está desplegada | **AIT-79** | ✅ **Done** |
+| **Aislar el perfil del navegador del MCP (47)** | — | ⚠️ **SIN ISSUE.** Es cambio de configuración, no producto, así que puede que no le corresponda una — **pero hoy su único rastro son un párrafo del README y un mensaje a Aitor** |
+
+📌 **Lo que enseña la primera ejecución no es que faltara ninguna —cuatro de cinco existían— sino
+el matiz: existir no es estar programado.** AIT-96 está en **Backlog**, o sea que el arreglo del
+defecto que hoy invalidó una corrida entera **está enrutado, priorizado alto, y sin fecha**. La
+fila del catálogo ya no puede decir "sin dueño"; **puede decir "esperando"**, que es información
+distinta y verdadera.
+
+**66.3 — El repaso pendiente gana un segundo criterio, y va POR DELANTE del de la dirección del
+fallo:** primero **qué filas describen un arreglo que nadie ha hecho**; después la dirección del
+fallo. **Porque una fila sin arreglo no se prioriza: se construye, o se declara que no se va a
+construir.**
+
 ### Registro vivo de comprobaciones desacreditadas
+
+⚠️ **Cabecera del registro (decisión 66):** **una fila de aquí no es un control — describe uno
+que habría que construir.** Cada una debería poder decir si su arreglo está **construido**,
+**enrutado a una issue que existe**, o **sin dueño**.
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
