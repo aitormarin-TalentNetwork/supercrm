@@ -594,6 +594,27 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### ⛔ LO QUE EL VEREDICTO NO CUBRE VA EN EL VEREDICTO (decisión 85, 2026-09-09)
+
+**Cuando el auditor no haya podido ejecutar una comprobación, eso NO es una nota al pie: es una
+REDUCCIÓN de lo que el GO cubre**, y va **junto a la línea del veredicto**, no en una sección de
+baja atención. **La forma va en el prompt que tú le mandas:**
+
+```
+Veredicto del auditor: GO — SIN: <comprobacion que no pudo ejecutarse>
+```
+⚠️ **`SIN:` vacío o ausente NO vale como "todo verificado": la línea SIEMPRE lleva el campo**,
+aunque diga `SIN: nada`. *Un campo ausente y un campo vacío se leen igual, y ya sabemos cómo acaba
+eso.*
+**Motivo:** un GO **con una comprobación menos se lee igual que un GO completo** si la diferencia
+vive en otro apartado. *Es "declarar lo que no se sabe" puesto **donde se toma la decisión**.*
+📌 **Y encaja con la 83:** *la garantía dice qué significa un fichero de veredicto; el `SIN:` dice
+qué le falta a **este** fichero concreto.*
+*(Caso: un auditor declaró que no pudo ejecutar `git merge-tree` y lo puso en "aspectos no
+verificables". La Directora lo reprodujo desde la raíz —**funciona, exit 0**— así que era de su
+entorno y quedó cerrado. **El hecho de proceso se queda igual: pudo perder una comprobación y
+decirlo donde es fácil que no lo lea nadie.**)*
+
 ### ⛔ QUÉ GARANTIZA UN FICHERO DE VEREDICTO (decisión 83, 2026-09-09)
 
 > **GARANTÍA: este fichero significa que un auditor INDEPENDIENTE leyó el export E y el commit C,

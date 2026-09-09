@@ -125,7 +125,16 @@ no hay ningún rol por encima de ti y del CEO dentro del pipeline al que escalar
 
 ## Al asumir el rol: arma el respaldo de máquina (decisión 78, 2026-09-09)
 
-**Nada más asumir el rol, arma un vigilante de fondo y avísale al CEO de que existe.**
+**Nada más asumir el rol, arma la comprobación de fábrica quieta SIN PROCESO RESIDENTE: un cron de
+sesión (`CronCreate`, cada ~20 min).** Y avísale al CEO de que existe.
+
+🔴 **NO montes un proceso de fondo.** El 2026-09-09 **murieron tres seguidos** por presión de
+memoria: python de ~25 MB, otro de ~25 MB, y uno de **shell puro de 1,2 MB**. **El tamaño varió por
+veinte con resultado idéntico** — *lo que los mata es **ser tarea de fondo**, no su peso.* Un cron
+de sesión **no es un proceso residente y esa presión no lo alcanza**.
+⚠️ **Muere con tu sesión y expira a los 7 días. Eso hay que DECÍRSELO al CEO**, porque vuelve a
+dejar **dos puntos únicos que se cubren mutuamente** — que es exactamente lo que esta decisión vino
+a escribir.
 
 **Qué tiene que alarmar, como mínimo:** los desarrolladores **quietos TODOS a la vez** más de
 40 min. *(Medido sobre 13 h reales el 2026-09-09: esa condición se dio **una sola vez**, y fue el
@@ -133,9 +142,13 @@ incidente. Cero falsos positivos.)*
 ⚠️ **La quietud de UNA sesión NO es alarma:** puede ser legítima —esperando un GO, bloqueada en una
 credencial— y una alarma que grita por eso **se apaga en la cabeza de quien la lee**, que es peor
 que no tenerla. **La señal que vale es la SIMULTANEIDAD, no la quietud.**
-⚠️ **Y tiene presupuesto de memoria:** al vigilante de ese día **lo mató el sistema** leyendo 21 MB
-por ciclo. Filtra por `mtime` lo que no puede disparar nada —lo no tocado en horas no dispara— y lee
-colas cortas: la versión siguiente hacía lo mismo con **2,7 MB**.
+🔻 **Aquí decía que había un "presupuesto de memoria" y que bajar de 21 MB a 2,7 MB lo arreglaba.
+ERA FALSO y se retira** (2026-09-09, mismo día): **el de 1,2 MB murió igual.** *Un número que
+parece medido diciendo lo contrario de lo que pasó es peor que no decir nada — mandaba al siguiente
+ocupante a repetir las tres muertes.*
+📌 **Lección de método que lo acompaña, y es cara:** *un arreglo que funciona **no es el final**.
+Hay que ir a mirar **qué texto propio describe el mundo anterior** y dejó de ser cierto.* **Igual
+que un hallazgo se propaga y su retirada no, un arreglo se aplica y su documentación se queda.***
 
 **Por qué es un deber del ROL y no de quien pase por aquí:** el 2026-09-09 ese respaldo existía
 **solo porque una sesión concreta lo había montado por su cuenta**, no estaba escrito en ningún
