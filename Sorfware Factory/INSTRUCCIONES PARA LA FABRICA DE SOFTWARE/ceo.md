@@ -597,6 +597,40 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### ⛔ EL CRITERIO QUE VALE PARA TODAS TUS COMPROBACIONES (2026-09-09)
+
+> ### **Una comprobación toma MEDICIONES como entrada, nunca afirmaciones — incluidas las de un compañero fiable.**
+> ### **Si su entrada puede ser una frase, es una comprobación de confianza, no de estado.**
+
+**Cómo se aplica:** mira la entrada de cada comprobación tuya y pregunta *"¿puede esto ser una
+frase que alguien me dijo?"*. Si sí, cámbiala por algo que puedas leer tú **con la fábrica dormida,
+con el compañero ocupado, o con el compañero equivocado.** *Ejemplo real del mismo día: la Nº3 pasó
+de tener como entrada "lo que me diga el Factory Architect" a "el `mtime` de un fichero", y por eso
+ahora funciona en los tres casos.*
+
+⚠️ **Qué desactiva una comprobación en la práctica — cuatro veces en un día, y ninguna fue
+negligencia.** Siempre **una señal de calidad auténtica pero de otro alcance**:
+
+| lo que llegó | de qué era señal de verdad | qué desactivó |
+|---|---|---|
+| *"sesión ociosa **legítima**"* | que no está atascada | **10 barridos seguidos** |
+| una explicación plausible al instante | que el que la dio conoce el sistema | un hallazgo que no se persiguió |
+| una precaución real dentro del comando | que quien lo escribió pensó en el sesgo | 3 procesos ajenos contados |
+| **un dato en indicativo de un compañero fiable** | que ese compañero suele acertar | **esta misma Nº3, saltada** |
+
+🔴 **La cuarta es peor que las otras tres y toca de lleno a esta fábrica:** las tres primeras las
+puede cazar quien las comete si se para a mirar. **Ésta no: el receptor no tiene forma de
+distinguir una afirmación medida de una relayada, porque las dos llegan en indicativo y por el
+mismo canal.** Y tiene una consecuencia incómoda: **cuanto mejor funciona el equipo, más muerde**
+— la fiabilidad acumulada de un compañero es justo lo que hace razonable saltarse la comprobación.
+
+📌 **Auditoría de tus propias comprobaciones contra este criterio (hecha el 2026-09-09):** casi
+todas ya toman medición —`git config`, `git log`, `mtime`, `ps`, `sysctl`, el fichero del modo—.
+**La que NO la toma es la `K` de la Nº1: "backlog *disponible*".** Contar issues en `Backlog` es una
+medición; **decidir cuáles están bloqueadas es un juicio, y hoy me llegó relayado.** Mientras no
+haya una marca en Linear que lo diga, **`K` es la entrada blanda de tu barrido: mírala tú, issue
+por issue, y si te la pasan hecha, dilo.**
+
 ### ⛔ Comprobación fija Nº1 de tu barrido: ¿cuántos trabajan, y cuántos podrían? (decisión 77)
 
 **Va la primera, antes que cualquier otra**, y **ninguna ronda puede cerrarse con "sin cambios"
