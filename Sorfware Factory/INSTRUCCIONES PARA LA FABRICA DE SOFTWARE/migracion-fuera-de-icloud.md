@@ -52,7 +52,25 @@ problemas en más de un comando esta semana.
    ⚠️ **Ojo con el worktree del QA: suele estar en `detached HEAD`.** Un commit ahí no
    pertenece a ninguna rama y **la migración se lo lleva sin avisar**. Si lo está,
    comprobar `git -C <ruta> log --oneline -3` y darle rama antes de seguir.
-3. **Anotar la lista de worktrees ANTES de tocar nada**, para poder comparar después:
+3. 🔴 **CERO duplicados dentro de `refs/`, y `fetch` funcionando.** Añadido el
+   2026-09-09 después de un incidente real: **iCloud duplicó ficheros dentro de
+   `.git/refs/` y dejó `fetch` y `push` rotos para todos los que comparten ese `.git`.**
+   ```bash
+   find .git -path '*/refs/*' -name '* [0-9]*'   # tiene que dar VACIO
+   git fetch origin && echo "EXIT=$?"            # tiene que dar 0
+   ```
+   *Por qué:* git trata **cada fichero dentro de `refs/` como una referencia**, se llame
+   como se llame. Un `main 2` **es una rama** para git. **Mover el repositorio con
+   `refs/` duplicados es exactamente el momento de perder una rama.**
+
+   ⚠️ **Y el mensaje de git engaña**: dice `bad object`, pero el objeto está bien — lo
+   inválido es **el nombre de la referencia**, que lleva un espacio. Quien lo lea deprisa
+   se irá a buscar corrupción de objetos y no la encontrará.
+
+   *Los duplicados en el RESTO de `.git/` (los `index`) son basura inerte y no bloquean
+   la migración.* **Solo los de `refs/` son fallo activo.**
+
+4. **Anotar la lista de worktrees ANTES de tocar nada**, para poder comparar después:
    ```bash
    git worktree list > /tmp/worktrees-antes.txt
    ```
