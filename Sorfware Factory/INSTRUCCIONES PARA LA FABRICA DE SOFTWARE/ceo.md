@@ -652,8 +652,13 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 
 ### ⛔ Comprobación fija Nº3: ¿sigue vivo el vigilante? (2026-09-09)
 
-**Una línea: si no ha llegado latido en 35 minutos, está muerto.** El intervalo es de 30, así que
-un retraso de más de un ciclo ya no es ruido.
+⚠️ **La pregunta NO es "¿ha latido?" — es "¿EXISTE un vigilante Y ha latido en los últimos 35
+minutos?"** (el intervalo es de 30, así que un retraso de más de un ciclo ya no es ruido).
+> **Ausencia-por-muerte y ausencia-por-inexistencia se ven exactamente igual, y se arreglan
+> distinto.** Si no hay Factory Architect activo, **el respaldo de máquina NO EXISTE**: eso se
+> **dice en el barrido**, no se acepta como silencio normal. *Es el cero sin control positivo
+> aplicado a un compañero: "no ha llegado latido" se lee razonablemente como "no hay FA, es
+> normal" — y entonces nadie está cubriendo lo que él cubría.*
 
 ⚠️ **Por qué existe:** el vigilante del Factory Architect **lo mató el sistema por falta de
 memoria** (`"stopped because the system is running low on memory"`). Se enteró **porque el sistema

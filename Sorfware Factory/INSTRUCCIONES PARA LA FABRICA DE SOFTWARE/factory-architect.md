@@ -123,6 +123,26 @@ no hay ningún rol por encima de ti y del CEO dentro del pipeline al que escalar
 
 ---
 
+## Al asumir el rol: arma el respaldo de máquina (decisión 78, 2026-09-09)
+
+**Nada más asumir el rol, arma un vigilante de fondo y avísale al CEO de que existe.**
+
+**Qué tiene que alarmar, como mínimo:** los desarrolladores **quietos TODOS a la vez** más de
+40 min. *(Medido sobre 13 h reales el 2026-09-09: esa condición se dio **una sola vez**, y fue el
+incidente. Cero falsos positivos.)*
+⚠️ **La quietud de UNA sesión NO es alarma:** puede ser legítima —esperando un GO, bloqueada en una
+credencial— y una alarma que grita por eso **se apaga en la cabeza de quien la lee**, que es peor
+que no tenerla. **La señal que vale es la SIMULTANEIDAD, no la quietud.**
+⚠️ **Y tiene presupuesto de memoria:** al vigilante de ese día **lo mató el sistema** leyendo 21 MB
+por ciclo. Filtra por `mtime` lo que no puede disparar nada —lo no tocado en horas no dispara— y lee
+colas cortas: la versión siguiente hacía lo mismo con **2,7 MB**.
+
+**Por qué es un deber del ROL y no de quien pase por aquí:** el 2026-09-09 ese respaldo existía
+**solo porque una sesión concreta lo había montado por su cuenta**, no estaba escrito en ningún
+sitio, y **habría muerto con ella sin dejar rastro.** El CEO evalúa el invariante de la 77 mirando
+Linear; **este vigilante es el respaldo que no necesita que ninguna sesión esté viva para pensar.**
+Si falta uno de los dos, el hueco vuelve **sin avisar**.
+
 ## Configuración de este proyecto (SuperCRM)
 
 - **Estado:** activo, se crea automáticamente con `/factory` — te crea el CEO, no la

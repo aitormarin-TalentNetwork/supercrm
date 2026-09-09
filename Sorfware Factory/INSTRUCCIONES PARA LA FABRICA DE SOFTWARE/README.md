@@ -34,6 +34,21 @@ estaba escrito que se comportara.**
 > **Por eso el arreglo no es pedir más atención: es cambiar el texto.** Un fallo que se produce
 > por cumplir las instrucciones no se corrige esforzándose más en cumplirlas.
 
+### Decisión 78 — lo que solo funciona porque dos roles están vivos a la vez, se escribe en los dos
+
+> **Un respaldo mutuo entre dos roles no es un mecanismo hasta que está escrito en los dos.**
+> **Y lo que hay que escribir no es el acuerdo: es qué se pierde si falta uno.**
+
+**Operativo, y cuesta una frase por documento: cada rol declara qué deja de existir cuando él no
+está.** Es una pregunta que cada rol puede contestar sobre sí mismo, **se lee justo cuando importa
+—al asumir el rol—**, y convierte una ausencia invisible en **una línea que alguien echa de menos**.
+
+⚠️ **Caso que la motiva, del mismo día:** el CEO evaluaba el invariante de arriba mirando Linear, y
+el vigilante del Factory Architect lo respaldaba sin depender de que ninguna sesión estuviera viva.
+**Ese reparto funcionaba y no estaba escrito en ninguno de los dos documentos** — era un acuerdo
+entre dos sesiones concretas. **Levantar la fábrica sin uno de los dos habría reabierto el hueco
+sin que nadie heredara la menor señal de que faltaba algo.**
+
 ⚠️ **Y las dos trampas al medirlo, las dos reales:**
 1. **«Backlog» no es «backlog disponible».** Issues bloqueadas en una credencial de Aitor no son
    trabajo repartible, y contarlas como tal manda a alguien a estrellarse.
