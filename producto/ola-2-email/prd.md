@@ -1053,23 +1053,27 @@ de un correo es un buzon conectado hay que poder comparar su direccion con algo�
 de refresco **cifrado**, fecha de conexion, marca de ultima sincronizacion, marca incremental de Gmail, datos del canal
 push (identificador y **fecha de caducidad, para renovarlo**) y estado.
 
-**Cuantos buzones puede conectar una persona: los que quiera** (decidido en la v0.11,
-a peticion del auditor de AIT-92; hasta aqui el PRD hablaba de "una cuenta" y la maqueta
-decia "Conectar otra cuenta", y ninguno de los dos se sentia equivocado leido solo).
+**Cuantos buzones puede conectar una persona: UNO** (decidido por Aitor, 2026-09-09,
+a raiz de que el auditor de AIT-92 lo levantara; hasta aqui el PRD hablaba de "una
+cuenta", la maqueta decia "Conectar otra cuenta" y el plan habia elegido la opcion
+permisiva sin que nadie lo decidiera. Ninguno de los tres se sentia equivocado leido
+solo, que es lo que hacia falta cerrar).
 
-- **La unicidad es (`userId`, direccion), no `userId` a secas.** Lo que se impide es
-  conectar **dos veces el mismo buzon**; conectar dos buzones distintos, no.
-- **El caso real que lo decide**: un vendedor con su cuenta y ademas el buzon comun de la
-  tienda (`info@...`). Prohibirlo dejaria fuera del CRM justo la correspondencia que mas
-  gente comparte.
-- **No rompe nada del modelo**: la deduplicacion es por (`storeId`, `Message-ID`), asi que
-  un correo que entre por dos buzones del mismo usuario sigue siendo **un solo registro**,
-  y `mailboxUserIds` es de usuarios, no de buzones.
-- **Y la direccion del cambio importa**: quitar un limite despues es facil, ponerlo con
-  datos dentro es una migracion. Ante la duda, la opcion que no hay que deshacer.
+- **La unicidad es por `userId` a secas.** Un usuario con un buzon ya conectado que
+  intenta conectar otro recibe un rechazo que **dice que primero desconecte el que
+  tiene** — no un error generico.
+- **Consecuencia en la maqueta**: "Conectar otra cuenta" no aplica mientras haya una
+  conectada. Se anota en `ConexionGmail.dc.html`, no se rehace el diseño.
+- **El caso del buzon comun de la tienda sigue cubierto por el otro lado**: varias
+  personas SI pueden conectar el mismo buzon (ver mas abajo), asi que `info@...` entra
+  en el CRM en cuanto alguien lo conecte. Lo que no cabe es que **una sola persona**
+  lleve dos.
+- **La direccion del cambio favorece esta opcion**: si algun dia hacen falta varios, se
+  **quita** la restriccion y ya. Al reves —permitir ahora y restringir despues— habria
+  que comprobar antes que nadie tiene dos, y eso ya es una migracion.
 
-Lo que sigue costando el doble es el **trabajo**: cada buzon se sincroniza y gasta cuota
-por separado. Aceptado, igual que en el caso de dos personas con el mismo buzon.
+Y de paso ahorra el coste que la opcion permisiva traia: cada buzon se sincroniza y
+gasta cuota por separado.
 
 **Entidad `emailIntents`** (nueva) — **es la que hace construible la regla del contexto
 del clic**. Sin ella, "la oportunidad que traia el clic" no tiene donde vivir: `emails`
