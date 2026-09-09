@@ -19,6 +19,7 @@ import {
   Pencil,
   Plus,
   Receipt,
+  RotateCcw,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -72,8 +73,18 @@ export default function OportunidadPage({
   const summary = useQuery(api.opportunities.getSummary, { opportunityId });
   const interactions = useQuery(api.interactions.listByOpportunity, { opportunityId });
   const [modal, setModal] = useState<
-    "stage" | "priority" | "won" | "lost" | "delete" | "cannot-delete" | null
+    | "stage"
+    | "priority"
+    | "won"
+    | "lost"
+    | "delete"
+    | "cannot-delete"
+    | "cannot-reopen"
+    | null
   >(null);
+  // AIT-86: reabrir una oportunidad cerrada.
+  const reopen = useMutation(api.opportunities.reopen);
+  const [reopening, setReopening] = useState(false);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
 
@@ -181,6 +192,39 @@ export default function OportunidadPage({
                   }`
                 : `Oportunidad perdida · Motivo: ${summary.lostReason ?? "—"}`}
             </span>
+            {/* AIT-86: cerrar dejaba de ser irreversible. El botón sigue
+                ACTIVO aunque la venta esté facturada: en ese caso explica por
+                qué no se puede, en vez de quedarse gris — es el patrón de
+                AIT-66, y sería absurdo estrenar aquí el quinto caso del que
+                AIT-75 acaba de retirar cuatro. */}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="ml-auto flex-none"
+              leftIcon={<RotateCcw size={14} />}
+              disabled={reopening}
+              onClick={async () => {
+                if (
+                  summary.billingStatus === "facturado" ||
+                  summary.billingStatus === "cobrado"
+                ) {
+                  setModal("cannot-reopen");
+                  return;
+                }
+                setReopening(true);
+                try {
+                  await reopen({ opportunityId });
+                } catch (err) {
+                  if (process.env.NODE_ENV !== "production") {
+                    console.error("Fallo reabriendo la oportunidad:", err);
+                  }
+                } finally {
+                  setReopening(false);
+                }
+              }}
+            >
+              {reopening ? "Reabriendo…" : "Reabrir oportunidad"}
+            </Button>
           </div>
         )}
 
@@ -376,6 +420,21 @@ export default function OportunidadPage({
       {/* AIT-75: el texto es el que vivía en el `title` del botón. No se
           reescribe — ya estaba redactado y decía lo que había que decir;
           lo único que cambia es que ahora se lee. */}
+      {/* AIT-86: con la venta ya facturada o cobrada hay un documento fiscal
+          de por medio, y deshacerlo desde un botón abre un agujero contable
+          que este producto no lleva (decisión del PM). La barrera de verdad
+          está en la mutation; esto solo lo explica. */}
+      <Dialog
+        open={modal === "cannot-reopen"}
+        onClose={() => setModal(null)}
+        title="Reabrir oportunidad"
+        footer={<Button onClick={() => setModal(null)}>Entendido</Button>}
+      >
+        <p className="text-sm text-text-secondary">
+          No se puede reabrir: esta venta ya está facturada. Anula la factura
+          primero.
+        </p>
+      </Dialog>
       <Dialog
         open={modal === "cannot-delete"}
         onClose={() => setModal(null)}
