@@ -644,6 +644,28 @@ una vez que el trabajo pasa auditoría.
   ⚠️ El control 2 funciona porque se calcula de los commits de TU rama, asi que no le
   afecta que la base se mueva. Por eso es una referencia estable.
 
+  ⛔ Y EL CUERPO DEL DIFF SE GENERA IGUAL, CON EL COMANDO DE LA RAMA, EN CADA EXPORT
+     (decision 74, ampliacion 2026-09-09):
+         git diff origin/main...HEAD
+     NUNCA `git show HEAD`, y NUNCA pegado de la ronda anterior.
+  ⚠️ Por que se cuela: `git show HEAD` NO FALLA. Produce un diff valido, bien formado
+     y perfectamente legible... del commit equivocado. No hay nada que chirrie.
+  ✅ Se verifica POR EFECTO, no por intencion: que las lineas +/- del diff de la rama
+     aparezcan TODAS en el fichero exportado.
+  🔴 Y LA RAZON POR LA QUE ESTO IMPORTA MAS DE LO QUE PARECE: las dos direcciones del
+     fallo NO cuestan lo mismo.
+       - Export PEOR que la rama -> NO-GO injusto. Ruidoso y barato: alguien mira.
+       - Export MEJOR que la rama -> GO sobre codigo que no se va a publicar, y lo que
+         SI se publica queda sin auditar CON UN GO FIRMADO ENCIMA.
+     Nadie detecta la segunda: el auditor no ve la rama, la coordinadora ve un GO
+     valido, y el registro queda coherente. **Es la unica forma conocida de que llegue
+     a `main` codigo que nadie reviso y que ademas conste como revisado.**
+     Y como esa direccion es invisible para todos menos para ti, el control solo puede
+     vivir AQUI, antes de exportar. No hay barrido que lo cace despues.
+  (Caso real: se corrigio un major, se comiteo, se regenero la narracion del export y
+   se dejo el bloque del diff de la ronda anterior. El auditor conto 14 tests donde
+   habia 16 y dio NO-GO por una condicion que llevaba media hora corregida.)
+
 - **JUNTO A LA HUELLA VA CITADO EL CRITERIO, literal del export, nunca de memoria**
   (misma decision). Un comando bien elegido contra un criterio mal recordado produce
   un hallazgo falso CON TODA LA APARIENCIA DE RIGOR. Caso real: se recordaba "cero
