@@ -249,6 +249,28 @@ producir.** Todas con **GO del auditor y revisión final del Integrador hecha**.
 > arreglo correcto que choca con otro arreglo correcto**, no un defecto de la tarea.
 > **El Integrador ya lo tiene, con la resolución verificada**, porque la que circulaba era errónea
 > y le habría hecho borrar el ignore de `/audiencia.md`. **Tú no tienes que hacer nada con esto.**
+
+> ---
+> ⚠️ **Y un límite que acota algo YA PUBLICADO, medido a las 06:2x UTC (03:2x local) entre T2 y T3.**
+> **La suite e2e sí detecta que el backend está roto, pero el rojo solo NOMBRA LA CAUSA en ramas con
+> AIT-93, AIT-96 y AIT-108 encima. Sobre `main` da un timeout mudo.** Mismo backend roto
+> (`NEXT_PUBLIC_CONVEX_URL` a un deployment inexistente), dos ramas:
+>
+> ```
+> con el arnés arreglado -> [e2e] no se pudo autenticar como "owner" contra http://localhost:3102
+> sobre main             -> Test timeout of 30000ms exceeded · page.waitForURL en helpers.ts:25
+> ```
+>
+> Las dos veces se pone roja —**o sea que sí mira el backend**—; lo que cambia es si el rojo dice
+> por qué. **Consecuencia práctica: hasta que esas tres se publiquen, un rojo de la suite sobre
+> `main` no se puede leer como «el backend está bien o mal» sin ir a mirar a mano.** Es el mismo
+> episodio que costó media hora a tres personas en AIT-86.
+>
+> ✅ **Comprobado que esto NO afecta a AIT-103**, que es la de las precondiciones y está en la cola:
+> el falso verde estaba en el **inventario** de T2 (`npx playwright --version` se baja Playwright del
+> registro y contesta con la versión de lo que acaba de bajar, con **cero navegadores** instalados y
+> `exit 0`). El `npx` de AIT-103 es `npx convex data` con su frontera de error. **Ya corregido en el
+> inventario, y de paso la comprobación dejó de instalar paquetes al comprobar.**
 >
 > ✅ **Y la base de la que partirías está sana, comprobada por el Integrador a las 05:55 UTC
 > (02:55 local):** producción sirve `1ba98a8`, deployment `5f6dc2b0`, **Online**, `0` commits por
