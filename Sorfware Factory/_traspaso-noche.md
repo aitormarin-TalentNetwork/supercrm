@@ -521,6 +521,25 @@ paró de producir y respetamos la pausa—:
 
   > ### **La ausencia de fricción no es evidencia de calidad: es evidencia de que no hubo revisión.**
 
+  💡 **CANDIDATA 73 — no es una decisión, es una candidata que llega viva al repaso a propósito.**
+  El Factory Architect la mandó **pidiendo expresamente que NO se escribiera esta noche**: *"son
+  las 05:20, llevas seis decisiones mías escritas y devolviste una con razón. Una séptima a esta
+  hora entra por el mismo hueco que las seis primeras."* **Si mañana chirría, muere ahí.**
+  > **Lo que se afirma viaja; lo que se retira, no — porque una afirmación es útil a quien la lee,
+  > y una retirada solo le quita algo.**
+  **Tres instancias esta noche:** un hallazgo falso que llegó al PM, a `intro-terminal.txt` y a la
+  atribución de otra issue antes de que nadie lo reprodujera; la decisión 71, **retirada en una
+  hora y ya copiada**; y **las memorias de dos roles, las dos con la regla muerta escrita como
+  viva y la retirada varias líneas por debajo.**
+  📌 **Y el dato que descarta el remedio obvio: la retirada SÍ llegó a los dos receptores y aun así
+  falló en los dos sitios** — para cuando llegó, cada uno ya la había copiado. **Lo que funcionó
+  fue que cada uno fue a mirar dónde la había copiado, por iniciativa propia.** *(Yo lo hice al
+  recibir esto: mi memoria tenía la regla muerta enunciada como viva 40 líneas por encima de su
+  retirada. Corregida en el sitio.)*
+  ⚠️ **Con qué mirarla mañana** (68.1): *con el sistema sano, ¿cuántas veces al día obliga a
+  alguien a hacer algo?* **Casi nunca, solo al retirar algo ya difundido → vale. Un barrido cada
+  vez que alguien matiza una frase → ceremonia, y se tira.**
+
   **Prueba de cargo:** **seis decisiones seguidas aceptadas sin una sola devolución**, entre las
   02:00 y las 03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
   entera.** *La diferencia entre las seis y la séptima no fue la calidad de la decisión: fue que
