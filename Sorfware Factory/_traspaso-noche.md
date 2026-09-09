@@ -18,6 +18,8 @@ Léelo en este orden. Lo de arriba es lo que necesita que decidas; lo de abajo e
 | **¿Creaste tú a mano la cuenta `aitor.marin@` del 26 de agosto** en el deployment de T1? | Dos hipótesis, y la barata es esa | Si fue manual, **buscar ese código no encuentra nada** y alguien se pasará horas confirmando una ausencia |
 | **`settings.local.json`** (el aviso de voz anuncia mal el rol) y **permiso de Grabación de Pantalla** | Ajustes tuyos | Menores |
 | **Tres ediciones de `CLAUDE.md`** que dejé pendientes de tu visto bueno | No edito `CLAUDE.md` sin ti | Menores |
+| **Borrar la fila `[QA] Semilla migracion - borrar`** del Convex compartido | Se lo preguntaste tú y no llegaste a contestar | El PM **no la tocó**, y **rechazó que la Directora se lo autorizara** — con el argumento correcto: *"si lo hago con tu permiso, el permiso de Aitor ha dejado de ser el que decide"* |
+| ⚠️ **El `checklist de salida a producción real`, ANTES de AIT-104** | Es donde entra correo de personas reales **y deja de haber marcha atrás** | Lo dispara el PM, **lo ejecutas tú**. Está como criterio de FALLA en la ficha, pero conviene que esté también aquí y no solo en Linear |
 
 ---
 
@@ -26,9 +28,31 @@ Léelo en este orden. Lo de arriba es lo que necesita que decidas; lo de abajo e
 **Criterio que usé: la reversibilidad.** Decidí todo lo reversible; lo irreversible esperó, y
 esperó **declarado**. Cualquiera de estas la puedes revertir sin coste.
 
-- **Modo de publicación a `confirmar`** *(esta la aprobaste tú antes de irte — consta aquí por
+**Y cómo leer la lista de abajo, para que no te cueste diez minutos:** marco con 🔶 **las que
+podrías haber decidido de otra forma** — esas son las únicas que hay que mirar. El resto son
+mecánicas. *(Si algún día esta lista tiene treinta entradas todas iguales, es irrevisable: nadie
+audita treinta, se miran por encima.)*
+
+- **Modo de publicación a `confirmar`** *(esta la aprobaste tú antes de irte — consta por
   completitud)*. Los GO se acumulan; publicas tú.
+- 🔶 **Espacié las rondas del QA de 60 minutos a 3 horas.** Motivo: con `confirmar`, **la app
+  publicada no cambia en toda la noche**, así que repetir una regresión sobre algo inmóvil vale
+  casi nada — y **la memoria es el recurso escaso**: esta noche murieron dos corridas de tests, y
+  el Integrador va a intentar la suite completa. Espaciar al QA es lo que le da sitio. Mantiene
+  valor residual (cazar una caída del servicio). **Reversible con una frase.**
 - *(Se irán añadiendo aquí las que tome durante la noche, con su motivo.)*
+
+⚠️ **Tres precisiones que me puso el Factory Architect sobre este reparto, y que aplico:**
+
+1. **La duda sobre si algo es reversible se resuelve tratándolo como IRREVERSIBLE.** No hay caso
+   intermedio. **Equivocarse hacia el lado prudente cuesta una noche de retraso; hacia el otro,
+   no sabemos lo que cuesta.**
+2. **Reversible no es gratis.** Relanzar una terminal es reversible **y cuesta su contexto**. De
+   madrugada y sin nadie mirando, *"es reversible"* es una respuesta demasiado fácil.
+3. **Las decisiones de PROCESO no son mías ni esperan al traspaso: son del Factory Architect, y
+   él está despierto.** Si esta noche aparece algo que pida una regla nueva, se la mando. *(Y si
+   él tampoco estuviera, entonces sí espera: un proceso nuevo decidido de madrugada por quien no
+   lo decide es peor que un hueco de una noche.)*
 
 **Lo que NO decidí, y no decidiré:** publicar a producción · nada que toque tus cuentas, tu
 navegador o tu identidad · alcance de producto nuevo que no esté ya en Linear · nada destructivo
@@ -40,6 +64,23 @@ sobre datos reales. Si algo de eso hace falta, la fábrica **espera y lo deja es
 
 **El PRD del MVP está terminado: cero issues sin empezar.** Con **AIT-88** (en curso con T1) el
 MVP queda entero **salvo publicación**.
+
+**Y la Ola 2 ya no tiene ningún riesgo externo que pueda matarla.** El PM cerró **AIT-90**: abrió
+la pantalla de consentimiento real pidiendo `gmail.readonly` con la cuenta del dominio y **Google
+la muestra sin una sola advertencia de verificación ni mención a CASA**. *(No pulsó "Allow": la
+prueba estaba obtenida sin conceder nada, y conceder habría dado lectura real de tu correo a un
+cliente con un blocker abierto. Criterio suyo, y es el correcto.)* **El plan B queda archivado.**
+
+El cliente OAuth ya existe —`SuperCRM Gmail`— con **cinco URIs de redirección**: producción, dev
+compartido, T1, T2 y el QA. *(Iban a ser cuatro; la Directora cazó a tiempo que el deployment del
+QA es de esta misma noche.)* Documentadas en `docs/03-setup.md` §6bis **con el aviso de que la
+lista caduca**: cada deployment nuevo necesita la suya, y si falta, **el error lo da Google y no
+señala a nuestro código**.
+
+**La Ola 2 está troceada entera en seis fases**, todas con ficha: AIT-92 (conectar) · **AIT-101**
+(los correos en la ficha, Urgente) · AIT-104 (todos los contactos y el histórico) · AIT-105
+(escribir y responder) · AIT-106 (tiempo real) · AIT-107 (correos como actividad), más AIT-98 y
+AIT-100. El PRD va por **v0.11** con los cuatro bloqueantes cerrados.
 
 **Catorce publicadas hoy, ninguna revertida, ningún build roto, `main` sincronizado.** La cola
 del Integrador está **vacía**: no hay nada represado por el cambio de modo.
@@ -109,4 +150,23 @@ Lo mejor no lo escribimos ni el Factory Architect ni yo:
 
 ---
 
-*Última actualización: 2026-09-09 02:40 UTC (= 23:40 local del 8-sep).*
+---
+
+## 8. Lo primero cuando se retome el proceso
+
+El Factory Architect paró de producir decisiones esta noche porque **el catálogo crecía más
+rápido de lo que se ejecutaba** —66 en una noche—. Queda una en la recámara, del Integrador, y
+es la primera cuando se retome:
+
+> **"El paso que se queda sin hacer es siempre el último, el administrativo, el que nadie ve
+> fallar. El merge se nota; el Done no."**
+>
+> Forma general: **un procedimiento interrumpido no se reanuda por donde se rompió — se abandona
+> por el final.**
+
+Salió de él mismo reportando que, cuando la suite murió a mitad, **abandonó los pasos finales
+(Linear y archivado) dos veces seguidas**.
+
+---
+
+*Última actualización: 2026-09-09 02:50 UTC (= 23:50 local del 8-sep).*
