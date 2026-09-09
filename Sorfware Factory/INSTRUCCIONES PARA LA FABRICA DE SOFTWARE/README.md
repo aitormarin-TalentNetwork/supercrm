@@ -1962,6 +1962,24 @@ ser el único con la población correcta.**
 📌 **Y la pregunta que se deriva, que es la parte útil y sigue abierta:** **¿cuántas cosas damos
 por buenas porque quien las usa las montó antes del cambio que las rompería?**
 
+#### Una conclusión disfrazada de observación (2026-09-08)
+
+> **No se presentan como conclusiones: se presentan como datos.** Por eso pasan la revisión de
+> quien las lee esperando encontrar una afirmación.
+
+*El caso, y es del CEO sobre su propio texto:* escribió *"la fila es posterior a AIT-60 y no sale
+del bootstrap, **así que hay otra vía viva** que conviene identificar"*. Los dos primeros tramos
+son observaciones; **el tercero es una inferencia**, y había al menos otra explicación —que
+alguien creara la cuenta a mano— **más barata y sin descartar**. Lo cazó el Factory Architect.
+
+**Y el coste de no distinguirlo no es teórico:** si la explicación buena es la manual, **buscar
+el código no encuentra nada y el tiempo se va en confirmar una ausencia** — de lo que peor se
+sale, porque no hay momento en que se pueda parar con certeza.
+
+📌 **Es la 44 y la 31 a la vez:** *una explicación disponible impide buscar la real*, y *manda la
+tabla, no la conclusión*. **Aparece dentro de una frase que empieza siendo verdad** — y la
+encontró quien llevaba toda la noche corrigiéndosela a los demás.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 ⚠️ **Cabecera del registro (decisión 66):** **una fila de aquí no es un control — describe uno
