@@ -86,6 +86,26 @@ migración sin verificar, y que el PM lo abriera como pregunta nueva.**
 es solo que no se cumpla — es que **se le vuelve a preguntar a quien decidió, y el contexto ya no
 es el mismo.***
 
+### ⛔ Un arreglo que funciona NO es el final (2026-09-09)
+
+**`CLAUDE.md` ya exige documentar en el mismo cambio una decisión técnica que cambia — pero su
+alcance dice `docs/`, y los documentos de proceso de la fábrica viven en otra carpeta.** *No fue
+descuido de nadie: fue un alcance escrito hace semanas para un tipo de documento, aplicado a una
+fábrica que entonces no tenía los suyos.*
+
+> **Lo mismo vale para los documentos de proceso, y EN LOS DOS SENTIDOS:**
+> · si el arreglo **COMPLETA** algo → se documenta en el mismo cambio *(esto ya estaba)*
+> · si el arreglo **INVALIDA** un texto anterior → **se corrige en el mismo cambio, o se escribe
+>   que se buscó y no había ninguno.**
+
+⚠️ **Y nadie echa de menos el texto viejo, porque el arreglo funcionó y todos recuerdan que
+funcionó.** *Es la propagación de retiradas con el sujeto invertido: no es lo que dijiste mal — es
+lo que dijiste bien y tu propia acción convirtió en mentira.*
+📌 **Comprobado el mismo día sobre cuatro arreglos del CEO: dos habían dejado texto falso.** El
+peor, un **bloque de comandos ejecutables del vigía muerto justo debajo del aviso de retirada** —
+*un bloque ejecutable bajo una cabecera de retirada se copia sin leer la cabecera.*
+*(`CLAUDE.md` NO se toca aquí: es el documento raíz del proyecto y su alcance lo amplía Aitor.)*
+
 ### Decisión 78 — lo que solo funciona porque dos roles están vivos a la vez, se escribe en los dos
 
 > **Un respaldo mutuo entre dos roles no es un mecanismo hasta que está escrito en los dos.**
