@@ -1066,12 +1066,25 @@ su caso más frecuente, **subordinada a esta**.
 |---|---|---|
 | `npm test \| tail` | **el idioma lo destruye** — el exit de una tubería es el del último eslabón | leer la línea `N passed`/`N failed` |
 | `grep <patrón> f \| head -1 && echo "APARECE"` | **el idioma lo destruye** — `head` devuelve 0 aunque `grep` no encuentre nada | `grep -c` y mirar el número |
+| `npm run build 2>&1 \| tail -3 && echo "…listo"` (T2) | **el idioma lo destruye**, con un agravante: **no calla la verdad, imprime una mentira encima.** Un `tail` que oculta un fallo es malo; un `echo` afirmativo que lo contradice es peor, porque quien lo lea tiene un testimonio explícito en contra del hecho | capturar la salida y **preguntarle a la salida, no al exit**: `OUT=$(npm run build 2>&1); if echo "$OUT" \| grep -qi "Failed to\|build worker exited"; then …`. Es lo que T2 hizo **75 segundos después**, por su cuenta |
 | `grep -c <patrón> && <siguiente paso>` (T3) | **contesta a otra pregunta** — la tubería termina donde debe; es que `grep -c` responde *"¿encontré algo?"*, no *"¿falló?"* | comparar el número explícitamente (`[ "$(grep -c …)" -eq 0 ]`), nunca encadenar sobre el exit |
 
-⚠️ **Falta una cuarta instancia por documentar.** El Factory Architect cuenta cuatro —tres de
-"el idioma lo destruye" y una de "contesta a otra pregunta"— y aquí solo constan tres
-verificadas. **No se inventa la que falta:** se pide y se añade. *(Aplicación literal del
-criterio de T3: «cubierto» sin nombrar por dónde es «no lo he mirado».)*
+✅ **La cuarta instancia, verificada el 2026-09-08 y no dada por buena de oídas.** Llegó
+relatada —*"T2, a las 21:36"*— y el propio Factory Architect avisó de que él tampoco la había
+comprobado. Se confirmó **parseando el transcript de T2**, no grepeando prosa, y por dos
+caminos independientes: **el `tool_use` real** con el comando literal, y **la declaración del
+propio T2 en su export** (*"mi propio `npm run build | tail && echo OK` imprimió éxito sobre
+un build FALLIDO, porque el exit code era el de `tail`"*).
+
+⚠️ **Y la hora relatada no era la real: fue a las 00:13:00 UTC (= 21:13 local), no a las
+21:36.** Diferencia inocua aquí, pero es exactamente el material de la enmienda 8 —**se
+reporta lo que uno mide, no lo que le contaron**— y aparece en la cadena de propagación de un
+dato que todos los intermediarios trataron con cuidado.
+
+📌 **Lo mejor del caso no es el fallo: es que T2 lo corrigió solo 75 segundos después**, y su
+corrección es el sustituto canónico de esta fila. Y lo dejó escrito en su propio export
+—*"queda anotado porque es el falso verde de la casa cometido en directo"*— sin que nadie se
+lo pidiera.
 
 📌 **Y la observación que dio origen al eje de esta sección:** las tres primeras fallan **hacia
 el verde** —siguen adelante mintiendo—; la de T3 falló **hacia el rojo** —abortó—, y por eso
@@ -1334,6 +1347,17 @@ escrito desde entonces, **cuesta veinte segundos**, y se había ejecutado **una 
 con **su coste** y **su condición de disparo**: qué tiene que pasar para que merezca volver a
 correrse. El del Integrador es el ejemplo: *cuando se publique un consumidor de lo que este
 gate protege.*
+
+**Y el momento en que corre no es una preferencia** (refinado 2026-09-08):
+
+> **Lo fija cuándo existe la cosa que verifica.** Un **contrato** existe en el diff, así que se
+> comprueba **antes de mergear**. Un **despliegue** no existe hasta que se publica, así que
+> solo puede comprobarse **después**.
+
+⚠️ **Corolario, porque "gate posterior a la publicación" suena a control debilitado y no lo
+es:** un gate que corre después de publicar **no es más laxo**. Es el **único momento posible**
+para lo que mira. Que corra después no significa que llegue tarde — significa que **antes no
+había nada que mirar**.
 
 **52.2 — Esto convierte los gates existentes en una suite de regresión gratis.** No hay que
 construir nada: **hay que anotar lo que ya está escrito.**
