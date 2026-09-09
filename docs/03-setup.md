@@ -194,7 +194,7 @@ Desde AIT-60, además del login por contraseña, existe un botón "Continuar con
 | **Organización** | `talent-network.org` (el Workspace) |
 | **Administrador** | Aitor (`aitor.marin@talent-network.org`) |
 | **Tipo de usuario** | **Interno** — solo cuentas del Workspace |
-| **Clientes OAuth** | uno solo: **"SuperCRM Web"** (creado 2026-08-24), el del login. `AUTH_GOOGLE_ID` es su Client ID. |
+| **Clientes OAuth** | **dos**, y no son intercambiables: **"SuperCRM Web"** (2026-08-24), el del login — `AUTH_GOOGLE_ID` es su Client ID; y **"SuperCRM Gmail"** (2026-09-08), el de la Ola 2 — ver §6quater. |
 
 ⚠️ **No confundirlo con `model-nexus-506915-n9`** ("My First Project"), que existe en la
 misma cuenta y no tiene nada que ver con el CRM. Es el que sale por defecto al abrir la
@@ -209,6 +209,39 @@ desaparecen el modo Testing, el tope de 100 usuarios y la lista de cuentas de pr
 dominio—, pero **si algún día hay que dar acceso por Google a alguien de fuera del
 dominio, esto es lo que hay que revertir** (y con ello vuelve la exigencia de auditoría
 para Gmail).
+
+- **URI de redirección autorizado:** `https://<CONVEX_SITE_URL>/api/auth/callback/google` (hoy, en dev: `https://third-goldfinch-805.convex.site/api/auth/callback/google` — `CONVEX_SITE_URL` es el dominio `.convex.site`, no el `.convex.cloud` de `NEXT_PUBLIC_CONVEX_URL`).
+- Da de alta el Client ID/Secret en el deployment de Convex (nombres exactos que espera `@auth/core`, no elegibles):
+
+```bash
+npx convex env set AUTH_GOOGLE_ID <client-id>
+npx convex env set AUTH_GOOGLE_SECRET <client-secret>
+```
+
+No hace falta nada en `.env.local`: el intercambio OAuth entero (redirect, callback, token) vive en el deployment de Convex, nunca en el navegador ni en el frontend.
+
+**Alta de cuentas Google — lista blanca, no registro público:** una cuenta de Google, por sí sola, nunca entra — `convex/auth.ts:createOrUpdateUser` rechaza cualquier email sin una fila previa en `users` (mensaje: *"La cuenta de Google … no tiene acceso"*). El alta real la hace la dueña desde Ajustes (`convex/users.ts:createUser`, sin contraseña — solo aplica a cuentas Google, ver ADR-003), o el bootstrap inicial de las 2 cuentas reales del negocio:
+
+```bash
+npx convex run users:bootstrapInitialAccounts '{}'   # una sola vez; re-ejecutarlo es seguro (idempotente)
+```
+
+Sin argumentos, crea (si no existen ya) `admin@talent-network.org` (owner) y `aitor.marin@talent-network.org` (sales) en "Tienda principal" — **conviven** con `marta@supercrm.es`/`carlos@supercrm.es`, no las sustituyen. Con `{stores: [...]}` acepta más tiendas/cuentas Google — ver la propia función en `convex/users.ts` para la forma exacta del argumento.
+
+**Verificación (Google):** entrar en `/login`, pulsar "Continuar con Google" y comprobar que el navegador llega de verdad a la pantalla de consentimiento de Google (no un error `invalid_client` — eso significa que `AUTH_GOOGLE_ID` no está puesto o no coincide con el proyecto de Google Cloud) y que, tras elegir una cuenta con acceso (`admin@talent-network.org` o `aitor.marin@talent-network.org`), vuelve autenticado a la app con el rol correcto. Con una cuenta de Google SIN alta previa en `users`, debe volver a `/login` sin sesión y sin alta automática — comprobar en los logs de `npx convex dev` que se ve el rechazo de `createOrUpdateUser`, ya que el navegador no muestra el motivo exacto (ver ADR-003, limitación conocida).
+
+**✅ Verificado end-to-end en vivo (2026-08-25):** los 3 casos de arriba (owner, sales, cuenta sin acceso) funcionan tal como se describe, más el camino Password (`marta@supercrm.es`) confirmado sin cambios. **Hallazgo real durante esta verificación:** el primer intento falló con un error genérico en el intercambio de token, indistinguible en el navegador/logs de Convex de un problema de nuestro propio `createOrUpdateUser` (el rechazo por lista blanca y el fallo de intercambio de token dan el mismo mensaje al usuario). Causa real: `AUTH_GOOGLE_SECRET` en Convex no coincidía con el secret vigente en Google Cloud Console para ese Client ID (aunque el Client ID sí coincidía — comprobado comparando solo los últimos caracteres de cada lado, nunca el valor completo, per la regla de no volcar secretos). Si esto se repite: comprobar primero que el Client ID coincide (es público, seguro de comparar entero) y, si coincide pero el login sigue fallando en el intercambio de token, sospechar del secret antes que del código — regenerarlo en Google Cloud Console y volver a ponerlo con `npx convex env set AUTH_GOOGLE_SECRET`.
+
+
+### 6quater. Cliente OAuth de Gmail (AIT-90 / AIT-92)
+
+**Este es un cliente OAuth DISTINTO del de §6bis, y por eso tiene sección propia.** El
+de arriba (`SuperCRM Web`, variables `AUTH_GOOGLE_*`) es el del **login**; este
+(`SuperCRM Gmail`, variables `GMAIL_OAUTH_*`) es el que **lee el correo**. Comparten
+proyecto de Google Cloud y pantalla de consentimiento —por eso lo de §6bis sobre la app
+Interna aplica también aquí—, pero ni las credenciales ni las URIs de redirección se
+pueden cruzar. Si has llegado aquí buscando "las variables de Gmail", las de §6bis **no**
+son tuyas.
 
 **El cliente OAuth de Gmail ya existe** (creado el 2026-09-08, AIT-90). Es un cliente
 **aparte** del login: añadirle permisos de Gmail al del login cambiaría la pantalla de
@@ -281,29 +314,6 @@ botón— pero conviene saberlo antes de rotar y no después.
 ⚠️ **Las tres hay que darlas de alta en TODOS los deployments donde se vaya a usar**, no
 solo en producción: cada uno tiene su propio entorno (§8). Es la misma lección que dejaron
 las credenciales de Resend, que se fueron descubriendo deployment a deployment.
-
-
-- **URI de redirección autorizado:** `https://<CONVEX_SITE_URL>/api/auth/callback/google` (hoy, en dev: `https://third-goldfinch-805.convex.site/api/auth/callback/google` — `CONVEX_SITE_URL` es el dominio `.convex.site`, no el `.convex.cloud` de `NEXT_PUBLIC_CONVEX_URL`).
-- Da de alta el Client ID/Secret en el deployment de Convex (nombres exactos que espera `@auth/core`, no elegibles):
-
-```bash
-npx convex env set AUTH_GOOGLE_ID <client-id>
-npx convex env set AUTH_GOOGLE_SECRET <client-secret>
-```
-
-No hace falta nada en `.env.local`: el intercambio OAuth entero (redirect, callback, token) vive en el deployment de Convex, nunca en el navegador ni en el frontend.
-
-**Alta de cuentas Google — lista blanca, no registro público:** una cuenta de Google, por sí sola, nunca entra — `convex/auth.ts:createOrUpdateUser` rechaza cualquier email sin una fila previa en `users` (mensaje: *"La cuenta de Google … no tiene acceso"*). El alta real la hace la dueña desde Ajustes (`convex/users.ts:createUser`, sin contraseña — solo aplica a cuentas Google, ver ADR-003), o el bootstrap inicial de las 2 cuentas reales del negocio:
-
-```bash
-npx convex run users:bootstrapInitialAccounts '{}'   # una sola vez; re-ejecutarlo es seguro (idempotente)
-```
-
-Sin argumentos, crea (si no existen ya) `admin@talent-network.org` (owner) y `aitor.marin@talent-network.org` (sales) en "Tienda principal" — **conviven** con `marta@supercrm.es`/`carlos@supercrm.es`, no las sustituyen. Con `{stores: [...]}` acepta más tiendas/cuentas Google — ver la propia función en `convex/users.ts` para la forma exacta del argumento.
-
-**Verificación (Google):** entrar en `/login`, pulsar "Continuar con Google" y comprobar que el navegador llega de verdad a la pantalla de consentimiento de Google (no un error `invalid_client` — eso significa que `AUTH_GOOGLE_ID` no está puesto o no coincide con el proyecto de Google Cloud) y que, tras elegir una cuenta con acceso (`admin@talent-network.org` o `aitor.marin@talent-network.org`), vuelve autenticado a la app con el rol correcto. Con una cuenta de Google SIN alta previa en `users`, debe volver a `/login` sin sesión y sin alta automática — comprobar en los logs de `npx convex dev` que se ve el rechazo de `createOrUpdateUser`, ya que el navegador no muestra el motivo exacto (ver ADR-003, limitación conocida).
-
-**✅ Verificado end-to-end en vivo (2026-08-25):** los 3 casos de arriba (owner, sales, cuenta sin acceso) funcionan tal como se describe, más el camino Password (`marta@supercrm.es`) confirmado sin cambios. **Hallazgo real durante esta verificación:** el primer intento falló con un error genérico en el intercambio de token, indistinguible en el navegador/logs de Convex de un problema de nuestro propio `createOrUpdateUser` (el rechazo por lista blanca y el fallo de intercambio de token dan el mismo mensaje al usuario). Causa real: `AUTH_GOOGLE_SECRET` en Convex no coincidía con el secret vigente en Google Cloud Console para ese Client ID (aunque el Client ID sí coincidía — comprobado comparando solo los últimos caracteres de cada lado, nunca el valor completo, per la regla de no volcar secretos). Si esto se repite: comprobar primero que el Client ID coincide (es público, seguro de comparar entero) y, si coincide pero el login sigue fallando en el intercambio de token, sospechar del secret antes que del código — regenerarlo en Google Cloud Console y volver a ponerlo con `npx convex env set AUTH_GOOGLE_SECRET`.
 
 ### 6ter. Recuperación de contraseña vía Resend (AIT-62)
 
@@ -438,6 +448,7 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
 | `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es` — usadas por el bootstrap original de AIT-8 para crearlas (ya hecho, viven en el deployment desde entonces). Desde AIT-60, `bootstrapInitialAccounts` sin argumentos ya NO recrea estas 2 cuentas (solo crea las de Google, ver más abajo) — para levantar el proyecto de cero necesitando también las cuentas de contraseña, hace falta un `createAccount` manual con estas contraseñas (mismo patrón que el bootstrap original, no automatizado hoy). |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
+| `GMAIL_OAUTH_CLIENT_ID`, `GMAIL_OAUTH_CLIENT_SECRET`, `GMAIL_TOKEN_ENCRYPTION_KEY` | Deployment de Convex (`npx convex env`) | Cliente OAuth de **Gmail** (AIT-90/AIT-92) — **otro cliente distinto del de la fila de arriba**, no se pueden cruzar; los nombres son distintos a propósito. La de cifrado protege el token de refresco guardado en `gmailAccounts` y es **una por deployment**: rotarla obliga a reconectar. Ver §6quater. |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Deployment de Convex (`npx convex env`) | Envío del código de reseteo de contraseña (AIT-62) — `convex/ResendOTPPasswordReset.ts` las lee. `RESEND_FROM_EMAIL` necesita un dominio verificado en Resend para entregar a cuentas reales, no el de prueba. Ver §6ter. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Deployment de Convex (`npx convex env`) | Firma y envío de Web Push (`convex/webPush.ts`). La privada nunca sale del deployment de Convex — ver §7. |
