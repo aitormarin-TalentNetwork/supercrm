@@ -539,6 +539,20 @@ paró de producir y respetamos la pausa—:
   ⚠️ **Con qué mirarla mañana** (68.1): *con el sistema sano, ¿cuántas veces al día obliga a
   alguien a hacer algo?* **Casi nunca, solo al retirar algo ya difundido → vale. Un barrido cada
   vez que alguien matiza una frase → ceremonia, y se tira.**
+  ✅ **Y la Directora contestó esa pregunta mejor que nadie, con un umbral:** *una retirada de algo
+  que **ya se relayó a alguien** es un encargo; matizar una frase que **solo vive en tu propio
+  documento**, no.* Ahí **el coste ya está pagado y el barrido es finito** — ese es el corte que
+  separa la regla de la ceremonia.
+  **A favor (el comportamiento ya existe, no habría que implantarlo):** al retirarse el hallazgo
+  falso del `cwd` no mandó *"queda retirado"* — **le dijo a T3 dónde lo tenía copiado**; y con su
+  dato falso de AIT-89 **barrió cuatro sitios** y le dijo a T1 cuál seguía sucio.
+  ⚠️ **EN CONTRA, y lo aporta el propio Factory Architect contra sí mismo:** escribió esa regla en
+  su memoria **como doctrina, antes** de mandarla como candidata pidiendo que no se escribiera. **La
+  Directora, con el mismo texto delante, se negó a guardarla por ser candidata.** O sea: **el que
+  escribió el diagnóstico de la asimetría volvió a caer en ella en el mismo minuto.** Él lo lee
+  como argumento a favor —*el fallo no se corrige sabiéndoselo, por eso tiene que ser un paso
+  escrito*—; **el cargo es que una regla que su propio autor incumple mientras la redacta puede ser
+  una que nadie pueda seguir.** **Las dos lecturas van al repaso.**
 
   **Prueba de cargo:** **seis decisiones seguidas aceptadas sin una sola devolución**, entre las
   02:00 y las 03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
@@ -658,6 +672,10 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 04:50 UTC (= 01:50 local)**. A esa hora la fábrica se estaba
-apagando **por falta de trabajo disjunto, no por avería**: T1 y T3 ociosas con motivo anotado,
-solo T2 terminando AIT-108. Todo lo demás espera una decisión tuya.*
+*Última actualización: **2026-09-09 05:20 UTC (= 02:20 local)**.*
+
+**Estado al cerrar:** **nueve sesiones vivas y ninguna caída.** T1 y T3 llevan más de una hora
+ociosas **por falta de trabajo disjunto, no por avería** —comprobado que sus procesos siguen vivos,
+no solo que no producen—; **solo T2 sigue**, con el código de AIT-108. **Cuatro tareas esperando tu
+sí**, cerrojo libre, nada sin subir, nada publicado, modo `confirmar`. `core.hooksPath` **ausente,
+ciclo 18**.
