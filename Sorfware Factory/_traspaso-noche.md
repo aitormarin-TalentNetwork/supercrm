@@ -261,10 +261,23 @@ recuerda por qué existe.
 
 ## 5. Riesgos vivos que conviene que sepas
 
-- **Memoria — ⚠️ EL DATO QUE TE PASARON NO ERA EL ÚTIL, y aquí está el que sí.** Medido a las
-  03:27 UTC: **las nueve sesiones de Claude suman 3.162 MB de RSS**, o sea **~350 MB cada una**.
-  Ese es el número para decidir si abres otra terminal — *"los procesos más pesados son sesiones
-  `claude`"* es una observación sin escala.
+- **Memoria — ⚠️ Y CORREGIDO OTRA VEZ A LAS 04:17: el peso NO es principalmente de la fábrica.**
+  Desglosado:
+
+  | | RSS | procesos |
+  |---|---|---|
+  | **Tu Chrome personal** | **1.508 MB** | **30** |
+  | Las nueve sesiones de Claude | 1.913 MB | 9 |
+  | El Chrome del MCP (la fábrica) | **215 MB** | 9 |
+
+  **Tu propio navegador pesa casi tanto como la fábrica entera**, y el navegador *de* la fábrica
+  es despreciable. **Si quieres liberar memoria, cerrar pestañas hace tanto como cerrar una
+  terminal o dos — y no cuesta trabajo perdido.**
+  ⚠️ **Y esto corrige lo que te dijimos antes.** A las 02:31 medí *"los siete procesos más
+  pesados son sesiones `claude`"* y de ahí salió *"nueve terminales es lo que aprieta la
+  máquina"*. **Con el desglose delante, esa frase exageraba nuestra parte.** *(El agregado de las
+  sesiones además baja solo cuando están ociosas —2.934 → 1.913 MB en 22 minutos—, así que
+  cualquier foto puntual sobreestima o subestima según quién esté trabajando.)*
   ⚠️ **Y el swap a secas engaña**: esa madrugada su total bajó solo de 7.168 a 6.144 MB (macOS lo
   gestiona dinámicamente), así que el "libre" cayó de 1.487 a 921 y parecía que empeoraba
   **cuando el uso real había bajado**. Con **libre+inactiva = 4.345 MB**, la lectura correcta es
