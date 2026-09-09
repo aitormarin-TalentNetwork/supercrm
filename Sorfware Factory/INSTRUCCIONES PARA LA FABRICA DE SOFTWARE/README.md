@@ -2053,6 +2053,18 @@ un bloqueo de HOY y no un riesgo de mañana:**
 - **Entrada** — las rondas de QA navegan con ese perfil puesto. Si una acabara en una página
   hostil, iría con las sesiones de Aitor.
 
+📌 **Y la formulación que lo cierra, del PM, después de trabajar toda una noche dentro de ese
+perfil (2026-09-08):** él tuvo que **operar la consola de Google Cloud con la identidad de
+Aitor** —autorizado por él, pero con su identidad—, y **cualquier ronda rutinaria del QA
+comparte ese mismo perfil**.
+
+> **El aislamiento no es solo para no bloquearnos: es para que probar la app no dé acceso
+> incidental a las cuentas personales de nadie.**
+
+Es el argumento más fuerte de los tres porque **no depende de que ocurra nada malo**: el acceso
+ya está ahí, concedido por construcción, cada vez que alguien abre el navegador para mirar un
+botón.
+
 **47.1** — El navegador que usa la fábrica corre sobre un **perfil propio, vacío de todo lo que
 no sea la app bajo prueba**. El QA necesita exactamente una sesión: la del usuario demo del
 CRM. Ninguna otra credencial tiene por qué estar alcanzable desde una ventana de pruebas.
