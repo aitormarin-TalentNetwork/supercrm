@@ -164,7 +164,7 @@ El asistente de `npx @convex-dev/auth` hace, en el deployment de Convex (no en `
 - `SITE_URL` — necesario aunque no haya OAuth.
 - `JWT_PRIVATE_KEY` / `JWKS` — el par de claves con el que Convex Auth firma los tokens de sesión. **Sin esto, ningún login funciona nunca**, con independencia del provider.
 
-Las 2 cuentas de prueba originales (`marta@supercrm.es`/`carlos@supercrm.es`, AIT-8) ya viven en el deployment desde que se crearon una vez con `createAccount` + estas 2 variables (`convex/users.ts:bootstrapInitialAccounts` sin argumentos ya NO las recrea — desde AIT-60 crea las cuentas Google, ver §6bis; para levantar un deployment nuevo de cero necesitando también cuentas de contraseña haría falta un `createAccount` manual con el mismo patrón). En un deployment ya en marcha (el caso normal) no hace falta volver a ejecutar nada de esto — solo puestas a mano si arrancas de cero:
+Las 2 cuentas de prueba originales (`marta@supercrm.es`/`carlos@supercrm.es`, AIT-8) ya viven en el deployment desde que se crearon una vez con `createAccount` + estas 2 variables (`convex/users.ts:bootstrapInitialAccounts` sin argumentos ya NO las recrea — desde AIT-60 crea las cuentas Google, ver §6bis; para levantar un deployment nuevo de cero necesitando también cuentas de contraseña haría falta un `createAccount` manual con el mismo patrón). En un deployment ya en marcha (el caso normal) no hace falta volver a ejecutar nada de esto — solo puestas a mano si arrancas de cero. **Y si la cuenta YA existe pero su contraseña no coincide con la de estas variables** —el login falla con `InvalidSecret`, no con `InvalidAccountId`— eso no se arregla poniéndolas otra vez: ver **§6quater**.
 
 ```bash
 npx convex env set SEED_OWNER_PASSWORD <contraseña-owner>
@@ -317,6 +317,91 @@ comprobar que llega un email real con un código de 6 dígitos, válido 15 minut
 quedaría roto en producción real aunque funcione en dev (mismo patrón que otras
 variables de entorno nuevas de este proyecto, ver ADR-004).
 
+### 6quater. Rehacer la contraseña de una cuenta que YA existe (AIT-102)
+
+**A quién aplica, y va primero para que nadie lo lea al revés.** Esto vale para las
+**cuentas de prueba** (`marta@supercrm.es`, `carlos@supercrm.es`). Las cuentas reales del
+negocio **entran por Google y no tienen contraseña, por decisión de Aitor** (AIT-113, ver
+más arriba en este mismo documento). **Esto no es la receta para dárselas:** si alguien lo
+propone, lo que tiene que reabrir es esa decisión.
+
+**El problema que resuelve.** La credencial vive en `authAccounts` desde el día en que la
+cuenta se creó, y **nada la actualiza después**. Si la contraseña real ya no coincide con
+la documentada, el login falla con `InvalidSecret` — no con `InvalidAccountId`: **la cuenta
+existe, lo que no casa es la contraseña.**
+
+**Las tres vías que NO sirven**, y conviene saberlo antes de perder media hora:
+
+- **El dashboard de Convex** guarda el *hash*, no la contraseña. No hay campo que editar.
+- **Cambiar `SEED_OWNER_PASSWORD`/`SEED_SALES_PASSWORD`** no hace nada: **ya no las lee
+  nadie** (ver AIT-99). Cambiar la variable no toca una credencial ya creada.
+- **"¿Olvidaste la contraseña?"** manda un código a `marta@supercrm.es`, un dominio
+  inventado sin buzón.
+
+**Cómo se hace.** Una función interna **de un solo uso**, que se despliega, se ejecuta y
+**se retira en la misma sesión** — una función capaz de reescribir credenciales no se queda
+viviendo en un deployment compartido:
+
+1. **Coge el turno de Convex** si el deployment es compartido (`_turno-convex.lock`), y
+   **avisa a quien lo comparta antes de tocar nada**: al cambiar la credencial, su
+   `.env.local` deja de servir hasta que copie las `NEXT_PUBLIC_DEMO_*` nuevas.
+2. **Sincroniza tu deployment con tu código** (`npx convex dev --once`) y **compara las dos
+   listas de funciones desplegadas**:
+   ```bash
+   npx convex function-spec | grep -oE '"identifier": "[^"]+"' | sort -u > /tmp/A
+   npx convex function-spec --deployment <destino> | grep -oE '"identifier": "[^"]+"' | sort -u > /tmp/B
+   comm -13 /tmp/A /tmp/B     # lo que tu despliegue RETIRARÍA: debe salir VACÍO
+   ```
+   Si no sale vacío, **para**: hay funciones desplegadas desde otra rama y tu `convex dev`
+   se las llevaría. Comparar tu *checkout* con git **no vale**: el riesgo está en el
+   deployment, no en el código.
+3. **Escribe la función** con `modifyAccountCredentials` (la misma que usa el flujo de
+   recuperación en `convex/auth.ts`), leyendo el secreto de `process.env` **dentro del
+   deployment** — nunca por argumento — y devolviendo **un recuento**, nunca un valor.
+   **Valida las dos cuentas y las dos variables ANTES de la primera escritura**: cambiar
+   una y fallar en la otra deja el deployment en un estado que no describe ninguna
+   documentación.
+4. **Despliega y ejecuta.** `convex dev` **no acepta `--deployment`**: el destino sale de
+   `CONVEX_DEPLOYMENT`, así que se sobreescribe **solo para ese proceso**
+   (`CONVEX_DEPLOYMENT=dev:<destino> npx convex dev --once`). **Comprueba el destino con un
+   comando de LECTURA antes de escribir con él** — un `function-spec` con el override debe
+   devolver el número de funciones del destino, no el tuyo.
+5. **Retira la función, redespliega, y comprueba la ausencia con control positivo**: que la
+   función ya no esté Y que otra que sí debe estar (`users:createUser`) siga apareciendo.
+   Un "no aparece" sin control no distingue "se retiró" de "consulté mal".
+6. **Solo entonces suelta el turno.** Si la limpieza falla: **para, escala y mantén el
+   turno cogido.** Un recurso bloqueado es un problema visible; una función capaz de
+   reescribir credenciales viviendo en un deployment compartido, no.
+
+⚠️ **El flag va SIN el prefijo `dev:`**: `--deployment third-goldfinch-805`. Con
+`--deployment dev:third-goldfinch-805` el CLI responde **`You don't have access to the
+selected project`**, que se lee como un problema de permisos **y es de formato del
+argumento**.
+
+⚠️ **Nada de trazas ni capturas mientras verificas.** La pantalla de login **imprime la
+contraseña en claro** (bloque "Cuentas de prueba", decisión explícita del proyecto), y
+Playwright escribe `trace.zip` y `error-context.md` **automáticamente al fallar un test**,
+con el DOM dentro y sin censurar valores. Corre con `--trace off`.
+
+**Y `NEXT_PUBLIC_DEMO_*` tiene que llevar el mismo valor que `SEED_*`.** Son dos parejas de
+variables en dos sitios distintos —el deployment y el `.env.local`— y **nada obliga a que
+coincidan**. Descuadrarlas produce exactamente este mismo síntoma.
+
+#### Cómo saber que el problema es ÉSTE y no otro
+
+Cuatro causas distintas producen "el login falla" y **ninguna lo dice**. Se distinguen por
+**el momento**, no por el mensaje — y eso se comprueba mirando dónde paró la corrida:
+
+| Causa | Firma |
+|---|---|
+| **Credencial cambiada** (esta sección) | `InvalidSecret`. Muere en `globalSetup`: **la corrida ni empieza** |
+| **Cupo de intentos agotado** | `TooManyFailedAttempts`. Deja rastro en `authRateLimits` |
+| **Sesión muerta** | Sin rastro. Manda a `/login` con los tests ya corriendo |
+| **Instantánea de sesión vacía** | Sin rastro. Manda a `/login`. ~267 bytes en `e2e/.auth/*.json` — y **correr un test suelto la repara**, así que comprobarlo destruye la evidencia |
+
+**La cuenta no existe** es otra cosa distinta: da `InvalidAccountId`, no `InvalidSecret`.
+Si es eso, no es esta sección — es la siembra de un deployment nuevo (AIT-99).
+
 ## 7. Web Push (AIT-57, Post-MVP)
 
 Avisos push reales (pasos vencidos y oportunidades en riesgo, con la app cerrada) — ver `convex/webPush.ts` (envío), `convex/pushInternal.ts` (candidatos), `convex/pushSubscriptions.ts` (alta/baja desde el cliente) y `convex/crons.ts` (dispara el envío cada hora).
@@ -418,7 +503,7 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `NEXT_PUBLIC_CONVEX_URL` | `.env.local` | La URL que usa el navegador. `NEXT_PUBLIC_` = pública, no meter secretos con ese prefijo. |
 | `NEXT_PUBLIC_DEMO_OWNER_PASSWORD`, `NEXT_PUBLIC_DEMO_SALES_PASSWORD` | `.env.local` | Autorrelleno de "cuentas de prueba" en `/login`, solo fuera de producción (ver AIT-9). |
 | `JWT_PRIVATE_KEY`, `JWKS`, `SITE_URL` | Deployment de Convex (`npx convex env`, no `.env.local`) | Firma de tokens de sesión de Convex Auth. Las escribe `npx @convex-dev/auth`. |
-| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es` — usadas por el bootstrap original de AIT-8 para crearlas (ya hecho, viven en el deployment desde entonces). Desde AIT-60, `bootstrapInitialAccounts` sin argumentos ya NO recrea estas 2 cuentas (solo crea las de Google, ver más abajo) — para levantar el proyecto de cero necesitando también las cuentas de contraseña, hace falta un `createAccount` manual con estas contraseñas (mismo patrón que el bootstrap original, no automatizado hoy). |
+| `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es`. **Hoy no las lee ningún código** (AIT-99): sirvieron para crear esas cuentas y la credencial quedó congelada en `authAccounts` desde entonces. **Cambiar estas variables NO cambia la contraseña de una cuenta que ya existe** — para eso, ver §6quater. Y **tienen que llevar el mismo valor que `NEXT_PUBLIC_DEMO_*`**: nada obliga a que coincidan, y descuadrarlas rompe el login. |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Deployment de Convex (`npx convex env`) | Envío del código de reseteo de contraseña (AIT-62) — `convex/ResendOTPPasswordReset.ts` las lee. `RESEND_FROM_EMAIL` necesita un dominio verificado en Resend para entregar a cuentas reales, no el de prueba. Ver §6ter. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
