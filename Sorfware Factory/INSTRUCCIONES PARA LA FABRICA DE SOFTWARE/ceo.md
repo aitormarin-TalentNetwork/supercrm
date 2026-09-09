@@ -757,6 +757,26 @@ tras abrirse AIT-117—:
 igualmente** —el gancho de `test:e2e`, o el prompt de tu bucle—. **Un documento no se ejecuta
 solo; un comando que ya estabas ejecutando, sí.**
 
+### 🔴 LA VERIFICACIÓN DE UNA CONCLUSIÓN NO SE HEREDA HACIA SUS PARTES. LA CONFIANZA SÍ.
+
+> **Se comprueba que la conclusión es cierta, la atención se detiene ahí, y todo lo que va dentro
+> pasa a estar avalado SIN HABER SIDO COMPROBADO.**
+
+⚠️ **Consecuencia operativa, que es lo que hay que hacer:**
+> **Las partes de un hallazgo verificado que otro va a REUTILIZAR —coordenadas, cifras, comandos—
+> son precisamente las NO verificadas.** Al reusar un detalle de un hallazgo cierto, **verifica el
+> detalle: la verificación del hallazgo no lo cubre.**
+
+**Dos casos del mismo día, y en los dos la conclusión era correcta:** un `EXIT=0` que era del `grep`
+de la tubería **dentro de un diagnóstico acertado**; y unas coordenadas equivocadas **dentro de un
+diagnóstico cierto del Integrador**. *En ninguno de los dos falló el razonamiento — falló un dato
+que nadie miró porque el razonamiento salía bien.*
+
+🔻 **Y es DISTINTA de "una conclusión halagadora se archiva", aunque se parezcan:** allí lo que
+apaga la revisión es que el contenido sea **cómodo**; **aquí es que el contenido sea CORRECTO.**
+**No es un sesgo: es economía de atención — y por eso es más difícil de combatir.** *Contra un
+sesgo puedes desconfiar; contra esto no hay de qué desconfiar.*
+
 ### ⛔ EL ÚLTIMO PASO DE TODA VERIFICACIÓN ES MIRAR EL OBJETO, NO SU CUENTA (2026-09-09)
 
 > **Ante un `0` o un `1`, abrir es OBLIGATORIO y cuesta un comando.**

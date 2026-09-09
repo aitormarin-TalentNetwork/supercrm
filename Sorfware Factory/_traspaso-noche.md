@@ -1496,6 +1496,15 @@ peticion -> efecto     la peticion esta bien formada y llega, y ejecutarla no ca
 *consolidar sus propias candidatas sin que nadie las friccione es exactamente lo que la decisión 71
 demostró que sale mal.* **Llega propuesta, no adoptada.**
 
+🗜️ **CUARTA CONSOLIDACIÓN DEL DÍA — y el catálogo lleva un rato COMPRIMIÉNDOSE en vez de
+creciendo**, que es justo lo que pedía la advertencia de que crecer no es ganar. *Las cuatro han
+salido de **comparar candidatas entre sí**, no de encontrar casos nuevos.*
+> **La verificación de una conclusión no se hereda hacia sus partes. La confianza sí.**
+Funde el `EXIT=0` del `grep` dentro de una conclusión correcta y las coordenadas erróneas dentro de
+un diagnóstico cierto. **Y es distinta de "una conclusión halagadora se archiva": allí apaga la
+revisión que el contenido sea cómodo; aquí, que sea CORRECTO.** *No es sesgo, es economía de
+atención — contra un sesgo puedes desconfiar; contra esto no hay de qué desconfiar.*
+
 ⚖️ **CRITERIO PARA ORDENAR LAS CANDIDATAS, del FA, y es el que yo usaría primero:**
 > **Las reglas que se DEDUCEN valen más que las que se RECUERDAN**, porque **no dependen de que
 > quien las lea haya vivido el incidente.**
