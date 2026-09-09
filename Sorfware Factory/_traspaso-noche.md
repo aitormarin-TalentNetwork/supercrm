@@ -610,4 +610,4 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 02:45 UTC (= 23:45 local del 8-sep)**. Las secciones 7bis/7ter/7quater se añadieron después de esa hora.*
+*Última actualización: **2026-09-09 04:50 UTC (= 01:50 local)**. A esa hora la fábrica se estaba apagando por falta de trabajo disjunto: T1 y T3 ociosas con motivo, solo T2 terminando AIT-108. Todo lo demás espera una decisión tuya.**2026-09-09 02:45 UTC (= 23:45 local del 8-sep)**. Las secciones 7bis/7ter/7quater se añadieron después de esa hora.*
