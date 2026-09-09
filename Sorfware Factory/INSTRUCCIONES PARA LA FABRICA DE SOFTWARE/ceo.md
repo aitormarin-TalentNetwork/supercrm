@@ -812,6 +812,30 @@ control en **una foto con suerte**.* **Caso del mismo día:** un control propues
 activa **dejó de discriminar en cinco minutos**, porque esa sesión volvió a producir; el sujeto
 bueno resultó ser **una sesión muerta desde hacía tres días**, con 53 h de divergencia estable.
 
+### 🔴 CORROBORACIÓN FALSA: cuando confirmas el hallazgo de otro con un instrumento roto
+
+> **Cuando vayas a confirmar el hallazgo de otro, tu control tiene que incluir un caso donde
+> esperes el resultado CONTRARIO.** Si todos tus sujetos deberían dar lo mismo que dice el
+> hallazgo, **tu instrumento roto y el hallazgo correcto producen la misma salida.**
+
+⚠️ **No es un falso positivo ni un falso negativo: es una CORROBORACIÓN FALSA, y es peor que las
+dos.** *No contradice nada — **refuerza algo cierto con basura**, y a partir de ahí el hallazgo
+verdadero se apoya en parte en nada, sin que se pueda distinguir qué mitad lo sostiene.*
+
+**Caso real, 2026-09-09:** al confirmar que los worktrees estaban desactualizados, mi patrón dio
+`T1:0 · T2:0 · T3:0` — **y también `RAÍZ:0`**. *Si solo hubiera mirado los tres worktrees, habría
+confirmado un hallazgo correcto con un patrón que no encontraba nada en ninguna parte.* **Lo que
+lo destapó fue meter la raíz, cuyo valor esperado era `1`.**
+> **El control funcionó porque su valor esperado era DISTINTO del hallazgo**, no porque fuera más
+> riguroso.
+
+📌 **Es hermana de la de abajo, en el eje de la confirmación entre roles: el acuerdo solo informa
+donde podríais DISCREPAR.**
+🔻 **Y pasó dos veces en veinte minutos, en los dos sentidos del canal:** al otro lado, una
+explicación coherente —*"la raíz también está atrasada"*— **habría sido un segundo hallazgo falso
+apoyado en el primero verdadero.** *La cazó ir a comprobar la diferencia **en vez de explicarla** —
+y explicar sale primero, siempre.*
+
 ### 🔴 DOS VARIANTES DE LA MISMA COMPROBACIÓN NO SE VALIDAN ENTRE SÍ CON EL SISTEMA SANO
 
 > **Dos implementaciones de la misma comprobación coinciden en el estado sano POR DISEÑO** — si no
