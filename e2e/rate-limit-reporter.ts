@@ -1,3 +1,4 @@
+import { spawn } from "node:child_process";
 import type { Reporter, TestCase, TestResult } from "@playwright/test/reporter";
 import {
   effectiveAttemptsLeft,
@@ -230,8 +231,90 @@ export function decidir(entrada: {
   return { aviso: null, motivo: huboConsumo ? "consumo-parcial" : "sin-consumo" };
 }
 
+// ============================================================================
+// POR QUÉ ESTE `exec` — Y POR QUÉ **NO** ES LO QUE ARREGLA LA FUGA
+// ============================================================================
+// Medido: cada invocación de la suite dejaba procesos `convex data` vivos (más
+// su envoltorio `npm exec`), huérfanos —padre `launchd`— y ~17 MB por corrida.
+//
+// MI PRIMER DIAGNÓSTICO ERA FALSO y lo dejo escrito porque la corrección importa:
+// dije que la fuga estaba "en la vida del hijo" y no en el manejo de promesas.
+// La tabla que lo desmiente, medida entera en vez de solo la mitad que me
+// convenía:
+//
+//     exec nuevo + SIN esperar en verde  -> 4 colgados
+//     exec viejo + SIN esperar en verde  -> 4 colgados
+//     exec viejo + esperando en verde    -> 0        <- basta con esperar
+//     exec nuevo + esperando en verde    -> 0
+//
+// **Lo que arregla la fuga es que `onEnd` espere las lecturas en vuelo también
+// cuando no hay fallos** (ver ahí). El hijo no colgaba: quedaba huérfano porque
+// el runner se iba antes de que terminara.
+//
+// ENTONCES, ¿QUÉ PINTA ESTE `exec`? El TIMEOUT — y lo necesita justamente el
+// arreglo de arriba: desde que `onEnd` espera SIEMPRE, una lectura que no
+// termine colgaría el runner entero. `execFileAsync` no lleva plazo. Así que
+// esto no es el remedio, es lo que impide que el remedio se convierta en un
+// cuelgue. El `kill` del grupo es el complemento del plazo: si vence, no basta
+// con dejar de esperar, hay que cerrar lo que quedó abierto.
+//
+// Se mata el GRUPO y no el hijo directo: el árbol es `npm exec` -> `convex`, y
+// matar solo al primero deja al nieto. De ahí `detached: true` y `kill(-pid)`.
+//
+// `readTable` acepta `exec` inyectable (lo hizo T2 para poder probar sin
+// deployment), así que se le pasa éste: no se duplica su lectura ni se toca su
+// fichero, y en particular no se reescribe la de `authAccounts`, que retiene
+// solo `_id -> email` porque esa tabla lleva `secret`.
+const TIEMPO_MAXIMO_MS = 20_000;
+
+export function execSinFugas(
+  file: string,
+  args: string[],
+  opciones: { cwd?: string; maxBuffer?: number },
+): Promise<{ stdout: string }> {
+  return new Promise((resolve, reject) => {
+    const hijo = spawn(file, args, { cwd: opciones.cwd, detached: true });
+    let salida = "";
+    let terminado = false;
+    const limite = opciones.maxBuffer ?? 32 * 1024 * 1024;
+
+    // Se mata en LOS TRES caminos —resolución, rechazo y timeout— y no solo en
+    // el feliz: una limpieza que depende de llegar al final no es limpieza.
+    const rematar = () => {
+      try {
+        if (hijo.pid !== undefined) process.kill(-hijo.pid, "SIGKILL");
+      } catch {
+        // ESRCH: ya se había ido por su cuenta. Es el caso bueno.
+      }
+    };
+    const acabar = (fn: () => void) => {
+      if (terminado) return;
+      terminado = true;
+      clearTimeout(reloj);
+      rematar();
+      fn();
+    };
+
+    const reloj = setTimeout(
+      () => acabar(() => reject(new Error("lectura fallida"))),
+      TIEMPO_MAXIMO_MS,
+    );
+
+    hijo.stdout?.on("data", (trozo: Buffer) => {
+      salida += trozo.toString();
+      // Mismo tope que pasa `readTable`. Y el error NO lleva datos dentro, por
+      // el mismo motivo por el que su `catch` descarta el error entero.
+      if (salida.length > limite) {
+        acabar(() => reject(new Error("lectura fallida")));
+      }
+    });
+    hijo.on("error", () => acabar(() => reject(new Error("lectura fallida"))));
+    hijo.on("close", () => acabar(() => resolve({ stdout: salida })));
+  });
+}
+
 async function leerFoto(): Promise<Foto> {
-  const filas = (await readRateLimitsFromConvex()) as Fila[];
+  const filas = (await readRateLimitsFromConvex(execSinFugas)) as Fila[];
   return { filas, ahora: Date.now() };
 }
 
@@ -255,7 +338,9 @@ export default class RateLimitReporter implements Reporter {
   constructor(dep?: Partial<Dependencias>) {
     this.dep = {
       leer: dep?.leer ?? leerFoto,
-      leerCuentas: dep?.leerCuentas ?? readPasswordAccountsFromConvex,
+      leerCuentas:
+        dep?.leerCuentas ??
+        (() => readPasswordAccountsFromConvex(execSinFugas)),
     };
   }
 
@@ -297,7 +382,20 @@ export default class RateLimitReporter implements Reporter {
   }
 
   async onEnd(): Promise<void> {
-    if (this.tf === undefined) return; // sin fallos: ni una lectura más, ni una línea
+    if (this.tf === undefined) {
+      // Sin fallos no se lee nada más y no se dice nada — pero SÍ se esperan las
+      // lecturas en vuelo antes de salir. Sin esto, el runner se va con ellas a
+      // medias, sus hijos quedan huérfanos y el `kill` de `execSinFugas` —que
+      // ocurre al resolverse la promesa— no llega a ejecutarse nunca.
+      //
+      // Medido: con el `exec` arreglado pero SIN esta espera, una corrida corta
+      // seguía dejando 4 procesos. El `exec` no bastaba porque en verde nadie
+      // esperaba a que terminara. Es la misma forma que el rechazo sin
+      // manejador: la limpieza no puede depender de que alguien recoja el
+      // resultado.
+      await Promise.allSettled([this.t0, this.cuentas]);
+      return;
+    }
     this.t1 = this.foto();
     const decision = decidir({
       t0: await this.t0,
