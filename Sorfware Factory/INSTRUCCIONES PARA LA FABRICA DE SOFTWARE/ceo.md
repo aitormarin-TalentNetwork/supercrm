@@ -973,7 +973,38 @@ cualquier porcentaje* — y por eso la regla de abajo va antes que todas las cif
 indicador** — *¿ha muerto algo?* vale más que cualquier porcentaje. Y si vas a dar un número, da
 **swap usado/total + compresor + procesos más pesados**, nunca uno solo.
 
-### Comprobación fija de tu barrido: `core.hooksPath`
+### ⛔ ANTES DE REPETIR UNA PETICIÓN, COMPRUEBA QUE EJECUTARLA HARÍA ALGO (2026-09-09)
+
+> **Una petición inejecutable y una petición ignorada producen exactamente el mismo *"sigue
+> ausente"*, ciclo tras ciclo.**
+
+🔴 **Caso real, y es de este barrido: 31 ciclos pidiéndole a Aitor `git config core.hooksPath
+.githooks`.** Medido con control positivo: **`.githooks` NO EXISTE y no ha existido nunca en
+ninguna rama** (`git log --all --diff-filter=A -- .githooks` → 0; control: `docs/` → 1). **Si lo
+hubiera ejecutado el primer día no habría pasado nada** — `git` no ejecuta hooks de un directorio
+inexistente— **y esta comprobación se habría dado por satisfecha.**
+
+⚠️ **Por qué fue invisible 31 veces, y es de casa:** la comprobación miraba **la configuración** y
+**nunca lo que la configuración apunta**. Midió un extremo y jamás el otro — ***el cable, no los
+extremos***, aplicado a una petición en lugar de a una medición.
+
+🔻 **Y lo que de verdad hay que llevarse: durante 31 ciclos anotamos de hecho *"Aitor no ha hecho
+esto"* cuando la petición estaba mal por nuestra parte.** *Crear `.githooks` y meter dentro el
+pre-commit es trabajo NUESTRO, y nunca se le pidió a nadie. Lo que se le pedía a él era el último
+paso de una cadena cuyos anteriores no existían.*
+
+**El umbral, y no es un número** (del Factory Architect): la **primera** repetición es un
+recordatorio; **la segunda te dice que el recordatorio no funcionó**; a partir de ahí **lo que se
+revisa es la petición, no el contador.**
+
+### Comprobación fija de tu barrido: `core.hooksPath` — las DOS mitades o no significa nada
+
+```bash
+git config --get core.hooksPath          # la configuracion
+ls -1 .githooks 2>/dev/null | wc -l      # ...y que lo que apunta EXISTA y tenga contenido
+```
+**Si `.githooks` está vacío o no existe, el `hooksPath` no protege de nada aunque esté puesto.**
+**Y mientras no exista, esto NO va en la lista de Aitor: va en la nuestra.**
 
 Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso en uno visible:
 
