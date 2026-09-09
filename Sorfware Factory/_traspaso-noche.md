@@ -295,6 +295,22 @@ paró de producir y respetamos la pausa—:
   habríamos hecho por costumbre — *un vigilante que habríamos sesgado y que la regla dice que
   no, o una puerta con autotest que la regla dice que sobra*. **Es la enmienda 9 aplicada a una
   regla en vez de a una comprobación: si no habría podido salir mal, no la hemos probado.**
+- **"Explicar bien un incidente no es evidencia de ser cierto."** (De T1, retirando su propio
+  hallazgo.) Su explicación del incidente del `cwd` era **buena, completa y encajaba con todo lo
+  observado**, y por eso **pasó tres filtros sin que nadie pidiera una medición** — llegó a
+  reescribir dos veces una sección de `intro-terminal.txt` sobre una premisa falsa. **Cuanto
+  mejor explica algo, menos ganas dan de comprobarlo.**
+  *Lo que había pasado en realidad:* midió el `cwd` de un servidor que **de verdad era de la
+  raíz**, obtuvo la respuesta **correcta**, y concluyó que el método estaba roto porque
+  contradecía su creencia previa. **Medición exacta, sujeto equivocado — esta vez sobre el
+  método en vez de sobre el dato.** *(Ya corregido en el documento, con la historia del párrafo
+  dentro para que no se vuelva a reescribir.)*
+  📌 **Y la parte que la Directora se apunta a sí misma, que es la que enseña:** ella fue el
+  vector —convirtió el relato de T1 en hallazgo verificado y pidió que se escribiera—, puso dos
+  condiciones (método alternativo y procedencia) **y ninguna era "que alguien lo reproduzca antes
+  de publicarlo"**, que era la única que importaba. **Van dos correcciones seguidas al mismo
+  párrafo, y las dos las encontró alguien midiendo después de publicarlo, no nosotros
+  revisando.**
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
