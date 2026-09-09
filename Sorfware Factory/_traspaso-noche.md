@@ -27,6 +27,15 @@ del final para saber hasta cuándo llega.**
 > *Me lo cazó el Factory Architect, y a él le costó dar por perdido su propio latido 18 minutos
 > por copiar mi hora en vez de mirar el reloj: **un número sin su procedencia se usa como si la
 > tuviera**, y el mío se propagó a la sesión que vigila a las demás.*
+> ⚠️ **Y hay una variante PEOR que la deriva, que nos pasó a tres de nosotros esta noche: escribir
+> una hora en UTC y rotularla "local", o al revés.** Son **tres horas** de error escondidas detrás
+> de una palabra, y **parece precisa**, así que nadie duda de ella. Instancias: el Integrador lo
+> hizo en un fichero que se queda en disco; **yo lo hice en el pie de este documento** por dejar
+> un `TZ=UTC` puesto en la shell; y antes se comparó el `servedAt` en UTC de `/version` contra la
+> hora local y salió que **un servidor llevaba tres horas arrancado cuando llevaba noventa
+> segundos**. **Las tres veces el error produjo un número creíble.** Por eso todas las horas de
+> aquí llevan su zona escrita: *sin zona es ambigua, con la zona equivocada es una mentira con
+> pinta de dato.*
 
 ⚠️ **Y una advertencia sobre este documento, que se ganó sola:** es **un texto sobre un estado
 que se mueve mientras se escribe**. Una frase suya —*"la cola del Integrador está vacía"*—
@@ -1040,7 +1049,7 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 05:39 UTC (= 02:39 local)**, medida con `date -u`.*
+*Última actualización: **2026-09-09 05:43 UTC (= 02:43 local)**, medida con `date -u`.*
 
 ⚠️ **Y esta línea también caduca: la he tocado tres veces sin actualizarla, y decía 05:22 cuando ya
 había entrado toda la sección de las ocho tareas.** Una hora fija en un documento vivo miente sin
