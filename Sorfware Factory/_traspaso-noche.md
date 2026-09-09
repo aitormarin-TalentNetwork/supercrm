@@ -261,28 +261,24 @@ recuerda por qué existe.
 
 ## 5. Riesgos vivos que conviene que sepas
 
-- **Memoria — ⚠️ Y CORREGIDO OTRA VEZ A LAS 04:17: el peso NO es principalmente de la fábrica.**
-  Desglosado:
+- **Memoria — y esto es lo ÚNICO que no caduca, porque de las cifras te hemos dado tres
+  versiones distintas en cuatro horas:**
 
-  | | RSS | procesos |
-  |---|---|---|
-  | **Tu Chrome personal** | **1.508 MB** | **30** |
-  | Las nueve sesiones de Claude | 1.913 MB | 9 |
-  | El Chrome del MCP (la fábrica) | **215 MB** | 9 |
+  > ### **Tu Chrome personal pesa casi lo mismo que la fábrica entera. Cerrar pestañas libera tanto como cerrar una terminal — y no cuesta trabajo perdido.**
 
-  **Tu propio navegador pesa casi tanto como la fábrica entera**, y el navegador *de* la fábrica
-  es despreciable. **Si quieres liberar memoria, cerrar pestañas hace tanto como cerrar una
-  terminal o dos — y no cuesta trabajo perdido.**
-  ⚠️ **Y esto corrige lo que te dijimos antes.** A las 02:31 medí *"los siete procesos más
-  pesados son sesiones `claude`"* y de ahí salió *"nueve terminales es lo que aprieta la
-  máquina"*. **Con el desglose delante, esa frase exageraba nuestra parte.** *(El agregado de las
-  sesiones además baja solo cuando están ociosas —2.934 → 1.913 MB en 22 minutos—, así que
-  cualquier foto puntual sobreestima o subestima según quién esté trabajando.)*
-  ⚠️ **Y el swap a secas engaña**: esa madrugada su total bajó solo de 7.168 a 6.144 MB (macOS lo
-  gestiona dinámicamente), así que el "libre" cayó de 1.487 a 921 y parecía que empeoraba
-  **cuando el uso real había bajado**. Con **libre+inactiva = 4.345 MB**, la lectura correcta es
-  que **hay margen**, no que reviente. *(Corregido también el barrido, que reportaba solo el
-  swap.)*
+  **Y cómo mirarlo cuando quieras el número**, en vez de heredar el nuestro:
+  `sysctl -n vm.swapusage` (⚠️ **su total se mueve solo**: 6.144 y 7.168 la misma noche) ·
+  `vm_stat` → **libre+inactiva**, que es lo reclamable de verdad · y el **agregado de RSS**,
+  desglosando **tu Chrome / las sesiones / el Chrome del MCP**.
+
+  *Foto de las 04:17 UTC, y es una foto:* tu Chrome **1.508 MB en 30 procesos** · las nueve
+  sesiones **1.913 MB** · el navegador de la fábrica **215 MB**.
+
+  ⚠️ **Por qué insisto en que es una foto: el agregado de las sesiones cayó de 2.934 a 1.913 MB en
+  22 minutos, solo porque cuatro se quedaron ociosas.** A las 02:31 te dijimos *"nueve terminales
+  es lo que aprieta la máquina"* y **exagerábamos nuestra parte**. **Te hemos pasado fotos
+  llamándolas propiedades tres veces.**
+
 - *(Registro histórico de lo que se te dijo antes y ya no vale)* — **EL DATO CAMBIÓ, y el Factory
   Architect te pasó el anterior como límite de escalado.** A las 02:31 UTC medí swap 5.763/7.168 con **los siete procesos más pesados siendo
   siete sesiones de Claude**. A las 02:39 UTC: **5.681/7.168, estable, y el proceso más pesado ya
