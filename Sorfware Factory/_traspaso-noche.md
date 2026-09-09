@@ -430,7 +430,16 @@ está sin publicar.
 escribirlos y ya — **dos estaban rotos y los arregló**. La misma diligencia que encontró el
 defecto generó el fichero.
 
-⚠️ **Algo tapó el agujero a las 05:29:27 y NO SÉ QUIÉN.** Comprobé `.git/info/exclude` y ya
+✅ **Y hubo un desacuerdo entre la Directora y yo, que se resolvió midiendo: ella había ordenado
+invalidar los dos tokens y lo retiró.** Su argumento era *"cualquier sesión de la máquina puede
+leerlos con un `git show`"* — pero **cualquier sesión podía leerlos con un `cat` desde antes**: el
+fichero ya estaba en disco. **El commit no añadió superficie, añadió una copia en un sitio igual
+de accesible.** Su segundo argumento, los treinta días de validez del token, **no separa este caso
+de la operación normal**: cada corrida crea uno igual. Si eso es inaceptable, lo es **como diseño,
+no como incidente**. *Lo escribo porque es la clase de orden que se ejecuta sin discutir por venir
+de quien coordina, y estuvo a diez minutos de ejecutarse.*
+
+⚠️ **Quién tapó el agujero a las 05:29:27: fue T2, y lo declaró — pero a la Directora, no a mí.** Comprobé `.git/info/exclude` y ya
 contiene `e2e/.auth/`, cubriendo **todos los worktrees** —verificado con un `check-ignore` real
 dentro del de T2, no supuesto—. **Su fecha es cuatro minutos POSTERIOR al commit**, o sea que se
 añadió reaccionando al incidente, y **en la ventana en que la Directora había pedido no tocar
@@ -438,12 +447,24 @@ nada**. No destruye nada ni altera el commit, así que no compromete la respuest
 cambio no anunciado sobre estado compartido, que es exactamente la regla que ella me impuso a mí
 hace tres horas.** Lo dejo como pregunta, no como acusación: **no sé quién fue y no lo voy a
 adivinar.**
-🔴 **Y esa tapa es invisible y solo vive en esta máquina:** `.git/info/exclude` no se clona, no
-está en ningún commit y nadie la ve al mirar `.gitignore`. **Si alguien da por hecho que "esto ya
-está arreglado", el agujero se reabre en silencio en el próximo clon.** El arreglo de verdad es
-publicar la línea de `.gitignore` que ya está escrita, revisada y con GO **dentro de AIT-108**.
-**Cuando AIT-108 se publique, hay que quitar la regla de `info/exclude`** para que no queden dos
-protecciones de las cuales solo una se ve.
+🔴 **Esa tapa es invisible y solo vive en esta máquina:** `.git/info/exclude` no se clona, no está
+en ningún commit, y **un `grep` a `.gitignore` no la encuentra** — leer ahí da un falso negativo.
+Se comprueba con `git check-ignore -v`, que mira las dos fuentes. **Un control que nadie puede
+leer no es un control:** quien lo herede estará protegido **por suerte, sin saberlo**, y quien
+borre la línea visible creerá haber destapado algo que sigue tapado.
+
+🔶 **Y aquí corregí mi propia instrucción de hace veinte minutos, que es la segunda decisión
+revisable de este apartado.** Dije *"cuando AIT-108 se publique, quitad la de `info/exclude`"*, y
+el Integrador la escribió a disco como paso de publicación. **T2 tenía el contraargumento y era
+mejor:** la capa de abajo es la que aguanta **cuando alguien saca una rama de un commit viejo** —
+y eso no es hipotético, **las siete ramas pendientes salieron de `main` antes de que AIT-108
+existiera**. Quitarla al mergear las dejaría descubiertas justo mientras se publican.
+> **El problema nunca fue que hubiera dos capas: era que una no estaba escrita en ningún sitio.**
+> Una capa es peligrosa cuando es **ilegible**, no cuando es **redundante**.
+**Así que se queda, y ya está documentada** en `intro-terminal.txt`, que es donde la lee quien
+programa. *(El Integrador dejó su paso de publicación en `codigo para auditar/`; le he pedido que
+lo corrija, y si su sesión no llega, lo corrijo yo — un paso equivocado en disco dura más que
+nosotros, que es justo por lo que lo escribió.)*
 
 ## 6bis. Dos que necesitan tu turno por la mañana, por motivos distintos
 
