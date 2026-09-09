@@ -1420,6 +1420,25 @@ expectativa negativa no se verifica, se cuenta", aplicada al fichero donde la es
 producción o hasta ti**, que es un recuento distinto y **probablemente más útil que el catálogo
 entero.** Va al repaso enunciado, no resuelto.
 
+🆕 **Y la última, que es del PM y explica por qué unas reglas se cumplen solas y otras no:**
+> **Las reglas que se disparan con un ACTO se pueden meter dentro del acto. Las que se disparan con
+> una OMISIÓN no tienen dónde meterse, y solo se pueden cubrir dando al que espera una razón para
+> preguntar.**
+*Él lo encontró auditando las suyas: "cada `PASA si` necesita un mundo en el que falle" se dispara
+al escribir una ficha —algo que va a hacer igualmente— y además la lee el auditor. Pero "si
+descartas una ficha, díselo a quien la abrió" **no tiene disparador**: descartar es no hacer nada,
+y **nadie puede notar un mensaje que no se envió**. La regla que existe para que un canal no muera
+en silencio **muere en silencio ella misma.***
+✅ **Y creo que ya tenemos la solución escrita sin saberlo: es la 77.** *"Que nadie trabaje"* es una
+omisión pura, y lo que la hizo detectable **no fue darle un disparador, fue que otro rol la mida
+por su cuenta** — `M sin tarea` es *"dar al que espera una razón para preguntar"* convertido en un
+número que alguien produce en un ciclo que ya estaba corriendo.
+> **Una omisión no se cubre en quien la comete: se cubre en quien la sufre, y solo si esa persona
+> tiene un ciclo propio donde mirar.**
+⚠️ **Con el residuo duro que no sé resolver:** eso **solo funciona si el que espera SABE que
+espera.** Nadie esperaba que el `tsc` estuviera en verde; nadie esperaba que el vigilante
+existiera. **Ahí no hay a quién darle la razón para preguntar.**
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
