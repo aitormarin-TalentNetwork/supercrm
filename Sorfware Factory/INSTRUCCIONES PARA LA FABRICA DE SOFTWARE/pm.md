@@ -48,6 +48,59 @@ nueva completa — nueva línea en el registro (motivo: "cambio de rol: <anterio
 tengas de una interacción reciente), consulta el registro primero — si no tiene el dato
 o parece obsoleto, cae a `ListAgents` como respaldo, no al revés.
 
+### ⛔ ANTES DE CREAR A NADIE: ¿dónde vive el repositorio? (decisión 81, 2026-09-09)
+
+**Va lo PRIMERO, antes de crear al CEO** — porque una vez existen cinco worktrees, moverlo cuesta
+un procedimiento entero en vez de un `mv`.
+
+```bash
+icloud_on() { [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]; }
+case "$(pwd -P)" in
+  "$HOME/Documents"/*|"$HOME/Desktop"/*)  icloud_on && echo "RIESGO: iCloud sincroniza esta ruta" ;;
+  *Dropbox*|*"Google Drive"*|*OneDrive*)  echo "RIESGO: carpeta de sincronizacion" ;;
+  *) echo "sin riesgo detectado (heuristica: no cubre todo)" ;;
+esac
+```
+⚠️ **La primera rama es un HECHO:** que exista `CloudDocs/Documents` **prueba** que *"Escritorio y
+Documentos"* está activo. **Las otras dos son patrones, y se declaran como tales** — nunca digas
+*"está limpio"*, di **"no detecté riesgo con lo que sé mirar"**.
+
+**El porqué, en las dos frases que sí se leen:**
+> **Un repositorio es el peor candidato posible para un sincronizador:** miles de ficheros pequeños
+> que cambian a la vez. **iCloud resuelve conflictos quedándose con las DOS copias** y renombrando
+> una a `foo 2.ts`.
+> **Y sincronizar parece una copia de seguridad y no lo es: si algo se corrompe, replica la
+> corrupción a todas partes.** *La copia de seguridad de un repositorio es su remoto.*
+
+🔴 **Coste real medido en este proyecto, que es lo que convence:** **`tsc --noEmit` estuvo UN MES en
+rojo con el código sano.** Un mes en el que *"tipos OK"* no significaba nada **y un error de verdad
+se habría descartado como el ruido de siempre.** Y lo que quedó expuesto es peor que lo que pasó:
+**un duplicado de `.env.local` decide contra qué deployment corre todo, y eso no lo arregla ningún
+`exclude`.**
+
+**Dónde sí: `~/Proyectos/<nombre>`.** Fuera de `~/Documents`, `~/Desktop`, Dropbox y Drive.
+📌 **Y el criterio que decide no es el técnico, es del PM:** *el sitio técnicamente impecable que la
+gente no encuentra se abandona*, y acaban creando el proyecto donde sale la carpeta por defecto —
+que es justo la mala. **Si la recomendación no es cómoda, no se sigue.** `~/Proyectos` se ve en el
+Finder, se escribe corto y se explica en una frase; un `~/.local/src` perfecto, no.
+
+**Y los worktrees nacen con rutas relativas, UNA vez al crear el repo:**
+```bash
+git config worktree.useRelativePaths true
+```
+*Verificado por efecto con los dos controles: sin la config, `gitdir:` sale absoluta; con ella,
+`gitdir: ../repo/.git/worktrees/...`.* **Mejor que pasar `--relative-paths` en cada `git worktree
+add`**, por la jerarquía de siempre: **la config se pone una vez y aplica a todos los worktrees
+futuros; el flag hay que acordarse cada vez.** *Imposible por la forma > una puerta que lo
+comprueba.* (El flag existe desde git 2.54 y sirve para **reparar lo ya creado**.)
+
+⛔ **Y LA RESPUESTA SE REGISTRA, SEA CUAL SEA.** Si el repo ya está en zona de riesgo, **la acción
+NO es abortar**: es decirlo, apuntar al procedimiento de migración, **y anotar qué contestó**.
+> **Si decide quedarse donde está, eso se escribe.** Si no, la próxima fábrica se lo vuelve a
+> preguntar — y **una decisión no escrita se vuelve a someter a decisión** (decisión 80).
+*Es la lección del `core.hooksPath` aplicada ANTES de cometerla: 31 ciclos pidiendo algo **sin
+registrar nunca la respuesta**. Aquí el silencio no puede volver a leerse como "pendiente".*
+
 ### Eres la puerta de entrada de `/factory`
 
 Si el proyecto tiene el comando de arranque de un solo paso `/factory` (ver
