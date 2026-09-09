@@ -6,6 +6,8 @@ import {
   isExhausted,
   selectBlockedPasswordAccounts,
   installedAuthVersion,
+  readTable,
+  readPasswordAccountsFromConvex,
   run,
 } from "../scripts/check-e2e-preconditions.mjs";
 
@@ -162,6 +164,59 @@ test.describe("El secreto no sale por ninguna salida, ni cuando algo revienta", 
     );
     expect(code).toBe(0);
     expect(c.ambas).not.toContain(CANARIO);
+  });
+
+  test("el fallo REAL de execFile: su error trae stdout y stderr, y no sale nada", async () => {
+    // LA FRONTERA QUE IMPONE EL SISTEMA, no la que escribí yo. Las otras pruebas
+    // inyectan el fallo en `run()` y NO atraviesan `readTable()`, que es
+    // justamente donde el objeto rechazado por `execFile` incorpora `stdout` y
+    // `stderr` — el caso de un `spawn` que falla antes de arrancar o de un
+    // desbordamiento de `maxBuffer`.
+    const execQueFalla = async () => {
+      throw Object.assign(new Error(`spawn falló: ${CANARIO}`), {
+        code: "ENOENT",
+        stdout: `[{"secret":"${CANARIO}"}]`,
+        stderr: `stderr con ${CANARIO}`,
+      });
+    };
+
+    // 1) lo que `readTable` deja escapar: nada.
+    const error = await readTable("authAccounts", execQueFalla).then(
+      () => null,
+      (e: unknown) => e as Error & { stdout?: string; stderr?: string },
+    );
+    expect(error).not.toBeNull();
+    expect(JSON.stringify({ m: error!.message, s: error!.stack })).not.toContain(CANARIO);
+    expect(error!.stdout).toBeUndefined();
+    expect(error!.stderr).toBeUndefined();
+
+    // 2) y el recorrido entero, con el lector REAL enchufado a ese exec.
+    const c = captura();
+    const code = await run(
+      opciones({
+        out: c.out,
+        err: c.err,
+        readPasswordAccounts: () => readPasswordAccountsFromConvex(execQueFalla),
+      }),
+    );
+    expect(code).toBe(0);
+    expect(c.stdout).not.toContain(CANARIO);
+    expect(c.stderr).not.toContain(CANARIO);
+    expect(c.ambas).not.toContain(CANARIO);
+  });
+
+  test("y el subproceso falla DE VERDAD: el binario no existe", async () => {
+    // Control positivo del mecanismo anterior: demuestra que un fallo auténtico
+    // de `execFile` —no uno fabricado— acaba en el mismo `catch`. Sin esto, la
+    // prueba de arriba solo demuestra que mi función maneja mi propio doble.
+    const { execFile } = await import("node:child_process");
+    const { promisify } = await import("node:util");
+    const real = promisify(execFile);
+    const error = await readTable("authAccounts", (_file, args, options) =>
+      real("binario-que-no-existe-a7f3", args, options),
+    ).then(() => null, (e: unknown) => e as Error);
+    expect(error).not.toBeNull();
+    expect(error!.message).toBe("lectura fallida");
   });
 
   test("CONTROL POSITIVO: si el canario llegara a la salida, estas pruebas lo verían", async () => {

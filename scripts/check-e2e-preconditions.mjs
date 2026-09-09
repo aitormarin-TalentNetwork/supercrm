@@ -143,15 +143,25 @@ const AVISO_GENERICO =
  * error de `execFile` lleva `stdout`/`stderr` colgando, así que se descarta
  * entero en vez de propagarlo.
  */
-async function readTable(table) {
+/**
+ * @param {string} table
+ * @param {(file: string, args: string[], options: object) => Promise<{ stdout: string }>} [exec]
+ */
+export async function readTable(table, exec = execFileAsync) {
   let stdout;
   try {
-    ({ stdout } = await execFileAsync(
+    ({ stdout } = await exec(
       "npx",
       ["convex", "data", table, "--format", "json"],
       { cwd: process.cwd(), maxBuffer: 32 * 1024 * 1024 },
     ));
   } catch {
+    // SE DESCARTA EL ERROR ENTERO, no se re-lanza ni se envuelve: el objeto de
+    // `execFile` trae `stdout` y `stderr` COLGANDO —también cuando el `spawn`
+    // falla antes de arrancar o cuando se desborda `maxBuffer`—, así que
+    // propagarlo sería sacar el contenido de la tabla por otra puerta.
+    // `exec` es inyectable justo para poder demostrar esto: con el binario real
+    // no hay forma de provocar un desbordamiento con datos sensibles dentro.
     throw new Error("lectura fallida");
   }
   // Tabla vacía o inexistente: el CLI escribe en stderr y deja stdout VACÍO,
@@ -160,8 +170,8 @@ async function readTable(table) {
   return texto === "" ? [] : JSON.parse(texto);
 }
 
-export async function readRateLimitsFromConvex() {
-  return readTable("authRateLimits");
+export async function readRateLimitsFromConvex(exec) {
+  return readTable("authRateLimits", exec);
 }
 
 /**
@@ -170,8 +180,8 @@ export async function readRateLimitsFromConvex() {
  * sobrevive a esta función, y nada de ella se imprime nunca (incidente real,
  * 2026-08-21).
  */
-export async function readPasswordAccountsFromConvex() {
-  const filas = await readTable("authAccounts");
+export async function readPasswordAccountsFromConvex(exec) {
+  const filas = await readTable("authAccounts", exec);
   const mapa = new Map();
   for (const fila of filas) {
     if (fila.provider === "password") mapa.set(fila._id, fila.providerAccountId);
