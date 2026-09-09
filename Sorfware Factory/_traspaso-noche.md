@@ -641,16 +641,58 @@ que reusar—: **la dejamos escrita SIN MEDIR y no la perseguimos.** No cambia n
 una discrepancia que no altera nada se declara, no se resuelve. Esta noche ya produje tres
 explicaciones sucesivas y falsas de una sola discrepancia por no aplicar esto.*
 
-### QUÉ SIGUE VIVO A LAS 02:38 LOCAL — y por qué no hay que hacer nada
+### 🔴 QUÉ SIGUE VIVO — ESTE APARTADO LO ESCRIBÍ MAL Y LO CORRIJO A LAS 06:00 UTC (03:00 local)
 
-- 🟡 **El JWT del fichero caduca a las 03:11 local (06:11 UTC): le quedan ~33 minutos.** Es lo
-  único vivo. El fichero **ya no está en ninguna rama**, y el blob solo es alcanzable **por sha
-  hasta un `git gc`** que nadie va a lanzar. **Se resuelve solo antes de que te despiertes.**
-- 🟢 Los refresh tokens **ya no sirven para entrar** (arriba, por qué).
-- 🟢 Rama contaminada borrada. Nada tocado desde entonces. Worktree de T2 limpio en `db285bc`.
+⛔ **Escribí aquí, en verde, que los refresh tokens filtrados «ya no sirven para entrar». ES FALSO.
+SÍ SIRVEN, AHORA MISMO.** Lo doy la vuelta entero porque **una tranquilización falsa sobre
+credenciales vivas es peor que no haber escrito nada**: quien lea el verde deja de mirar.
 
-**No hay ninguna acción pendiente aquí.** Lo dejo escrito porque un incidente sin desenlace escrito
-se relee dentro de un mes como si siguiera abierto.
+**Qué pasó, y la parte que me toca:** T2 midió el mecanismo, me mandó *"consumir ≠ invalidar"*
+—**que es cierto**— y encima *"y por tanto ya no sirven"*. **Lo segundo no se sigue de lo primero, y
+yo lo relayé aquí con el mismo tono que un dato medido.** T2 lo cazó y lo retiró él solo. Yo
+publiqué en verde el añadido de otro sin comprobarlo, **que es exactamente la regla que llevo toda
+la noche imponiendo a los demás.**
+
+**El mecanismo real, medido por T2 sobre el código:** `refreshSession.js` trata un token ya usado
+con **tres ramas, en este orden**:
+
+```
+1) si el token ACTIVO de la sesión tiene como PADRE al presentado  -> CONCEDE ACCESO
+2) si estamos dentro de la ventana de 10 s                          -> concede acceso
+3) si no                                                            -> invalida el subárbol
+```
+
+Él solo había leído la 3 (vive en otro fichero). **Los dos tokens filtrados son padre del token
+activo, así que caen en la rama 1 — y la rama 1 se evalúa ANTES que la ventana, así que NO caducan
+por tiempo.**
+
+```
+owner: token activo jh7etb… · su padre es jh7890…  <- el filtrado
+sales: token activo jh70ap… · su padre es jh73qk…  <- el filtrado
+```
+
+**Y mi maniobra los dejó justo en ese estado:** antes *sin usar* (servían una vez), ahora *usados y
+padre del activo* (**siguen sirviendo, y ya no caducan solos**). **Empeoré la propiedad que creía
+estar arreglando.**
+
+**Qué sigue vivo de verdad:**
+
+- 🔴 **Los dos refresh tokens conceden acceso a las sesiones `jn79md…` y `jn739g…`**, sin caducidad
+  por tiempo, **hasta que la cadena avance**. Deployment `healthy-mammoth-850` — **el de T2, ni el
+  compartido ni producción.**
+- 🟢 El fichero **no está en ninguna rama**; el blob solo es alcanzable **por sha en este disco**
+  hasta un `git gc`. **No ha salido de la máquina** (medido: nunca en `origin`, ninguna otra rama).
+- 🟢 Rama contaminada borrada. Worktree de T2 limpio en `db285bc`.
+
+**⏸️ HAY UNA ACCIÓN PENDIENTE Y NO LA HE EJECUTADO** —donde antes ponía «no hay ninguna»—. T2
+propone que **una corrida normal de la suite avanza la cadena**: el filtrado dejaría de ser padre
+del activo, su uso caería en la rama 3 y **mataría la sesión en vez de conceder**. Invalidar no
+pide ninguna maniobra rara, pide correr la suite una vez.
+
+⚠️ **No lo he ordenado, y la razón es la lección de esta misma noche: eso es una PREDICCIÓN sobre
+un mecanismo, no una medición.** La anterior predicción sobre este mismo mecanismo —la que yo
+mandé ejecutar— salió al revés y empeoró las cosas. **Va a la cola de la mañana con su medición
+delante**, no a las tres de la madrugada por segunda vez.
 
 ### CORRECCIÓN 2 — la pregunta que el CEO dejó abierta ya tiene respuesta
 
