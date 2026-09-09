@@ -1009,6 +1009,23 @@ primera pregunta no es *"¿qué de grave es?"* sino **¿hacia dónde falla?**
 *(Y da, por fin, el criterio para ordenar las 52 decisiones en el repaso pendiente: **no por
 importancia aparente, sino por dirección del fallo**.)*
 
+> ## EL SEGUNDO EJE — ¿la conclusión lleva a DECIR o a HACER? (decisión 60.2, 2026-09-08)
+>
+> ### **Una afirmación equivocada se corrige más tarde. Una acción destructiva sobre una medición equivocada, no.**
+>
+> **Regla operativa: antes de actuar de forma destructiva sobre un diagnóstico, la medición que
+> lo sostiene se verifica contra su sujeto** — la pregunta de la 43, **obligatoria y no
+> opcional**, específicamente cuando el siguiente paso destruye algo. **Para hablar podemos
+> permitirnos equivocarnos; para matar, no.**
+
+*Por qué se escribió el 2026-09-08:* todas las instancias de la 43 de ese día terminaban en **un
+informe equivocado**, que se corrige cuando alguien mira. Una terminaba en **matar procesos
+vivos de otra sesión** — mismo fallo de medición, **consecuencia irreversible**. El QA reportó
+*"12 procesos de Chrome huérfanos, sin terminal asociada"* y pidió desbloqueo; medidos antes de
+tocar nada, **los dos servidores padre estaban vivos** y el perfil bloqueado lo tenía un Chrome
+arrancado **siete minutos antes**: alguien trabajando.
+
+
 **Regla de diseño, que es la parte accionable: cuando una comprobación pueda mentir en
 verde, se verifica el EFECTO, no el código de retorno ni la ausencia de error.** "No
 falló" nunca es evidencia de "hizo lo que le pedí".
@@ -1338,6 +1355,27 @@ la marca** — reportó *"1 de 56 verificadas"* con cero verificadas. Es hermano
 transcript contiene los eventos **y las conversaciones sobre los eventos**— y por eso tiene fila
 propia en el registro de comprobaciones desacreditadas.
 
+**Decisión 60.1 — La 58 estaba coja: un control se verifica en las DOS direcciones.**
+
+> **Un control que solo ha visto verde no está verificado: está sin estrenar.**
+> **Un control que solo ha visto rojo tampoco: no sabemos si sabe callarse.**
+>
+> ### **Está verificado cuando se le ha observado disparar sobre un positivo Y quedarse callado sobre un negativo. Las dos direcciones, o ninguna.**
+
+Un detector que no sabe callarse **es la 46 esperando**: grita siempre, y al décimo ciclo deja
+de leerse.
+
+⚠️ **Consecuencia práctica para `core.hooksPath`, y es un pendiente atado a un evento, no algo
+que se mirará "cuando toque":** su caso negativo **solo puede observarse cuando Aitor ejecute el
+comando**. En ese momento su verificación se completa, y **hay que mirarla entonces** — el ciclo
+siguiente confirma explícitamente que **dejó de reportarlo**. Si sigue avisando con el hook ya
+configurado, **el control está roto y llevaríamos nueve ciclos sin saberlo**.
+
+📌 **Y una nota de método sobre probar controles a propósito:** hacerlo **modificando el estado
+real exige devolverlo exactamente**, y **comprobarlo en vez de suponerlo** — al probar la
+comprobación (A) se retiró una fila del índice y después se verificó con `diff` que el fichero
+quedaba **idéntico**. Eso es lo que hace que la prueba no cueste más de lo que vale.
+
 ### Decisión 59 — Todo consumidor nuevo de un recurso compartido nace con el suyo (2026-09-08)
 
 **La 57.1 tenía un precio que no se había valorado**, y lo señaló la Directora:
@@ -1389,6 +1427,7 @@ que la regla sea aplicable **no es decidir, es hacerla ejecutable**).
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **"El proceso no tiene terminal asociada, luego es un resto huérfano"** | **Es cierto y no significa nada.** Un proceso lanzado por un servidor MCP **nunca tiene tty** — igual que ninguno de los nuestros. La señal **no distingue huérfano de hijo de un servidor sano**. Caso del 2026-09-08: el QA leyó así 12 procesos de Chrome; los dos `playwright-mcp` padre estaban **vivos**, y uno de los navegadores se había arrancado **siete minutos antes**. Matarlos habría tirado la sesión de otro | **mirar el padre: `ps -p <ppid>`. Si vive, no es un resto.** Y por la 60.2, esta comprobación es **obligatoria** aquí: el siguiente paso era destructivo |
 | **Medir algo sobre el texto de un documento que se describe a sí mismo** | **Cuenta la explicación como si fuera un caso.** El contador de filas verificadas del índice hacía `grep -c '✅'` sobre el fichero entero y contaba **el ✅ de la cabecera que explica qué significa la marca**: reportó *"1 de 56 verificadas"* con **cero** verificadas. Hermano de `grep <herramienta>` sobre un transcript (decisión 20): **el documento contiene los datos y además el texto que habla de los datos** | acotar la medición a la parte estructurada —`grep -E '^\|'` antes de contar, o parsear la tabla— **nunca al fichero entero**. Y sospechar por sistema de cualquier métrica sobre un documento que explica su propia notación (decisión 58.3) |
 | **Empezar una espera con `rm -f <marker>` para no leer el de la ronda anterior** | **Borra los markers RECIÉN CREADOS por trabajo que terminó antes de que armaras la espera**, y entonces esperas para siempre algo que ya pasó. En palabras de la Directora, 2026-09-08: *"no es un dato viejo leído como nuevo: es el dato nuevo destruido por defenderse del viejo"*. Y no deja rastro: un marker ausente se ve igual que un trabajo que no ha terminado | **la ambigüedad temporal se resuelve comparando fechas, jamás borrando.** El `rm -f` va **después** de detectar el marker, nunca antes de esperarlo (decisión 50.2). Mejor aún: usa una señal observable —el proceso vivo o muerto— en vez de una marca (50.1) |
 | **Pasarle a una herramienta un fichero por `filename` para que los valores NO pasen por la conversación** | **La herramienta puede hacer eco del fichero entero en su salida.** Verificado el 2026-09-08: el QA generó un script de disco a disco con Bash, sin imprimir nada, y se lo pasó a `browser_run_code_unsafe` por `filename` **precisamente para no exponer la sesión guardada**; la herramienta devolvió el contenido íntegro en su bloque "Ran Playwright code", JWT incluido. ⚠️ **El mecanismo diseñado para no exponer valores es el que los expone**, y falla en verde: el comando funciona, el script se ejecuta, el objetivo se cumple. *(Severidad de ESE caso: nula — token de la cuenta demo, caducado 61 min antes, refresh literal `"dummy"`. Lo que vale es el mecanismo.)* | **es un eje distinto de la decisión 32.1 y su comprobación NO lo caza:** la 32.1 cubre *dónde escribió* la herramienta; esto es *qué devuelve de lo que carga*. No hay sustituto seguro conocido — **si un fichero contiene un secreto, no se le pasa a una herramienta cuya salida no controlas**, ni por ruta |
@@ -1923,7 +1962,14 @@ aparecieron sesiones **activas** de Google, Notion, LinkedIn, YouTube y Twitter 
 `__Secure-1PSID`…). Y `browser_run_code_unsafe` ejecuta JavaScript arbitrario en ese proceso:
 un `page.context().cookies()` las devuelve todas — comprobado, no supuesto.
 
-**Dos vectores distintos, que conviene no mezclar:**
+**TRES vectores distintos, que conviene no mezclar — y el primero es el que decide, porque es
+un bloqueo de HOY y no un riesgo de mañana:**
+- **Disponibilidad** — ⚠️ **el perfil se comparte entre sesiones y SERIALIZA el acceso: un
+  desarrollador con Chrome abierto deja al QA sin poder trabajar.** Ocurrió el 2026-09-08: el QA
+  perdió una ronda entera con *"Browser is already in use for …/mcp-chrome-d5b335f"*, y el
+  perfil lo tenía un navegador arrancado siete minutos antes por otra sesión. **Es la 59.3 —
+  todo consumidor nuevo de un recurso compartido nace con el suyo—, y el perfil del navegador es
+  su cuarto caso**, después del puerto 3000, el deployment de Convex y la suite periódica.
 - **Salida** — cualquier sesión de la fábrica puede volcar esas credenciales en su transcript
   con una llamada. Ese día el QA imprimió solo nombres y longitudes **por criterio suyo**, no
   porque nada se lo impidiera. Lo que no es una barrera no es un control (decisión 37).

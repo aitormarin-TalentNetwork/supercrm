@@ -601,6 +601,13 @@ Añadido 2026-09-08 (decisión 33). Una línea, y convierte un fallo silencioso 
 git config --get core.hooksPath || echo "⚠️ SIN control de secretos en los commits"
 ```
 
+⚠️ **PENDIENTE ATADO A UN EVENTO, no "cuando toque" (decisión 60.1):** este control **solo ha
+visto el positivo** — lleva nueve ciclos reportando AUSENTE y **nunca ha visto el caso
+negativo**, así que **no sabemos si sabe callarse**. Su verificación se completa **en el momento
+en que Aitor ejecute el comando**: el ciclo siguiente confirma explícitamente que **dejó de
+reportarlo**. Si sigue avisando con el hook ya configurado, **el control está roto y llevaríamos
+nueve ciclos sin saberlo**.
+
 **Por qué está aquí y no es una manía:** el control que impide que un secreto entre en un
 commit vive en un hook, y un hook solo se activa si ese comando está configurado en **esa
 copia del repo**. Quien clone en otra máquina y no lo ejecute **no tiene control y no se

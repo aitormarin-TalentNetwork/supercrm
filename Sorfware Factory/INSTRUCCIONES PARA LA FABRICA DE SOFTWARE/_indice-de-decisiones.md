@@ -97,6 +97,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 57 | Un defecto puede vivir en el espacio ENTRE comprobaciones correctas — la ventana de un hueco no es larga, es infinita (57.1 suite periódica sobre `main` limpio, del QA; 57.2 se reporta el número de los 47, no el de los 5; 57.3 **el silencio se lee como cobertura**) | R §2sexies · §2sexies-bis · Q |
 | 58 | Un detector se estrena apuntando al caso que lo motivó — enlazada con la 46: aquella para que no grite en falso, esta para saber que PUEDE gritar (58.2 estado de los controles; 58.3 un documento que se describe a sí mismo contamina las medidas sobre su texto) | R §2sexies |
 | 59 | Todo consumidor nuevo de un recurso compartido nace con el suyo — la suite periódica del QA va a deployment propio (59.2 lo ya contaminado se declara) | R §2sexies · Q |
+| 60 | 60.1 un control está verificado cuando se le ha visto ladrar **y** callarse — las dos direcciones o ninguna · 60.2 **segundo eje del triaje**: ¿la conclusión lleva a decir o a hacer? Antes de actuar destructivamente, la medición se verifica contra su sujeto | R §2sexies |
 
 ---
 
