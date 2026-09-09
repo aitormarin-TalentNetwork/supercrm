@@ -18,7 +18,7 @@
 
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 const execFileAsync = promisify(execFile);
@@ -219,6 +219,291 @@ export function deploymentName(env = process.env, cwd = process.cwd()) {
   return null;
 }
 
+// ============================================================================
+// AIT-95 — que el arnés no corra contra un backend desfasado
+// ============================================================================
+// `git pull` trae el CÓDIGO de una función de Convex. NO la mete en tu
+// deployment: eso solo lo hace `convex dev` / `convex deploy`. Un worktree que
+// actualiza `main` y no despliega falla exactamente en los tests que ejercitan
+// backend nuevo, y el síntoma no habla de la causa: medido el 2026-09-09, cinco
+// tests de 07-contacto-sin-venta caían con `expect(page).toHaveURL(…)` porque
+// `customers.js:createContact` (AIT-88) no estaba desplegada. Ni una palabra
+// sobre Convex en toda la salida.
+//
+// *** POR QUÉ ESTA COMPROBACIÓN FALLA CERRADA Y LA DEL LIMITADOR NO. ***
+// No es una incoherencia: son preguntas distintas.
+//   - el limitador responde "¿hay un bloqueo YA conocido?" -> no saberlo no es
+//     motivo para parar la suite, así que `run` lo traga y devuelve 0.
+//   - ésta responde "¿está desplegado lo que el código espera?" -> no saberlo
+//     significa que los resultados de la suite no son atribuibles, que es
+//     EXACTAMENTE el defecto de AIT-95. Callar aquí sería reproducirlo.
+
+/** Constructores de función de Convex. Una `export const X = <esto>(…)` es una
+ *  función desplegable llamada X. */
+const CONSTRUCTORES = new Set([
+  "query", "mutation", "action",
+  "internalQuery", "internalMutation", "internalAction",
+  "httpAction",
+]);
+
+/** Factorías que declaran varias funciones de golpe por destructuring.
+ *  Se comparan los nombres por IGUALDAD DE CONJUNTOS: sobra uno o falta uno y
+ *  aborta. No es una lista de funciones (eso lo prohíbe la ficha): es el
+ *  vocabulario del extractor, y crece solo al aparecer una FORMA nueva. */
+export const FACTORIAS = {
+  convexAuth: {
+    funciones: ["signIn", "signOut", "store", "isAuthenticated"],
+    // `auth` NO se despliega como función: medido contra `function-spec`.
+    // Extraer los cinco a ciegas daría un falso positivo que abortaría la suite
+    // por una función que no existe.
+    noFunciones: ["auth"],
+  },
+};
+
+/** Espacios cuyas llamadas NUNCA producen una función Convex. Hoy: los
+ *  validadores (`v.union(...)`). Mismo mecanismo que FACTORIAS. */
+export const ESPACIOS_NO_FUNCION = new Set(["v"]);
+
+/** Error de clasificación: lo que el extractor no sabe leer PARA la suite en
+ *  vez de omitirlo. Tipo propio para que las pruebas distingan "abortó por esto"
+ *  de "abortó por cualquier otra cosa". */
+export class DeclaracionNoClasificable extends Error {
+  constructor(fichero, linea, texto) {
+    super(
+      `[e2e] no sé clasificar esta declaración de ${fichero}:${linea}\n` +
+        `        ${texto.slice(0, 120)}\n` +
+        `      Añádela a scripts/check-e2e-preconditions.mjs (CONSTRUCTORES, ` +
+        `FACTORIAS o ESPACIOS_NO_FUNCION) o reescríbela en una forma conocida. ` +
+        `No se continúa: una forma sin clasificar puede ser una función sin ` +
+        `desplegar, y eso es lo que esta comprobación existe para detectar.`,
+    );
+    this.name = "DeclaracionNoClasificable";
+    this.fichero = fichero;
+    this.linea = linea;
+  }
+}
+
+/** Módulo tal y como lo nombra Convex: ruta relativa a `convex/`, sin
+ *  extensión, `/` -> `_`, sufijo `.js`.
+ *
+ *  ⚠️ LO VERIFICADO Y LO NO VERIFICADO: para ficheros de la raíz de `convex/`
+ *  está confirmado contra `function-spec` (p. ej. `customers.js:…`). Para
+ *  SUBCARPETAS la regla sale de los alias que genera el codegen en
+ *  `_generated/api.d.ts` (`model_customerSource`), porque hoy NINGÚN fichero de
+ *  `convex/model/` exporta una función Convex y por tanto no hay ningún
+ *  identificador desplegado con el que contrastarla de punta a punta. */
+export function moduloDesdeRuta(rutaRelativa) {
+  return `${rutaRelativa.replace(/\.ts$/, "").split("/").join("_")}.js`;
+}
+
+/** Separa el `=` de nivel superior. Devuelve `null` si no lo hay.
+ *  Cuenta paréntesis, corchetes y llaves; ignora `=>`, `==`, `<=`, `>=`, `!=`. */
+function partirPorIgual(texto) {
+  let prof = 0;
+  for (let i = 0; i < texto.length; i += 1) {
+    const c = texto[i];
+    if (c === "(" || c === "[" || c === "{") prof += 1;
+    else if (c === ")" || c === "]" || c === "}") prof -= 1;
+    else if (c === "=" && prof === 0) {
+      if (texto[i + 1] === "=" || texto[i + 1] === ">") continue;
+      if ("=<>!".includes(texto[i - 1])) continue;
+      return [texto.slice(0, i), texto.slice(i + 1)];
+    }
+  }
+  return null;
+}
+
+/**
+ * Trocea una fuente en declaraciones `export` DE NIVEL SUPERIOR.
+ *
+ * La unidad es la DECLARACIÓN, no la línea, y no es un detalle: en
+ * `convex/model/customerSource.ts:46` el `export const` y su `= true` están a
+ * cuatro líneas de distancia por un genérico multilínea. Un extractor por
+ * líneas lo habría partido en dos y no habría encontrado inicializador.
+ */
+export function extraerDeclaraciones(fuente) {
+  const lineas = fuente.split("\n");
+  const declaraciones = [];
+  for (let i = 0; i < lineas.length; i += 1) {
+    if (!/^export\b/.test(lineas[i])) continue;
+    let texto = lineas[i];
+    // Se unen líneas hasta encontrar el `=` de nivel superior o el final de la
+    // sentencia. El tope evita quedarse leyendo un fichero entero si algo va mal.
+    let j = i;
+    while (
+      j + 1 < lineas.length &&
+      j - i < 40 &&
+      partirPorIgual(texto) === null &&
+      !/[;{]\s*$/.test(texto) &&
+      !/^export\s+(type|interface|enum|default|async\s+function|function)\b/.test(texto)
+    ) {
+      j += 1;
+      texto += ` ${lineas[j].trim()}`;
+    }
+    declaraciones.push({ linea: i + 1, texto: texto.trim() });
+  }
+  return declaraciones;
+}
+
+/**
+ * D1–D6, EN ESTE ORDEN, y el `else` final ABORTA.
+ *
+ * El fail-closed no es una etiqueta que se le pone al diseño: es qué hace la
+ * rama `else`. Enumerar lo que ES función y dejar pasar el resto convierte
+ * cualquier forma nueva en un silencio — y una función nueva sin desplegar
+ * saldría en verde, que es justo lo que AIT-95 viene a impedir.
+ *
+ * @returns {string[]} nombres de función que declara (vacío si no declara ninguna)
+ */
+export function clasificarDeclaracion({ texto, linea }, fichero) {
+  // D3 / D4 / D5 — no declaran funciones Convex.
+  if (/^export\s+(type|interface|enum)\b/.test(texto)) return [];
+  if (/^export\s+(async\s+)?function\b/.test(texto)) return [];
+  if (/^export\s+default\b/.test(texto)) return [];
+
+  if (!/^export\s+const\b/.test(texto)) {
+    // `export { … }`, `export * from …`, `export class …`: formas que pueden
+    // reexportar una función. No se adivina.
+    throw new DeclaracionNoClasificable(fichero, linea, texto);
+  }
+
+  const partes = partirPorIgual(texto.replace(/^export\s+const\b/, ""));
+  if (partes === null) throw new DeclaracionNoClasificable(fichero, linea, texto);
+  const enlace = partes[0].trim();
+  const inicializador = partes[1].trim();
+
+  // D2 — destructuring de una factoría registrada, por igualdad de conjuntos.
+  if (enlace.startsWith("{")) {
+    const llamada = /^([A-Za-z_$][\w$]*)\s*\(/.exec(inicializador);
+    const factoria = llamada && FACTORIAS[llamada[1]];
+    if (!factoria) throw new DeclaracionNoClasificable(fichero, linea, texto);
+    const nombres = enlace
+      .replace(/^\{|\}$/g, "")
+      .split(",")
+      .map((n) => n.split(":")[0].trim())
+      .filter(Boolean);
+    const declarados = [...factoria.funciones, ...factoria.noFunciones];
+    const sobran = nombres.filter((n) => !declarados.includes(n));
+    const faltan = declarados.filter((n) => !nombres.includes(n));
+    if (sobran.length > 0 || faltan.length > 0) {
+      throw new DeclaracionNoClasificable(fichero, linea, texto);
+    }
+    return factoria.funciones.slice();
+  }
+
+  const nombre = /^([A-Za-z_$][\w$]*)/.exec(enlace);
+  if (!nombre) throw new DeclaracionNoClasificable(fichero, linea, texto);
+
+  // D1 — constructor de función Convex.
+  const llamada = /^([A-Za-z_$][\w$]*)\s*[.(]/.exec(inicializador);
+  if (llamada && CONSTRUCTORES.has(llamada[1]) && inicializador[llamada[1].length] !== ".") {
+    return [nombre[1]];
+  }
+
+  // D6 — no-función INEQUÍVOCA: literal, o llamada a un espacio registrado.
+  if (/^["'`{[]/.test(inicializador)) return [];
+  if (/^-?\d/.test(inicializador)) return [];
+  if (/^(true|false|null|undefined)\b/.test(inicializador)) return [];
+  if (llamada && ESPACIOS_NO_FUNCION.has(llamada[1])) return [];
+
+  // else — cualquier inicializador que pueda envolver una función.
+  // `export const X = miHelper(query({…}))` cae aquí y ABORTA.
+  throw new DeclaracionNoClasificable(fichero, linea, texto);
+}
+
+/** Identificadores `modulo.js:nombre` que el CÓDIGO declara.
+ *  @param {Array<{ruta: string, fuente: string}>} ficheros */
+export function identificadoresDelCodigo(ficheros) {
+  const encontrados = [];
+  for (const { ruta, fuente } of ficheros) {
+    const modulo = moduloDesdeRuta(ruta);
+    for (const decl of extraerDeclaraciones(fuente)) {
+      for (const nombre of clasificarDeclaracion(decl, ruta)) {
+        encontrados.push(`${modulo}:${nombre}`);
+      }
+    }
+  }
+  return encontrados;
+}
+
+export function selectMissingFunctions(delCodigo, desplegadas) {
+  const vivas = new Set(desplegadas);
+  return delCodigo.filter((id) => !vivas.has(id)).sort();
+}
+
+/** Lee los `.ts` de `convex/`, recursivamente, saltándose `_generated/` (es salida de la herramienta,
+ *  no fuente). Se devuelve la ruta RELATIVA a `convex/` porque es de donde sale
+ *  el nombre del módulo. */
+export function readConvexSources(raiz = path.join(process.cwd(), "convex")) {
+  const ficheros = [];
+  const recorrer = (dir) => {
+    for (const entrada of readdirSync(dir, { withFileTypes: true })) {
+      const completa = path.join(dir, entrada.name);
+      if (entrada.isDirectory()) {
+        if (entrada.name !== "_generated") recorrer(completa);
+      } else if (entrada.name.endsWith(".ts")) {
+        ficheros.push({
+          ruta: path.relative(raiz, completa),
+          fuente: readFileSync(completa, "utf8"),
+        });
+      }
+    }
+  };
+  recorrer(raiz);
+  return ficheros;
+}
+
+/** Funciones DESPLEGADAS, según la propia herramienta.
+ *
+ *  Falla cerrada, y sin volcar nada: igual que `readTable`, el objeto de error
+ *  de `execFile` trae `stdout`/`stderr` colgando y propagarlo sacaría el
+ *  contenido por otra puerta. Aquí `function-spec` no lleva datos de la base,
+ *  pero la regla se mantiene por la misma razón que allí: no se decide caso por
+ *  caso qué salida es inocua. */
+/**
+ * @param {(file: string, args: string[], options: object) => Promise<{ stdout: string }>} [exec]
+ */
+export async function readDeployedFunctions(exec = execFileAsync) {
+  let stdout;
+  try {
+    ({ stdout } = await exec("npx", ["convex", "function-spec"], {
+      cwd: process.cwd(),
+      maxBuffer: 32 * 1024 * 1024,
+    }));
+  } catch {
+    throw new Error("function-spec falló");
+  }
+  let spec;
+  try {
+    spec = JSON.parse(stdout);
+  } catch {
+    throw new Error("function-spec devolvió algo que no es JSON");
+  }
+  if (!Array.isArray(spec?.functions)) {
+    throw new Error("function-spec devolvió JSON sin `functions`");
+  }
+  // Las rutas HTTP vienen sin `identifier` (llevan `method`/`path`): no son
+  // funciones nombradas y no participan en la comparación.
+  return spec.functions.map((f) => f.identifier).filter(Boolean);
+}
+
+export function formatMissingMessage({ deployment, missing }) {
+  return [
+    "",
+    "[e2e] PRECONDICIÓN NO CUMPLIDA — el backend no tiene lo que el código espera.",
+    "",
+    `  Deployment: ${deployment}`,
+    ...missing.map((id) => `  falta: ${id}`),
+    "",
+    "  `git pull` trae el código de una función de Convex; NO la despliega.",
+    "  Corrígelo con:  npx convex dev",
+    "",
+    "  No se ejecuta ningún test: los que ejerciten esas funciones fallarían con",
+    "  un síntoma que no habla de la causa (una aserción de URL o de texto).",
+    "",
+  ].join("\n");
+}
+
 export async function run({
   readRateLimits = readRateLimitsFromConvex,
   readPasswordAccounts = readPasswordAccountsFromConvex,
@@ -227,7 +512,33 @@ export async function run({
   now = Date.now(),
   deployment = deploymentName() ?? "este deployment",
   version = installedAuthVersion,
+  readSources = readConvexSources,
+  readDeployed = readDeployedFunctions,
 } = {}) {
+  // ── AIT-95: el backend, antes que nada ────────────────────────────────────
+  // Va PRIMERO porque es la precondición más barata de corregir y la que más
+  // ruido ahorra: sin ella, la suite corre entera para dar rojos que no hablan
+  // de la causa.
+  try {
+    const faltan = selectMissingFunctions(
+      identificadoresDelCodigo(readSources()),
+      await readDeployed(),
+    );
+    if (faltan.length > 0) {
+      out(formatMissingMessage({ deployment, missing: faltan }));
+      return 1;
+    }
+  } catch (causa) {
+    // FALLA CERRADA, al contrario que el bloque del limitador de abajo, y el
+    // motivo está en la cabecera de la sección AIT-95: no saber si el backend
+    // está desplegado significa que los resultados de la suite no son
+    // atribuibles. Se imprime el mensaje de la causa —que es texto nuestro, no
+    // salida del CLI— y se para.
+    err(`[e2e] PRECONDICIÓN NO COMPROBABLE — ${causa.message}`);
+    err("[e2e] no se ejecuta ningún test: no se puede saber si el backend está al día.");
+    return 1;
+  }
+
   try {
     const instalada = version();
     if (instalada !== null && instalada !== SUPPORTED_AUTH_VERSION) {
