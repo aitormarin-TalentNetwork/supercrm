@@ -220,6 +220,27 @@ correcto para el aislamiento entre worktrees, y ciego para un riesgo que no sab�
 que su propio código añadía superficie a esa puerta). Verificado por mí las tres veces antes de
 escribirlo.*
 
+### 🧭 La conclusión de la noche, que es del CEO y va aquí porque explica todo lo anterior
+
+> **Todas las mediciones de radio de esta noche —las suyas y las mías, con control positivo y
+> todo— contestaban a «¿salió por `git`?». Y la puerta era otra.**
+>
+> **No fallamos midiendo: medimos bien una pregunta que no era la que había que hacer.**
+
+Cuenta las horas que se fueron en esto: cuatro comprobaciones de que el commit no estaba en
+`origin`, dos capas de ignorado, un `check-ignore` real dentro del worktree, una rama borrada, un
+control positivo cruzando dos tareas. **Todo correcto. Todo sobre `git`.** Y el fichero llevaba
+horas saliendo por una puerta que nadie miró, junto a cinco `.env.local` que llevan un mes.
+
+**Y el control positivo no protege de esto:** confirma que el instrumento sabe dar positivos
+**dentro de la pregunta que le haces**. Un control impecable sobre la pregunta equivocada **refuerza
+la confianza en una respuesta irrelevante**, que es peor que no tenerlo.
+
+**Lo que hay que añadir a la disciplina, y es lo único nuevo de verdad:** antes de medir el radio de
+una fuga, **enumerar las puertas** —git, sincronización de ficheros, copias de seguridad,
+portapapeles, logs de terminal, servicios de indexado— **y decir por cuáles no se ha mirado.**
+Medir una y declararla "el radio" es lo que hicimos esta noche entre cuatro.
+
 ---
 
 ## 0quinquies. Detalle técnico de la sincronización
