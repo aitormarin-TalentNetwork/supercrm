@@ -103,5 +103,17 @@ test.describe("Cierre de oportunidad", () => {
     // Y la negativa, que es la que de verdad detecta el fallo: si reabrir
     // devolviera la oportunidad a la etapa inicial, aquí habría un "Contacto".
     await expect(stageBadge.filter({ hasText: /^Contacto$/ })).toHaveCount(0);
+
+    // AIT-94: reabrir salió bien, así que el aviso de fallo NO puede estar.
+    // Ataca el modo de fallo más probable del cambio — un aviso que se quede
+    // pegado o que salga siempre.
+    // Se filtra por el TEXTO del aviso y no por la presencia de un nodo con
+    // rol "alert": la página puede tener nodos `alert` que no son nuestros
+    // (el overlay de desarrollo de Next.js mete uno, y está hasta en /login),
+    // así que comprobar "hay un alert" pasaría sin que exista este aviso.
+    // Contar tampoco vale: ese overlay existe en `npm run dev` y no aquí.
+    await expect(
+      page.getByRole("alert").filter({ hasText: /No se ha podido reabrir/ }),
+    ).toHaveCount(0);
   });
 });
