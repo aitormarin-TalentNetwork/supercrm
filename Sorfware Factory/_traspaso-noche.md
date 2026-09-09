@@ -1,8 +1,23 @@
 # Traspaso de la noche — para Aitor, mañana
 
-**Escrito por el CEO (`crm-curso-vibe-coding-b2`) el 2026-09-09 a las 02:40 UTC (= 23:40 local
+**Escrito por el CEO (`crm-curso-vibe-coding-b2`) el 2026-09-09 a las 02:27 UTC (= 23:27 local
 del 8-sep), cuando te fuiste a dormir.** Se va actualizando durante la noche: **mira la fecha
 del final para saber hasta cuándo llega.**
+
+> ⛔ **LEE ESTO ANTES DE FIARTE DE UNA HORA DE ESTE DOCUMENTO.** Las marcas de tiempo que
+> escribí **a mano van adelantadas**: no las medía, las deducía de cuánto me parecía que había
+> pasado. **Dos instancias comprobadas contra `git`:** la cabecera decía *02:40* de un fichero
+> que se creó a las *02:27* (imposible: no puedes escribirlo después de comitearlo), y la línea
+> final decía *05:37* cuando eran las *05:20* medidas con `date -u`. **La deriva siempre va
+> hacia adelante y llegó a 17 minutos.**
+> **La hora de verdad de cualquier párrafo es la del commit que lo trajo:**
+> `TZ=UTC git log --date=format-local:'%F %T' --pretty='%ad %s' -- "Sorfware Factory/_traspaso-noche.md"`
+> He corregido las dos de arriba y la del cierre. **Las horas del cuerpo NO las he reauditado
+> una a una** — no quiero cambiarlas a ojo por segunda vez. **Trátalas como aproximadas, con el
+> orden bien y el reloj corrido; los hechos y el orden no dependen de ellas.**
+> *Me lo cazó el Factory Architect, y a él le costó dar por perdido su propio latido 18 minutos
+> por copiar mi hora en vez de mirar el reloj: **un número sin su procedencia se usa como si la
+> tuviera**, y el mío se propagó a la sesión que vigila a las demás.*
 
 ⚠️ **Y una advertencia sobre este documento, que se ganó sola:** es **un texto sobre un estado
 que se mueve mientras se escribe**. Una frase suya —*"la cola del Integrador está vacía"*—
@@ -552,7 +567,8 @@ paró de producir y respetamos la pausa—:
   minuto.** Él lo lee como argumento a favor —*el fallo no se corrige sabiéndoselo, por eso tiene
   que ser un paso escrito*—; **el cargo es que una regla que su propio autor incumple mientras la
   redacta puede ser una que nadie pueda seguir.** **Las dos lecturas van al repaso.**
-  ❌ **RETIRADO a las 05:35, y esto es lo que hace la candidata más interesante, no menos.** Te
+  ❌ **RETIRADO entre las 05:16 y las 05:18 UTC** (acotado por los dos commits, no escrito de
+  memoria)**, y esto es lo que hace la candidata más interesante, no menos.** Te
   llegó de mí, y llegó a estar escrito en este documento, que *"la Directora, con el mismo texto
   delante, se negó a guardarla por ser candidata"* — como prueba de que la segunda mitad de la
   regla ya se cumple sola. **La fuente lo retiró:** *"lo mío no fue criterio. Rechacé guardarla
@@ -566,10 +582,26 @@ paró de producir y respetamos la pausa—:
   ya se hace solo — probablemente solo necesita nombre. No fijar lo no adoptado no se hace nunca
   sin que alguien lo diga — esa mitad es la que necesita ser un paso escrito.* **Dos reglas con
   necesidades opuestas dentro de una sola frase.**
-  ⚠️ **Y el episodio entero es la propia candidata funcionando:** la retirada llegó **una línea,
-  sin adornos, a la hora de más carga y sabiendo que era lo único que quedaba por decir**, porque
-  ya se había relayado. Sin ella, este documento habría llegado a tu mañana con una prueba a favor
-  que era falsa.
+  ⚠️ **Y el episodio entero es la propia candidata funcionando — pero SOLO de la primera mitad**
+  (la fuente me corrigió la colocación y tiene razón): la retirada llegó **una línea, sin adornos,
+  a la hora de más carga y sabiendo que era lo único que quedaba por decir**, porque ya se había
+  relayado. **Es una tercera aplicación espontánea del barrido al retirar; de la segunda mitad no
+  dice nada.** Sin ella, este documento habría llegado a tu mañana con una prueba a favor falsa.
+  ⚠️ **Y NO sirve para acotar el coste**, aunque lo parezca: él estaba despierto, en mitad del
+  hilo, con el destinatario a un mensaje y la lista de receptores en la cabeza. **El caso para el
+  que se escribe la regla es el contrario** — retirar algo relayado hace horas a alguien ya
+  ocioso, reconstruyendo a quién se le mandó. Coste real medido, pero **no el del que va a
+  decidir.**
+  🔑 **Y SI MAÑANA SOLO LEES UNA LÍNEA DE TODA LA CANDIDATA, QUE SEA ÉSTA:**
+  > **El coste de que un modificador se caiga escala con la ausencia de alguien que pueda
+  > desmentirlo.**
+  Las otras cuatro instancias de la noche pasaron **entre sesiones que se estaban leyendo unas a
+  otras, y por eso se cazaron las cuatro: había corrector.** La quinta es la mía, y era la única
+  que iba **a este documento — el único texto de la fábrica que se lee justo cuando no hay nadie
+  enfrente para desmentirlo.** De ahí sale el criterio de severidad que le faltaba a la regla:
+  **puede sobrar en todos los demás sitios y aun así tener que aplicar aquí.** *(El argumento
+  salió de una frase mía; quien vio que era el bueno —y mejor que el del coste— fue el Factory
+  Architect.)*
 
   **Prueba de cargo:** **seis decisiones seguidas aceptadas sin una sola devolución**, entre las
   02:00 y las 03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
@@ -689,7 +721,7 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 05:37 UTC (= 02:37 local)**.*
+*Última actualización: **2026-09-09 05:22 UTC (= 02:22 local)** — medida con `date -u`, no deducida.*
 
 **Estado al cerrar:** **nueve sesiones vivas y ninguna caída.** T1 y T3 llevan más de una hora
 ociosas **por falta de trabajo disjunto, no por avería** —comprobado que sus procesos siguen vivos,
