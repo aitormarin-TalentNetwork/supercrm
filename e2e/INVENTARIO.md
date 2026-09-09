@@ -44,6 +44,16 @@ npx convex data authSessions --limit 1 >/dev/null 2>&1 || echo "FALTA: el deploy
 Silencio = todo presente. Cada línea que salga es una pregunta que **todavía no
 puedes hacerte**.
 
+⚠️ **Alcance exacto de la última línea**, sondeado: detecta que el *deployment*
+no responde, y **nada más**. `npx convex data unaTablaQueNoExiste` devuelve
+**exit 0**. Si lo lees como "las tablas están", te equivocas.
+
+⚠️ **Y el silencio prueba menos de lo que parece.** Esto se corrió en dos
+worktrees que llevaban horas trabajando —dependencias, navegadores y Convex ya
+calientes—, así que el verde dice *"aquí hoy está bien"*, **no** *"un checkout
+nuevo estaría bien"*. La pregunta 0 solo se contesta de verdad **en un clon
+recién hecho**, y eso está pendiente.
+
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
@@ -55,6 +65,10 @@ puedes hacerte**.
 npx playwright test --list
 ```
 
+⚠️ **El total depende de la rama.** El mismo comando el 2026-09-09 daba 54 en una
+rama y 56 en otra, por dos specs sin publicar. No es ruido: es la razón por la que
+aquí no hay cifras. Si citas el número, cita también dónde lo mediste.
+
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
@@ -63,9 +77,18 @@ npx playwright test --list
 ## 2. ¿Cuántos tests dependen de estar autenticado, y de qué rol?
 
 ```bash
-grep -c 'loginAs(' e2e/*.spec.ts
+for f in e2e/*.spec.ts; do
+  printf "%-34s tests:%-3s loginAs:%s\n" "$(basename "$f")" \
+    "$(grep -cE '^\s*test\(' "$f")" "$(grep -o 'loginAs(' "$f" | wc -l | tr -d ' ')"
+done
 grep -ho 'loginAs([a-zA-Z0-9_]*, "[a-z]*"' e2e/*.spec.ts | sort | uniq -c
 ```
+
+⚠️ **Los dos números NO son el mismo, y el comando que había aquí antes lo
+ocultaba.** `06-avisos-de-bloqueo` tiene **18 tests y 19 llamadas**: al menos uno
+entra dos veces. Y `grep -c` cuenta **líneas**, no llamadas — que aquí coincidan
+es casualidad del estilo de escritura, no una propiedad. Si la pregunta es
+*"cuántas pruebas necesitan sesión"*, contar llamadas **contesta otra cosa**.
 
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
@@ -164,6 +187,10 @@ borra el contador, solo cuentan los fallos.
 grep -rlE 'getByLabel\(.(Email|Contraseña)' e2e/*.spec.ts
 ```
 
+⚠️ **Sin coincidencias, `grep` sale con exit 1.** Es la respuesta buena —hoy no
+hay ninguno— pero si lo encadenas con `&&`, **el "no hay ninguno" aborta todo lo
+que venga detrás** y parece que el resto no hacía falta. Ejecútalo suelto.
+
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
 
@@ -176,8 +203,14 @@ Si está bloqueado, el chequeo ocurre **antes** de verificar la contraseña, as�
 autenticación, mira esto.
 
 ```bash
-npx convex data authRateLimits --format jsonl
+npx convex data authRateLimits --format jsonl        # SIN 2>&1. Ver abajo.
 ```
+
+⚠️ **No le añadas `2>&1`, aunque el dedo lo escriba solo.** Medido: sin
+redirección da **0** líneas; con `2>&1` da **3** — dos `ExperimentalWarning` de
+node y, la peor, **`There are no documents in this table.`**, una frase en prosa
+que Convex manda por **stderr** para decir *vacío*. O sea que **la redirección
+convierte un "no hay ninguno" en un "hay 3"**, y el 3 se lee como dato.
 
 Y el control positivo, que es más barato que razonar: correr **un** test con
 login aislado. Si pasa, la cuenta no está bloqueada y el rojo es otra cosa.
@@ -209,10 +242,22 @@ publicada en tu rama, la suite apunta al 3000 y reutiliza el servidor que
 encuentre allí**. Un rojo daría igual, pero un verde podría ser de la app de otro
 y no probaría nada.
 
-Corrido el 2026-09-09 sobre la rama de AIT-108: sale **rojo, y nombrando la
-causa** — `[e2e] no se pudo autenticar como "owner" contra http://localhost:3102`.
-Que el rojo diga **qué precondición falta** en vez de un `toBeVisible` agotado es
-lo que hace útil este control; un rojo mudo solo demuestra que algo se rompió.
+*** LO QUE SALE DEPENDE DE TU RAMA, Y ESA ES LA MITAD INTERESANTE. ***
+Corrido el 2026-09-09 en dos ramas distintas, el mismo backend roto:
+
+    con AIT-93/96/108 encima → rojo Y NOMBRANDO LA CAUSA:
+        [e2e] no se pudo autenticar como "owner" contra http://localhost:3102
+    sobre `main` (sin ellas)  → rojo MUDO:
+        Test timeout of 30000ms exceeded · page.waitForURL en helpers.ts:25
+
+**Las dos veces la suite detecta que el backend está roto**, que es lo que este
+control pregunta. Lo que cambia es si el rojo **dice por qué**. Un timeout de 30 s
+apuntando a un `waitForURL` es un síntoma que no señala la causa — y es el mismo
+episodio que costó media hora de tres personas en AIT-86: una mutation sin
+desplegar, el error tragado, y el test cayéndose dos aserciones más tarde.
+
+Así que léelo así: **el control positivo pasa siempre; que además nombre la causa
+es una propiedad que hoy solo tienen las ramas con el arnés arreglado.**
 
 Última corrida: 2026-09-09 · `34647f2` ·
 ¿vigente? `git merge-base --is-ancestor 34647f2 HEAD` — si falla, se midió sobre otro código
