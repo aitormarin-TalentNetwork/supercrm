@@ -40,6 +40,20 @@ audita treinta, se miran por encima.)*
   casi nada — y **la memoria es el recurso escaso**: esta noche murieron dos corridas de tests, y
   el Integrador va a intentar la suite completa. Espaciar al QA es lo que le da sitio. Mantiene
   valor residual (cazar una caída del servicio). **Reversible con una frase.**
+- 🔶 **No dejé que T3 solapara sobre `convex/schema.ts` con la rama de AIT-88 de T1.** Esta es la
+  que más quiero que mires, porque **choca con una preferencia tuya escrita** —*ante un cuello de
+  botella de fichero compartido, esperar al merge antes que aceptar solape, aunque el solape sea
+  de bajo riesgo*— y la Directora tenía un buen argumento para saltársela: **esa regla se formuló
+  cuando mergear costaba una hora, y esta noche el merge no existe**, así que *"espera"* se
+  convierte en *"no trabajes hasta mañana"*.
+  **Decidí que no**, por dos motivos: (1) **el coste no lo paga T3, lo paga el merge de mañana**,
+  que ya es el momento concentrado —con el arnés roto y sin nadie que pueda correr la suite
+  completa—, y meter ahí una resolución manual de `schema.ts` es apilar riesgo justo donde ya lo
+  apilamos; (2) autorizarlo exigía **reinterpretar una preferencia tuya** porque las
+  circunstancias cambiaron, y **existía un camino que no lo exigía**: buscar una tarea disjunta
+  de ficheros para T3 antes de mandarla a idle.
+  ⚠️ **Si mañana dices "haber solapado, hombre", tendrás razón y esto es mío, no un accidente.**
+  El coste real está abajo.
 - *(Se irán añadiendo aquí las que tome durante la noche, con su motivo.)*
 
 ⚠️ **Tres precisiones que me puso el Factory Architect sobre este reparto, y que aplico:**
@@ -199,9 +213,28 @@ Salió de él mismo reportando que, cuando la suite murió a mitad, **abandonó 
 
 ---
 
+## 7bis. El precio de `confirmar`, con número y no con impresión
+
+Llegó a las tres horas de ponerlo, y la Directora lo dijo mejor que yo: **esto no es un fallo de
+`confirmar`, es su precio.**
+
+**El caso:** T3 terminó las dos piezas libres de AIT-92 y la tercera resultó no serlo —necesitaba
+las tablas—. **Todo lo que le queda lo ocupa la rama de AIT-88 de T1**, y con `confirmar` **esa
+rama no se mergea esta noche**: no es "espera veinte minutos", es "espera hasta mañana". Su
+siguiente tarea, AIT-101, choca con los mismos ficheros.
+
+*(T3 hizo bien en no dejar una ruta HTTP pública con manejador vacío y un TODO silencioso para
+aparentar avance. Las dos cosas están prohibidas y las dos habrían pasado desapercibidas.)*
+
+**Si mañana preguntas cuánto costó parar las publicaciones, la respuesta empieza aquí: una
+terminal bloqueada en la primera noche.** Sigue pareciéndome el cambio correcto —era la peor
+noche para publicar a ciegas— pero el precio existe y no debe descubrirse por sorpresa.
+
+---
+
 **Reparto al cerrar el traspaso:** T1 con **AIT-88, la última issue del MVP** · T2 con AIT-96 ·
 T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker de CSRF en el
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: 2026-09-09 03:00 UTC (= 00:00 local del 9-sep).*
+*Última actualización: 2026-09-09 02:40 UTC (= 23:40 local del 8-sep). Ver arriba §7bis, añadido a las 02:55 UTC.*
