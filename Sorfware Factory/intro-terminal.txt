@@ -572,8 +572,17 @@ una vez que el trabajo pasa auditoría.
    tienen** —salieron de un `main` que aun no la llevaba—, y son varias, en vuelo,
    a punto de publicarse. `info/exclude` es lo unico que las cubre.
    **Cuando esas ramas hayan mergeado, la capa local sobra y se puede quitar.**
-   Si estas leyendo esto y ya no queda ninguna rama anterior a esa fecha, quitarla
-   es correcto — y borra tambien este parrafo.
+   La condicion es "ninguna rama SIN MERGEAR anterior al 2026-09-09", y ojo con la
+   diferencia: hay 68 ramas locales y 58 ya estan dentro de `main`. Si cuentas las
+   que EXISTEN en vez de las que siguen abiertas, la condicion no se cumple nunca
+   — y una instruccion que nunca se dispara es tan inutil como una que se dispara
+   cuando no debe. Se comprueba con:
+       git branch --no-merged main --format='%(refname:short)'
+   Vacia (o solo con ramas creadas despues de esa fecha) = ya se puede quitar la
+   capa local, y borrar tambien este parrafo. Medido el 2026-09-09: salian 10.
+   ⚠️ Y OJO CON LO CONTRARIO: `info/exclude` protege **mientras** una rama esta
+   sacada sin mergear, no "despues". Ninguna de las pendientes toca `.gitignore`,
+   asi que al mergearlas la linea de `main` sobrevive y quedan cubiertas por ella.
    > Una proteccion que vive en una rama sin publicar no protege a las demas ramas.
    > Y una capa es peligrosa cuando es ILEGIBLE, no cuando es redundante: por eso
    > la local se documenta aqui en vez de borrarse.
