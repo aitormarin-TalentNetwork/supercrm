@@ -23,7 +23,10 @@ staged=$(git diff --cached --name-only --diff-filter=ACM)
 while IFS= read -r f; do
   case "$f" in
     *" 2."*|*" 3."*|*" 4."*|*" 5."*)
-        aviso "duplicado de macOS/iCloud: '$f' — muevelo o renombralo, no lo commitees" ;;
+        # Un duplicado de macOS COEXISTE con su original; "Fase 2.md" no tiene "Fase.md" al lado.
+        # Sin esta comprobacion el hook bloquearia nombres legitimos en espanol (Fase 2, informe 3).
+        orig="${f%% [2-5].*}.${f##*.}"
+        [ -e "$orig" ] && aviso "duplicado de macOS/iCloud: '$f' (su original es '$orig')" ;;
   esac
   case "$f" in
     e2e/.auth/*|*/e2e/.auth/*)
