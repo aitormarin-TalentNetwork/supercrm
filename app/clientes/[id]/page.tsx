@@ -34,6 +34,11 @@ import {
   isCustomerSource,
   type CustomerSource,
 } from "@/lib/customerSource";
+import {
+  validateCustomerEmail,
+  validateCustomerName,
+  validateCustomerPhone,
+} from "@/lib/customerValidation";
 
 export default function FichaClientePage({
   params,
@@ -381,33 +386,20 @@ function EditarClienteDialog({
     if (loading) return;
 
     let hasError = false;
-    if (!name.trim()) {
-      setNameError("El nombre es obligatorio.");
-      hasError = true;
-    } else {
-      setNameError("");
-    }
-    if (!phone.trim()) {
-      setPhoneError("El teléfono es obligatorio.");
-      hasError = true;
-    } else if (!/^[\d\s+()-]+$/.test(phone.trim())) {
-      setPhoneError("El teléfono solo puede tener números y separadores.");
-      hasError = true;
-    } else if (phone.replace(/\D/g, "").length < 9) {
-      setPhoneError("Introduce un teléfono válido (9 dígitos).");
-      hasError = true;
-    } else if (phone.replace(/\D/g, "").length > 15) {
-      setPhoneError("El teléfono es demasiado largo.");
-      hasError = true;
-    } else {
-      setPhoneError("");
-    }
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setEmailError("El email no tiene un formato válido.");
-      hasError = true;
-    } else {
-      setEmailError("");
-    }
+    // AIT-82: las reglas salen de lib/customerValidation.ts, las mismas que
+    // aplica el servidor. Antes estaban copiadas aquí, y el orden y los mensajes
+    // había que mantenerlos a mano en las cuatro puertas.
+    const nameError = validateCustomerName(name);
+    setNameError(nameError ?? "");
+    if (nameError) hasError = true;
+
+    const phoneError = validateCustomerPhone(phone);
+    setPhoneError(phoneError ?? "");
+    if (phoneError) hasError = true;
+
+    const emailError = validateCustomerEmail(email);
+    setEmailError(emailError ?? "");
+    if (emailError) hasError = true;
     if (canalFueraDeCatalogo) {
       setSourceError("Este canal ya no está en el catálogo. Elige uno de la lista.");
       hasError = true;

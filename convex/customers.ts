@@ -3,6 +3,14 @@ import { mutation, query } from "./_generated/server";
 import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import { normalizePhone } from "../lib/phone";
 import { customerSourceValidator } from "./model/customerSource";
+// AIT-82: qué es un cliente válido, en un solo sitio. Antes esto era una copia
+// literal de las reglas de `createQuick`, hecha a mano y a propósito.
+import {
+  normalizeCustomerEmail,
+  validateCustomerEmail,
+  validateCustomerName,
+  validateCustomerPhone,
+} from "../lib/customerValidation";
 
 // Datos del cliente y sus oportunidades para la Ficha de cliente (AIT-11).
 // El historial de interacciones es una query aparte (convex/interactions.ts),
@@ -93,15 +101,6 @@ export const list = query({
   },
 });
 
-// AIT-77: mismas reglas de validación que `opportunities.ts::createQuick`, la
-// otra puerta de escritura a esta tabla. Duplicadas a mano porque allí no están
-// exportadas y exportarlas chocaba con AIT-80, en vuelo sobre ese fichero.
-// AIT-82 las centraliza y elimina esta copia; hasta entonces, si se cambia una
-// regla hay que cambiarla en los dos sitios o un valor que el alta rechaza se
-// cuela editando.
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^[\d\s+()-]+$/;
-
 // AIT-77: editar un cliente ya existente. Hasta aquí no había forma de corregir
 // un teléfono mal escrito, ni de darle un email a un cliente creado sin él
 // (`createQuick` era el único escritor de la tabla).
@@ -142,37 +141,25 @@ export const update = mutation({
       throw new Error("Cliente no encontrado.");
     }
 
+    // AIT-82: mismas funciones que las otras tres puertas. La nota que había
+    // aquí explicando por qué la longitud se medía sobre el crudo ya no aplica:
+    // era la descripción de la deuda, y esta tarea la paga — ahora se mide sobre
+    // el valor canónico, que es el que se guarda.
+    const nameError = validateCustomerName(args.name);
+    if (nameError) throw new Error(nameError);
     const name = args.name.trim();
-    if (name.length === 0) throw new Error("El nombre es obligatorio.");
 
     const phone = args.phone.trim();
-    if (!PHONE_RE.test(phone)) {
-      throw new Error("El teléfono solo puede tener números y separadores.");
-    }
-    // Cuenta los dígitos TAL COMO SE TECLEARON, igual que
-    // `opportunities.ts::createQuick` (que valida así en :126 y almacena
-    // `normalizePhone` en :149). No se usa `normalizePhone` para contar: al
-    // recortar un `+34` tecleado, un número con prefijo y 14 dígitos pasaría
-    // aquí y lo rechazaría el alta rápida — dos puertas a la misma tabla con
-    // criterios distintos, que es justo lo que hay que evitar. La longitud
-    // medida sobre el crudo y el valor guardado canónico conviven a propósito;
-    // unificar los dos criterios es alcance de AIT-82, no de aquí.
-    const phoneDigits = phone.replace(/\D/g, "");
-    if (phoneDigits.length < 9) {
-      throw new Error("Introduce un teléfono válido (9 dígitos).");
-    }
-    if (phoneDigits.length > 15) {
-      throw new Error("El teléfono es demasiado largo.");
-    }
+    const phoneError = validateCustomerPhone(phone);
+    if (phoneError) throw new Error(phoneError);
 
-    // `|| undefined` (no `?? undefined`): un email en blanco se vacía a
-    // propósito — un email equivocado empareja correspondencia ajena con esta
-    // ficha, así que tiene que poder quitarse. `email` es opcional en el
-    // schema y `patch` con `undefined` BORRA el campo, no guarda "".
-    const email = args.email?.trim().toLowerCase() || undefined;
-    if (email !== undefined && !EMAIL_RE.test(email)) {
-      throw new Error("El email no tiene un formato válido.");
-    }
+    const emailError = validateCustomerEmail(args.email);
+    if (emailError) throw new Error(emailError);
+    // Vacío se convierte en `undefined` a propósito: un email equivocado
+    // empareja correspondencia ajena con esta ficha, así que tiene que poder
+    // quitarse, y `patch` con `undefined` BORRA el campo en vez de guardar ""
+    // (AIT-77). La conversión vive en el módulo compartido porque ES una regla.
+    const email = normalizeCustomerEmail(args.email);
 
     // Contrato de `phone` (AIT-80, docs/02-modelo-de-datos.md): se almacena
     // SIEMPRE canónico, nunca como se teclea. Esta mutation es el tercer
