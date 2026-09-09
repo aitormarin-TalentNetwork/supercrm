@@ -1214,6 +1214,32 @@ mala** — la Directora la usa a diario para cazar veredictos perdidos. Es **la 
 observación leída del revés**, y sirve para dos conclusiones opuestas según qué esperes
 encontrar. No se arregla desconfiando de la señal: se arregla preguntándose de qué es señal.
 
+#### Y su dirección peor: el sujeto equivocado al ESCRIBIR, no al medir (2026-09-08)
+
+> **Configurar el sujeto equivocado es peor que medirlo, porque deja estado.**
+
+Hallazgo de la Directora, sobre el trabajo del PM en AIT-90. La consola de Google Cloud **tenía
+abierto un proyecto que no es el nuestro** —"My First Project"—, y el proyecto correcto
+(`supercrm-506513`) hubo que identificarlo por el número del Client ID. **Trabajar donde estaba
+abierto habría configurado lo correcto en el sitio equivocado.**
+
+**Encaja con la 60.2 y la completa, formando una escala de tres:**
+
+| La medición equivocada lleva a… | Coste |
+|---|---|
+| **decir** algo | un informe equivocado — se corrige cuando alguien mira |
+| **destruir** algo | irreversible en lo destruido, pero **visible**: alguien nota que falta |
+| **escribir/configurar** algo | ⚠️ **irreversible Y silencioso.** Queda estado correcto en un sitio equivocado, **que nadie va a ir a buscar** porque nadie sabe que existe |
+
+📌 **Y lo que lo hace especialmente traicionero: el trabajo sale bien.** Los ajustes son
+correctos, la consola confirma, no hay error en ninguna parte — **solo que en otro proyecto**.
+Falla hacia el verde en el sentido más literal de todos.
+
+**La comprobación, y es la misma pregunta de siempre movida un paso antes:** *antes de escribir,
+¿sobre qué sujeto estoy escribiendo?* — verificado contra un identificador que no dependa de
+**lo que estuviera abierto**. El PM lo hizo: comprobó el proyecto contra la consola **en vez de
+fiarse del número que le pasó la Directora**, que además era correcto.
+
 ### Decisión 51 — El código de salida contesta a una pregunta, y no siempre es la que crees (2026-09-08)
 
 **Formulación de la Directora. Sustituye a la del Integrador porque cubre las cuatro
