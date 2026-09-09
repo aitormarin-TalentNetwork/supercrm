@@ -737,8 +737,17 @@ pero **decidir cuáles están bloqueadas era un juicio, y me llegaba relayado.**
 puede convertirla en dato.** Se lo pasé al PM y creó la etiqueta **`esperando-a-Aitor`**. Ahora:
 
 ```
-K = list_issues(state="Backlog")  −  las etiquetadas `esperando-a-Aitor`  −  las `parada`
+K = list_issues(state="Backlog")
+      − las etiquetadas `esperando-a-Aitor`
+      − las `parada`
+      − LAS QUE YA TIENEN UN FICHERO DE TAREA VIVO EN "codigo para auditar/"
 ```
+⚠️ **Esa cuarta resta es imprescindible y se me olvidó el primer día: una issue asignada SIGUE EN
+`Backlog`** —nadie la mueve a *In Progress* al repartirla—, así que **aparece a la vez en tu `N` y
+en tu `K`**. Sin restarla, `K` cuenta como disponible trabajo que ya está en marcha, y **si algún
+día `M>0`, mandas a alguien a una tarea que otro ya tiene abierta.** *Medido el 2026-09-09: 18 − 4
+− 1 = 13, **pero tres de esas trece ya estaban asignadas** (AIT-95, AIT-99, AIT-115) → **K real =
+10**.*
 **El juicio se hace UNA vez, al etiquetar, y queda escrito; tu barrido consulta en vez de creer.**
 *Medido así por primera vez el 2026-09-09: 18 − 4 − 1 = **K=13**.*
 ⚠️ **Y las tres reglas de la etiqueta, que son del PM y sin ellas no vale:**
