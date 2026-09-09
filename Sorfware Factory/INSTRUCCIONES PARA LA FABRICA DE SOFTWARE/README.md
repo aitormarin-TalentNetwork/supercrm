@@ -645,6 +645,54 @@ documento, cualquier frase que nombre el valor concreto de un estado mutable (el
 publicación, el titular del cerrojo de Convex, qué terminal está migrada) se reescribe
 para decir *dónde se consulta*, no *cuánto vale*.
 
+
+**(l) El registro de agentes indexado por el nombre de sesión — decisión 45 del Factory
+Architect, 2026-09-08.** Es la instancia más pura de todas: **estado escrito una vez, con
+una clave que caduca sola y sin avisar.**
+
+*Cómo se cazó:* el barrido del CEO de las 00:06 UTC encontró que **dos de las nueve
+sesiones vivas de `ListAgents` no existían en `_registro-agentes.txt` con ese nombre**. El
+registro tenía a T1 como `t1-66` y a T3 como `t3-7b`. Al preguntarles —**preguntar, no
+deducir del nombre, que es lo que prohíbe la decisión 20**— resultaron ser dos averías
+distintas:
+
+- **T1 seguía siendo la misma sesión de toda la noche**, sólo que *renombrada por debajo*.
+  Nadie la tocó; el nombre cambió solo.
+- **T3 iba por su tercera generación**: `t3-7b` → `fix-duplicate-customer-creation` → `t3-f6`,
+  con un relanzamiento del CEO por medio. El registro no estaba desactualizado en un salto,
+  sino en dos.
+
+*Por qué es (l) y no una anécdota:* el único mecanismo que teníamos para mantenerlo era
+**que al agente se le ocurriera escribir la línea**. Hoy funcionó una vez (T2 avisó de su
+renombrado a las 18:27) y falló dos. Eso es exactamente la **decisión 37** —una regla que
+*parece* un control y no lo es— aplicada al instrumento con el que se resuelven identidades.
+
+**Lo que decide la 45:**
+
+- **45.1 — Un desarrollador NO se resuelve por el registro: se resuelve por su worktree.**
+  Su transcript vive bajo un directorio que codifica su `cwd`, así que `…/_worktrees/T3/…`
+  identifica a T3 **pase lo que pase**: sobrevive al renombrado, al relanzamiento y a que
+  nadie se acuerde de escribir nada. Es la **decisión 34** (identificador que no caduca) y
+  **no necesita mantenimiento humano**, que es justo lo que lo hace mejor que un registro.
+- **45.2 — Los seis roles de raíz sí dependen del registro, y se indexan por `ref`.**
+  Comparten `cwd`, así que el worktree no los distingue —mismo problema que los hooks de
+  voz—. La clave pasa a ser el `[ref]` de `ListAgents`, no el nombre.
+- **45.3 — Y esto es lo que lo convierte en control:** el barrido del CEO compara, cada
+  ciclo, **todo `ref` de `ListAgents` contra el registro**, y reporta como discrepancia el
+  que no esté. No impide el olvido: **garantiza que se vea en menos de veinte minutos**,
+  igual que la línea de `core.hooksPath`.
+- **45.4 — Y quita del registro lo que ya no hace falta:** la línea de un desarrollador
+  pasa a ser informativa, no la fuente. Menos que mantener a mano, menos que se pudra.
+
+**La propiedad del `ref`, declarada como observación única y no como documentación** (a
+petición expresa del Factory Architect, que es quien la observó): *el `ref` sobrevive al
+renombrado y NO sobrevive al relanzamiento* — vio `fix-duplicate-customer-creation [6b86a9]
+· says it was implement-client-opportunity-creation until 1m ago` (mismo ref, nombre
+distinto), y vio que T3 relanzada estrenaba ref. Se registra así, y no como propiedad del
+sistema, porque **si algún día el ref cambiara sin relanzamiento, esta decisión se cae** y
+conviene que se caiga ruidosamente. El CEO se negó a darla por buena sin haberla visto
+fallar pudiendo fallar (**enmienda 9**) aun cuando asumirla le habría ahorrado trabajo.
+
 ---
 
 ### En `main`, commit y push son un solo acto (decisión 9 + enmienda 3, 2026-09-08)

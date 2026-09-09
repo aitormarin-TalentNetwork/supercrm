@@ -611,6 +611,33 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### Comprobación fija de tu barrido: todo `ref` de `ListAgents` está en el registro
+
+Añadido 2026-09-08 (**decisión 45.3** del Factory Architect). Misma forma que la anterior:
+no impide el fallo, lo hace **visible en menos de veinte minutos**.
+
+**Qué comparas:** el `[ref]` de cada fila de `ListAgents` contra
+`Sorfware Factory/_registro-agentes.txt`. **El ref que no esté, se reporta como
+discrepancia en el censo de ese ciclo** — como una línea más de la tabla, no como alarma.
+
+**Por qué el ref y no el nombre.** El nombre de sesión **cambia solo, sin avisar a nadie**.
+El 2026-09-08 el registro tenía a T1 como `t1-66` (misma sesión, renombrada por debajo) y a
+T3 como `t3-7b` cuando iba ya por su tercera generación. Dos de nueve sesiones vivas eran
+irresolubles, y la única vía que quedaba era adivinar por el nombre — justo lo que prohíbe
+la decisión 20. **Un CEO que adivina bien dos veces seguidas no ha verificado nada.**
+
+**A un desarrollador no le preguntes al registro: mírale el worktree** (decisión 45.1). Su
+transcript vive bajo un directorio que codifica su `cwd`, así que `…/_worktrees/T3/…` es
+T3 pase lo que pase — sobrevive al renombrado, al relanzamiento y a que nadie escriba nada.
+Su línea del registro es informativa (45.4).
+
+**Y si el registro no resuelve a alguien, PREGÚNTALE.** No deduzcas del nombre, ni leas su
+transcript buscando qué rol dice ser (decisión 20). Pídele tres datos —`pwd`, tarea actual,
+y si tuvo antes otro nombre— y **escribe tú su línea**: quien acaba de demostrar que se le
+olvida no es quien debe encargarse de recordarlo. Ojo con `tty`: desde la herramienta Bash
+devuelve *"not a tty"*; lo que funciona es `ps -o tty= -p $PPID`.
+
+
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 
 Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y
