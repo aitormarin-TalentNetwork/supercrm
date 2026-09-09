@@ -698,8 +698,18 @@ con **tres ramas, en este orden**:
 ```
 
 Él solo había leído la 3 (vive en otro fichero). **Los dos tokens filtrados son padre del token
-activo, así que caen en la rama 1 — y la rama 1 se evalúa ANTES que la ventana, así que NO caducan
-por tiempo.**
+activo, así que caen en la rama 1 — y la rama 1 se evalúa ANTES que la ventana de 10 s, sin mirar
+el reloj.**
+
+⚠️ **Matiz que corrige lo que yo escribí primero, y va en dirección menos grave.** Puse *"ya no
+caducan por tiempo"* y **no es exacto**: `refreshTokenIfValid` corre **antes que todo lo anterior**
+y sí mira **dos relojes** —la caducidad del propio token y la de la sesión—. Lo correcto es que
+**dejaron de estar limitados por la ventana corta de 10 s y pasaron a estarlo por el reloj largo de
+la sesión.** No es *válidos para siempre*, es *válidos lo que le quede a la sesión*.
+**Y se autoextinguen en el siguiente refresco de esa sesión**: el activo pasaría a ser nieto, el
+filtrado dejaría de ser su padre, caería a la ventana vencida e **invalidaría el subárbol**.
+*(Medido por el Factory Architect leyendo `refreshSession.ts` entero y parte de `refreshTokens.ts`.
+Lo dejo escrito porque **decir algo más grave de lo que es le quita fuerza al siguiente aviso**.)*
 
 ```
 owner: token activo jh7etb… · su padre es jh7890…  <- el filtrado
@@ -707,13 +717,14 @@ sales: token activo jh70ap… · su padre es jh73qk…  <- el filtrado
 ```
 
 **Y mi maniobra los dejó justo en ese estado:** antes *sin usar* (servían una vez), ahora *usados y
-padre del activo* (**siguen sirviendo, y ya no caducan solos**). **Empeoré la propiedad que creía
-estar arreglando.**
+padre del activo* (**siguen sirviendo, y pasaron de la caducidad corta a la larga**). **Empeoré la
+propiedad que creía estar arreglando.**
 
 **Qué sigue vivo de verdad:**
 
-- 🔴 **Los dos refresh tokens conceden acceso a las sesiones `jn79md…` y `jn739g…`**, sin caducidad
-  por tiempo, **hasta que la cadena avance**. Deployment `healthy-mammoth-850` — **el de T2, ni el
+- 🔴 **Los dos refresh tokens conceden acceso a las sesiones `jn79md…` y `jn739g…`** mientras sigan
+  siendo padre del token activo y la sesión no caduque. **No es "para siempre" y no son diez
+  segundos: es lo que le quede a la sesión.** Deployment `healthy-mammoth-850` — **el de T2, ni el
   compartido ni producción.**
 - 🟢 El fichero **no está en ninguna rama**; el blob solo es alcanzable **por sha en este disco**
   hasta un `git gc`. **No ha salido de la máquina** (medido: nunca en `origin`, ninguna otra rama).
