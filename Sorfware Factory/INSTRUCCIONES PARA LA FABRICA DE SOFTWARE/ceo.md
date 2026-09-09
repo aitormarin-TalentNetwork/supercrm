@@ -718,6 +718,25 @@ puede abrir es peor que ninguna.
 para encontrar el texto, **nunca para citar la decisión** — el día que alguien cite el índice
 en vez de la fuente, habremos reescrito las decisiones por comodidad sin que nadie lo note.
 
+### Tu censo declara QUÉ NO CUBRE, y quién lo cubre (decisión 57.3 + 58)
+
+**El silencio se lee como cobertura.** Doce informes de la Directora que decían *"publicada y
+verificada"* —**ninguno falso**— construyeron entre todos la impresión de que alguien miraba la
+suite e2e antes de `main`. Nadie la miraba. **Tus censos tienen exactamente la misma forma:**
+*"cero colas, cerrojo libre, refs ok"*, repetido cada veinte minutos, construye la impresión de
+que el pipeline está vigilado.
+
+⚠️ **La línea nombra qué no se cubre Y QUIÉN lo cubre. Un hueco sin dueño es el hallazgo** — un
+*"no cubre X, Y, Z"* fijo se lee dos veces y luego es decoración; con dueño deja de ser un
+descargo y pasa a ser **un mapa de cobertura**. Modelo:
+
+> **Qué NO cubre este barrido:** si el trabajo es correcto → *el auditor*. Regresiones laterales
+> en `main` → *la corrida periódica del QA (57.1)*. Si alguien está atascado **sin que se le note
+> en el transcript** → **nadie**.
+
+📌 **Y la tercera línea de ese ejemplo es el tipo de cosa que ya costó `main` en rojo:** las tres
+puertas eran correctas dentro de su alcance y **nadie miraba el espacio entre ellas** (57).
+
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 
 Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y

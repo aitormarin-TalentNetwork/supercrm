@@ -1295,10 +1295,101 @@ modo de fallo sería **arreglar cinco y romper dos que nadie mire**. Es el patr�
 `helpers.ts` de AIT-78, y es la enmienda 9 — **si la comprobación solo mira lo que se arregló,
 no podía dar otro resultado.**
 
+### Decisión 58 — Un detector se estrena apuntando al caso que lo motivó (2026-09-08)
+
+**Van enlazadas con la 46, y separadas cada una parece completa:**
+
+> - **46 — estrénalo con el estado ya conciliado**, para que **no grite en falso**.
+> - **58 — apúntalo al positivo conocido**, para saber que **PUEDE gritar**.
+>
+> **Una sin la otra no vale.** La 46 sola produce un detector **silencioso que parece sano**;
+> la 58 sola, uno que **ladra a todo**.
+
+**58.1 — El detector se prueba contra el caso REAL que hizo que se escribiera.** No contra
+casos sintéticos, no contra el estado general. **Si no salta sobre el caso que lo motivó, está
+mal** — y eso se sabe en treinta segundos en vez de en la próxima ocurrencia.
+
+**Por qué hace falta decirlo, que es la parte que no es obvia:** un detector escrito para cazar
+una clase de fallo **lo escribe alguien que tiene esa clase de fallo en la cabeza**, y hereda su
+forma de razonar. **No es mala suerte: es reutilizar el razonamiento que produjo el defecto
+original.** Caso del 2026-09-08: la comprobación (B) del índice comparaba conjuntos —*¿tiene
+fila este número?*— y **los huecos tienen fila**, la que dice `TEXTO NO LOCALIZADO`. Daba verde
+sobre exactamente lo que la motivó: **una comprobación que no podía fallar** (enmienda 9), en el
+instrumento escrito contra eso mismo.
+
+**58.2 — Estado de los controles armados, probados contra un positivo REAL (2026-09-08):**
+
+| Control | ¿Ha saltado sobre un positivo real? |
+|---|---|
+| **Commits sin subir** (decisión 9 / 53.3) | ✅ **Sí**, en vivo: cazó el commit del PM a los 20 minutos de existir |
+| **(B) secuencia y huecos del índice** (56) | ✅ **Sí**, a los diez minutos de existir: saltó con la 57 escrita y sin fila |
+| **(A) citas vs índice** (56) | ✅ **Sí, probado a propósito**: se retiró la fila 57 del índice, la comprobación la reportó, y se restauró — fichero verificado idéntico al de antes |
+| **Refs de `ListAgents` vs registro** (45.3) | ✅ **Sí, probado a propósito**: con un ref inexistente reporta `⚠️ FALTA`. Antes de esta prueba **solo había corrido limpio tres ciclos**, que no es lo mismo |
+| **`core.hooksPath`** (33) | ⚠️ **Inversión curiosa: solo ha visto el positivo.** Lleva ocho ciclos reportando AUSENTE y **nunca ha visto el caso negativo** — no sabemos si sabría callarse |
+| **Hook de secretos** (33) | ❌ **No existe todavía.** Cuando exista, se estrena contra un secreto de prueba **antes** de darlo por armado |
+
+📌 **Y la lección de la fila de refs:** *"ha corrido limpio tres ciclos"* se lee como verificado
+y **no lo es**. **Un control que solo ha visto verde no está verificado: está sin estrenar.**
+
+**58.3 — Un documento que se describe a sí mismo contamina cualquier medición sobre su propio
+texto.** Segundo defecto del mismo estreno: el contador de filas verificadas hacía
+`grep -c '✅'` sobre el fichero entero **y contaba el ✅ de la cabecera que explica qué significa
+la marca** — reportó *"1 de 56 verificadas"* con cero verificadas. Es hermano de la **20** —el
+transcript contiene los eventos **y las conversaciones sobre los eventos**— y por eso tiene fila
+propia en el registro de comprobaciones desacreditadas.
+
+### Decisión 59 — Todo consumidor nuevo de un recurso compartido nace con el suyo (2026-09-08)
+
+**La 57.1 tenía un precio que no se había valorado**, y lo señaló la Directora:
+
+> **El deployment compartido no es un entorno neutro: es un entorno que la suite va sembrando.**
+
+La suite e2e **escribe datos** —crea clientes por corrida— y **T3 mide sobre ese mismo
+deployment**. Ya mordió: T3 declaró *137 clientes con 2 emails, un 1%*, y avisó de que **ese 1%
+mide cómo se comporta la suite e2e, no cómo rellena datos un negocio**. Con cadencia propia,
+**el sesgo crece solo y sin que nadie lo mire**: es la **43** —medición exacta sobre el sujeto
+equivocado— **fabricada por nosotros y creciendo con el tiempo**, y falla hacia el verde.
+
+**La respuesta no es aceptar el precio: es no pagarlo. Y no hay que inventar nada — la solución
+ya está diseñada y ejecutada dos veces** (§3bis): T1 y T2 tienen deployment propio y **no
+reclaman el cerrojo nunca**.
+
+**59.1 — La corrida periódica del QA va a un deployment propio, no al compartido.** Se aplica el
+checklist de §3bis **antes de fijar cadencia** — llegar a tiempo es lo único que hace esto
+barato. **Los tres problemas se caen a la vez:** no se contamina un entorno que otros miden; la
+contención QA↔T3 desaparece porque la suite no necesita el cerrojo; y **los datos de la suite
+pasan a ser deterministas**, que además la hace mejor prueba.
+
+**59.2 — Y lo ya contaminado se declara, no solo se corrige hacia adelante** (46). El
+compartido **ya tiene datos sembrados por la suite**: cualquier medición sobre él lleva anotado
+que **su población es en parte artificial**. T3 lo declaró por su cuenta —que es lo correcto—;
+ahora es obligación, no criterio.
+
+**59.3 — La regla general, porque va a volver:**
+
+> **Todo consumidor nuevo de un recurso compartido nace con el suyo. Migrar después cuesta;
+> nacer aislado no cuesta nada.**
+
+**Ya van tres:** el puerto 3000, el deployment de Convex, y ahora la suite periódica. *(Y el
+perfil del navegador del MCP —decisión 47— es el cuarto, con la misma forma.)*
+
+#### Un campo obligatorio sin valor válido es una invitación a interpretar (2026-09-08)
+
+> **Un campo obligatorio sin valor válido para algún actor no es un campo incompleto: es una
+> invitación a interpretar.**
+
+*Y el precio ya está pagado:* el `titular.txt` del cerrojo pedía `T1|T2|T3`, el QA trabaja desde
+la raíz y **literalmente no tenía un valor válido que escribir**. Interpretar es exactamente
+como ese campo acabó guardando un nombre de sesión muerto esta misma tarde. **El fallo no fue de
+quien interpretó.** Cerrado añadiendo los literales de rol —`QA`, `Integrador`, `Directora`— al
+conjunto válido (ejecución de la 34.1, no decisión nueva: completar un conjunto de valores para
+que la regla sea aplicable **no es decidir, es hacerla ejecutable**).
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **Medir algo sobre el texto de un documento que se describe a sí mismo** | **Cuenta la explicación como si fuera un caso.** El contador de filas verificadas del índice hacía `grep -c '✅'` sobre el fichero entero y contaba **el ✅ de la cabecera que explica qué significa la marca**: reportó *"1 de 56 verificadas"* con **cero** verificadas. Hermano de `grep <herramienta>` sobre un transcript (decisión 20): **el documento contiene los datos y además el texto que habla de los datos** | acotar la medición a la parte estructurada —`grep -E '^\|'` antes de contar, o parsear la tabla— **nunca al fichero entero**. Y sospechar por sistema de cualquier métrica sobre un documento que explica su propia notación (decisión 58.3) |
 | **Empezar una espera con `rm -f <marker>` para no leer el de la ronda anterior** | **Borra los markers RECIÉN CREADOS por trabajo que terminó antes de que armaras la espera**, y entonces esperas para siempre algo que ya pasó. En palabras de la Directora, 2026-09-08: *"no es un dato viejo leído como nuevo: es el dato nuevo destruido por defenderse del viejo"*. Y no deja rastro: un marker ausente se ve igual que un trabajo que no ha terminado | **la ambigüedad temporal se resuelve comparando fechas, jamás borrando.** El `rm -f` va **después** de detectar el marker, nunca antes de esperarlo (decisión 50.2). Mejor aún: usa una señal observable —el proceso vivo o muerto— en vez de una marca (50.1) |
 | **Pasarle a una herramienta un fichero por `filename` para que los valores NO pasen por la conversación** | **La herramienta puede hacer eco del fichero entero en su salida.** Verificado el 2026-09-08: el QA generó un script de disco a disco con Bash, sin imprimir nada, y se lo pasó a `browser_run_code_unsafe` por `filename` **precisamente para no exponer la sesión guardada**; la herramienta devolvió el contenido íntegro en su bloque "Ran Playwright code", JWT incluido. ⚠️ **El mecanismo diseñado para no exponer valores es el que los expone**, y falla en verde: el comando funciona, el script se ejecuta, el objetivo se cumple. *(Severidad de ESE caso: nula — token de la cuenta demo, caducado 61 min antes, refresh literal `"dummy"`. Lo que vale es el mecanismo.)* | **es un eje distinto de la decisión 32.1 y su comprobación NO lo caza:** la 32.1 cubre *dónde escribió* la herramienta; esto es *qué devuelve de lo que carga*. No hay sustituto seguro conocido — **si un fichero contiene un secreto, no se le pasa a una herramienta cuya salida no controlas**, ni por ruta |
 | **Un export en `codigo para auditar/` = una tarea esperando auditoría** | **Los exports NO se borran al auditarse: siguen ahí después del GO.** Así que ver el fichero es compatible con "pendiente" y con "auditado hace tres minutos", y **el estado real no está en el fichero.** ⚠️ **Y lo grave es la asimetría: la carpeta nunca dice de menos.** Nunca vas a mirarla y perderte trabajo; **siempre vas a ver trabajo que ya no existe**, así que el error es sistemáticamente en la dirección de inventar atascos. Caso real, 2026-09-08: el CEO reportó a la Directora cuatro planes "esperando veredicto" cuando **los cuatro tenían GO**. Es la misma carpeta que semanas antes le hizo decir a la Directora que el backlog estaba agotado con cinco issues vivas en Linear | preguntarle a la Directora, o leer el **último** veredicto de la ventana de auditor con `get history of tab 1` — **`history`, no `contents`** (que solo trae lo visible), y **la ÚLTIMA** aparición de "Veredicto", porque el historial arrastra veredictos de tareas de hace horas. Ese mismo arrastre ya dio un falso positivo la misma noche: un GO de AIT-77 leído como si fuera de AIT-78. 📌 **`codigo para auditar/` es un espejo con restos, no un estado** |

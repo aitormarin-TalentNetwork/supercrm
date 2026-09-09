@@ -95,6 +95,8 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 55 | Este índice. Una decisión no está ejecutada hasta que se puede encontrar por su número | este fichero |
 | 56 | El índice lleva detector, y dos comprobaciones con alcances distintos (56.3 las filas son punteros hasta verificarse; 56.4 el repaso las verifica de paso) | este fichero · `comprobar-indice-decisiones.sh` · C |
 | 57 | Un defecto puede vivir en el espacio ENTRE comprobaciones correctas — la ventana de un hueco no es larga, es infinita (57.1 suite periódica sobre `main` limpio, del QA; 57.2 se reporta el número de los 47, no el de los 5; 57.3 **el silencio se lee como cobertura**) | R §2sexies · §2sexies-bis · Q |
+| 58 | Un detector se estrena apuntando al caso que lo motivó — enlazada con la 46: aquella para que no grite en falso, esta para saber que PUEDE gritar (58.2 estado de los controles; 58.3 un documento que se describe a sí mismo contamina las medidas sobre su texto) | R §2sexies |
+| 59 | Todo consumidor nuevo de un recurso compartido nace con el suyo — la suite periódica del QA va a deployment propio (59.2 lo ya contaminado se declara) | R §2sexies · Q |
 
 ---
 
