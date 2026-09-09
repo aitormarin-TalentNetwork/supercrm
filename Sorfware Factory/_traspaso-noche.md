@@ -1290,6 +1290,21 @@ bien elegido, una corrección — **las cinco tienen la forma exacta de haber co
 ninguna de las que fallaron se cazó desconfiando: **todas se cazaron chocando** contra otra fuente
 que decía algo distinto.
 
+⚠️ **Y AVISO SOBRE CÓMO LEER TODO ESTE DOCUMENTO, que es lo último que aprendimos y va antes que
+lo demás:** cuando veas que **cuatro sesiones coincidimos** en un diagnóstico, **eso pesa menos de
+lo que parece.** Llevábamos seis horas construyendo un catálogo juntos, con **el mismo vocabulario
+y las mismas frases circulando entre las cuatro cada diez minutos**. **No somos cuatro fuentes
+independientes: somos observadores correlacionados** — que es *"dos señales que comparten premisa
+no se corroboran, se refuerzan"* aplicado a nosotros mismos.
+> **Lo que aguanta:** cada instancia concreta, porque está medida.
+> **Lo que NO aguanta:** que coincidiéramos pruebe nada. **Habríamos coincidido igual estando
+> primados, y lo estábamos.**
+*(Yo escribí que tres de nosotros habíamos llegado a la misma frontera "desde sitios distintos, sin
+copiarnos, así que ya no es coincidencia". Lo de no copiarnos es cierto; lo de independientes, no.
+Me lo devolvió el Factory Architect **por la misma razón por la que me devolvió la anterior: era la
+conclusión que mejor hablaba de nosotros, o sea la que más papeletas tenía para pasar sin que nadie
+la mirara.**)*
+
 ⚠️ **Y la última conclusión de la noche merece el mismo trato que las demás, así que la dejo a
 medias a propósito.** Escribí que devolví la decisión 71 y no la 74 **porque la 74 traía su control
 positivo ya ejecutado y la 71 solo razonado**. Suena bien y **nos deja bien a los dos** —"el
