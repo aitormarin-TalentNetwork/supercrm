@@ -101,7 +101,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 35 | Qué se puede tocar de la ventana del Auditor, y qué no | R §4 · D |
 | 36 | Planificar una tarea ya aprobada no es adelantar fases — instrucción de Aitor | R §3 · D |
 | 37 | **La categoría peor: una regla que PARECE control y no lo es** | R §2sexies-bis |
-| 38 | ⚠️ **TEXTO NO LOCALIZADO por su número.** Citada en el prompt de barrido del CEO como "planificación por lotes (38.1)" — **referencia muerta, corregida a texto** | — |
+| 38 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera).** Se citaba en el prompt de barrido del CEO como *"planificación por lotes (38.1)"*, **referencia muerta ya corregida a texto** — *y es el único caso donde sabemos QUÉ decía, aunque no dónde* | — |
 | 39 | Los prompts de los `/loop` son estado duradero, y nadie los había auditado nunca | R §2quinquies (k) |
 | 40 | ❌ **NÚMERO MUERTO — búsqueda agotada el 2026-09-09 (ver cabecera)** | — |
 | 41 | Un recurso local codificado en un fichero versionado es una colisión esperando a ocurrir | R §2sexies |
@@ -139,7 +139,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 
 ---
 
-## Sobre los «TEXTO NO LOCALIZADO»
+## Sobre los números muertos (antes «TEXTO NO LOCALIZADO») — ver la cabecera para la búsqueda
 
 ⚠️ **Esto NO prueba que esas decisiones no existan.** Prueba que **no son direccionables por
 su número** — casi con seguridad están escritas en prosa, sin el número al lado. Es una
