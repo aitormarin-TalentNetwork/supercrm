@@ -397,6 +397,44 @@ commits resultaron distintos. Los despliegues fueron `5d71567f` (`bafd805`, el m
 AIT-79) y `e9cc0648` (`c282cc6`), este último un push de documentación ajeno a la tarea —
 lo que hace la comprobación independiente por accidente y no por construcción.
 
+**Quién consume este dato (AIT-83).** `/version` dejó de ser solo informativo: el aviso de
+versión nueva lo consulta **antes de dejar salir cada server action**. Consecuencia para
+quien lo toque: `app/version/route.ts`, `lib/version.ts` y `proxy.ts` son ahora un contrato
+con dos clientes, y cambiarles la forma de la respuesta, meterles caché o hacerlos depender
+de sesión rompería el aviso **sin que fallara ningún test** — la ruta seguiría devolviendo
+200. Se declaran superficie protegida.
+
+### ADR-0xx · Una pestaña abierta durante un despliegue se entera antes de romperse
+
+**Contexto:** si entra un despliegue con la pestaña abierta, sus server actions fallan en
+silencio — Next lanza `UnrecognizedActionError` y en pantalla no ocurre nada. **No es un
+fallo de seguridad:** al recargar, la sesión sí estaba cerrada; el servidor hizo su trabajo
+y lo que falló fue el acuse de recibo. Lo que se rompe es la confianza en que los botones
+hacen algo. El logout es el síntoma, no el problema: afecta a cualquier server action.
+
+**Decisión (AIT-83):** la pestaña compara el commit con el que se cargó contra el que sirve
+`/version` ahora, y avisa con opción de recargar. **Nunca recarga sola** — nadie quiere
+perder lo que estaba escribiendo.
+
+- La referencia la **inyecta el servidor** desde `app/layout.tsx`, no la pide el cliente al
+  montar: un despliegue que entrara entre el HTML servido y ese primer fetch dejaría la
+  referencia siendo la versión nueva, y la pestaña se creería al día para siempre.
+- **El preflight es obligatorio; los eventos son oportunistas.** El límite de frecuencia
+  puede suprimir `visibilitychange`/`pageshow`, nunca la comprobación previa a una server
+  action: reutilizar un resultado anterior como autorización reintroduce la carrera que
+  esto viene a cerrar. Puede *esperar* a una consulta en vuelo, que no es lo mismo.
+- **Ante la duda, la acción pasa** (fail-open). `commit: null`, timeout, no-2xx y JSON
+  inválido significan "no sé", nunca "no ha cambiado" — pero no bloquean. Convertir una
+  caída de `/version` en la indisponibilidad de todas las escrituras sería peor que el
+  fallo que se previene. Coste asumido: con `/version` caído, una pestaña vieja vuelve a
+  fallar en silencio como antes.
+- El envoltorio de `fetch` se instala con un script en el `<head>`
+  (`components/version/fetchGateBootstrap.ts`) y **no** desde un efecto de React: Next
+  captura su referencia a `fetch` al cargar su módulo, antes de hidratar, así que
+  sustituirlo después llega tarde y la server action real pasa de largo.
+
+**Estado:** 🟡 en curso (AIT-83).
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:
