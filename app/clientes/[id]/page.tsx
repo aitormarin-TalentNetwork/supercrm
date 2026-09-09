@@ -322,8 +322,10 @@ export default function FichaClientePage({
         }
       >
         <p className="text-sm text-text-secondary">
-          No se puede eliminar: tiene oportunidades asociadas. Bórralas o
-          reasígnalas primero.
+          {/* AIT-84: con la cifra, misma redacción que el mensaje del
+              servidor (convex/customers.ts). `opportunities` ya está aquí. */}
+          No se puede eliminar: tiene {opportunities.length} oportunidad(es)
+          asociada(s). Bórralas o reasígnalas primero.
         </p>
       </Dialog>
       <DeleteInteractionDialog
