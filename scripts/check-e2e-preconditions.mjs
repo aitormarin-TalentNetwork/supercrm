@@ -356,27 +356,46 @@ export function extraerDeclaraciones(fuente) {
  * @returns {string[]} nombres de función que declara (vacío si no declara ninguna)
  */
 export function clasificarDeclaracion({ texto, linea }, fichero) {
-  // D3 / D4 / D5 — no declaran funciones Convex.
-  if (/^export\s+(type|interface|enum)\b/.test(texto)) return [];
-  if (/^export\s+(async\s+)?function\b/.test(texto)) return [];
-  if (/^export\s+default\b/.test(texto)) return [];
-
-  if (!/^export\s+const\b/.test(texto)) {
-    // `export { … }`, `export * from …`, `export class …`: formas que pueden
-    // reexportar una función. No se adivina.
+  const abortar = () => {
     throw new DeclaracionNoClasificable(fichero, linea, texto);
+  };
+
+  // Se prepara lo común ANTES de las ramas para poder recorrerlas en el orden
+  // del contrato. Si no se puede partir, no se aborta aquí: se deja caer hasta
+  // el `else` final, que es quien tiene esa responsabilidad.
+  const esConst = /^export\s+const\b/.test(texto);
+  let enlace = null;
+  let inicializador = null;
+  let llamada = null;
+  if (esConst) {
+    const partes = partirPorIgual(texto.replace(/^export\s+const\b/, ""));
+    if (partes !== null) {
+      enlace = partes[0].trim();
+      inicializador = partes[1].trim();
+      llamada = /^([A-Za-z_$][\w$]*)\s*[.(]/.exec(inicializador);
+    }
   }
 
-  const partes = partirPorIgual(texto.replace(/^export\s+const\b/, ""));
-  if (partes === null) throw new DeclaracionNoClasificable(fichero, linea, texto);
-  const enlace = partes[0].trim();
-  const inicializador = partes[1].trim();
+  // ── D1 · constructor de función Convex ────────────────────────────────────
+  if (
+    esConst &&
+    enlace !== null &&
+    !enlace.startsWith("{") &&
+    llamada &&
+    CONSTRUCTORES.has(llamada[1]) &&
+    inicializador[llamada[1].length] !== "."
+  ) {
+    const nombre = /^([A-Za-z_$][\w$]*)/.exec(enlace);
+    if (!nombre) abortar();
+    return [nombre[1]];
+  }
 
-  // D2 — destructuring de una factoría registrada, por igualdad de conjuntos.
-  if (enlace.startsWith("{")) {
-    const llamada = /^([A-Za-z_$][\w$]*)\s*\(/.exec(inicializador);
+  // ── D2 · destructuring de una factoría registrada, por igualdad de conjuntos
+  // Sus fallos ABORTAN aquí mismo: un destructuring de una factoría desconocida
+  // no puede caer a D6 y salir clasificado como no-función.
+  if (esConst && enlace !== null && enlace.startsWith("{")) {
     const factoria = llamada && FACTORIAS[llamada[1]];
-    if (!factoria) throw new DeclaracionNoClasificable(fichero, linea, texto);
+    if (!factoria) abortar();
     const nombres = enlace
       .replace(/^\{|\}$/g, "")
       .split(",")
@@ -385,30 +404,51 @@ export function clasificarDeclaracion({ texto, linea }, fichero) {
     const declarados = [...factoria.funciones, ...factoria.noFunciones];
     const sobran = nombres.filter((n) => !declarados.includes(n));
     const faltan = declarados.filter((n) => !nombres.includes(n));
-    if (sobran.length > 0 || faltan.length > 0) {
-      throw new DeclaracionNoClasificable(fichero, linea, texto);
-    }
+    if (sobran.length > 0 || faltan.length > 0) abortar();
     return factoria.funciones.slice();
   }
 
-  const nombre = /^([A-Za-z_$][\w$]*)/.exec(enlace);
-  if (!nombre) throw new DeclaracionNoClasificable(fichero, linea, texto);
+  // ── D3 · tipos ────────────────────────────────────────────────────────────
+  if (/^export\s+(type|interface|enum)\b/.test(texto)) return [];
 
-  // D1 — constructor de función Convex.
-  const llamada = /^([A-Za-z_$][\w$]*)\s*[.(]/.exec(inicializador);
-  if (llamada && CONSTRUCTORES.has(llamada[1]) && inicializador[llamada[1].length] !== ".") {
-    return [nombre[1]];
+  // ── D4 · funciones declaradas ─────────────────────────────────────────────
+  if (/^export\s+(async\s+)?function\b/.test(texto)) return [];
+
+  // ── D5 · export default ───────────────────────────────────────────────────
+  // Convex nombra las funciones por su export, y `default` es un nombre válido:
+  // `export default query({…})` se desplegaría como `modulo.js:default`. Por eso
+  // esta rama NO puede devolver [] sin mirar: un `default` construido con un
+  // constructor ABORTA, porque clasificarlo como no-función sería el falso
+  // negativo que esta comprobación existe para no tener.
+  //
+  // Medido en este repo: hay cinco `export default` (auth.config, convex.config,
+  // crons, http, schema), los cinco identificadores de objetos de configuración,
+  // y `function-spec` no devuelve NINGÚN identificador acabado en `:default`.
+  //
+  // RESIDUO DECLARADO: `export default unIdentificador` seguiría clasificándose
+  // como no-función aunque ese identificador guardase una función Convex. No se
+  // cierra porque cerrarlo obligaría a abortar en los cinco casos reales, y un
+  // control que aborta ante lo legítimo se desactiva en una semana (misma razón
+  // por la que existe el fixture X8).
+  if (/^export\s+default\b/.test(texto)) {
+    const llamadaDefecto = /^export\s+default\s+([A-Za-z_$][\w$]*)\s*\(/.exec(texto);
+    if (llamadaDefecto && CONSTRUCTORES.has(llamadaDefecto[1])) abortar();
+    return [];
   }
 
-  // D6 — no-función INEQUÍVOCA: literal, o llamada a un espacio registrado.
-  if (/^["'`{[]/.test(inicializador)) return [];
-  if (/^-?\d/.test(inicializador)) return [];
-  if (/^(true|false|null|undefined)\b/.test(inicializador)) return [];
-  if (llamada && ESPACIOS_NO_FUNCION.has(llamada[1])) return [];
+  // ── D6 · no-función INEQUÍVOCA ────────────────────────────────────────────
+  if (esConst && inicializador !== null) {
+    if (/^["'`{[]/.test(inicializador)) return [];
+    if (/^-?\d/.test(inicializador)) return [];
+    if (/^(true|false|null|undefined)\b/.test(inicializador)) return [];
+    if (llamada && ESPACIOS_NO_FUNCION.has(llamada[1])) return [];
+  }
 
-  // else — cualquier inicializador que pueda envolver una función.
-  // `export const X = miHelper(query({…}))` cae aquí y ABORTA.
-  throw new DeclaracionNoClasificable(fichero, linea, texto);
+  // ── else · lo que no se sabe clasificar PARA la suite ─────────────────────
+  // `export const X = miHelper(query({…}))` cae aquí. También `export { … }`,
+  // `export * from …` y `export class …`: formas que pueden reexportar o
+  // envolver una función y que no se adivinan.
+  return abortar();
 }
 
 /** Identificadores `modulo.js:nombre` que el CÓDIGO declara.

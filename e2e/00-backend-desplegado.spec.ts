@@ -112,6 +112,32 @@ test("X8b · las otras formas legítimas del repo tampoco abortan", () => {
   expect(clasificar(`export function ayuda() {\n  return 1;\n}`)).toEqual([]);
 });
 
+// ── orden D1→D2→D3→D4→D5→D6→else, y el hueco de `export default` ───────────
+// El contrato fija el orden. Hoy las seis formas son DISJUNTAS —medido sobre
+// los 98 exports del repo—, así que el orden no es observable por
+// comportamiento: ninguna declaración casa dos ramas. Estas pruebas fijan a qué
+// rama va cada forma, que es lo que sí se puede comprobar; el orden en sí queda
+// garantizado por la estructura del código, no por un test que no puede
+// distinguirlo.
+test("cada forma va a su rama, y el orden del contrato se respeta", () => {
+  expect(clasificar(`export const f = query({});`)).toEqual(["f"]); // D1
+  expect(clasificar(`export type T = string;`)).toEqual([]); // D3
+  expect(clasificar(`export async function h() {\n  return 1;\n}`)).toEqual([]); // D4
+  expect(clasificar(`export default crons;`)).toEqual([]); // D5
+  expect(clasificar(`export const n = 42;`)).toEqual([]); // D6
+});
+
+test("`export default` construido con un constructor ABORTA", () => {
+  // `export default query({…})` se desplegaría como `modulo.js:default`:
+  // clasificarlo como no-función sería el mismo falso negativo que X4.
+  expect(() => clasificar(`export default query({ handler: async () => null });`)).toThrow(
+    DeclaracionNoClasificable,
+  );
+  // Y los cinco `export default` reales del repo (identificadores de objetos de
+  // configuración) NO abortan: el fail-closed no se compra con ruido.
+  expect(clasificar(`export default defineSchema({\n  users: {},\n});`)).toEqual([]);
+});
+
 // ── X9 / X10 · el CLI: fail-closed y sin volcar su salida ───────────────────
 test("X9 · salida no-JSON de function-spec aborta sin volcar la salida", async () => {
   const lineas: string[] = [];
