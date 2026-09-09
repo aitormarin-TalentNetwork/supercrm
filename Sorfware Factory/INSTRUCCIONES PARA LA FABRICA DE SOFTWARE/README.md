@@ -1650,6 +1650,67 @@ lado está sano; lo que queda sin verificar es exactamente una cosa: si Google d
 cuenta del dominio con la app ya Interna.** Eso es la 57.3 bien hecha: **qué se verificó y qué
 no**, delimitado hasta el punto exacto.
 
+### Decisión 63 — Un checklist que enumera un estado mutable caduca en silencio (2026-09-08)
+
+> **63.1 — Ningún checklist enumera un estado mutable. Manda mirarlo.**
+>
+> *"Copia las variables de entorno del origen"* **no caduca**. *"Copia estas dos"* **caducó el
+> día que alguien añadió la tercera.**
+
+*El caso:* el paso 2 de la migración de §3bis decía "copia `SEED_OWNER_PASSWORD` y
+`SEED_SALES_PASSWORD`". **El origen tiene trece variables**, y entre las que faltaban estaban
+`JWT_PRIVATE_KEY` y `JWKS`: **sin ellas Convex Auth no arranca**. Lo encontró el QA migrando su
+corrida periódica (59.1).
+
+⚠️ **Y lo que lo hace peligroso es que el fallo es invisible en el punto de uso:** el checklist
+**era cierto cuando se escribió**, y quien lo siguiera **fallaría en el paso 4 sin saber por
+qué** — el documento no dice *"faltan variables"*, dice que el login no arranca.
+
+**Engancha con la (d) de §2quinquies, porque es la misma regla en tres tamaños el mismo día:**
+
+| Tamaño | Caso del 2026-09-08 |
+|---|---|
+| un **valor** | el modo de publicación nombrado en el README en vez de "se consulta aquí" |
+| un **número** | los *"47 tests"* de la 57.2, relevados y nunca medidos (eran 36) |
+| una **lista** | *"copia estas dos"* del checklist de §3bis (eran trece) |
+
+**Las tres caducaron en silencio. Las tres se arreglan igual: no fijar el valor, decir dónde se
+consulta.**
+
+**63.2 — Auditoría de las demás enumeraciones (hecha el 2026-09-08):**
+
+| Dónde | Enumera | Veredicto |
+|---|---|---|
+| **§3bis paso 2** — variables a copiar | 2 de 13 | ❌ **Era el caso. Corregido**: ahora manda contrastar con `npx convex env list` del origen (sin volcar valores) |
+| **§3bis paso 3** — *"las tres variables nuevas"* del `.env.local` | 3 | ⚠️ **Misma forma, riesgo bajo pero real.** Corregido a *"las variables de conexión que imprime `npx convex dev`"*, con los tres nombres como ejemplo y no como lista cerrada |
+| **§4** — reinstaurar el entorno | manda **copiar el fichero** `.env.local`, no enumerar su contenido | ✅ **Sano por construcción**: copiar un fichero no caduca cuando crece |
+| **`checklist-produccion-real.md`** — ítems pendientes | lista abierta | ✅ **Sano y declarado**: dice explícitamente *"añade aquí cualquier otro ítem que se descubra"*. **Una enumeración que se declara incompleta no caduca: invita** |
+
+📌 **El criterio para buscarlas, que es el que hay que aplicar a cualquier checklist futuro:**
+*¿esta lista describe algo que puede crecer sin que el documento se entere?* Si la respuesta es
+sí, **la lista se sustituye por el comando que la produce.**
+
+#### 63.3 — Un secreto no se copia entre entornos: se genera
+
+Criterio del QA, y es de seguridad, así que va como regla y no como nota de un checklist.
+
+> **Las claves de firma no se copian entre deployments: se generan nuevas en cada uno.**
+> Compartirlas significa que **un token emitido en un entorno vale en el otro** — y eso
+> convierte el entorno de pruebas en **una llave del de producción**.
+
+**Y su segunda mitad, igual de importante:** los secretos de terceros —`AUTH_GOOGLE_*`,
+`RESEND_API_KEY`, `VAPID_*`— **no viajan a un entorno de pruebas en absoluto.** Si la suite no
+los necesita, **copiarlos sería esparcirlos**, y ya hay precedente de por qué eso importa: el
+navegador de la fábrica con las sesiones personales de Aitor dentro (decisión 47).
+
+**Es la 47 con otra cara** —*no se policía lo que se puede leer, se quita lo que merece la pena
+leer*— **aplicada a qué se lleva uno al montar un entorno nuevo.**
+
+*Y el hallazgo no es la regla, es cómo apareció:* el QA la encontró **siguiendo el checklist**,
+y en vez de copiar las trece variables **se paró a preguntarse cuáles debían existir en su
+entorno**. Un checklist ejecutado al pie de la letra habría esparcido tres secretos reales a un
+deployment nuevo sin que nada se quejara.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 | Comprobación | Cómo miente | Sustituto correcto |
@@ -2576,8 +2637,10 @@ hecho sin comprobar `CONVEX_DEPLOYMENT`):**
      checklist que **enumera** un estado mutable caduca en silencio; el que **manda mirarlo**
      no. Contrástalo siempre con `npx convex env list` del origen (sin volcar valores) antes
      de darlo por completo.
-3. Actualizar el `.env.local` de ese worktree con las tres variables nuevas
-   (`CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`).
+3. Actualizar el `.env.local` de ese worktree con **las variables de conexión que imprime
+   `npx convex dev` al crear el deployment** — hoy son `CONVEX_DEPLOYMENT`,
+   `NEXT_PUBLIC_CONVEX_URL` y `NEXT_PUBLIC_CONVEX_SITE_URL`, **como ejemplo y no como lista
+   cerrada** (decisión 63.1: un checklist no enumera un estado mutable, manda mirarlo).
 4. Verificar en el navegador que el login de demo y una pantalla básica (p. ej. "Hoy")
    cargan bien contra el deployment nuevo antes de dar la migración de esa terminal por
    hecha.

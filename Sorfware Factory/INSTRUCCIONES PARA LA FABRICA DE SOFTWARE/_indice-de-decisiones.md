@@ -100,6 +100,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 60 | 60.1 un control está verificado cuando se le ha visto ladrar **y** callarse — las dos direcciones o ninguna · 60.2 **segundo eje del triaje**: ¿la conclusión lleva a decir o a hacer? Antes de actuar destructivamente, la medición se verifica contra su sujeto | R §2sexies |
 | 61 | «Pendiente de otro» nunca significa «nada mío pendiente» — todo bloqueo registra qué queda de nuestra parte al desbloquearse, y si no queda nada se dice también | R §2sexies · C |
 | 62 | El gate más duro viajaba en prosa: línea literal `Veredicto del auditor: GO/NO-GO` (62.1) y **el veredicto pasa a ser un fichero que el desarrollador lee por su cuenta** (62.2) — un control que se transmite en prosa no es un control | R §2sexies · D · IT |
+| 63 | Un checklist que enumera un estado mutable caduca en silencio — no fijar la lista, mandar mirarla (63.2 auditoría de las demás; **63.3 un secreto no se copia entre entornos: se genera**, y los de terceros no viajan a pruebas) | R §2sexies · §3bis |
 
 ---
 
