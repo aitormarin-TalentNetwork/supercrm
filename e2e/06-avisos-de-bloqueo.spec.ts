@@ -523,3 +523,57 @@ test.describe("Guardar prioridad · el botón que modifiqué y no estaba probado
     await expect(page.getByText("Alta")).toBeVisible();
   });
 });
+
+test.describe("#6 Registrar interacción · el aviso global de QuickActions", () => {
+  // El sexto caso, y el de MAYOR SUPERFICIE de los seis: `QuickActions` se monta
+  // en las diez pantallas de la app (ajustes, catálogo, clientes, clientes/[id],
+  // hoy, oportunidades/[id], panel, pipeline, reactivar, supervisión). Si su foco
+  // o su Escape se rompen, se rompen en todas.
+  //
+  // No estaba en la lista de AIT-75 ni en la de esta issue: apareció al censar
+  // por el pie "Entendido" en vez de por la redacción del aviso. Se escaló en vez
+  // de meterlo en silencio, y el PM decidió que entrara aquí: "el coste está en
+  // montar la suite, no en cada caso, y ese coste ya está pagado".
+
+  test("BLOQUEADO sin oportunidad abierta: avisa y NO abre el formulario", async ({
+    page,
+  }) => {
+    await loginAs(page, "sales");
+    // En "Hoy" el botón de cabecera no recibe ninguna oportunidad, así que no
+    // hay a qué colgar la interacción (regla 6, docs/02-modelo-de-datos.md §1).
+    await page.goto("/hoy");
+
+    const disparador = page.getByRole("button", { name: "Registrar interacción" });
+    await disparador.click();
+
+    const aviso = page.getByRole("dialog", { name: "Registrar interacción" });
+    await expect(aviso).toContainText("hace falta una oportunidad abierta");
+    await expect(aviso.getByRole("button", { name: "Entendido" })).toBeVisible();
+
+    // EL OBSERVABLE: el formulario real NO se ha abierto. Comparte título con el
+    // aviso, así que localizar por título no los distingue — se separan por
+    // contenido, igual que los otros cinco.
+    await expect(aviso.getByLabel("Nota / resultado")).toHaveCount(0);
+    await expect(aviso.getByRole("button", { name: "Guardar" })).toHaveCount(0);
+
+    await esperaCicloDeFocoCompleto(page, "Registrar interacción", disparador);
+  });
+
+  test("PERMITIDO con una oportunidad abierta: abre el formulario real", async ({
+    page,
+  }) => {
+    await loginAs(page, "sales");
+    // En el Detalle de una oportunidad abierta, QuickActions SÍ recibe su id.
+    await creaOportunidadYAbreDetalle(page, "E2E Sexto Permitido");
+
+    await page
+      .getByRole("button", { name: "Registrar interacción" })
+      .first()
+      .click();
+
+    const modal = page.getByRole("dialog", { name: "Registrar interacción" });
+    // El formulario real: tiene campos y NO tiene "Entendido".
+    await expect(modal.getByRole("button", { name: "Entendido" })).toHaveCount(0);
+    await expect(modal.getByLabel("Nota / resultado")).toBeVisible();
+  });
+});
