@@ -482,11 +482,37 @@ una vez que el trabajo pasa auditoría.
   a tu worktree sin saber contra qué backend corre. El siguiente que ejecute la suite mide
   otra cosa, o falla sin motivo aparente, y nada apunta al comando que lo causó.
 
-      cp .env.local /tmp/env.bak && md5 .env.local     # antes
+      cp .env.local .env.local.bak && md5 .env.local   # antes
       md5 .env.local                                   # después: ¿el mismo?
-      # si cambió y no querías: cp /tmp/env.bak .env.local
+      cp .env.local.bak .env.local                     # si cambió y no querías
+      rm .env.local.bak                                # al terminar, siempre
+
+  🔴 **EL NOMBRE DEL RESPALDO NO ES LIBRE: tiene que empezar por `.env`.** El
+  `.gitignore:37` protege con el patrón `.env*` y NADA MÁS. Medido con
+  `git check-ignore -v`, no leído:
+
+      .env.local.bak        ignorado        ✅
+      .env.local.backup     ignorado        ✅
+      env-backup.txt        NO ignorado     🔴 commiteable
+      copia-env.txt         NO ignorado     🔴 commiteable
+
+  Y `env-backup.txt` o `copia-env.txt` son justo los nombres que salen con prisa.
+  **Un respaldo de credenciales en ruta commiteable es peor que no respaldar.**
+  Tampoco `/tmp`: es compartido con todo lo que corra en la máquina y el fichero
+  se queda ahí. Si quieres otro sitio, el scratchpad de tu propia sesión.
+
+  ⚠️ **La huella se toma con `md5`, NUNCA abriendo el fichero "para ver si está
+  bien".** `.env.local` lleva contraseñas en claro: abrirlo las mete en el
+  transcript, que es exactamente el fallo que costó la rotación de agosto.
+  Y **cada worktree tiene su propio `md5`** — no hay un hash "bueno" compartido:
+  registras el tuyo ANTES, y comparas contra ese.
 
   Lo cazó T2 SOLO porque había respaldado y comparaba hashes. Hazlo igual.
+
+  📏 **Lo MEDIDO fue `--env-file`, y solo eso.** Esta regla es más ancha a
+  propósito (respaldar cuesta cero), pero dentro de una semana sigue sin estar
+  medido qué hacen `convex dev` a secas, `deploy`, `env set` ni `--configure`.
+  No la cites como si lo estuviera.
 
 - **Turno de recurso compartido — Convex:** antes de CUALQUIER `npx convex dev` (no
   solo la primera vez), mira primero `CONVEX_DEPLOYMENT` en tu propio `.env.local`:
@@ -632,6 +658,31 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- ⛔ ANTES DE CUALQUIER COMANDO DE `convex` QUE NO SEA DE SOLO LECTURA: RESPALDA
+  `.env.local` Y COMPARA SU `md5` DESPUES. Si cambio, restaura y avisalo.
+  🔴 `npx convex dev --env-file <otro-fichero>` **NO protege el `.env.local` del que lo
+     invoca**: el 2026-09-09 le **borro la linea `CONVEX_DEPLOYMENT`** a T2. Verificado
+     por hash antes/despues y restaurado byte a byte.
+  ⚠️ **Y el dano no avisa:** un worktree sin `CONVEX_DEPLOYMENT` **no falla al instante**
+     — se queda sin saber contra que backend corre, y **el siguiente que lance la suite
+     mide otra cosa o falla sin motivo aparente**. Es AIT-96 entrando por otra puerta.
+  ⚠️ **Medido solo para `--env-file`.** `convex dev` a secas, `deploy`, `env set` y
+     `--configure` NO se han comprobado: la regla es **mas ancha que la medicion a
+     proposito** (ver AIT-123).
+  🔑 **Y el argumento que la justifica mejor que el incidente:**
+     > **Que `--env-file` exista hizo MAS probable el dano, no menos.** Sin ninguna opcion
+     > de ambito, nadie habria dado por protegido el fichero. **Una mitigacion que no
+     > funciona es peor que ninguna: quita el cuidado que su ausencia habria provocado.**
+  📌 **Y como se cazo, que es lo reutilizable:** no por desconfiar mas, sino porque T2
+     tenia el habito de **respaldar y comparar hashes antes de actuar**. Una medicion
+     obligatoria antes de actuar, no vigilancia.
+
+- ⛔ CUANDO UN NOMBRE ENCAJA SOSPECHOSAMENTE BIEN CON LO QUE QUIERES, ESA ES LA SEÑAL DE
+  COMPROBARLO. El ajuste de un nombre mide TU ENCUADRE, no el comportamiento de la
+  herramienta. (`--env-file` sonaba a "ambito acotado"; un `keygen` que no genera claves
+  de auth suena a que si.) **El nombre es autentico y contesta a OTRA pregunta** — misma
+  familia que una precaucion real que protege contra un fallo que no es el tuyo.
+
 - ⛔ EL RÓTULO SE CORRIGE PRIMERO, NO AL FINAL (decisión 86, 2026-09-09)
 
 **Cuando una corrección contradiga el TÍTULO de algo —issue, documento, fichero, test—, el rótulo
