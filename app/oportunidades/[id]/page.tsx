@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import {
+  AlertCircle,
   AlertTriangle,
   ArrowLeft,
   ArrowLeftRight,
@@ -85,6 +86,7 @@ export default function OportunidadPage({
   // AIT-86: reabrir una oportunidad cerrada.
   const reopen = useMutation(api.opportunities.reopen);
   const [reopening, setReopening] = useState(false);
+  const [reopenError, setReopenError] = useState<string | null>(null);
   const [deleteInteractionId, setDeleteInteractionId] =
     useState<Id<"interactions"> | null>(null);
 
@@ -170,62 +172,97 @@ export default function OportunidadPage({
 
       <div className="mx-auto flex max-w-[760px] flex-col gap-4 px-4 pb-24 pt-[18px]">
         {!isOpen && (
-          <div
-            className="flex items-center gap-2.5 rounded-md px-4 py-3.5"
-            style={{
-              background:
-                summary.status === "won"
-                  ? "var(--color-success-subtle)"
-                  : "var(--color-error-subtle)",
-              color: summary.status === "won" ? "#15803D" : "#B91C1C",
-            }}
-          >
-            {summary.status === "won" ? (
-              <CheckCircle2 size={18} />
-            ) : (
-              <XCircle size={18} />
-            )}
-            <span className="text-sm font-semibold">
-              {summary.status === "won"
-                ? `Oportunidad ganada · ${
-                    summary.finalAmount !== null ? formatCurrency(summary.finalAmount) : "—"
-                  }`
-                : `Oportunidad perdida · Motivo: ${summary.lostReason ?? "—"}`}
-            </span>
-            {/* AIT-86: cerrar dejaba de ser irreversible. El botón sigue
-                ACTIVO aunque la venta esté facturada: en ese caso explica por
-                qué no se puede, en vez de quedarse gris — es el patrón de
-                AIT-66, y sería absurdo estrenar aquí el quinto caso del que
-                AIT-75 acaba de retirar cuatro. */}
-            <Button
-              variant="secondary"
-              size="sm"
-              className="ml-auto flex-none"
-              leftIcon={<RotateCcw size={14} />}
-              disabled={reopening}
-              onClick={async () => {
-                if (
-                  summary.billingStatus === "facturado" ||
-                  summary.billingStatus === "cobrado"
-                ) {
-                  setModal("cannot-reopen");
-                  return;
-                }
-                setReopening(true);
-                try {
-                  await reopen({ opportunityId });
-                } catch (err) {
-                  if (process.env.NODE_ENV !== "production") {
-                    console.error("Fallo reabriendo la oportunidad:", err);
-                  }
-                } finally {
-                  setReopening(false);
-                }
+          <>
+            <div
+              className="flex items-center gap-2.5 rounded-md px-4 py-3.5"
+              style={{
+                background:
+                  summary.status === "won"
+                    ? "var(--color-success-subtle)"
+                    : "var(--color-error-subtle)",
+                color: summary.status === "won" ? "#15803D" : "#B91C1C",
               }}
             >
-              {reopening ? "Reabriendo…" : "Reabrir oportunidad"}
-            </Button>
-          </div>
+              {summary.status === "won" ? (
+                <CheckCircle2 size={18} />
+              ) : (
+                <XCircle size={18} />
+              )}
+              <span className="text-sm font-semibold">
+                {summary.status === "won"
+                  ? `Oportunidad ganada · ${
+                      summary.finalAmount !== null ? formatCurrency(summary.finalAmount) : "—"
+                    }`
+                  : `Oportunidad perdida · Motivo: ${summary.lostReason ?? "—"}`}
+              </span>
+              {/* AIT-86: cerrar dejaba de ser irreversible. El botón sigue
+                  ACTIVO aunque la venta esté facturada: en ese caso explica por
+                  qué no se puede, en vez de quedarse gris — es el patrón de
+                  AIT-66, y sería absurdo estrenar aquí el quinto caso del que
+                  AIT-75 acaba de retirar cuatro. */}
+              <Button
+                variant="secondary"
+                size="sm"
+                className="ml-auto flex-none"
+                leftIcon={<RotateCcw size={14} />}
+                disabled={reopening}
+                onClick={async () => {
+                  // Antes del chequeo de facturación, no después: si un intento
+                  // anterior falló y ahora se pulsa con la venta ya facturada, el
+                  // modal saldría encima de un error viejo que no viene a cuento.
+                  setReopenError(null);
+                  if (
+                    summary.billingStatus === "facturado" ||
+                    summary.billingStatus === "cobrado"
+                  ) {
+                    setModal("cannot-reopen");
+                    return;
+                  }
+                  setReopening(true);
+                  try {
+                    await reopen({ opportunityId });
+                  } catch (err) {
+                    if (process.env.NODE_ENV !== "production") {
+                      console.error("Fallo reabriendo la oportunidad:", err);
+                    }
+                    // AIT-94: hasta aquí el fallo solo se contaba a la consola, y
+                    // solo fuera de producción — el botón volvía a su estado
+                    // normal y nadie se enteraba de nada. Mensaje genérico a
+                    // propósito (regla del proyecto desde la ronda 1 de AIT-10):
+                    // `err.message` puede filtrar detalles de Convex o de la
+                    // infraestructura. El detalle sigue yendo arriba, a consola.
+                    setReopenError(
+                      "No se ha podido reabrir la oportunidad. Inténtalo de nuevo.",
+                    );
+                  } finally {
+                    setReopening(false);
+                  }
+                }}
+              >
+                {reopening ? "Reabriendo…" : "Reabrir oportunidad"}
+              </Button>
+            </div>
+            {/* AIT-94: hasta aquí, si `reopen` fallaba no pasaba nada
+                visible. Va DEBAJO de la franja y no dentro: esa es una fila
+                flex (icono + texto + botón), y meterlo ahí estrujaría el
+                aviso y el botón.
+                Y va dentro del `!isOpen`, que es lo que de verdad importa:
+                si la oportunidad se reabre, este bloque entero desaparece y
+                con él el aviso — la limpieza es estructural, no depende de
+                que alguien se acuerde de resetear el estado.
+                Variante con `role="alert"` de PasswordResetDialog/login (la
+                otra del proyecto no lo lleva), sin su `mb-3.5`: aquí el
+                `gap-4` del contenedor ya separa. */}
+            {reopenError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-md bg-error-subtle p-3 text-sm text-error"
+              >
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <span>{reopenError}</span>
+              </div>
+            )}
+          </>
         )}
 
         <section className="rounded-lg border border-border bg-surface p-5 shadow-[var(--shadow-e1)]">
