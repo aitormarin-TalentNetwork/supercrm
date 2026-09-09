@@ -1436,6 +1436,15 @@ caminos independientes: **el `tool_use` real** con el comando literal, y **la de
 propio T2 en su export** (*"mi propio `npm run build | tail && echo OK` imprimió éxito sobre
 un build FALLIDO, porque el exit code era el de `tail`"*).
 
+⚠️ **Y su forma general, ampliada el 2026-09-09 con un tercer caso (T3): `$?` después de una
+tubería contesta por el ÚLTIMO comando.** Escribió `EXIT=$?` tras un `| grep` y publicó **el
+`EXIT=0` del `grep`**, no el del comando que medía.
+> **No es leer mal una salida: es que el INSTRUMENTO DE OBSERVACIÓN se interpone entre la medida y
+> el resultado.** El `tail`, el `grep` o el `head` que pusiste para *ver* el resultado **pasa a ser
+> quien lo contesta.**
+🔻 **Y el detalle que lo hace invisible: su conclusión era CORRECTA y el número basura.** *Un dato
+falso dentro de una conclusión verdadera no lo audita nadie.*
+
 ⚠️ **Y la hora relatada no era la real: fue a las 00:13:00 UTC (= 21:13 local), no a las
 21:36.** Diferencia inocua aquí, pero es exactamente el material de la enmienda 8 —**se
 reporta lo que uno mide, no lo que le contaron**— y aparece en la cadena de propagación de un

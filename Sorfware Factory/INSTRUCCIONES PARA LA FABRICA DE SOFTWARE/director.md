@@ -594,6 +594,37 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### ⛔ EL RÓTULO SE CORRIGE PRIMERO, NO AL FINAL (decisión 86, 2026-09-09)
+
+**Cuando una corrección contradiga el TÍTULO de algo —issue, documento, fichero, test—, el rótulo
+se corrige ANTES que el cuerpo.**
+
+📌 **Por qué se repite y no es descuido:** *la corrección va donde se descubre, y la lectura ocurre
+donde se resume.* **El cuerpo es mucho contexto y pocos lectores; el rótulo, poco contexto y muchos
+lectores** — y **las correcciones caen por gravedad en el extremo que casi nadie vuelve a abrir.**
+**Forma operativa:** al corregir, pregunta **dónde aparece esa afirmación en el sitio de más
+tráfico y menos contexto**, y corrige **ése** primero. *Es el que va a sobrevivir a tu corrección.*
+⚠️ **Cubre también títulos de test, comentarios con cifras y referencias cruzadas:** son **el único
+texto del repo que NADIE EJECUTA JAMÁS**, y por eso **envejecen sin resistencia**.
+
+**Y la otra mitad, la del que lee:** *al informar sobre una tarea, **la fuente es la medición, no el
+rótulo — aunque el rótulo sea tuyo.*** (No es otra regla: **es la misma vista desde el receptor**.)
+
+🔑 **El mecanismo, que explica por qué no salta al releer (del PM):**
+> **La forma del documento no fabricó un dato: RESUCITÓ uno muerto.** Un dato inventado no tiene
+> respaldo; éste lo tenía — **el de haber sido cierto una vez.**
+*Un título que nunca fue cierto choca con algo. **Uno que fue cierto encaja con el recuerdo de
+todos los que estuvieron delante.***
+
+🔴 **Y lo que sube el precio, que es lo que justifica "PRIMERO" en vez de "también":**
+> **Un rótulo falso no solo desinforma: GENERA TRABAJO — y ese trabajo se defiende contra la
+> evidencia que lo refuta.**
+*Caso real del mismo día: un título decía "cuatro specs" donde eran cuatro tests de un spec. Se
+corrigió el cuerpo, el rótulo sobrevivió, **se creó una issue sobre el dato falso y hubo que
+cancelarla**. Quien la hubiera cogido habría medido, no habría encontrado nada, y **habría dudado
+de su propia medición antes que de la ficha** — porque **una tarea asignada tiene más autoridad que
+una medición fresca** en la cabeza de quien la ejecuta.*
+
 ### ⛔ LO QUE EL VEREDICTO NO CUBRE VA EN EL VEREDICTO (decisión 85, 2026-09-09)
 
 **Cuando el auditor no haya podido ejecutar una comprobación, eso NO es una nota al pie: es una
