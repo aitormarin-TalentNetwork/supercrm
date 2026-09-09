@@ -665,6 +665,38 @@ dos instrumentos mediocres en lugar de uno bueno.
 **Y no lo mires con un marker** (decisión 50.1): un fichero-marca ausente no distingue *"no ha
 pasado"* de *"pasó y se perdió la marca"*. Pregúntale, o mira el proceso.
 
+### Comprobación fija de tu barrido: commits sin subir, CON su tiempo de exposición
+
+Añadido 2026-09-08 (**decisión 53.3**). No basta contarlos:
+
+```bash
+git log --format='%h | %an | %ad | %s' --date=format:'%H:%M:%S local' origin/main..main
+```
+
+> **"1 commit sin subir" no dice si son dos minutos o dos días, y eso es exactamente lo que
+> determina si importa.** Un número sin su antigüedad es un dato al que le falta la mitad,
+> igual que una hora sin huso.
+
+**Escala:** más de **dos ciclos** → se avisa al autor · más de **cuatro** → lo subes tú.
+
+⚠️ **Y cómo se avisa, que no es un detalle** (ver §2quinquies, "El límite de la enmienda 3"):
+**pregunta si es deliberado y ofrécete a anotarlo como pendiente conocido**, en vez de tratarlo
+como olvido. *«Puedo subirlo» no es «es mío subirlo»*: la enmienda 3 te autoriza a no ser un
+cuello de botella, **no a decidir por otro rol cuándo publica su trabajo**. Y la pregunta suele
+producir el dato: fue la respuesta del PM la que dio el diagnóstico entero de la 53.
+
+### Al escribir una decisión, escribe su línea de índice EN EL MISMO ACTO
+
+**Decisión 55.2/55.3.** El índice vive en
+`INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/_indice-de-decisiones.md`.
+
+> **Una decisión no está ejecutada hasta que se puede encontrar por su número.**
+
+Va al criterio de "hecho", junto al commit. **No es un repaso periódico ni una tarea aparte:**
+si es un segundo paso, se olvidará — once números lo demostraron. Y mientras un hueco del
+índice siga abierto, **ese número no se cita**: una referencia que el lector no puede abrir es
+peor que ninguna.
+
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 
 Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y

@@ -817,6 +817,115 @@ dicho aquí que descubierto por alguien que crea haber roto algo.
 **Verifica el efecto, no el exit code** (§2sexies): tras el push, `git log
 origin/main..main` tiene que quedar vacío.
 
+#### Decisión 53 — La regla se ancla a un evento que el actor YA nota (2026-09-08)
+
+**La 9 se ha incumplido tres veces, siempre el mismo rol y el mismo tipo de fichero** (once
+commits de PRD, luego tres, luego uno más). No es descuido: **es que la 9 no tiene control
+detrás, solo memoria.** Y **falla hacia el verde** — `git commit` sale bien, `git status` da
+limpio, y nada dice que el trabajo vive en un solo disco.
+
+**El diagnóstico es del PM, y es el que da el arreglo:**
+
+> **El ciclo del código termina en un acto externo** —exportar al auditor, publicar—. Si no
+> has subido, el auditor audita otra cosa o el Integrador no encuentra qué mergear: **el push
+> va montado en un evento que alguien espera.**
+> **El ciclo del PRD no termina.** Editar → verificar → commit → editar → verificar → commit.
+> Se cierra **entero dentro del disco**, y un `PASA=5 FALLA=0` da sensación de acto
+> completado. Nadie espera nada, nada se rompe, nadie se entera.
+
+⚠️ **Y el agravante, que es lo que lo hace estructural:** el revisor del PRD **lee el fichero
+del disco, no la rama**. O sea que **la única comprobación externa del ciclo funcionaría
+igual de bien con el trabajo sin publicar**. No es que falte control — **el que hay no puede
+detectar esto, por construcción.** Es la enmienda 9 otra vez: *una comprobación que no habría
+podido salir mal.*
+
+> **Una regla anclada a un evento que el actor no percibe se olvida siempre. Anclada a uno
+> que sí percibe, se sostiene sola.**
+
+**53.1 — Para trabajo en ráfaga, el ancla es el hito natural del actor, no el commit.** La 9
+dice *"tras cada commit"*, y en trabajo de código funciona porque un cambio de código tiene un
+final evidente. En ráfagas de commits pequeños no lo hay: **el final que el actor sí vive como
+hito es otro** —para el PM, cerrar una ronda de review—. *(El ancla concreta se fija con el
+dato del propio actor, nunca suponiéndola: anclarla a un hito supuesto es repetir el error con
+otro momento.)*
+
+**53.2 — Y mientras tanto, el control es el barrido del CEO, dicho así y no como hallazgo.**
+Lo ha cazado las tres veces. **La 9 es el principio; el censo del CEO es su detector.** Es
+honesto y ya funciona — y también es, por su propia forma, un control que depende de que un
+rol siga vivo y barriendo (ver la 37).
+
+**53.3 — Un commit sin subir se reporta con su TIEMPO DE EXPOSICIÓN, no solo contado.** *"1
+commit sin subir"* no dice si son dos minutos o dos días, **y eso es justo lo que determina si
+importa**. Escala: **más de dos ciclos → se avisa al autor; más de cuatro → lo sube el CEO.**
+Un número sin su antigüedad es un dato al que le falta la mitad, igual que una hora sin huso.
+
+#### Decisión 54 — El push se hace portante: no se recuerda, se necesita (2026-09-08)
+
+**Cierra la 53, y no añade disciplina: hace que la comprobación que ya existía pueda fallar.**
+
+**54.1 — El revisor del PRD deja de leer el disco.** Comprueba que el fichero **coincide con lo
+publicado**, y si no coincide **NO REVISA**: declara que no puede revisar trabajo sin publicar.
+
+Con eso **el push deja de ser una regla y pasa a ser un requisito**: sin subir no hay review,
+sin review no se cierra la ronda. **El evento externo que al ciclo del PRD le faltaba ya
+existía —la review— y solo había que hacer que dependiera del push.**
+
+📌 **Es el mismo patrón que la 42, y conviene decirlo junto:** *el auditor se niega sin la línea
+de autoría; el revisor se niega sin la publicación.* En los dos casos no se añadió una regla
+nueva — **se le dio a una comprobación existente la capacidad de rechazar**, que es lo que le
+faltaba (enmienda 9).
+
+**54.2 — Y esto devuelve el barrido del CEO a su sitio.** La objeción era correcta: *un control
+que depende de que un rol concreto siga vivo y barriendo es un principio con disfraz, aunque
+hoy funcione* (la 37). Con la 54.1, **el censo deja de ser el control y vuelve a ser la red de
+seguridad.**
+
+#### El límite de la enmienda 3: «puedo subirlo» no es «es mío subirlo» (2026-09-08)
+
+La enmienda 3 autoriza al CEO a subir cambios de documentación ajenos **para no ser un cuello
+de botella**. No le autoriza a **decidir por otro rol cuándo publica su trabajo**.
+
+Caso que lo fija: encontrado el commit del PM sin subir, el CEO **no lo subió** —era trivial y
+técnicamente estaba permitido—. Preguntó **si era deliberado** y se ofreció a anotarlo como
+pendiente conocido en el censo si lo era.
+
+> **Ofrecer la posibilidad de que sea deliberado, en vez de tratarlo como olvido, es lo que
+> hace que el aviso se lea como ayuda y no como auditoría.** Y en este caso concreto la
+> pregunta también producía el dato: fue la respuesta del PM la que dio el diagnóstico de la
+> 53.
+
+*(La excepción sigue siendo la 53.3: pasados cuatro ciclos con el autor ya avisado dos veces,
+lo sube el CEO — ahí ya no se está decidiendo por nadie, se está ejecutando una escalada
+escrita.)*
+
+#### Decisión 55 — Índice de decisiones, y qué significa que una decisión esté "hecha" (2026-09-08)
+
+**Once números no eran localizables** —1–6, 8, 10, 14, 28, 38, 40— y **no existía ningún
+índice**, medido sobre los 18 documentos de proceso del repo. La fábrica entera se cita por
+número, así que el efecto es que **una referencia muerta se lee como un fallo del lector**:
+*"habré buscado mal"*. Falla hacia el verde.
+
+*El caso de manual:* el prompt de barrido del CEO llevaba horas arrastrando *"la planificación
+por lotes (38.1)"*, y **la 38 no existe en ningún fichero**. Un CEO relanzado heredaba un
+pendiente que no podía abrir — la **39** (los prompts de `/loop` son estado duradero) con un
+identificador que ni siquiera resuelve.
+
+- **55.1 — El índice vive en `_indice-de-decisiones.md`**, en esta misma carpeta: número ·
+  enunciado de una línea · dónde vive el texto. **No se renumera nada**: el problema no es que
+  falten documentos, es que **la numeración vivía en la conversación y el texto en el disco, y
+  nada los ataba.** Renumerar rompería las referencias que sí funcionan.
+- **55.2 — Escribir una decisión incluye escribir su línea de índice, en el mismo acto.** No es
+  tarea aparte ni repaso periódico: si es un segundo paso, se olvidará.
+- **55.3 — Una decisión no está ejecutada hasta que se puede encontrar por su número.** Va al
+  criterio de "hecho", junto al commit.
+- **55.4 — Y mientras un hueco siga abierto, ese número no se cita.** Una referencia que el
+  lector no puede abrir es peor que ninguna.
+
+⚠️ **Lo que el hallazgo NO prueba:** que esas decisiones no existan. Prueba que **no son
+direccionables**, que es distinto — casi con seguridad están escritas en prosa, sin el número
+al lado. **Lo que falta es la etiqueta, no necesariamente la regla.**
+
+
 ---
 
 ## 2sexies. Falso verde: comprobaciones que mienten en verde (2026-09-08)
