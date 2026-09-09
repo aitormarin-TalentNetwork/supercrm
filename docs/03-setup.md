@@ -518,3 +518,36 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `npx convex dev` | Convex en modo watch (**en otra terminal, a la vez**) |
 | `npx convex dashboard` | Abre el panel de Convex: ver tablas, datos y logs |
 | `npm run build` | Comprueba que compila de verdad antes de desplegar |
+| `npm run test:unit` | Las pruebas que **no necesitan nada levantado** (`e2e/00-*.spec.ts`) |
+| `npm run test:e2e` | Las pruebas **de navegador**, que sí levantan la app y usan Convex |
+
+### Las pruebas van en dos comandos, y no son intercambiables (AIT-109)
+
+| | `npm run test:unit` | `npm run test:e2e` |
+|---|---|---|
+| Qué corre | `e2e/00-*.spec.ts` | el resto de `e2e/` |
+| Levanta el servidor | **no** | sí (`webServer` de `playwright.config.ts`) |
+| Prepara sesión | **no** | sí (`globalSetup`, y **gasta cupo de login**) |
+| Necesita Convex desplegado | **no** | sí |
+| Comprueba precondiciones antes | no | sí (`scripts/check-e2e-preconditions.mjs`) |
+| Se puede correr con todo caído | **sí** | no |
+
+**Por qué están separados y no es una optimización.** `playwright.config.ts` declara un
+único `webServer`, así que antes **toda** prueba arrastraba el arranque de la app aunque
+solo importara una función. Dos de las pruebas puras son precisamente **las del
+comprobador de precondiciones**, y estaban detrás del `&&` que ejecuta ese mismo
+comprobador: **solo se podían verificar cuando las precondiciones ya pasaban**, es decir
+nunca en el caso para el que existen.
+
+⚠️ **`npm run test:e2e` afirma menos que antes.** Ya no cubre la suite entera, solo las de
+navegador — y **el nombre del comando no cambió**, así que esto no se ve en ningún diff.
+Si lo usas como puerta antes de publicar, **la puerta son los dos comandos**, no uno.
+Un guardián que mira menos no falla: aprueba más.
+
+**Qué es «puro» aquí:** que no necesita servidor, Convex ni sesión. **No** significa que no
+toque el disco — `00-instantanea-sesion.spec.ts` escribe en `os.tmpdir()` y
+`00-comprobadores.spec.ts` lanza subprocesos.
+
+**Si añades una prueba pura, llámala `00-…`**: el reparto es por ese prefijo
+(`e2e/pruebas-puras.ts`, importado por los dos configs). Con otro nombre seguirá
+ejecutándose, pero en la suite lenta.
