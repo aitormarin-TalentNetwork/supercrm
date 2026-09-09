@@ -1,6 +1,8 @@
 import { Page, Locator, expect } from "@playwright/test";
 import {
   capturarEstadoRodado,
+  COOKIE_JWT,
+  COOKIE_REFRESH,
   HOME_BY_ROLE,
   readState,
   refreshTokenOf,
@@ -52,13 +54,33 @@ export async function loginAs(page: Page, role: Role) {
 
   await page.goto(HOME_BY_ROLE[role]);
 
-  // `proxy.ts` decide con la COOKIE, en el servidor: si la instantánea no
-  // autentica, esto ya ha rebotado a /login. Sin este corte, el fallo saldría
-  // treinta segundos después como un `waitForURL` agotado que no dice por qué.
+  // Dos cortes, y hacen falta los dos porque miran cosas distintas.
+  //
+  // (1) LA URL. `proxy.ts` decide con la COOKIE en el servidor: si la
+  //     instantánea no autentica, esto ya ha rebotado a /login.
   if (new URL(page.url()).pathname.startsWith("/login")) {
     throw new Error(
       `[e2e] la instantánea de "${role}" no autentica: ${HOME_BY_ROLE[role]} rebotó a /login. ` +
-        `Si el deployment cambió de credenciales, borra e2e/.auth/ y vuelve a correr.`,
+        `Bórrala (\`rm e2e/.auth/${role}.json\`) y lanza la SUITE ENTERA; no relances un ` +
+        `test suelto, que regenera el fichero y esconde el problema.`,
+    );
+  }
+
+  // (2) *** AIT-119 · LA SESIÓN, que es lo que el corte anterior NO ve. ***
+  //     Si el servidor descarta un refresco, `setAuthCookies(response, null)`
+  //     BORRA las dos cookies —y hace bien—, pero la navegación ya había
+  //     servido la página: la URL se queda en /hoy con la sesión muerta.
+  //     Medido: `sana 2 cookies → tras el refresco fallido: 0 · url /hoy`.
+  //     El corte (1) mira la URL y el daño está en las cookies, así que lo
+  //     dejaba pasar y el fallo aparecía 30 s más tarde hablando de un botón.
+  const vivas = (await contexto.cookies()).map((c) => c.name);
+  const perdidas = [COOKIE_JWT, COOKIE_REFRESH].filter((n) => !vivas.includes(n));
+  if (perdidas.length > 0) {
+    throw new Error(
+      `[e2e] la sesión de "${role}" se perdió durante la navegación a ${HOME_BY_ROLE[role]}: ` +
+        `ya no está ${perdidas.join(" ni ")}. El servidor limpia las cookies cuando un ` +
+        `refresco falla. Bórrala (\`rm e2e/.auth/${role}.json\`) y lanza la SUITE ENTERA; ` +
+        `no relances un test suelto, que regenera el fichero y esconde el problema.`,
     );
   }
 
