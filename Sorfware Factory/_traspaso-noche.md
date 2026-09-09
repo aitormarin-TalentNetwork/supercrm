@@ -1465,6 +1465,12 @@ mecanismo*; aquí *la medición no llega a la decisión*. **Las dos son el enlac
 *Si el repaso las mira juntas puede que sean **una sola regla con dos sentidos** — y eso es podar
 dos en una, que es exactamente lo que la meta-regla pedía decidir.*
 
+⚖️ **CRITERIO PARA EL REPASO, y no es una curiosidad: entre dos candidatas que se solapan, la que
+las FUNDE vale más que las dos.** *El catálogo lleva un día entero creciendo, y su crecimiento **no
+es evidencia de que vayamos ganando** —no tiene denominador—. **Un repaso que solo añade entradas
+está confirmando su propio método.*** Por eso la fusión 76 ↔ el enlace de la 79 se mira **antes**
+que cualquier candidata nueva.
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja

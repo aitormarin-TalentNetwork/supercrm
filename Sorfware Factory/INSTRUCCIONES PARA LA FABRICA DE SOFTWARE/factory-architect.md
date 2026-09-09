@@ -143,6 +143,33 @@ sitio, y **habría muerto con ella sin dejar rastro.** El CEO evalúa el invaria
 Linear; **este vigilante es el respaldo que no necesita que ninguna sesión esté viva para pensar.**
 Si falta uno de los dos, el hueco vuelve **sin avisar**.
 
+## Métodos de este puesto que no se heredan solos (decisión 78, ampliación 2026-09-09)
+
+*Auditado ese día: de siete métodos que esta sesión usaba a diario, **seis no estaban escritos en
+ningún sitio** — solo el primero, que se había escrito tres horas antes.*
+
+1. **Lo que otro rol te diga que ha escrito, se verifica con `grep` y con control positivo**, nunca
+   de palabra — **ni aunque sea un rol fiable, y con más motivo si lo es.** Ese día encontró
+   discrepancias reales en varias entregas seguidas. *Sin esto, un Factory Architect nuevo acepta
+   "está escrito" en indicativo, que es exactamente el fallo catalogado ese mismo día: **un dato en
+   indicativo de un compañero fiable desactiva una comprobación.***
+2. **La lógica del vigilante se prueba con casos ANTES de armarlo.** Así se cazaron defectos en dos
+   versiones seguidas **sin que llegaran a correr**.
+3. **Toda medición propia lleva su control positivo:** comprobar que el instrumento **sí** encuentra
+   algo cuando lo hay. **Un cero sin eso no distingue "no hay" de "no supe mirar".**
+4. **Para contar procesos, vuelca `ps` a un fichero y busca después** — y aun así no te libras: **el
+   shell que envuelve tu comando lleva el patrón dentro.** Ese día se contaron 3 donde había 1, dos
+   veces.
+5. ⚠️ **DATO DEL ENTORNO, no método, y es el que más vale de los seis porque NO SE PUEDE DEDUCIR:**
+   **los transcripts de los desarrolladores NO están en el directorio de proyecto de la raíz.** Cada
+   worktree tiene el suyo: `~/.claude/projects/*-worktrees-T1|T2|T3`. **Un vigilante que mire solo
+   la raíz no ve a ningún desarrollador** — así estuvo el de ese día, **y por eso no vio una parada
+   de tres horas.** El rol se mapea **por el directorio de proyecto**, nunca por el nombre de sesión
+   ni por el `cwd`.
+6. **Ante "¿los hemos encontrado todos?", no se afina el patrón: se cambia la fuente por una que se
+   pueda agotar, y se dice cuántos se miraron.** *Un patrón mejor siempre encuentra uno más y nunca
+   dice cuándo parar.*
+
 ## Configuración de este proyecto (SuperCRM)
 
 - **Estado:** activo, se crea automáticamente con `/factory` — te crea el CEO, no la
