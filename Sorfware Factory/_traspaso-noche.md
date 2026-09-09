@@ -222,44 +222,59 @@ AIT-100. El PRD va por **v0.11** con los cuatro bloqueantes cerrados.
 
 **Catorce publicadas hoy, ninguna revertida, ningún build roto, `main` sincronizado.**
 
-## 🟢 CUATRO TAREAS ESPERANDO TU SÍ *(medido por el Integrador a las 04:0x UTC)*
+## 🟢 OCHO TAREAS ESPERANDO TU SÍ — siete decisiones independientes
 
-**Es exactamente lo que el modo `confirmar` venía a producir.** Las tres con **GO del auditor y
-revisión final hecha**:
+*Medido por el **Integrador**, ~05:2x UTC. **Es exactamente lo que el modo `confirmar` venía a
+producir.** Todas con **GO del auditor y revisión final del Integrador hecha**.*
 
 | Tarea | Qué es | Huella |
 |---|---|---|
 | **AIT-88** | Guardar un contacto sin inventarle una venta — **cierra el MVP** | 9 ficheros · schema + `docs/02` + `_generated` |
-| **AIT-87** | Un seguimiento puede desaparecer sin que nadie se entere | 1 fichero · `convex/nextSteps.ts` |
-| **AIT-96** | La suite mide la app de otro si el 3000 está ocupado | 1 fichero · `playwright.config.ts` |
+| **AIT-87** | Un seguimiento puede desaparecer sin que nadie se entere | `convex/nextSteps.ts` |
+| **AIT-94** | Reabrir una oportunidad puede fallar sin decir nada | 2 ficheros |
+| **AIT-103** | Que el rojo del limitador sepa decir su nombre | 3 ficheros |
+| **AIT-112** | El acceso con Google ya no falla en silencio | 4 ficheros |
+| **AIT-89** | Fijar por prueba cómo se detecta una acción de servidor | 2 ficheros |
+| **AIT-108** | La suite hace login una vez por spec y no le hace falta | 5 ficheros · **contiene AIT-96** |
 
-**Intersección entre las cuatro: VACÍA**, medida por la Directora a las 04:0x UTC — **las seis
-parejas, no solo cada rama contra `main`** (cuatro ramas pueden ser disjuntas contra `main` y
-pisarse entre ellas), con `git diff --name-only origin/main...rama` de **tres puntos**, **con los
-ficheros generados incluidos**, y **con control positivo**: cruzó AIT-96 con AIT-108 —que sí se
-pisan— y su comando **sí devolvió el fichero compartido**. Sin ese control, los seis ceros no
-significaban nada.
+**Siete filas, ocho tareas: AIT-96 va DENTRO de AIT-108.** Publicar AIT-108 publica las dos.
+Publicar solo AIT-96 también vale. **No hay orden que recordar: `git` no deja hacerlo al revés**
+porque AIT-96 es ancestro — verificado, no supuesto.
 
-🔴 **PERO LEE ESTO ANTES DE PUBLICAR LAS CUATRO SEGUIDAS, y es de ella:**
+**Intersección entre todas: VACÍA**, y lo que la hace creíble es que **el comando sabe dar
+no-vacía**: se cruzó AIT-96 × AIT-108 —que sí se pisan— y devolvió el fichero compartido. **Sin
+ese control positivo los ceros no significarían nada.**
 
-> **Esto mide FICHEROS, no COMPORTAMIENTO.** La intersección vacía dice *"se pueden mergear en
-> cualquier orden **sin conflicto de git**"*. **NO** dice *"se pueden publicar en cualquier orden
-> **sin efecto entre ellas**"*.
+**Recomendación del Integrador, y es preferencia, no restricción:** **AIT-88 primero**, porque
+cierra el MVP y es **la única que toca `schema.ts`** — si algo va a romper un build es ésa, y
+conviene verla sola. **Puedes invertirlo.**
 
-Cuatro ramas pueden no compartir un solo fichero **y aun así romperse entre ellas por el schema o
-por los datos** — AIT-88 **añade una tabla**, AIT-87 **cuenta filas huérfanas**. *"No creo que se
-den la mano, pero no lo he comprobado y no puedo afirmarlo."* **Nadie lo ha medido.**
+### 🔴 Tres cosas que hay que leer ANTES de publicar
 
-**Recomendación del Integrador, y es preferencia, no restricción:** AIT-88 primero, porque cierra
-el MVP y es **la única que toca `schema.ts`** — si algo va a fallar en un build, es esa, y
-conviene verla sola. **Puedes invertirlo** si prefieres soltar antes las dos pequeñas.
+**1. Ninguna tiene número de suite propio, y la causa tiene ficha.** No es que salieran en rojo:
+**la suite con login no se puede correr por la credencial rota de `third-goldfinch-805` —
+AIT-102**, que es una dependencia externa que **bloquea a las ocho por igual y solo desbloqueas
+tú**. *(Lo único medido esta noche: **28/28 en verde** en los tres specs que no necesitan login,
+con control positivo. Eso cierra AIT-93; **no cierra estas ocho**.)*
 
-⚠️ **Y ahora son CUATRO: se ha sumado AIT-94.** *(Intersección entre las cuatro: sigue vacía, medida.
-Cualquier orden vale.)*
+**2. "Intersección vacía" mide FICHEROS, no COMPORTAMIENTO.** Dice *"se mergean en cualquier orden
+sin conflicto de `git`"*. **NO** dice *"se publican sin efecto entre ellas"*. **AIT-88 añade una
+tabla y AIT-87 cuenta filas huérfanas: nadie ha comprobado que no se den la mano.**
 
-⚠️ **Las cuatro van SIN número de suite propio.** No es que salieran en rojo: **la suite completa no
-se ha podido correr —tres intentos, tres muertes por memoria—** así que **nadie ha medido `main`
-con ellas dentro.**
+**3. AIT-108 convierte `workers: 1` en requisito de corrección, no en preferencia.** Con la suite
+en paralelo, dos contextos consumirían el mismo refresh token y **Convex Auth mataría la sesión
+para todos**. Paralelizar la suite deja de ser una optimización y pasa a ser trabajo previo. Está
+escrito en `e2e/helpers.ts:36`, junto a la función que lo necesita — **pero no está en ninguna
+ficha de Linear.**
+
+🔶 **Y por qué este ocho no va a caducar como caducaron el tres y el cuatro — corregido por mí,
+porque el Integrador me lo mandó con una razón que no se sostiene.** Me dijo *"las tres terminales
+están paradas, ocho es definitivo"*. **Medí, y T2 estaba produciendo eventos en ese mismo
+minuto.** Lo que sí es cierto, y es mejor razón: **T2 sigue viva pero está escribiendo un
+inventario, fuera de la rama de AIT-108, que ya entregó** — trabajo de documentación que **no
+puede llegar a GO esta noche**. T1 y T3 llevan 64 y 82 minutos ociosas por falta de trabajo
+disjunto. **El ocho aguanta por lo que T2 está haciendo, no porque T2 esté parada.**
+
 
 ### ✅ Pero hay un número, el primero de la noche — y cierra una declaración
 
