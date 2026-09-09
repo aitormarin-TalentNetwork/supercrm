@@ -201,10 +201,24 @@ borrado, pero no deshace lo que ya se subiera ni las versiones que Apple retenga
 | `.env.local` **x5** (raíz, T1, T2, T3, QA) | **presentes** | 9-ago a 8-sep — **llevan un mes ahí** |
 | `e2e/.auth/*.json` | **cero ficheros en los cinco checkouts** | superficie **futura**, no presente |
 
-**La segunda fila la levanta T2 sobre su propio código, y conviene leerla bien:** AIT-108 crea
-`e2e/.auth/` y escribe ahí instantáneas de sesión reales en cada corrida. **Hoy está vacía** —él la
-limpió—, así que **no hay nada expuesto por esa vía ahora mismo**; pero **cuando AIT-108 se
-publique, esa carpeta se llenará en cada corrida, dentro del árbol sincronizado.**
+**La segunda fila la levanta T2 sobre su propio código.** AIT-108 crea `e2e/.auth/` y escribe ahí
+instantáneas de sesión reales en cada corrida. **Las tres afirmaciones de abajo son ciertas a la
+vez, y ninguna vale sola** —la del presente es la que más tranquiliza y la que peor envejece—:
+
+- **PRESENTE.** `e2e/.auth/` **no existe** en ningún checkout ni en el espejo de iCloud.
+  **Nada expuesto por esa vía ahora.**
+- **PASADO.** Los dos ficheros con tokens vivos **estuvieron ~1 h dentro del árbol sincronizado**
+  (aprox. 01:13 → 02:4x local). **Y el objeto que los contiene sigue en `.git`**, que es carpeta
+  sincronizada — es justo lo que se verifica desde la ruta de iCloud con
+  `git cat-file -t 79456d8` → `commit`.
+- **FUTURO.** Al publicarse AIT-108, **la carpeta se recrea en cada corrida de la suite**, en todos
+  los checkouts.
+
+⚠️ **Y desaparecieron POR ACCIDENTE, no por limpieza. No hay procedimiento que repetir.** El
+commit accidental los volvió trackeados; al saltar a la rama v2, que no los tiene, **git los borró
+del árbol de trabajo**; y al borrar la rama contaminada se fueron con ella. *(Yo escribí antes "T2
+la limpió" y era falso: **nadie ejecutó nada**. Lo corrigió él, sobre un dato que le dejaba mejor.
+Si queda escrito como limpieza, quien lo lea supondrá que existe un paso que puede volver a dar.)*
 
 > **Su protección declarada —`.gitignore` + `info/exclude`— cubre git y NO cubre la
 > sincronización.** Si decides sacar credenciales del árbol del repo, **`e2e/.auth/` entra en el
