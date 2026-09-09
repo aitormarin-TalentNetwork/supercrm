@@ -370,6 +370,12 @@ una vez que el trabajo pasa auditoría.
           dos terminales lo crean libre a la vez. Inmediatamente después, escribe dentro
           `Sorfware Factory/_turno-convex.lock/titular.txt` EXACTAMENTE estos tres campos:
             T1 | T2 | T3   (el literal de tu WORKTREE, nunca el nombre de tu sesión)
+            ...o el literal de tu ROL si trabajas desde la raíz y no desde un
+            worktree: QA, Integrador, Directora. Añadido 2026-09-08: el formato
+            nacio con tres worktrees y la 57.1 metio al QA como consumidor del
+            cerrojo, asi que literalmente NO TENIA un valor valido que escribir.
+            Hueco pequeno, cerrado antes de que alguien lo interprete — que es
+            exactamente como el campo acabo guardando un nombre de sesion muerto.
             AIT-<id> de la tarea
             fecha y hora CON HUSO
           Ejemplo: `T3 | AIT-86 | 2026-09-08 21:04 local (UTC-3)`
