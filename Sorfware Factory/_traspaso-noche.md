@@ -1465,6 +1465,37 @@ mecanismo*; aquí *la medición no llega a la decisión*. **Las dos son el enlac
 *Si el repaso las mira juntas puede que sean **una sola regla con dos sentidos** — y eso es podar
 dos en una, que es exactamente lo que la meta-regla pedía decidir.*
 
+## 🔗 LA FUSIÓN QUE PROPONE EL REPASO — tres candidatas en un solo test
+
+**Esto es lo primero que hay que mirar mañana**, porque es de las dos únicas cosas del día que
+**reducen** el catálogo en vez de engordarlo. Nadie la ha escrito como decisión: **llega propuesta,
+con el test redactado y las tres instancias medidas delante.**
+
+```
+medicion -> decision   la medicion esta sana, la decision esta sana, y la decision lee
+                       otro valor o no lo lee                      (los 3 defectos de la 79)
+accion   -> mecanismo  el mecanismo existe y funciona como se describe, y la accion
+                       no entra por esa puerta                     (los 4 casos de T2 = cand. 76)
+peticion -> efecto     la peticion esta bien formada y llega, y ejecutarla no cambiaria
+                       nada                                        (los 31 ciclos del hooksPath)
+```
+
+> **Forma común, y las tres la cumplen exactamente: A está sano, B está sano, y lo que falla es que
+> A llegue a B.** **Verificar A pasa. Verificar B pasa.** Por eso **ninguna verificación de las
+> piezas caza ninguna de las tres.**
+🔑 **Y el motivo de que sobrevivan, que es lo que las hace UNA y no tres parecidas:**
+**cada extremo tiene dueño; el enlace no es de nadie.**
+
+**EL TEST ÚNICO, con sus tres usos:**
+> **Nombra el observable que cambia si el enlace funciona, y míralo.**
+> · *medición→decisión:* ¿cambia la salida de la decisión si cambia la medición?
+> · *acción→mecanismo:* ¿cambia el observable del mecanismo cuando actúo?
+> · *petición→efecto:* **¿cambia algo si la petición se ejecuta?** ← el `ls` que faltó 31 veces
+
+⚠️ **Y por qué el Factory Architect NO la ha escrito él, que es la parte que la hace fiable:**
+*consolidar sus propias candidatas sin que nadie las friccione es exactamente lo que la decisión 71
+demostró que sale mal.* **Llega propuesta, no adoptada.**
+
 ⚖️ **CRITERIO PARA EL REPASO, y no es una curiosidad: entre dos candidatas que se solapan, la que
 las FUNDE vale más que las dos.** *El catálogo lleva un día entero creciendo, y su crecimiento **no
 es evidencia de que vayamos ganando** —no tiene denominador—. **Un repaso que solo añade entradas
