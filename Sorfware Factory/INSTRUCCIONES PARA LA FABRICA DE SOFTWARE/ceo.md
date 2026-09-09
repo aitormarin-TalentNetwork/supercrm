@@ -597,6 +597,32 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### ⛔ UN `replace` QUE NO ENCUENTRA NADA NO FALLA — y tu commit lo afirma igual (2026-09-09)
+
+**Cuando edites un documento con un script, cada sustitución lleva su `assert`:**
+```python
+def rep(a,b):
+    global t
+    assert t.count(a)==1, "NO ENCONTRADO: "+a[:60]   # <- sin esto, el fallo es MUDO
+    t=t.replace(a,b,1)
+```
+🔴 **`str.replace()` sobre un patrón que no existe devuelve el texto intacto y no avisa.** Ese día
+usé el helper con `assert` para una sustitución y **un `.replace()` pelado para otra**: la segunda
+no encontró nada, no pasó nada, y **el commit salió diciendo *"ajustado también el umbral de 3 a 4
+minutos"*.**
+
+> **El documento se quedó viejo, y el registro durable quedó afirmando un cambio que no ocurrió.**
+> **Eso es peor que la desactualización:** `git log` es justo donde vamos a buscar verdad de tierra
+> cuando una hora o un dato no cuadran. **Un mensaje de commit falso envenena la única fuente que
+> tratamos como incuestionable.**
+
+⚠️ **Y nadie verifica un mensaje de commit contra su diff.** Lo cazó el Factory Architect con `grep`
+sobre el documento, **no** leyendo el commit. *Van cuatro "está escrito" que no cuadraban del todo
+en un día; ninguna de mala fe, todas baratas de encontrar — y todas encontradas porque alguien
+comprobó en vez de creer.*
+✅ **Verifica en las DOS direcciones:** que el texto nuevo está **y** que el viejo ya no. Un solo
+`grep` que da 1 no distingue *"lo cambié"* de *"ya estaba y lo dupliqué"*.
+
 ### 🔧 CÓMO SE MIDE, no solo qué se mide — tres métodos que costaron un fallo cada uno
 
 *Estaban **solo** en el prompt del `/loop` de una sesión, no aquí. Auditado y corregido el
