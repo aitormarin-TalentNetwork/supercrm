@@ -276,40 +276,43 @@ una vez que el trabajo pasa auditoría.
    worktree de OTRA rama y reportándolo como tuyo. Y `playwright.config.ts` tiene
    `reuseExistingServer: true`, así que Playwright se engancha a lo que haya
    escuchando sin preguntar de quién es.
-   ⚠️⚠️ LEE ESTO ANTES DE INTENTAR AVERIGUAR DE QUIÉN ES (reescrito 2026-09-09,
-   segunda vez el mismo día: la primera versión de esta corrección también estaba
-   incompleta y la cazaron T1 y T2 midiendo, no nosotros releyendo).
-
-   PRIMERO, LO QUE RESUELVE SIN NECESIDAD DE IDENTIFICAR NADA:
-   **si el puerto está ocupado, no arranques encima y NO MATES EL PROCESO. Usa otro
-   puerto** (T1 corrió contra un 3010 propio; T2 contra un 3102). Esta regla no depende
-   de acertar de quién es, y es la que habría evitado el incidente entero. Lo de abajo
+   PRIMERO, LO QUE RESUELVE SIN NECESIDAD DE IDENTIFICAR NADA: **si el puerto está
+   ocupado, no arranques encima y NO MATES EL PROCESO. Usa otro puerto** (T1 corrió
+   contra un 3010 propio; T2 contra un 3102). Esta regla no depende de acertar de quién
+   es el servidor, y es la que habría evitado el incidente del 2026-09-09. Lo de abajo
    solo hace falta si necesitas saber contra qué estás midiendo.
 
-   EL `cwd` NO SIRVE, NI PARA AFIRMAR NI PARA DESCARTAR. No lo uses en ninguna
-   dirección:
-     - Puede apuntar a la RAÍZ siendo TUYO: Next.js infiere un "workspace root" cuando
-       encuentra varios `package-lock.json`. **T1 dio por ajeno su propio servidor y
-       mató el proceso equivocado** siguiendo la instrucción que había aquí escrita.
-     - Puede apuntar a TU WORKTREE aunque Next emita el aviso de workspace root: T2 lo
-       midió en el 3102 y el `cwd` era correcto, en el proceso y en su padre.
-   O sea: el comportamiento **no es universal**, así que un `cwd` que cuadra no prueba
-   nada y uno que no cuadra tampoco.
-
-   EL MÉTODO QUE SÍ FUNCIONA — Y OJO, HAY QUE SUBIR AL PROCESO PADRE:
+   COMPRUÉBALO ASÍ:
      lsof -nP -iTCP:<puerto> -sTCP:LISTEN -t   # PID del que escucha
-     ps -o ppid= -p <PID>                      # su PADRE
-     ps -axo pid,command | grep <PPID>         # línea de comando COMPLETA del padre
-   **El proceso que escucha NO sirve**: se retitula `next-server (v16.x)` y **no lleva
-   ruta**, así que aplicarle el método da MENOS información que el `cwd`. Y
-   `ps -p <pid> -o comm=` tampoco: da el nombre corto. Hay que leer la línea completa
-   **del padre**, que sí trae la ruta del binario:
-     …/_worktrees/T2/node_modules/.bin/next   → es de T2
-     …/CRM curso Vibe Coding/node_modules/.bin/next  (sin `_worktrees/`) → es de la RAÍZ
+     lsof -a -p <PID> -d cwd -Fn               # su directorio de trabajo
+   **El `cwd` tiene que ser TU worktree.** Si es otro worktree, o la raíz del repo, ese
+   servidor no es tuyo.
 
-   *Procedencia:* medido por T2 en el 3102 y confirmado por T1 al cerrar el suyo, el
-   2026-09-09, con Next.js 16.2.10. **Es comportamiento de una versión concreta**: si
-   algún día deja de cumplirse, esta nota se revisa en vez de arrastrarse.
+   ⚠️ OJO CON ESTO, QUE NOS COSTÓ UNA NOCHE (2026-09-09): al arrancar desde un worktree,
+   **Next.js emite un aviso de "workspace root" porque encuentra varios
+   `package-lock.json`**. Ese aviso da miedo y hace pensar que el proceso se ha ido a la
+   raíz. **NO es así: el `cwd` sigue apuntando a tu worktree**, en el proceso y en su
+   padre. Medido tres veces por separado (T1, T2 y la Directora) con Next.js 16.2.10.
+   *El aviso de workspace root NO implica un `chdir`.* No lo uses para descartar tu
+   propio servidor.
+
+   Y si quieres una segunda confirmación por el BINARIO, **tiene que ser sobre el
+   proceso PADRE**:
+     ps -o ppid= -p <PID>                      # el padre
+     ps -axo pid,command | grep <PPID>         # su línea de comando completa
+   El proceso que escucha **se retitula `next-server (v16.x)` y no lleva ruta**, así que
+   sobre él este método no dice nada; y `ps -p <pid> -o comm=` da solo el nombre corto.
+   La ruta del padre sí distingue: `…/_worktrees/T2/node_modules/.bin/next` es de T2;
+   `…/CRM curso Vibe Coding/node_modules/.bin/next`, sin `_worktrees/`, es de la raíz.
+
+   *Historia de este párrafo, porque explica por qué está tan detallado:* el 2026-09-09
+   se dio por roto el método del `cwd` y se reescribió esta sección **dos veces sobre
+   una premisa falsa**. Lo que había pasado en realidad es que alguien midió el `cwd` de
+   un servidor que **de verdad era de la raíz**, obtuvo "la raíz" —o sea, la respuesta
+   correcta— y concluyó que el método fallaba, cuando lo que fallaba era su suposición
+   de que aquel servidor era suyo. **El método siempre funcionó.** Lección: un hallazgo
+   que explica bien un incidente no es por eso cierto; antes de escribirlo aquí, que
+   alguien lo reproduzca.
 
     1. Cabecera: identificador de la tarea, terminal, rama, número de ronda, fecha.
        ⚠️ **Y una línea obligatoria con QUIÉN LO ESCRIBIÓ** (decisión 42, 2026-09-08):
