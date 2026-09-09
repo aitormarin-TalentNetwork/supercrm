@@ -80,6 +80,17 @@ temporal, sin red y sin `npm install`, T3 el 2026-09-09). Ahí es donde se cazar
 los dos fallos de arriba. Si vuelves a tocar este bloque, **pruébalo así**: desde
 un worktree caliente estas líneas pasan en verde estén bien o mal.
 
+🔴 **SI TOCAS ESTE BLOQUE, PRUÉBALO EN UN CLON EN FRÍO. No es una recomendación.**
+
+    git clone --local <ruta-del-repo> /tmp/frio && cd /tmp/frio && <pega el bloque>
+
+Es la única pregunta del inventario que **su autor no puede verificar**, y no por
+descuido: **desde un worktree con `node_modules` presente, `npx` resuelve local y
+estas líneas pasan en verde estén bien o mal.** El defecto no se te escapa — **no
+puedes verlo desde donde estás**. Por eso las dos versiones anteriores de este
+bloque pasaron en verde en un entorno sin un solo navegador instalado, y por eso
+lo cazó alguien que no era yo. El clon cuesta treinta segundos.
+
 ⚠️ **Esta pregunta ya no descarga nada** — antes sí, y por eso conviene decirlo:
 la versión con `npx` se bajaba `playwright` y `convex` al caché compartido **como
 efecto secundario de comprobar precondiciones**. Con binarios locales es de solo
