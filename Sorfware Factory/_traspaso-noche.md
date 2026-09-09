@@ -4,6 +4,12 @@
 del 8-sep), cuando te fuiste a dormir.** Se va actualizando durante la noche: **mira la fecha
 del final para saber hasta cuándo llega.**
 
+⚠️ **Y una advertencia sobre este documento, que se ganó sola:** es **un texto sobre un estado
+que se mueve mientras se escribe**. Una frase suya —*"la cola del Integrador está vacía"*—
+**caducó en las cuatro horas que se tardó en redactarlo**, y solo se vio porque el Integrador
+abrió el fichero para otra cosa. **Los datos que cambian llevan ahora su hora de medición al
+lado**; si uno no la lleva, **desconfía de él antes que del resto.**
+
 Léelo en este orden. Lo de arriba es lo que necesita que decidas; lo de abajo es contexto.
 
 ---
@@ -132,8 +138,29 @@ señala a nuestro código**.
 (escribir y responder) · AIT-106 (tiempo real) · AIT-107 (correos como actividad), más AIT-98 y
 AIT-100. El PRD va por **v0.11** con los cuatro bloqueantes cerrados.
 
-**Catorce publicadas hoy, ninguna revertida, ningún build roto, `main` sincronizado.** La cola
-del Integrador está **vacía**: no hay nada represado por el cambio de modo.
+**Catorce publicadas hoy, ninguna revertida, ningún build roto, `main` sincronizado.**
+
+## 🟢 TRES TAREAS ESPERANDO TU SÍ *(medido por el Integrador a las 04:0x UTC)*
+
+**Es exactamente lo que el modo `confirmar` venía a producir.** Las tres con **GO del auditor y
+revisión final hecha**:
+
+| Tarea | Qué es | Huella |
+|---|---|---|
+| **AIT-88** | Guardar un contacto sin inventarle una venta — **cierra el MVP** | 9 ficheros · schema + `docs/02` + `_generated` |
+| **AIT-87** | Un seguimiento puede desaparecer sin que nadie se entere | 1 fichero · `convex/nextSteps.ts` |
+| **AIT-96** | La suite mide la app de otro si el 3000 está ocupado | 1 fichero · `playwright.config.ts` |
+
+**Intersección entre las tres: VACÍA, medida.** Ninguna depende de otra y ninguna se pisa: **se
+pueden publicar en cualquier orden, o las tres de una.**
+
+**Recomendación del Integrador, y es preferencia, no restricción:** AIT-88 primero, porque cierra
+el MVP y es **la única que toca `schema.ts`** — si algo va a fallar en un build, es esa, y
+conviene verla sola. **Puedes invertirlo** si prefieres soltar antes las dos pequeñas.
+
+⚠️ **Las tres van SIN número de suite propio.** No es que salieran en rojo: **la suite completa no
+se ha podido correr —tres intentos, tres muertes por memoria—** así que **nadie ha medido `main`
+con ellas dentro.**
 
 ⚠️ **Pero dos de esas catorce se cerraron SIN número de suite, y la declaración está dentro de
 sus propias issues:**
