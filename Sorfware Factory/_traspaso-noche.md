@@ -75,6 +75,33 @@ pantalla era un callejón sin salida, y justo para quien más iba a verlo.**
 
 ---
 
+## 0ter. ⚠️ AIT-108 NO desbloquea la suite — y su título invita a creer que sí
+
+**Se anota aquí a propósito, porque la conclusión falsa llega sola:** el Integrador ya la sacó
+—escribió que *"AIT-108 es precisamente la tarea que arregla el login de la suite"*— y **tú vas a
+leer el mismo título mañana.**
+
+**Verificado en el código, no razonado:** su `global-setup` hace **un login REAL, por el mismo
+camino y con la misma credencial** que hacía cada test, y **si falla ABORTA en vez de degradar**.
+
+> **AIT-108 no arregla ningún login: los concentra.** 29 pasan a ser 1. Si la credencial no casa
+> —que es **AIT-102**—, ese único login también falla y **Playwright aborta en el setup sin correr
+> un solo test.**
+
+| | hoy | con AIT-108 |
+|---|---|---|
+| | 29 fallos de `loginAs` en 6 specs, **que parecen regresiones** | **1 fallo en `globalSetup`, cero tests ejecutados**, con mensaje legible |
+
+**Sigue valiendo la pena** —es el radio de daño, que es la justificación de la ficha— **pero no es
+"la próxima corrida será posible": es "cuando vuelva a fallar, fallará una vez y legible".**
+
+✅ **Y el reencuadre es más simple que lo que teníamos: no hay circularidad ni paradoja. Lo que
+desatasca la verificación es AIT-102, la credencial.** Todas las acumuladas están bloqueadas por
+**la misma dependencia externa**, y AIT-108 no es especial: **es solo la siguiente que toca un
+fichero compartido.**
+
+---
+
 ## 1. Lo que solo puedes hacer tú (nada de esto avanzó de noche)
 
 | Qué | Por qué está parado | Qué desbloquea |
