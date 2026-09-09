@@ -95,3 +95,13 @@ next-env.d.ts
 # el repo. Lo cazó el QA en el mismo minuto. Esto cierra el hueco por defecto.
 /tmp/
 /.tmp/
+
+# Volcado suelto del MCP de Playwright en la raíz (2026-09-09). `audiencia.md` es un
+# árbol de accesibilidad de la consola de Google Cloud, de 10 KB, escrito a las 22:29
+# durante el trabajo de AIT-90. NO se borra —es del PM y puede querer conservarlo— pero
+# se ignora para que ningún `git add -A` de los cuatro roles que commitean desde aquí lo
+# meta en el repo. Escaneado: cero patrones de credencial.
+# Es el mismo hueco que motivó ignorar /tmp/ ayer: el MCP resuelve rutas contra la raíz
+# del proyecto, así que un fichero que se creía en otro sitio acaba aquí, untracked y
+# sin ignorar. El arreglo de fondo es AIT-97 (aislar el navegador).
+/audiencia.md
