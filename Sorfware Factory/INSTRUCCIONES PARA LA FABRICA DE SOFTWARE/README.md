@@ -1358,9 +1358,20 @@ compartido y **disputaría el cerrojo justo en el momento crítico** — coste r
 un fallo raro. Desacoplada, **acota la ventana a un intervalo conocido en vez de a la
 casualidad**. No la cierra: la acota, y eso ya es una propiedad y no una esperanza.
 
-**57.2 — El resultado se reporta con el número de los 47 SOBRE `main`, no el de los 5 ni el
-total de una rama.** Obligatorio, no preferencia — y la precisión *"sobre `main`"* la aporta la
-Directora, porque **el total de una rama no es el total**: un arreglo que toca `webServer.env` cambia el entorno de **toda** la suite, y el
+**57.2 — El resultado se reporta con el TOTAL DE `main`, no con el subconjunto tocado ni con el
+total de una rama.** Obligatorio, no preferencia — la precisión *"sobre `main`"* la aporta la
+Directora, porque **el total de una rama no es el total**:
+
+> ⚠️ **Y este apartado decía "los 47" hasta que se midió.** El número venía por relevo (T1 → la
+> Directora → el CEO) y **era el de una ejecución, no el del catálogo**. Medido sobre `main` en
+> `62d1d7a` con `npx playwright test --list`: **36 tests en 8 ficheros**. El QA había medido lo
+> mismo por su cuenta sobre `893488e` y lo señaló.
+>
+> **La lección es de la (d) de §2quinquies y hay que aplicarla aquí:** una regla **no fija el
+> valor concreto de un estado mutable, dice dónde se consulta.** En un solo día ese número fue
+> **20, 30, 31, 36 y 47**, y todos eran ciertos de algo distinto. **El número de referencia es
+> el que produce la corrida del QA sobre `main` limpio, con su commit y su comando al lado** —
+> esa es toda la gracia de la 57.1. un arreglo que toca `webServer.env` cambia el entorno de **toda** la suite, y el
 modo de fallo sería **arreglar cinco y romper dos que nadie mire**. Es el patrón de
 `helpers.ts` de AIT-78, y es la enmienda 9 — **si la comprobación solo mira lo que se arregló,
 no podía dar otro resultado.**
@@ -2428,11 +2439,29 @@ hecho sin comprobar `CONVEX_DEPLOYMENT`):**
 1. Crear un proyecto Convex nuevo para esa terminal (dashboard, o `npx convex dev` dentro
    de su worktree eligiendo "crear proyecto nuevo" en vez de reusar
    `third-goldfinch-805`).
-2. Copiar al nuevo deployment (dashboard de Convex → Settings → Environment Variables)
-   `SEED_OWNER_PASSWORD` y `SEED_SALES_PASSWORD` con los mismos valores que tiene
-   `third-goldfinch-805`, para que el login de demo (`/login`) siga funcionando —
-   confirmado que no hay script de seed propio, la app depende de estas variables de
-   entorno de Convex (ver `convex/auth.ts` y el comentario en `.env.local`).
+2. ⚠️ **CORREGIDO 2026-09-08 — este paso estaba INCOMPLETO y seguirlo al pie de la letra
+   dejaba el login imposible.** Decía "copia dos variables"; **el deployment compartido tiene
+   trece**, y entre las que faltaban están **`JWT_PRIVATE_KEY` y `JWKS`: sin ellas Convex Auth
+   no arranca.** El paso 4 fallaba y **nadie sabría por qué** — el checklist parecía completo.
+   Lo encontró el QA migrando su corrida periódica (59.1).
+   - **`SEED_OWNER_PASSWORD` y `SEED_SALES_PASSWORD`** — mismos valores que el origen, para
+     que el login de demo (`/login`) siga funcionando; no hay script de seed propio, la app
+     depende de estas variables (ver `convex/auth.ts` y el comentario en `.env.local`).
+   - **`JWT_PRIVATE_KEY` y `JWKS` — NO se copian: se GENERAN nuevas** con
+     `npx @convex-dev/auth`. **Dos deployments no deben compartir clave de firma:** con la
+     misma clave, **un token emitido en uno vale en el otro**. Criterio del QA, y es el
+     correcto.
+   - **`SITE_URL`** — apuntando al sitio del deployment nuevo.
+   - **Lo que NO se lleva, a propósito:** `AUTH_GOOGLE_*`, `RESEND_API_KEY`, `VAPID_*`. La
+     suite no los necesita y **son secretos reales: copiarlos sería esparcir credenciales a un
+     sitio más sin motivo**. Si algún día la suite cubre Google o email, se decide entonces.
+   - ⚠️ **Todo el manejo, sin imprimir valores** (`CLAUDE.md`): filtrar con `cut -d= -f1` y
+     mostrar solo nombres y longitudes.
+   - 📌 **Y la forma del fallo, para que no se repita en otros checklists:** *"copia estas
+     dos"* era cierto cuando se escribió y **envejeció al añadirse variables al origen**. Un
+     checklist que **enumera** un estado mutable caduca en silencio; el que **manda mirarlo**
+     no. Contrástalo siempre con `npx convex env list` del origen (sin volcar valores) antes
+     de darlo por completo.
 3. Actualizar el `.env.local` de ese worktree con las tres variables nuevas
    (`CONVEX_DEPLOYMENT`, `NEXT_PUBLIC_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_SITE_URL`).
 4. Verificar en el navegador que el login de demo y una pantalla básica (p. ej. "Hoy")
