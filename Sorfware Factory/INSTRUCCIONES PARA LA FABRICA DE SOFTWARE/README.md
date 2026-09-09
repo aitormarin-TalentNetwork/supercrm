@@ -3569,9 +3569,9 @@ igual si se prefiere ser explícito.
 un procedimiento entero en vez de un `mv`.
 
 ```bash
-icloud_on() { [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]; }
+sync_de_documentos_activado() { [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents" ]; }
 case "$(pwd -P)" in
-  "$HOME/Documents"/*|"$HOME/Desktop"/*)  icloud_on && echo "RIESGO: iCloud sincroniza esta ruta" ;;
+  "$HOME/Documents"/*|"$HOME/Desktop"/*)  sync_de_documentos_activado && echo "RIESGO: iCloud sincroniza esta ruta" ;;
   *Dropbox*|*"Google Drive"*|*OneDrive*)  echo "RIESGO: carpeta de sincronizacion" ;;
   *) echo "sin riesgo detectado (heuristica: no cubre todo)" ;;
 esac
@@ -3579,6 +3579,18 @@ esac
 ⚠️ **La primera rama es un HECHO:** que exista `CloudDocs/Documents` **prueba** que *"Escritorio y
 Documentos"* está activo. **Las otras dos son patrones, y se declaran como tales** — nunca digas
 *"está limpio"*, di **"no detecté riesgo con lo que sé mirar"**.
+
+⚠️ **El nombre de esa función auxiliar NO es cosmético (enmienda del PM, misma fecha).** Se llamaba
+`icloud_on()`, y así **es citable por separado y miente sola**: parece un comprobador completo,
+contesta *"¿está la función activada?"* y **quien la pegue después de migrar leerá `true` para
+siempre** — porque **la protección nunca vino de apagar iCloud, vino de salir de la carpeta**.
+Alguien podría **deshacer una migración correcta** leyéndola.
+> **Una función auxiliar mal nombrada es un modificador que se cae al copiar.** El nombre es lo
+> único que sobrevive a sacar el fragmento de su contexto, así que **tiene que decir qué pregunta
+> contesta, no para qué lo usó quien lo escribió.**
+🔻 **Y con ella cae un matiz que llevábamos todo el día dando por bueno: *"fallar hacia el rojo es
+el lado barato"*. Éste no lo es** — te haría **deshacer una migración correcta**. **El criterio no
+es solo la dirección del fallo: es qué hace quien lo lee.**
 
 **El porqué, en las dos frases que sí se leen:**
 > **Un repositorio es el peor candidato posible para un sincronizador:** miles de ficheros pequeños
