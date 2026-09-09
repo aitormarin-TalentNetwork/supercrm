@@ -972,17 +972,31 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 #        2026-09-09 T1 tenia 0 eventos `assistant` en los ultimos 60 KB y 11 en 400 KB,
 #        con un transcript de 14 MB. Con 60 KB el comando la habria PERDIDO en silencio.
 for d in ~/.claude/projects/*Sorfware-Factory--worktrees-T[123]; do
-  f=$(ls -t "$d"/*.jsonl 2>/dev/null | head -1)
+  # OJO 3: TODOS los ficheros del directorio, no solo el mas reciente por mtime. Durante una
+  #        parada larga el fichero mas nuevo puede NO ser el de la sesion activa. Cada worktree
+  #        tiene entre 3 y 6 transcripts, asi que la diferencia no es teorica.
   n=$(basename "$d" | tail -c 3)
-  [ -z "$f" ] && { echo "$n: SIN FICHERO"; continue; }
+  ls "$d"/*.jsonl >/dev/null 2>&1 || { echo "$n: SIN FICHERO"; continue; }
   # el filtro NO es un detalle: es el "segun quien" del timestamp. Sin el, coge el ultimo
   # evento de CUALQUIER tipo —incluidos los mensajes que RECIBE— y una terminal parada que
   # recibe mensajes parece que produce. Medido: una sesion muerta divergia 3.216 min (53 h).
-  ts=$(tail -c 400000 "$f" | grep '"type":"assistant"' | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
+  ts=$(for f in "$d"/*.jsonl; do tail -c 400000 "$f" | grep '"type":"assistant"' \
+        | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4; done | sort | tail -1)
   [ -z "$ts" ] && { echo "$n: SIN DATO (ventana insuficiente)"; continue; }
   echo "$n: $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
 done
 ```
+✅ **VALIDADO CONTRA EL FALLO REAL, no contra un sujeto sintético.** Los transcripts son un
+registro *append-only*, así que **el pasado se puede volver a medir**: reproducido hora por hora
+contra la parada del 2026-09-09, **habría disparado a las 07:30 UTC** — *y Aitor llegó a las 09:15,
+hora y tres cuartos después.* **Cero falsos positivos** antes y después, y **el umbral discrimina de
+verdad: a las 07:00 T2 estaba en 38 min y NO disparó.**
+⚠️ **Y esa reproducción destapó que se estaba validando una cosa y ejecutando otra:** la
+reproducción miraba **todos** los ficheros y el comando solo el más reciente. *De ahí el OJO 3.*
+> **O validas lo que ejecutas, o ejecutas lo que validaste.**
+*(Comprobado que hoy las dos versiones dan lo mismo — **y eso no prueba nada**: dos variantes de la
+misma comprobación coinciden con el sistema sano **por diseño**.)*
+
 🔴 **TRES ESTADOS, no dos: una cifra · `SIN DATO` · `SIN FICHERO`.**
 > **Un worker que NO APARECE en la salida no es un worker produciendo: es el comando roto.**
 ⚠️ **Dirección del fallo de la versión anterior, y es la peor posible:** si los tres se pararan
