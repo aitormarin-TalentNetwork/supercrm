@@ -5,6 +5,33 @@
   <script src="./support.js"></script>
 </head>
 <body>
+<!-- ==========================================================================
+     AIT-92 (2026-09-08) — QUÉ DE ESTA MAQUETA ESTÁ CONSTRUIDO Y QUÉ NO.
+     El diseño NO se rehace: se anota lo que el código todavía no alcanza
+     (mismo patrón que AIT-85). Estas notas se retiran cuando dejen de ser
+     ciertas — es criterio de aceptación de AIT-98.
+
+     CONSTRUIDO por AIT-92:
+       · el estado vacío ("Conectar Gmail")
+       · el estado "Conectada", pero SIN la línea de última sincronización
+         (ver la nota de la línea 65)
+
+     NO construido — espera a AIT-98 "Los tres estados de la conexión de
+     Gmail que necesitan sincronización":
+       · "Con retraso"          (necesita el canal push de Gmail y su caducidad)
+       · "Desconectada" por revocación externa (detectarlo exige USAR el token,
+                                 o sea sincronizar, que AIT-92 excluye)
+       · "última sincronización hace 2 min"
+
+     OJO CON UNA LECTURA FÁCIL Y EQUIVOCADA: **desconectar —la acción del
+     usuario— SÍ está en AIT-92**, con su aviso de que los correos guardados
+     se conservan. Lo que falta es enterarse de que alguien revocó el permiso
+     desde Google, que es otra cosa y llega por otro camino.
+
+     Y LAS TRES DIRECCIONES DE ABAJO SON TRES ESTADOS, NO TRES PERSONAS: esta
+     pantalla muestra las cuentas del usuario que la mira, no las de su equipo
+     (PRD CU6: nadie desconecta la cuenta de otro, ni owner ni storeManager).
+     ========================================================================== -->
 <x-dc>
 <helmet>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -62,6 +89,10 @@
               Conectada
             </span>
           </div>
+          <!-- AIT-92: se pinta la FECHA DE CONEXIÓN, que sí existe. La "última
+                 sincronización" no: no hay sincronización de la que sacarla, y
+                 mostrarla derivada de otra cosa sería inventarse el dato.
+                 Llega con AIT-98. -->
           <div style="font-size:12px;color:var(--color-text-muted);margin-top:5px">Conectada el <span style="font-family:var(--font-mono)">7 sep 2026</span> · última sincronización hace 2 min</div>
           <div style="font-size:12px;color:var(--color-text-muted);margin-top:3px">Solo lectura. El CRM no puede modificar ni borrar nada de tu buzón.</div>
         </div>
@@ -104,6 +135,13 @@
           <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         </span>
         <div style="min-width:0;flex:1">
+          <!-- AIT-92: "otra cuenta" NO aplica mientras haya una conectada. Aitor
+                 decidió (PRD:1055-1073) que **una persona conecta UN buzón**:
+                 la unicidad es por `userId` a secas, y quien ya tenga uno
+                 recibe un rechazo que le dice que desconecte el que tiene.
+                 El caso del buzón común de la tienda (`info@…`) se cubre por
+                 el OTRO lado: varias PERSONAS sí pueden conectar el mismo
+                 buzón. Son dos reglas distintas, no una invertida. -->
           <div style="font-size:14px;font-weight:600">Conectar otra cuenta</div>
           <div style="font-size:12px;color:var(--color-text-muted);margin-top:3px">Solo cuentas de la organización.</div>
         </div>

@@ -245,6 +245,43 @@ advertencia de verificación y sin exigir la auditoría CASA** — que era el ri
 tumbar la Ola 2 entera. Es consecuencia directa de que la app sea **Interna**: si algún día
 vuelve a Externa, esto deja de ser cierto.
 
+**Variables de entorno del cliente de Gmail (AIT-92).** Son TRES y van en el deployment de
+Convex, no en `.env.local` — igual que las del login, y por el mismo motivo: el
+intercambio de token vive en Convex y el token de refresco no puede pasar por el navegador.
+
+```bash
+npx convex env set GMAIL_OAUTH_CLIENT_ID <client-id>
+npx convex env set GMAIL_OAUTH_CLIENT_SECRET <client-secret>
+npx convex env set GMAIL_TOKEN_ENCRYPTION_KEY <32 bytes en base64>
+```
+
+⚠️ **No las confundas con `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`**, que son las del **login**
+y las impone `@auth/core`. Son clientes OAuth **distintos** en Google Cloud y no se pueden
+cruzar: poner aquí las del login haría que la pantalla de consentimiento de Gmail pidiera
+los permisos del login, y al revés cambiaría el consentimiento de todo el que entra en la
+app. Los nombres son distintos a propósito.
+
+**La clave de cifrado** protege el token de refresco guardado en `gmailAccounts`. Se genera
+una por deployment y **nunca se comparte entre ellos** — cada base cifra lo suyo:
+
+```bash
+openssl rand -base64 32     # y se pasa a `npx convex env set`, sin dejarla en el historial
+```
+
+Se cifra con **AES-GCM**, que además de ocultar **autentica**: si alguien manipulara el
+valor guardado, el descifrado **falla** en vez de devolver un token distinto. O sea que la
+tabla no guarda un token "ilegible", guarda uno **no falsificable**. (Comprobado en el
+runtime de Convex antes de elegirlo, con un ciclo real de cifrado/descifrado y una prueba
+de manipulación; no hace falta `"use node"`.)
+
+🚫 **Rotarla invalida todos los tokens ya guardados en ese deployment**: dejan de poder
+descifrarse y los usuarios tienen que reconectar. No es un problema —reconectar es un
+botón— pero conviene saberlo antes de rotar y no después.
+
+⚠️ **Las tres hay que darlas de alta en TODOS los deployments donde se vaya a usar**, no
+solo en producción: cada uno tiene su propio entorno (§8). Es la misma lección que dejaron
+las credenciales de Resend, que se fueron descubriendo deployment a deployment.
+
 
 - **URI de redirección autorizado:** `https://<CONVEX_SITE_URL>/api/auth/callback/google` (hoy, en dev: `https://third-goldfinch-805.convex.site/api/auth/callback/google` — `CONVEX_SITE_URL` es el dominio `.convex.site`, no el `.convex.cloud` de `NEXT_PUBLIC_CONVEX_URL`).
 - Da de alta el Client ID/Secret en el deployment de Convex (nombres exactos que espera `@auth/core`, no elegibles):
