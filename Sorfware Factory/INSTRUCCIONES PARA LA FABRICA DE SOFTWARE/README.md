@@ -995,6 +995,19 @@ Decisión del Factory Architect, ejecutada por el CEO. Es **la otra mitad de §2
 > §2sexies cubre al agente que **cree que sí verificó** porque la herramienta le devolvió
 > verde. La buena fe no protege del segundo.
 
+#### Una instrucción caducada que manda hacer algo INÚTIL es peor que una que falta
+
+> **La que falta se nota. La que caducó tranquiliza.**
+
+§3bis decía *"la app depende de estas variables de entorno"* sobre `SEED_OWNER_PASSWORD` y
+`SEED_SALES_PASSWORD`. **Cero ocurrencias en todo el repo.** El QA **las copió creyendo que
+estaba haciendo algo**, y siguió adelante **con la sensación de haber cubierto un paso**.
+
+⚠️ **Y §3bis tenía DOS del mismo tipo en el mismo día** —esta y *"copia estas dos"* (63)—, lo
+cual dice algo sobre cómo envejecen los checklists y no sobre quien los escribió. **Al corregir
+uno, se revisa el documento entero con ese criterio**, no la línea: *¿alguna instrucción de aquí
+manda hacer algo que ya no sirve para lo que dice servir?*
+
 > **Y la razón por la que todo esto se escribe, en palabras de T3 (2026-09-08):**
 >
 > ### **"Los criterios escritos no protegen del error: protegen de uno mismo cuando el error saldría gratis."**
@@ -1896,6 +1909,20 @@ distinta y verdadera.
 fallo:** primero **qué filas describen un arreglo que nadie ha hecho**; después la dirección del
 fallo. **Porque una fila sin arreglo no se prioriza: se construye, o se declara que no se va a
 construir.**
+
+⚠️ **Y un TERCER criterio, que el repaso no contemplaba: buscar PARES de decisiones que
+interactúen.**
+
+> **Dos decisiones correctas pueden cancelarse, y ninguna revisión individual lo detecta —
+> porque cada una es correcta.**
+
+*El caso que lo demuestra, y es nuestro:* la **57.1** manda al QA correr la suite sobre `main`
+limpio; la **59.1** lo saca del deployment compartido para que no contamine. **Las dos
+correctas.** Juntas: en el compartido contamina, en el suyo no puede autenticarse — **y el hueco
+que la 57.1 existía para cerrar sigue abierto.** Es la **57 aplicada a nuestras propias
+decisiones**: el defecto no está en ninguna de las dos, **está en el espacio entre ellas**.
+
+**El repaso estaba diseñado para revisar filas de una en una. El fallo puede estar entre dos.**
 
 #### ❓ PREGUNTA ABIERTA — qué hacemos con una preocupación que aún no tiene coste medido
 
