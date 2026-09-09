@@ -241,6 +241,15 @@ AIT-100. El PRD va por **v0.11** con los cuatro bloqueantes cerrados.
 *Medido por el **Integrador**, ~05:2x UTC. **Es exactamente lo que el modo `confirmar` venía a
 producir.** Todas con **GO del auditor y revisión final del Integrador hecha**.*
 
+> ⚠️ **DATO POSTERIOR A ESTA TABLA — 05:45 UTC (02:45 local), medido por la Directora.**
+> **AIT-108 ya NO mergea limpia sobre `main`.** Conflicto en `.gitignore`, **solo esa rama**; las
+> otras siete siguen limpias (`git merge-tree --write-tree <rama> main` sobre las ocho).
+> **No cambia nada de lo que decides**: sigue siendo *AIT-96 primero, AIT-108 después*, y la
+> resolución son dos minutos. Lo causó `d917c90`, el endurecimiento del `.gitignore` — **un
+> arreglo correcto que choca con otro arreglo correcto**, no un defecto de la tarea.
+> **El Integrador ya lo tiene, con la resolución verificada**, porque la que circulaba era errónea
+> y le habría hecho borrar el ignore de `/audiencia.md`. **Tú no tienes que hacer nada con esto.**
+
 | Tarea | Qué es | Huella |
 |---|---|---|
 | **AIT-88** | Guardar un contacto sin inventarle una venta — **cierra el MVP** | 9 ficheros · schema + `docs/02` + `_generated` |
