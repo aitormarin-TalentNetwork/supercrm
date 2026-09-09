@@ -823,6 +823,13 @@ obsoleta y volver a sembrar, se arregla sin él—. **O sea que le pedí que no 
 tuvo razón en no fiarse: aplicarla tal cual habría sacado del reparto una issue disponible**, que
 es exactamente el falso positivo del que yo mismo le avisaba.
 
+### 🔒 La fila del cerrojo cubre ahora DOS recursos (decisión 84, 2026-09-09)
+
+Cuando leas `_turno-convex.lock`, **ya no vigila solo el deployment compartido: vigila también las
+escrituras sobre el checkout raíz** —`merge`, `push`, `commit`, cambiar de rama—. **Lectura no.**
+*El `main` local del Integrador cambió dos veces solo, porque otra sesión empuja desde el mismo
+checkout.* **No es una comprobación nueva: es la misma línea con un sujeto más.**
+
 ### ⛔ Comprobación fija Nº1 de tu barrido: ¿cuántos trabajan, y cuántos podrían? (decisión 77)
 
 **Va la primera, antes que cualquier otra**, y **ninguna ronda puede cerrarse con "sin cambios"

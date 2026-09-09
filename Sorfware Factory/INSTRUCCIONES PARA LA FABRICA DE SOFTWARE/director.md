@@ -594,6 +594,40 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### ⛔ QUÉ GARANTIZA UN FICHERO DE VEREDICTO (decisión 83, 2026-09-09)
+
+> **GARANTÍA: este fichero significa que un auditor INDEPENDIENTE leyó el export E y el commit C,
+> ENTEROS, y emitió un juicio sobre la tarea T.**
+
+**Los controles no son una lista: son las PRECONDICIONES de esa frase.** *Si alguna falla, el
+fichero existe y la frase es falsa.*
+```
+"entero"        -> existe la linea literal `Veredicto del auditor:`
+                   (un proceso matado por memoria deja 39 bytes con el nombre correcto)
+"el export E"   -> mtime del export ANTERIOR a la hora del disparo
+                   (uno cambio 29 s despues de arrancar, +2.393 bytes)
+"el commit C"   -> git log --oneline <auditado>..<rama> = 0
+                   (AIT-119: commit 8 min posterior al veredicto, sin auditar)
+"la tarea T"    -> menciona T y no otras, con control positivo del extractor
+"un auditor"    -> el proceso TERMINO (un fichero estable 5 s mostraba el GO de la ronda anterior)
+"independiente" -> familia de IA distinta (decision 42)
++ ordenar por mtime, NUNCA por nombre (loop1 < loop3 alfabeticamente)
++ leer la ULTIMA linea de veredicto (el fichero empieza con el prompt, que lleva las dos opciones)
+```
+📌 **Por qué una frase y no una lista, y es de T2:** *una lista de seis parece completa; una frase
+invita a preguntar **"¿y qué más tendría que ser verdad?"***.
+
+⚠️ **La garantía es ella misma una afirmación que hay que auditar.** Ante un fallo nuevo, la
+primera pregunta **NO** es *"¿qué control añadimos?"* sino ***"¿qué le falta a la frase?"***.
+🔴 **Y su riesgo, dicho porque concentrar tiene precio:** a una lista se le nota que falta un
+punto; **a una frase a la que le falta una cláusula le desaparece esa dimensión entera y en
+silencio.**
+
+✅ **Séptima precondición, encontrada por la propia frase antes de que a nadie le mordiera:** nada
+comprueba que el auditor leyera el export **ENTERO** y no truncado. **Arreglo: que el veredicto
+cite algo que solo aparece al FINAL del export** — *un truncado silencioso no puede producir esa
+cita.*
+
 - ⛔ **RECUPERAR UN MCP MUERTO ES TUYO, Y NO HACE FALTA MOLESTAR A AITOR** (decisión 82,
   2026-09-09). **Son DOS modos de fallo y solo uno es nuestro:**
   ```
@@ -616,6 +650,17 @@ vuelve de inmediato a lo que tenías entre manos.
   necesita a una persona: **ahí Aitor sí es imprescindible.** Pídeselo **UNA vez**, con **qué MCP,
   en qué terminal y qué comando escribir**, y **registra que se pidió. No lo repitas cada ciclo** —
   *el silencio de quien no actúa no puede volver a leerse como "pendiente" treinta y una veces.*
+
+- ⛔ **ESCRIBIR EN EL CHECKOUT RAÍZ VA BAJO EL CERROJO QUE YA EXISTE** (decisión 84, 2026-09-09).
+  **Las operaciones de ESCRITURA sobre la raíz —`merge`, `push`, `commit`, cambiar de rama— pasan
+  por el MISMO cerrojo que el deployment compartido**, con el mismo protocolo. **Lectura no.**
+  ⚠️ **Por qué:** el `main` local del Integrador **cambió dos veces sin que él hiciera nada**,
+  porque otra sesión empuja desde el mismo checkout. Su formulación: *"un push ajeno con mi árbol a
+  mitad de un merge publica un merge sin terminar."* **Es la decisión 80 sobre el recurso más caro,
+  y le toca su otra mitad: compartido CON TURNO.**
+  📌 **Y el turno ya existía.** *Reutilizar un mecanismo que ya funciona y que el CEO ya vigila en
+  su barrido vale más que uno nuevo mejor diseñado.* **Que las dos veces saliera bien fue suerte, y
+  eso lo justifica en vez de atenuarlo.**
 
 - ⛔ **TU ENTREGABLE NO SON LAS TAREAS HECHAS: ES QUE NADIE ESTÉ PARADO** (decisión 77).
   **No terminas un ciclo con un worker sin tarea habiendo backlog disponible.** Y si vas a parar

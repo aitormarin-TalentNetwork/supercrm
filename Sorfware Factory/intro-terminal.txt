@@ -611,6 +611,40 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- ⛔ QUÉ GARANTIZA UN FICHERO DE VEREDICTO (decisión 83, 2026-09-09)
+
+> **GARANTÍA: este fichero significa que un auditor INDEPENDIENTE leyó el export E y el commit C,
+> ENTEROS, y emitió un juicio sobre la tarea T.**
+
+**Los controles no son una lista: son las PRECONDICIONES de esa frase.** *Si alguna falla, el
+fichero existe y la frase es falsa.*
+```
+"entero"        -> existe la linea literal `Veredicto del auditor:`
+                   (un proceso matado por memoria deja 39 bytes con el nombre correcto)
+"el export E"   -> mtime del export ANTERIOR a la hora del disparo
+                   (uno cambio 29 s despues de arrancar, +2.393 bytes)
+"el commit C"   -> git log --oneline <auditado>..<rama> = 0
+                   (AIT-119: commit 8 min posterior al veredicto, sin auditar)
+"la tarea T"    -> menciona T y no otras, con control positivo del extractor
+"un auditor"    -> el proceso TERMINO (un fichero estable 5 s mostraba el GO de la ronda anterior)
+"independiente" -> familia de IA distinta (decision 42)
++ ordenar por mtime, NUNCA por nombre (loop1 < loop3 alfabeticamente)
++ leer la ULTIMA linea de veredicto (el fichero empieza con el prompt, que lleva las dos opciones)
+```
+📌 **Por qué una frase y no una lista, y es de T2:** *una lista de seis parece completa; una frase
+invita a preguntar **"¿y qué más tendría que ser verdad?"***.
+
+⚠️ **La garantía es ella misma una afirmación que hay que auditar.** Ante un fallo nuevo, la
+primera pregunta **NO** es *"¿qué control añadimos?"* sino ***"¿qué le falta a la frase?"***.
+🔴 **Y su riesgo, dicho porque concentrar tiene precio:** a una lista se le nota que falta un
+punto; **a una frase a la que le falta una cláusula le desaparece esa dimensión entera y en
+silencio.**
+
+✅ **Séptima precondición, encontrada por la propia frase antes de que a nadie le mordiera:** nada
+comprueba que el auditor leyera el export **ENTERO** y no truncado. **Arreglo: que el veredicto
+cite algo que solo aparece al FINAL del export** — *un truncado silencioso no puede producir esa
+cita.*
+
 - **QUIEN LEVANTA UN NAVEGADOR ES EL UNICO QUE PUEDE CERRARLO, Y LO CIERRA AL
   TERMINAR SU TAREA** (decision 82, 2026-09-09). Es una regla de DUENO, no una siega:
   nadie barre los procesos de otro.
