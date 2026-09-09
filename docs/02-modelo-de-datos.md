@@ -78,7 +78,7 @@ Existe para que "la tienda por defecto" tenga un identificador explícito (un do
 
 **Contrato de `source` (AIT-81).** El canal de origen es un **catálogo cerrado**, no un string libre. Antes el schema declaraba `v.string()` mientras el código asumía cinco canales, y el catálogo estaba copiado en cuatro sitios (el `union` de `opportunities.createQuick`, el de `customers.update`, el mapa de primeros pasos, y los desplegables de Alta rápida y de la ficha de cliente) sin nada que obligara a que coincidieran.
 
-Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.ts) — es una lista de **producto**, no una constante técnica: dice qué vías contempla el CRM para que llegue un cliente. De ahí se derivan el validador de Convex (`convex/model/customerSource.ts`), el schema, los `args` de las dos mutations que escriben `source`, y los desplegables de la UI.
+Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.ts) — es una lista de **producto**, no una constante técnica: dice qué vías contempla el CRM para que llegue un cliente. De ahí se derivan el validador de Convex (`convex/model/customerSource.ts`), el schema, los `args` de las tres mutations que escriben `source` (`opportunities.createQuick`, `customers.update` y `customers.createContact`), y los desplegables de la UI.
 
 - **Para añadir un canal** (p. ej. `Email`): se añade a `CUSTOMER_SOURCES` y el compilador exige su primer paso en `FIRST_STEP_BY_SOURCE`. No hay un tercer sitio que tocar.
 - **Para quitar uno**: ojo, no es simétrico. Convex valida los documentos **existentes** al desplegar el schema, así que si queda algún cliente guardado con ese canal, el push falla y con él el build. Primero migración, después el catálogo.
@@ -89,7 +89,7 @@ Ahora la lista vive **solo** en [`lib/customerSource.ts`](../lib/customerSource.
 
 **Contrato de `phone` (AIT-80) — es un cambio de contrato del campo, no solo un índice más.** `phone` se guarda en forma canónica: solo dígitos, y sin el prefijo `+34`/`0034` cuando se ha escrito explícitamente como prefijo. Un código de país extranjero se conserva (`+49 30 1234` → `49301234`), porque un número extranjero sí es un número distinto; y un `34…` sin `+` se conserva entero, porque recortarlo por parecerse a un prefijo corrompería un número legítimo que empezara por 34.
 
-- **Se escribe** siempre pasando por `normalizePhone()` (`lib/phone.ts`). Escritores actuales: `opportunities.createQuick` y la migración `migrations.backfillPhoneNormalized`; AIT-77 (editar cliente) es el tercero. Un escritor que guarde el valor crudo deja al cliente fuera del índice: no se detectará su duplicado y el buscador no lo encontrará por teléfono.
+- **Se escribe** siempre pasando por `normalizePhone()` (`lib/phone.ts`). Escritores actuales: `opportunities.createQuick`, la migración `migrations.backfillPhoneNormalized`, `customers.update` (AIT-77, editar cliente) y `customers.createContact` (AIT-88, alta de contacto sin venta). Un escritor que guarde el valor crudo deja al cliente fuera del índice: no se detectará su duplicado y el buscador no lo encontrará por teléfono.
 - **Se busca** comparando contra `normalizePhone(consulta)`. La misma función en escritura, búsqueda y migración es lo que hace que las tres coincidan.
 - **Se muestra** pasando por `formatPhone()` en el último paso antes de pintarlo. Un `href="tel:"` no se formatea: los dígitos pelados son válidos y mejores para marcar.
 - **La clave no es única.** Convex no tiene `UNIQUE`, y esta tabla contiene por definición duplicados anteriores a AIT-80 (son su motivo), que el backfill normaliza al mismo valor. Quien consulte el índice usa `.collect()`: `.unique()` reventaría y `.first()` escogería arbitrariamente.
@@ -203,6 +203,21 @@ Idempotencia de `interactions.create` (AIT-19): mismo mecanismo que `opportunity
 | `quoteId` | id(`quotes`) | La versión de presupuesto que produjo esa petición |
 
 Idempotencia de `quotes.createVersion` (AIT-54): mismo mecanismo que `opportunityRequests`/`interactionRequests`. Sin esto, un reintento de red creaba una versión duplicada con datos idénticos, porque `createVersion` siempre inserta (nunca hace upsert).
+
+### `customerRequests` (interna, no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `clientRequestId` | string | Generada por el cliente, una por apertura del modal de Alta rápida **en modo contacto** |
+| `userId` | id(`users`) | Quién la generó |
+| `customerId` | id(`customers`) | El cliente que produjo esa petición |
+
+Idempotencia de `customers.createContact` (AIT-88): mismo mecanismo que `opportunityRequests`/`interactionRequests`/`quoteRequests`.
+
+**Por qué una tabla propia y no un campo más en `opportunityRequests`.** Un id que apuntara a dos tablas tendría que ser un `v.union(...)` o un string suelto, y se perdería la garantía del compilador de que ahí solo hay ids de una entidad — cambiar una comprobación de tipos por una convención. El proyecto ya se hizo esta pregunta con AIT-19 y AIT-54, y la respondió igual las dos veces.
+
+**Consecuencia que hay que tener presente: son dominios de idempotencia independientes.** Guardar un contacto y dar de alta una venta escriben en tablas distintas, así que una misma `clientRequestId` no cruza de una a otra. Por eso el formulario **regenera la clave al cambiar de modo**: cambiar de intención es otro envío, no un reintento del mismo.
+
+**Y el orden importa:** `createContact` resuelve la idempotencia **antes** de buscar duplicados por teléfono, igual que `createQuick` desde AIT-80. Al revés, un reintento de red encontraría por `by_store_phone` al cliente que ese mismo envío acaba de crear, y el alta acabaría avisando de sí misma.
 
 ### `pushSubscriptions` (Post-MVP, AIT-57 — no es una de las 7 entidades del PRD)
 | Campo | Tipo | Notas |
@@ -376,6 +391,12 @@ export default defineSchema({
     clientRequestId: v.string(),
     userId: v.id("users"),
     quoteId: v.id("quotes"),
+  }).index("by_client_request_id", ["clientRequestId"]),
+
+  customerRequests: defineTable({
+    clientRequestId: v.string(),
+    userId: v.id("users"),
+    customerId: v.id("customers"),
   }).index("by_client_request_id", ["clientRequestId"]),
 });
 ```

@@ -45,6 +45,18 @@
   <!-- MODAL -->
   <x-import component-from-global-scope="DesignSystem_ddd184.Dialog" open="{{ modalOpen }}" on-close="{{ close }}" title="Alta rápida" description="Captura el contacto y la oportunidad. Crearemos su primer próximo paso." width="480" footer="{{ footer }}" hint-size="1px,1px">
     <form onSubmit="{{ onSubmit }}" novalidate="{{ true }}" style="display:flex;flex-direction:column;gap:14px">
+    <!-- AIT-88 (2026-09-08): DIVERGENCIA DECIDIDA, el diseño se MANTIENE tal cual.
+         Este formulario captura siempre "el contacto y la oportunidad" (ver la
+         `description` del Dialog, justo arriba), y esa era la única puerta para
+         guardar a alguien: para apuntar el teléfono de quien pasó por la tienda
+         había que inventarle una venta, que es justo lo que este CRM mide.
+         El código añade un `Select` "¿Hay una venta en marcha?" como primer
+         campo; con "No" se ocultan importe y producto y el pie pasa a decir
+         "Guardar contacto". Opción C del PM: el control vive DENTRO del alta
+         rápida y el botón que la abre no se toca, para no partir en dos una
+         entrada que ya está en las diez cabeceras (AIT-66).
+         No se redibuja la pantalla: la divergencia queda anotada aquí, como se
+         hizo en Pipeline y en Detalle de oportunidad con AIT-85. -->
 
       <x-import component-from-global-scope="DesignSystem_ddd184.Input" id="alta-nombre" label="Nombre del cliente" placeholder="p.ej. Café Aroma" left-icon="{{ icons.user }}" error="{{ errNombre }}" required="{{ true }}" hint-size="100%,72px"></x-import>
 

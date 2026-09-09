@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { isStoreWideRole, requireOwner, requireUser } from "./model/access";
 import { normalizePhone } from "../lib/phone";
+import { findCustomersByPhone } from "./model/customerDuplicates";
 import { customerSourceValidator } from "./model/customerSource";
 // AIT-82: qué es un cliente válido, en un solo sitio. Antes esto era una copia
 // literal de las reglas de `createQuick`, hecha a mano y a propósito.
@@ -175,6 +176,107 @@ export const update = mutation({
       email,
       source: args.source,
     });
+  },
+});
+
+// AIT-88: dar de alta a una PERSONA sin inventarle una venta.
+//
+// Hasta aquí, el único `insert("customers")` de todo el backend vivía en
+// `opportunities.createQuick`, que SIEMPRE crea además la oportunidad, su
+// próximo paso y su registro de idempotencia. O sea que para guardar el teléfono
+// de alguien que pasó por la tienda había que inventarse una venta — y eso
+// contamina justo lo que este CRM mide: el pipeline, el valor en juego y la
+// lista de "en riesgo", que se llenaba de gente que nunca fue una venta.
+//
+// Guarda: la de `getFicha` y `update`, NO `requireOwner`. Carlos también capta
+// contactos. `ownerId` y `storeId` no son argumentos: se asignan del usuario,
+// así que no hay puerta para crear un cliente a nombre de otro.
+export const createContact = mutation({
+  args: {
+    // Una clave por apertura del formulario, no por clic. Ver el INVARIANTE DE
+    // ORDEN de abajo, que es la razón por la que existe.
+    clientRequestId: v.string(),
+    name: v.string(),
+    phone: v.string(),
+    email: v.optional(v.string()),
+    source: customerSourceValidator,
+    // "Sí, ya sé que hay otro con este teléfono, créalo igualmente". Dos
+    // personas pueden compartir teléfono (una pareja, una centralita), así que
+    // el duplicado se avisa, no se bloquea — mismo criterio que `createQuick`.
+    confirmDuplicate: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const user = await requireUser(ctx);
+
+    // .collect() en vez de .unique(): si alguna vez colisionara la clave entre
+    // dos usuarios, cada uno solo reconoce la suya.
+    const existingRequests = await ctx.db
+      .query("customerRequests")
+      .withIndex("by_client_request_id", (q) =>
+        q.eq("clientRequestId", args.clientRequestId),
+      )
+      .collect();
+    const ownRequest = existingRequests.find((r) => r.userId === user._id);
+    // INVARIANTE DE ORDEN (AIT-80, replicado aquí en AIT-88 — no reordenar): la
+    // idempotencia se resuelve ANTES que la detección de duplicado semántico.
+    // Al revés, un reintento de red encontraría por `by_store_phone` al cliente
+    // que ESE MISMO envío acaba de crear y avisaría de que ya existe: el alta
+    // avisando de sí misma, por haber pulsado una vez con mala cobertura. Y si
+    // quien lo ve confirma —porque cree que es otra persona— crea el duplicado
+    // de verdad.
+    //
+    // Este comentario no está aquí de adorno: el plan de AIT-88 llegó a afirmar
+    // que la detección de duplicados "ya cubre el reintento". No lo cubre, lo
+    // MALINTERPRETA. Se descubrió leyendo el original en `createQuick`.
+    if (ownRequest) {
+      return { status: "created" as const, customerId: ownRequest.customerId };
+    }
+
+    // Las mismas reglas que las otras tres puertas (AIT-82).
+    const nameError = validateCustomerName(args.name);
+    if (nameError) throw new Error(nameError);
+    const name = args.name.trim();
+
+    const phone = args.phone.trim();
+    const phoneError = validateCustomerPhone(phone);
+    if (phoneError) throw new Error(phoneError);
+
+    const emailError = validateCustomerEmail(args.email);
+    if (emailError) throw new Error(emailError);
+    const email = normalizeCustomerEmail(args.email);
+
+    const duplicates = await findCustomersByPhone(ctx, user, phone);
+    if (duplicates.hasAny && args.confirmDuplicate !== true) {
+      return {
+        status: "duplicate" as const,
+        matches: duplicates.matches,
+        otherOwnerMatch: duplicates.otherOwnerMatch,
+      };
+    }
+
+    // DOS filas y solo dos: el cliente y su registro de idempotencia. Ni
+    // oportunidad, ni `nextSteps`, ni `opportunityRequests` — es el criterio de
+    // fallo de la issue y lo que separa esta puerta de `createQuick`.
+    const customerId = await ctx.db.insert("customers", {
+      name,
+      // Canónico, no como se tecleó: contrato de `lib/phone.ts` (AIT-80). Esta
+      // es la tercera puerta de escritura de `phone`; si guardara el crudo, el
+      // contacto nacería fuera del índice `by_store_phone` y su duplicado no se
+      // detectaría nunca.
+      phone: normalizePhone(phone),
+      email,
+      source: args.source,
+      ownerId: user._id,
+      storeId: user.storeId,
+    });
+
+    await ctx.db.insert("customerRequests", {
+      clientRequestId: args.clientRequestId,
+      userId: user._id,
+      customerId,
+    });
+
+    return { status: "created" as const, customerId };
   },
 });
 

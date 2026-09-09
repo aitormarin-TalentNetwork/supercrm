@@ -17,6 +17,7 @@ import {
   validateCustomerPhone,
 } from "../lib/customerValidation";
 import { customerSourceValidator } from "./model/customerSource";
+import { findCustomersByPhone } from "./model/customerDuplicates";
 import { isAtRisk } from "../lib/risk";
 
 // AIT-30: sin catálogo de productos ni ciclo de recompra por interés
@@ -134,40 +135,20 @@ export const createQuick = mutation({
     // compartiendo `storeId + phone` es el caso ESPERADO, no el raro.
     // .first() tampoco vale: escogería arbitrariamente, pudiendo coger uno
     // ajeno habiendo uno accesible.
-    const canonicalPhone = normalizePhone(phone);
-    const phoneMatches = await ctx.db
-      .query("customers")
-      .withIndex("by_store_phone", (q) =>
-        q.eq("storeId", user.storeId).eq("phone", canonicalPhone),
-      )
-      .collect();
+    // AIT-80: el duplicado SEMÁNTICO — la misma persona dada de alta dos veces
+    // en momentos distintos. No confundir con la idempotencia de arriba, que
+    // solo cubre el reintento del MISMO envío.
+    // AIT-88: la consulta vive ahora en `convex/model/customerDuplicates.ts`,
+    // porque la comparten las dos puertas de alta. Lo que NO se comparte es qué
+    // se ofrece hacer después: aquí se añade la oportunidad a la ficha
+    // existente; en el alta de contacto no hay nada que añadir.
+    const duplicates = await findCustomersByPhone(ctx, user, phone);
 
-    if (phoneMatches.length > 0 && args.confirmDuplicate !== true) {
-      // Mismo criterio de acceso que customers.getFicha y createForCustomer.
-      // La consulta ya va acotada por storeId, así que solo queda el segundo
-      // término: para owner y storeManager TODO match es accesible y la rama
-      // anónima de abajo no llega a darse nunca.
-      const accessible = phoneMatches
-        .filter((c) => isStoreWideRole(user) || c.ownerId === user._id)
-        .sort((a, b) => a._creationTime - b._creationTime);
-
+    if (duplicates.hasAny && args.confirmDuplicate !== true) {
       return {
         status: "duplicate" as const,
-        // Ordenados del más antiguo al más nuevo: el primero es el registro
-        // original y los siguientes los duplicados que nacieron después.
-        // Es una AYUDA VISUAL, no una selección automática — elige la
-        // persona, que es quien sabe cuál es la ficha buena para continuar
-        // el historial (auditoría AIT-80 ronda 1, respuesta a la pregunta 1).
-        matches: accessible.map((c) => ({ customerId: c._id, name: c.name })),
-        // BOOLEANO A PROPÓSITO, nunca un recuento ni una lista: un `sales`
-        // no puede ver los clientes de otro comercial, y de los ajenos no
-        // puede salir ni el id, ni el nombre, ni el propietario, NI CUÁNTOS
-        // son. Lo único que se le revela es que ese teléfono —que él acaba
-        // de teclear, o sea que ya lo conocía— existe en la tienda.
-        // Excepción consciente al modelo de permisos, AIT-80 §3.5: sin este
-        // aviso, dos comerciales trabajarían al mismo cliente sin saberlo y
-        // su historial quedaría partido en dos fichas.
-        otherOwnerMatch: accessible.length < phoneMatches.length,
+        matches: duplicates.matches,
+        otherOwnerMatch: duplicates.otherOwnerMatch,
       };
     }
 
@@ -191,7 +172,7 @@ export const createQuick = mutation({
     const customerId = await ctx.db.insert("customers", {
       name,
       // Canónico, no como se tecleó: es el contrato del campo (lib/phone.ts).
-      phone: canonicalPhone,
+      phone: normalizePhone(phone),
       email,
       source: args.source,
       ownerId: user._id,
