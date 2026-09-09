@@ -366,13 +366,20 @@ export function clasificarDeclaracion({ texto, linea }, fichero) {
   const esConst = /^export\s+const\b/.test(texto);
   let enlace = null;
   let inicializador = null;
-  let llamada = null;
+  // DOS formas distintas y NUNCA una compartida: `f(` no es lo mismo que `f.`,
+  // y una sola variable para las dos arrastra a cada rama un permiso que solo
+  // valía en la de al lado. Pasó: al reordenar, D2 reutilizó una expresión
+  // ensanchada para D6 y `convexAuth.otraCosa({})` pasó a devolver las cuatro
+  // funciones de `convexAuth` sin que `convexAuth(...)` se invocara nunca.
+  let llamadaDirecta = null; // `f(` — D1 y D2
+  let accesoAEspacio = null; // `f.` — D6
   if (esConst) {
     const partes = partirPorIgual(texto.replace(/^export\s+const\b/, ""));
     if (partes !== null) {
       enlace = partes[0].trim();
       inicializador = partes[1].trim();
-      llamada = /^([A-Za-z_$][\w$]*)\s*[.(]/.exec(inicializador);
+      llamadaDirecta = /^([A-Za-z_$][\w$]*)\s*\(/.exec(inicializador);
+      accesoAEspacio = /^([A-Za-z_$][\w$]*)\s*\./.exec(inicializador);
     }
   }
 
@@ -381,9 +388,8 @@ export function clasificarDeclaracion({ texto, linea }, fichero) {
     esConst &&
     enlace !== null &&
     !enlace.startsWith("{") &&
-    llamada &&
-    CONSTRUCTORES.has(llamada[1]) &&
-    inicializador[llamada[1].length] !== "."
+    llamadaDirecta &&
+    CONSTRUCTORES.has(llamadaDirecta[1])
   ) {
     const nombre = /^([A-Za-z_$][\w$]*)/.exec(enlace);
     if (!nombre) abortar();
@@ -394,7 +400,11 @@ export function clasificarDeclaracion({ texto, linea }, fichero) {
   // Sus fallos ABORTAN aquí mismo: un destructuring de una factoría desconocida
   // no puede caer a D6 y salir clasificado como no-función.
   if (esConst && enlace !== null && enlace.startsWith("{")) {
-    const factoria = llamada && FACTORIAS[llamada[1]];
+    // LLAMADA DIRECTA, no acceso por propiedad: `convexAuth.algo({})` NO es
+    // `convexAuth({})`, y tomarlo por tal clasificaría una forma desconocida
+    // como factoría conocida — el falso negativo que este contrato existe para
+    // no tener.
+    const factoria = llamadaDirecta && FACTORIAS[llamadaDirecta[1]];
     if (!factoria) abortar();
     const nombres = enlace
       .replace(/^\{|\}$/g, "")
@@ -421,9 +431,14 @@ export function clasificarDeclaracion({ texto, linea }, fichero) {
   // constructor ABORTA, porque clasificarlo como no-función sería el falso
   // negativo que esta comprobación existe para no tener.
   //
-  // Medido en este repo: hay cinco `export default` (auth.config, convex.config,
-  // crons, http, schema), los cinco identificadores de objetos de configuración,
-  // y `function-spec` no devuelve NINGÚN identificador acabado en `:default`.
+  // Medido en este repo: hay cinco `export default` —auth.config, convex.config,
+  // crons, http (CUATRO identificadores) y schema, que es una LLAMADA DIRECTA a
+  // `defineSchema(...)`— y `function-spec` no devuelve NINGÚN identificador
+  // acabado en `:default`.
+  //
+  // Que `schema.ts` no aborte NO es una exclusión: es que `defineSchema` no está
+  // en CONSTRUCTORES. La rama distingue "constructor de FUNCIÓN Convex" de
+  // "cualquier llamada", y de ahí que el repo entero pase en verde.
   //
   // RESIDUO DECLARADO: `export default unIdentificador` seguiría clasificándose
   // como no-función aunque ese identificador guardase una función Convex. No se
@@ -437,11 +452,22 @@ export function clasificarDeclaracion({ texto, linea }, fichero) {
   }
 
   // ── D6 · no-función INEQUÍVOCA ────────────────────────────────────────────
-  if (esConst && inicializador !== null) {
+  // Exige además que lo declarado sea UN NOMBRE, opcionalmente con anotación de
+  // tipo. Sin esa condición, `export const [a, b] = [query({}), mutation({})]`
+  // caía aquí por tener un literal a la derecha y devolvía [] — dos funciones
+  // Convex clasificadas como no-función, en silencio. Es la misma forma que el
+  // fallo de `convexAuth.otraCosa`: la rama miraba el inicializador y daba por
+  // supuesto el enlace. Hoy no existe ningún caso así en `convex/` (medido), así
+  // que cerrarlo no cuesta ruido: lo que no sea un nombre simple cae al `else`.
+  const enlaceEsNombreSimple =
+    enlace !== null && /^[A-Za-z_$][\w$]*\s*(:|$)/.test(enlace);
+  if (esConst && inicializador !== null && enlaceEsNombreSimple) {
     if (/^["'`{[]/.test(inicializador)) return [];
     if (/^-?\d/.test(inicializador)) return [];
     if (/^(true|false|null|undefined)\b/.test(inicializador)) return [];
-    if (llamada && ESPACIOS_NO_FUNCION.has(llamada[1])) return [];
+    // Solo el ACCESO (`v.union(…)`). Una llamada directa `v(…)` no está
+    // declarada y cae al `else`.
+    if (accesoAEspacio && ESPACIOS_NO_FUNCION.has(accesoAEspacio[1])) return [];
   }
 
   // ── else · lo que no se sabe clasificar PARA la suite ─────────────────────

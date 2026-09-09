@@ -133,9 +133,59 @@ test("`export default` construido con un constructor ABORTA", () => {
   expect(() => clasificar(`export default query({ handler: async () => null });`)).toThrow(
     DeclaracionNoClasificable,
   );
-  // Y los cinco `export default` reales del repo (identificadores de objetos de
-  // configuración) NO abortan: el fail-closed no se compra con ruido.
+  // Y los cinco `export default` reales del repo no abortan: el fail-closed no
+  // se compra con ruido. CUATRO son identificadores (auth.config, convex.config,
+  // crons, http) y el quinto —`schema.ts`— es una LLAMADA DIRECTA a
+  // `defineSchema(...)`, que no aborta porque `defineSchema` NO está en
+  // CONSTRUCTORES. La rama distingue constructor de función Convex de cualquier
+  // llamada; no hay ninguna exclusión de fichero de por medio.
   expect(clasificar(`export default defineSchema({\n  users: {},\n});`)).toEqual([]);
+  expect(clasificar(`export default crons;`)).toEqual([]);
+});
+
+// ── X11 · la regresión de la ronda 2: acceso por propiedad NO es llamada ────
+// Al reordenar para cumplir el orden del contrato, D2 pasó a reutilizar una
+// expresión que se había ensanchado a `[.(]` para el caso de D6 (`v.union`), y
+// `convexAuth.otraCosa({})` empezó a devolver las cuatro funciones de
+// `convexAuth` sin que `convexAuth(...)` se invocara nunca. Ninguna regla
+// cambió: cambió DE DÓNDE venía un dato, y el dato traía puesto un permiso.
+test("X11 · `convexAuth.algo(...)` aborta: acceso por propiedad no es la factoría", () => {
+  expect(() =>
+    clasificar(
+      `export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth.otraCosa({});`,
+    ),
+  ).toThrow(DeclaracionNoClasificable);
+  // Control positivo en la dirección opuesta: la llamada directa SÍ clasifica.
+  expect(
+    clasificar(`export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({});`)
+      .sort(),
+  ).toEqual(["isAuthenticated", "signIn", "signOut", "store"]);
+});
+
+test("X11b · un espacio no-función solo vale por acceso, no por llamada directa", () => {
+  expect(clasificar(`export const val = v.union(v.literal("a"));`)).toEqual([]);
+  // `v(1)` no está declarado en ninguna parte: cae al `else`.
+  expect(() => clasificar(`export const val = v(1);`)).toThrow(DeclaracionNoClasificable);
+});
+
+// ── X12 · el enlace también se mira, no solo el inicializador ───────────────
+// Encontrado repasando el diff entero y no solo el fallo reportado: D6 miraba
+// el lado derecho y daba por supuesto el izquierdo, así que
+// `export const [a, b] = [query({}), mutation({})]` devolvía [] — dos funciones
+// Convex clasificadas como no-función en silencio. Misma forma que X11.
+test("X12 · un destructuring de array aborta en vez de pasar como no-función", () => {
+  expect(() =>
+    clasificar(`export const [a, b] = [query({}), mutation({})];`),
+  ).toThrow(DeclaracionNoClasificable);
+  expect(() => clasificar(`export const [a] = otraCosa();`)).toThrow(
+    DeclaracionNoClasificable,
+  );
+  // Y el control positivo: las cuatro formas legítimas del repo siguen sin
+  // abortar. El enlace se exige nombre simple, con o sin anotación de tipo.
+  expect(clasificar(`export const validador = v.union(v.literal("a"));`)).toEqual([]);
+  expect(clasificar(`export const config: EmailConfig = {\n  id: "x",\n};`)).toEqual([]);
+  expect(clasificar(`export const X: Equals<A, B> = true;`)).toEqual([]);
+  expect(clasificar(`export const n = 42;`)).toEqual([]);
 });
 
 // ── X9 / X10 · el CLI: fail-closed y sin volcar su salida ───────────────────
