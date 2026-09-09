@@ -460,8 +460,12 @@ leerlos con un `git show`"* — pero **cualquier sesión podía leerlos con un `
 fichero ya estaba en disco. **El commit no añadió superficie, añadió una copia en un sitio igual
 de accesible.** Su segundo argumento, los treinta días de validez del token, **no separa este caso
 de la operación normal**: cada corrida crea uno igual. Si eso es inaceptable, lo es **como diseño,
-no como incidente**. *Lo escribo porque es la clase de orden que se ejecuta sin discutir por venir
-de quien coordina, y estuvo a diez minutos de ejecutarse.*
+no como incidente**. ⚠️ **Y esa frase mía era falsa, corregida por ella misma más abajo: no "estuvo a diez minutos de
+ejecutarse" — SE EJECUTÓ.** No invalidó nada, **pero no por su rectificación: porque la maniobra
+no hacía lo que los dos creíamos.** El dato técnico que lo explica, y que ninguno sabíamos:
+**en Convex Auth consumir un refresh token NO es invalidarlo** — la detección de reuso necesita un
+refresco de por medio. *O sea que lo que nos salvó no fue el criterio: fue que la acción era
+inocua. Lo dejo escrito así porque el criterio sigue sin haberse probado.*
 
 ⚠️ **Quién tapó el agujero a las 05:29:27: fue T2, y lo declaró — pero a la Directora, no a mí.** Comprobé `.git/info/exclude` y ya
 contiene `e2e/.auth/`, cubriendo **todos los worktrees** —verificado con un `check-ignore` real
@@ -657,10 +661,13 @@ for b in $(git branch --no-merged main --format='%(refname:short)'); do
 
 *Control positivo: `main` sí la lleva (línea 114), y `git check-ignore -v` la resuelve.*
 
-⚠️ **Discrepancia declarada y NO resuelta:** a mí me salen **7 de 7** en la cola de publicación; la
-cifra que me llegó relayada era **«6 de 7»**. No sé de dónde sale la diferencia de uno y **no la
-persigo, porque no cambia ninguna decisión** —con 6 o con 7, la capa se queda—. La dejo escrita
-para que quien produjo el 6 pueda reconciliarla, no para que nadie la dé por buena.
+⚠️ **Discrepancia declarada por la Directora —«7 de 7» contra el «6 de 7» que le llegó— y la
+cierro yo, porque tengo las dos mitades: no se contradicen, cuentan cosas distintas.** La cola son
+**7 filas y 8 tareas**, porque AIT-96 va dentro de AIT-108. **AIT-108 es la única rama de las 68
+que toca `.gitignore`** (medido sobre todas, con control positivo). Por tanto: **6 de las 7 FILAS
+dependen de `info/exclude`, y 7 de las 8 TAREAS.** *Los dos números son correctos; el denominador
+no era el mismo.* **Y hace falta decirlo porque el mismo anidamiento AIT-96/AIT-108 ya produjo el
+«cuatro tareas» que hubo que reescribir entero.**
 
 **Lo que hay ahora en el fichero, y es mejor que lo que yo aprobé:** el CEO cambió *cuándo*
 quitarla por **cómo comprobar si toca**, con el comando al lado. **Una condición que otro puede
@@ -1033,7 +1040,7 @@ T3 implementando **AIT-92**, que sacó GO en la ronda 5 tras cerrar **un Blocker
 callback de OAuth** —habría permitido a un atacante enlazar su buzón a la cuenta de otro—.
 Ninguna terminal idle, y hay destino para las tres al terminar.
 
-*Última actualización: **2026-09-09 05:39 UTC (= 05:39 local)**, medida con `date -u`.*
+*Última actualización: **2026-09-09 05:39 UTC (= 02:39 local)**, medida con `date -u`.*
 
 ⚠️ **Y esta línea también caduca: la he tocado tres veces sin actualizarla, y decía 05:22 cuando ya
 había entrado toda la sección de las ocho tareas.** Una hora fija en un documento vivo miente sin
