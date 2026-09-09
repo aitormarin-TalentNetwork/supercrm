@@ -43,6 +43,13 @@ yarn-error.log*
 # restos de sesiones de prueba con Playwright MCP
 .playwright-mcp/
 
+# configs de Playwright que cada terminal se fabrica para esquivar el puerto 3000
+# (ver AIT-96). El del repo, `playwright.config.ts`, NO encaja aqui y sigue versionado:
+# el patron exige un segmento entre los dos puntos. Esto esta porque el 2026-09-08 dos
+# terminales dejaron el suyo suelto sin darse cuenta, y un fichero asi dentro de un
+# export contamina la evidencia de una auditoria.
+playwright.*.config.ts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

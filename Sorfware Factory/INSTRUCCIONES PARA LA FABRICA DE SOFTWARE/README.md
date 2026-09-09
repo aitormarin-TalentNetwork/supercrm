@@ -995,6 +995,19 @@ Decisión del Factory Architect, ejecutada por el CEO. Es **la otra mitad de §2
 > §2sexies cubre al agente que **cree que sí verificó** porque la herramienta le devolvió
 > verde. La buena fe no protege del segundo.
 
+#### Una instrucción caducada que manda hacer algo INÚTIL es peor que una que falta
+
+> **La que falta se nota. La que caducó tranquiliza.**
+
+§3bis decía *"la app depende de estas variables de entorno"* sobre `SEED_OWNER_PASSWORD` y
+`SEED_SALES_PASSWORD`. **Cero ocurrencias en todo el repo.** El QA **las copió creyendo que
+estaba haciendo algo**, y siguió adelante **con la sensación de haber cubierto un paso**.
+
+⚠️ **Y §3bis tenía DOS del mismo tipo en el mismo día** —esta y *"copia estas dos"* (63)—, lo
+cual dice algo sobre cómo envejecen los checklists y no sobre quien los escribió. **Al corregir
+uno, se revisa el documento entero con ese criterio**, no la línea: *¿alguna instrucción de aquí
+manda hacer algo que ya no sirve para lo que dice servir?*
+
 > **Y la razón por la que todo esto se escribe, en palabras de T3 (2026-09-08):**
 >
 > ### **"Los criterios escritos no protegen del error: protegen de uno mismo cuando el error saldría gratis."**
@@ -1359,7 +1372,57 @@ ninguno era el de `main`.** Es la familia del **dato correcto que caduca** — e
 **Y la pregunta que se deriva, que es la que no nos hacíamos:** ante una cadena de puertas, lo
 que hay que preguntar **no es si cada una es correcta, sino qué es lo que no mira ninguna.**
 
-**57.1 — Corrida periódica de la suite sobre `main` limpio, desacoplada de las publicaciones.**
+> # ⚠️ LA 57.1 ORIGINAL ESTÁ RETIRADA (2026-09-08, misma noche)
+>
+> **El Integrador probó su propia propuesta y no cabe: el sistema mató la corrida por memoria**
+> —12,6 GB de 16, con nueve sesiones vivas—. Playwright levanta varios navegadores en paralelo.
+>
+> **Y de ahí sale una forma de fallo que no teníamos:**
+>
+> ### **La vigilancia compite por memoria con el trabajo que debería vigilar.**
+>
+> ⚠️ **Y la propiedad que la hace peor: se degrada precisamente cuando hay más trabajo en
+> marcha, o sea cuando más probable es que haya algo que detectar. No falla al azar — falla en
+> correlación con el riesgo.** Es la familia del *"el modo de fallo mejora con la salud del
+> vecino"* del puerto 3000, invertida: aquí empeora con la actividad.
+>
+> *(Medición del CEO a la misma hora, para que conste el orden de magnitud: **swap 5.763 MB de
+> 7.168**, y los siete procesos con más RSS de la máquina eran **siete sesiones `claude`**, entre
+> 306 y 360 MB cada una.)*
+>
+> **VERSIÓN REVISADA, adoptada:** la suite se corre **antes de publicar algo que toque un fichero
+> compartido por varios specs** —`e2e/helpers.ts` es el caso—, con **`--workers=1`**, **en vez de
+> a intervalos**.
+>
+> - **Se dispara con una condición observable en el diff**, no con un reloj.
+> - **Y corre donde puede discriminar:** una corrida ciega sobre ficheros que nadie tocó **no
+>   podía dar otro resultado que verde** (enmienda 9).
+>
+> 🔴 **EL LÍMITE, Y HAY QUE LEERLO CON ELLA: ESTRECHA EL HUECO DE LA 57, NO LO CIERRA.** Cubre
+> **la regresión lateral por fichero compartido**; no cubre las demás. **El hueco sigue declarado
+> y sin dueño para todo lo otro.** Que nadie lea *"hay corrida antes de publicar"* y entienda que
+> `main` está vigilado.
+>
+> ✅ **DUEÑO: el Integrador. Y lo decide la 53, no la conveniencia.** El disparo de la versión
+> revisada es *"voy a publicar algo que toca un fichero compartido"* — **un momento que el
+> Integrador vive y el QA no**. La 57.1 original era del QA porque el ancla era una **cadencia**,
+> y esa cadencia desapareció con la propuesta vieja: **cambió el ancla, cambia el dueño.**
+>
+> *(Y el dato lo confirma por el otro lado: si fuera del QA **nacería bloqueada** por el agujero
+> de §3bis — repetiríamos exactamente lo de la 59.1, que no se vio hasta que él lo pisó.)*
+>
+> 🔴 **CONDICIÓN SIN LA CUAL ESTO NO SE ESCRIBE: si no cabe, SE DECLARA.**
+>
+> Acabamos de medir que **la suite puede no caber en memoria**. Así que esto le da al Integrador
+> una responsabilidad que **la máquina puede impedirle cumplir** — y sin cubrir eso, **el gate se
+> vuelve opcional en la práctica bajo presión de memoria y nadie se entera.**
+>
+> > **El Integrador publica DICIENDO que no pudo correrla y por qué. No publica sin más.**
+>
+> Convierte una omisión invisible en un dato visible. Es **§2ter(b) en el sitio donde más
+> tentador es callarse: cuando el obstáculo es real y la excusa es buena.**
+
+**57.1 — [RETIRADA, ver arriba] Corrida periódica de la suite sobre `main` limpio, desacoplada de las publicaciones.**
 Propuesta del Integrador, **asignada al QA**: ya tiene cadencia propia y disciplina de `/loop`,
 tiene el instrumental, y **es el único rol cuyo trabajo entero es "¿esto funciona de verdad?"**
 —esto es exactamente eso, una capa antes—. Reclama el cerrojo de Convex como cualquiera y
@@ -1897,6 +1960,20 @@ fallo:** primero **qué filas describen un arreglo que nadie ha hecho**; despué
 fallo. **Porque una fila sin arreglo no se prioriza: se construye, o se declara que no se va a
 construir.**
 
+⚠️ **Y un TERCER criterio, que el repaso no contemplaba: buscar PARES de decisiones que
+interactúen.**
+
+> **Dos decisiones correctas pueden cancelarse, y ninguna revisión individual lo detecta —
+> porque cada una es correcta.**
+
+*El caso que lo demuestra, y es nuestro:* la **57.1** manda al QA correr la suite sobre `main`
+limpio; la **59.1** lo saca del deployment compartido para que no contamine. **Las dos
+correctas.** Juntas: en el compartido contamina, en el suyo no puede autenticarse — **y el hueco
+que la 57.1 existía para cerrar sigue abierto.** Es la **57 aplicada a nuestras propias
+decisiones**: el defecto no está en ninguna de las dos, **está en el espacio entre ellas**.
+
+**El repaso estaba diseñado para revisar filas de una en una. El fallo puede estar entre dos.**
+
 #### ❓ PREGUNTA ABIERTA — qué hacemos con una preocupación que aún no tiene coste medido
 
 **No es una decisión. Está aquí sin resolver a propósito**, planteada por el Factory Architect el
@@ -1918,6 +1995,41 @@ mueve nada"* — la 31 aplicada contra el propio equipo.
 demás: **inventarse un criterio a las tres de la mañana es exactamente lo que este documento
 existe para evitar.**
 
+#### Los supervivientes de un cambio enmascaran el cambio (observación, 2026-09-08)
+
+> **Preguntarle a quien ya funcionaba si algo funciona devuelve "sí" — y es cierto y engañoso a
+> la vez.**
+
+**Variante de la 43 que no teníamos:** no es medir el sujeto equivocado, es **preguntarle a la
+población equivocada** — la que **precede al defecto**.
+
+*El caso:* cualquiera que hubiera comprobado *"¿funciona la migración de §3bis?"* preguntándoles
+a **T1 y T2** habría obtenido un **sí** rotundo —T1 tiene 18 logins con contraseña seguidos que
+lo demuestran— y habría sido **cierto**. Sus cuentas son de **seis horas antes** del merge que
+rompió el mecanismo. **El QA lo destapó por ser el primero en migrar después**, es decir, **por
+ser el único con la población correcta.**
+
+📌 **Y la pregunta que se deriva, que es la parte útil y sigue abierta:** **¿cuántas cosas damos
+por buenas porque quien las usa las montó antes del cambio que las rompería?**
+
+#### Una conclusión disfrazada de observación (2026-09-08)
+
+> **No se presentan como conclusiones: se presentan como datos.** Por eso pasan la revisión de
+> quien las lee esperando encontrar una afirmación.
+
+*El caso, y es del CEO sobre su propio texto:* escribió *"la fila es posterior a AIT-60 y no sale
+del bootstrap, **así que hay otra vía viva** que conviene identificar"*. Los dos primeros tramos
+son observaciones; **el tercero es una inferencia**, y había al menos otra explicación —que
+alguien creara la cuenta a mano— **más barata y sin descartar**. Lo cazó el Factory Architect.
+
+**Y el coste de no distinguirlo no es teórico:** si la explicación buena es la manual, **buscar
+el código no encuentra nada y el tiempo se va en confirmar una ausencia** — de lo que peor se
+sale, porque no hay momento en que se pueda parar con certeza.
+
+📌 **Es la 44 y la 31 a la vez:** *una explicación disponible impide buscar la real*, y *manda la
+tabla, no la conclusión*. **Aparece dentro de una frase que empieza siendo verdad** — y la
+encontró quien llevaba toda la noche corrigiéndosela a los demás.
+
 ### Registro vivo de comprobaciones desacreditadas
 
 ⚠️ **Cabecera del registro (decisión 66):** **una fila de aquí no es un control — describe uno
@@ -1926,6 +2038,7 @@ que habría que construir.** Cada una debería poder decir si su arreglo está *
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| **`npx convex data <tabla>` para inspeccionar una tabla** | **Imprime la fila ENTERA, incluidas columnas de credenciales.** Sobre `authAccounts` vuelca la columna `secret` —hashes con su sal— **al transcript de quien lo ejecute**. No son contraseñas en claro, pero **es material de credenciales y queda registrado**. Misma familia que `npx convex env list`, con otro comando. Lo declaró T1 el 2026-09-08 después de que le pasara **mientras investigaba precisamente este agujero** | **pedir solo las columnas que necesitas** (`provider`, `providerAccountId`) o filtrar la salida antes de que se vea (`\| cut`). ⚠️ **Y ojo con el momento: esto pasa justo cuando varias personas van a mirar la misma tabla a la vez para diagnosticar algo** — el aviso vale más antes que después |
 | **Un error de red al llamar a un servicio de terceros, leído como "su servicio falla"** | **Confunde "me han contestado que no" con "no he llegado a preguntar".** `net::ERR_CONNECTION_CLOSED`, un DNS que no resuelve o un timeout **no son respuestas**: son la ausencia de una. Caso del 2026-09-08: verificando el login de Google tras AIT-90, la petición a `accounts.google.com` murió sin respuesta **desde ese entorno**; reportarlo como "el login está roto" habría sido un **falso rojo** — fallo del arnés vendido como fallo del producto | **mirar la petición real y su respuesta**, no el resultado agregado. Y separar los tres estados: *contestó que sí* · *contestó que no* · **no contestó**. El tercero no es un veredicto sobre el producto, es un veredicto sobre el entorno |
 | **"El proceso no tiene terminal asociada, luego es un resto huérfano"** | **Es cierto y no significa nada.** Un proceso lanzado por un servidor MCP **nunca tiene tty** — igual que ninguno de los nuestros. La señal **no distingue huérfano de hijo de un servidor sano**. Caso del 2026-09-08: el QA leyó así 12 procesos de Chrome; los dos `playwright-mcp` padre estaban **vivos**, y uno de los navegadores se había arrancado **siete minutos antes**. Matarlos habría tirado la sesión de otro | **mirar el padre: `ps -p <ppid>`. Si vive, no es un resto.** Y por la 60.2, esta comprobación es **obligatoria** aquí: el siguiente paso era destructivo |
 | **Medir algo sobre el texto de un documento que se describe a sí mismo** | **Cuenta la explicación como si fuera un caso.** El contador de filas verificadas del índice hacía `grep -c '✅'` sobre el fichero entero y contaba **el ✅ de la cabecera que explica qué significa la marca**: reportó *"1 de 56 verificadas"* con **cero** verificadas. Hermano de `grep <herramienta>` sobre un transcript (decisión 20): **el documento contiene los datos y además el texto que habla de los datos** | acotar la medición a la parte estructurada —`grep -E '^\|'` antes de contar, o parsear la tabla— **nunca al fichero entero**. Y sospechar por sistema de cualquier métrica sobre un documento que explica su propia notación (decisión 58.3) |
@@ -2819,6 +2932,43 @@ aislado de las demás, apuntado desde el `.env.local` de su propio worktree
 `.env.local`. Si sigue siendo `third-goldfinch-805`, esa terminal NO está migrada
 todavía y le sigue aplicando el turno arbitrado de §3. Si es otro nombre, ya tiene
 deployment propio y puede ignorar esa regla.
+
+> # 🔴 §3bis ESTÁ ROTO PARA CUALQUIER DEPLOYMENT NUEVO (2026-09-08)
+>
+> **Un deployment creado después del 2026-08-25 00:51 UTC no puede hacer login con contraseña,
+> así que NO PUEDE CORRER LA SUITE E2E** —que entra por los botones de demo—. El checklist de
+> abajo **no es completable** tal cual para ese caso: su paso 4 no puede cumplirse.
+>
+> **La causa, verificada por tres vías independientes:**
+> - **`bootstrapInitialAccounts` ya no crea cuentas de contraseña.** Desde **AIT-60** crea filas
+>   de `users` como **lista blanca para Google**: *"para Google, la fila en `users` ES el alta:
+>   no hay `createAccount` ni secreto"* (`convex/users.ts:80`).
+> - **`SEED_OWNER_PASSWORD` y `SEED_SALES_PASSWORD` no las lee nadie:** **0 ocurrencias en todo
+>   el repo**, medido con control de positivos (`createAccount` sale 8 veces con el mismo grep).
+>   **Son variables muertas, y el paso 2 afirmaba que "la app depende" de ellas.**
+> - **La fecha lo cierra, y es el dato que convierte la sospecha en hecho** (aportado por T1):
+>   sus cuentas de Marta y Carlos se crearon el **2026-08-24 18:10 UTC**; **AIT-60 se mergeó el
+>   2026-08-25 00:51 UTC**. **Nacieron 6h 41min antes del cambio.**
+>
+> ⚠️ **O sea que T1 y T2 no son contraejemplos: son la prueba.** Funcionan **por ser anteriores**,
+> no porque el bootstrap funcione. **El QA es el primero que lo pisa porque es el primero que
+> migró después.**
+>
+> **Estado:** enrutado al PM como alcance (decisión 66). **El camino existe y no hay que
+> construirlo:** `convex/auth.ts:141` llama a `createAccount` dentro del flujo `signUp` del
+> proveedor Password — **falta invocarlo**, no crearlo. *(Y un segundo hilo, de T1: la tercera
+> fila de su `authAccounts` es del 26 de agosto, posterior a AIT-60, con `emailVerified` — **no
+> sale del bootstrap**. ⚠️ **DOS hipótesis, y solo una dice "hay otra vía viva":** (a) existe otro
+> camino automático que crea cuentas de contraseña hoy; (b) **alguien la creó a mano** y no hay
+> ninguna vía. **La (b) es más barata y no está descartada** — y si es la buena, **buscar el
+> código no encuentra nada y el tiempo se va en confirmar una ausencia**, que es de lo que peor
+> se sale. **Se resuelve preguntándole a Aitor si la creó él**, y eso cuesta una línea.)*
+>
+> 📌 **Y la consecuencia de proceso, que no se ve mirando ninguna decisión por separado: la 57.1
+> y la 59.1 se anulan mutuamente.** En el compartido el QA contamina lo que otros miden; en el
+> suyo no puede autenticarse. **El hueco que la corrida periódica existía para cerrar sigue
+> abierto** — es el *"espacio entre comprobaciones correctas"* de la 57, aplicado a nuestras
+> propias decisiones.
 
 **Checklist de migración, por terminal (PENDIENTE de ejecutar — no asumir que ya está
 hecho sin comprobar `CONVEX_DEPLOYMENT`):**

@@ -447,6 +447,14 @@ una vez que el trabajo pasa auditoría.
       Y antes de lanzarlo, haz siempre `git merge main` primero (aunque no sepas si main
       se movió) — si no, tu propio `convex dev` puede borrar del deployment funciones ya
       mergeadas por otra terminal que tu copia local no tiene.
+⚠️ AL INSPECCIONAR UNA TABLA DE CONVEX, NO VUELQUES LA FILA ENTERA (2026-09-08,
+   aviso de T1 tras pasarle a el mismo). `npx convex data authAccounts` imprime la
+   columna `secret` — hashes con su sal — y eso ACABA EN TU TRANSCRIPT. No son
+   contrasenas en claro, pero es material de credenciales y queda registrado.
+   Pide solo las columnas que necesitas (`provider`, `providerAccountId`) o filtra
+   la salida antes de que se vea. Misma familia que el aviso de `npx convex env
+   list` que ya esta en CLAUDE.md, con otro comando.
+
 ⚠️ RUTA ABSOLUTA, SIEMPRE, PARA TODO LO DE "codigo para auditar/" Y "cola/"
    (corregido 2026-09-08, hallazgo de T1). Esa carpeta está en `.gitignore`, así que
    **NO EXISTE dentro de tu worktree** — comprobado en T1, T2 y T3. Si la buscas por

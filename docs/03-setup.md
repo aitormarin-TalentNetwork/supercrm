@@ -210,24 +210,40 @@ dominio—, pero **si algún día hay que dar acceso por Google a alguien de fue
 dominio, esto es lo que hay que revertir** (y con ello vuelve la exigencia de auditoría
 para Gmail).
 
-**El cliente OAuth de Gmail todavía NO existe, y es a propósito.** Será un cliente
-*aparte* del login (decidido en AIT-90: añadir permisos de Gmail al del login cambiaría
-la pantalla de consentimiento de todo el mundo al entrar). Un cliente de Google necesita
-su URI de redirección, y esa dirección tiene dos mitades:
+**El cliente OAuth de Gmail ya existe** (creado el 2026-09-08, AIT-90). Es un cliente
+**aparte** del login: añadirle permisos de Gmail al del login cambiaría la pantalla de
+consentimiento de todo el mundo al entrar en la aplicación.
 
-- **El dominio ya se sabe**, y es el mismo `CONVEX_SITE_URL` de siempre — el intercambio
-  de token tiene que ocurrir en Convex, porque el token de refresco no puede pasar por el
-  navegador: `https://third-goldfinch-805.convex.site` (dev) y
-  `https://stoic-impala-857.convex.site` (producción). Nunca el dominio de Railway.
-- **La ruta todavía no existe.** La del login (`/api/auth/callback/google`) no la
-  escribimos nosotros: la instala Convex Auth con `auth.addHttpRoutes(http)` en
-  `convex/http.ts`. La de Gmail no es un login, así que necesita una ruta propia que
-  alguien tiene que añadir a ese mismo fichero — y eso es trabajo de **AIT-92**.
+| | |
+|---|---|
+| **Nombre** | `SuperCRM Gmail` (no confundir con `SuperCRM Web`, que es el del login) |
+| **Client ID** | `164759808809-ds444hc2bf8511to729uka15kb13cd88.apps.googleusercontent.com` |
+| **Client Secret** | en Bitwarden. **No** está puesto en ningún deployment todavía |
+| **Permiso** | `gmail.readonly` y solo ese |
+| **Ruta de callback** | `/gmail/oauth/callback`, en `convex/http.ts` (AIT-92) |
 
-Por eso el cliente se crea *cuando* AIT-92 defina su ruta, no antes: inventarle una
-dirección ahora obligaría a rehacerlo, o a atar la implementación a un camino que eligió
-quien no la ha construido. Las URIs de redirección **se pueden añadir y editar después
-sin recrear el cliente**, así que esperar no cuesta nada.
+**Cinco URIs de redirección registradas**, una por deployment de Convex. Tienen que ser
+`.convex.site` (nunca `.convex.cloud`) porque el intercambio de token ocurre en Convex: el
+token de refresco no puede pasar por el navegador.
+
+```
+https://stoic-impala-857.convex.site/gmail/oauth/callback     produccion
+https://third-goldfinch-805.convex.site/gmail/oauth/callback  dev compartido
+https://uncommon-puffin-303.convex.site/gmail/oauth/callback  T1
+https://healthy-mammoth-850.convex.site/gmail/oauth/callback  T2
+https://colorful-crane-322.convex.site/gmail/oauth/callback   QA
+```
+
+⚠️ **Esta lista caduca sola: cada deployment de Convex nuevo necesita la suya.** Si creas
+uno y el flujo de conexión de Gmail te falla, el error lo da Google y **no señala a
+nuestro código** — mira aquí antes de depurar nada. Añadir una URI es gratis y no hace
+falta recrear el cliente.
+
+**✅ Premisa validada en vivo (2026-09-08):** se abrió la pantalla de consentimiento real
+pidiendo `gmail.readonly` con una cuenta del dominio, y Google la concede **sin ninguna
+advertencia de verificación y sin exigir la auditoría CASA** — que era el riesgo que podía
+tumbar la Ola 2 entera. Es consecuencia directa de que la app sea **Interna**: si algún día
+vuelve a Externa, esto deja de ser cierto.
 
 
 - **URI de redirección autorizado:** `https://<CONVEX_SITE_URL>/api/auth/callback/google` (hoy, en dev: `https://third-goldfinch-805.convex.site/api/auth/callback/google` — `CONVEX_SITE_URL` es el dominio `.convex.site`, no el `.convex.cloud` de `NEXT_PUBLIC_CONVEX_URL`).
