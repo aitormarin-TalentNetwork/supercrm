@@ -2075,6 +2075,20 @@ principio de segunda categoría, con fecha de caducidad—: ninguna ronda usa
 `browser_run_code_unsafe` salvo necesidad estricta, y ninguna navega fuera de la app
 (Railway/localhost).
 
+⚠️ **EXCEPCIÓN VIVA, autorizada por Aitor directamente (2026-09-08, ~22:4x local).** Le dijo al
+PM, con estas palabras, *"toma la iniciativa para acabar de configurar Gmail, usa mi browser"* —
+levantando él mismo la restricción que el propio PM se había escrito en AIT-90. **El PM navega
+con la sesión personal de Aitor, en la consola de Google Cloud, con permiso expreso.**
+
+Se anota aquí **para que nadie la "corrija"**: la contención del 47.3 la puso el CEO, y **una
+instrucción directa de Aitor la levanta para el caso que él nombre** — no al revés. Quien vea al
+PM fuera de `localhost` no está viendo un incumplimiento.
+
+*(Y una nota que el propio PM aporta y que refuerza la 47 en vez de debilitarla: que la única
+forma de hacer ese trabajo fuera usar el navegador personal de Aitor **es exactamente el
+problema**. Con un perfil aislado, la configuración de Gmail seguiría necesitando su sesión —
+eso es inevitable— pero **ninguna otra prueba de la fábrica la compartiría.**)*
+
 **47.4 — Cuando se implemente, por la 46:** el perfil aislado **se estrena vacío y verificado
 vacío**, no reutilizando uno existente "que parece limpio". Si el primer uso arrastra
 credenciales heredadas, nace desacreditado.
