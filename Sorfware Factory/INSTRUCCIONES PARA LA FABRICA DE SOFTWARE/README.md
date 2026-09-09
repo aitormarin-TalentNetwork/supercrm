@@ -2462,6 +2462,24 @@ los errores pasaron de 5 a 18**.
 **Y la precondición no estaba escrita en ninguna parte** — por eso el precedente parecía general
 cuando era específico.
 
+#### Dónde van los nombres, y dónde no (criterio del PM, 2026-09-09)
+
+> **Un documento de rol se lee para saber qué hacer, no para saber quién falló.** Y si lleva
+> nombres, **el que llega nuevo aprende a no aparecer en él antes que a aplicar la regla.**
+
+**Las reglas de un documento de rol van con SU CASO —el criterio vacío, los dos recuentos, el
+`tsc` en rojo— pero SIN LA FIRMA.** El caso es lo que hace que la regla se entienda; el nombre no
+añade nada a quien la va a aplicar **y sí cambia lo que el lector aprende a evitar.**
+
+**Y el registro con nombres no desaparece: tiene su sitio, que es este catálogo y el traspaso.**
+Ahí los nombres sí valen —dan procedencia, permiten preguntar, y reconocen a quien encontró la
+cosa—. **Son dos documentos con dos funciones, y mezclarlas estropea las dos.**
+
+⚠️ **Deuda declarada al escribir esto:** `intro-terminal.txt` **hoy sí lleva nombres** en varios
+avisos añadidos esta noche —*"caso real: T2, midiendo el «antes» de AIT-96…"*—. **No se reescribe
+de madrugada por un criterio de estilo**: queda anotado para el repaso, con el criterio ya escrito
+aquí para que lo nuevo nazca bien.
+
 ### Decisión 71 — Una medición se enuncia con su MÉTODO, no solo con su resultado (2026-09-09)
 
 > ### **Una línea: el comando, el patrón, el filtro. No la salida entera.**
