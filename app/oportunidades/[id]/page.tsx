@@ -442,8 +442,13 @@ export default function OportunidadPage({
         footer={<Button onClick={() => setModal(null)}>Entendido</Button>}
       >
         <p className="text-sm text-text-secondary">
-          No se puede eliminar: tiene interacciones registradas. Bórralas
-          primero.
+          {/* AIT-84: con la cifra, como ya hacía el mensaje del servidor
+              (convex/opportunities.ts). El número cambia la decisión de quien
+              lo lee: con 3 te pones a borrarlas ahora, con 30 lo dejas para
+              otro día. `interactions` ya está aquí — es lo que decide cuál de
+              los dos diálogos abrir. */}
+          No se puede eliminar: tiene {interactions.length} interacción(es)
+          registrada(s). Bórralas primero.
         </p>
       </Dialog>
       <DeleteInteractionDialog
@@ -1320,7 +1325,19 @@ function ChangeStageDialog({
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (loading || stage === currentStage) return;
+    if (loading) return;
+    // AIT-84: sin cambios no hay nada que guardar, así que se cierra en vez de
+    // llamar a la mutation —que lo rechazaría con un error rojo por no haber
+    // tocado nada— y en vez de dejar el botón gris sin explicar por qué. El
+    // botón deja de estar `disabled` por este motivo: un control apagado no
+    // comunica nada en táctil ni con teclado (AIT-66), y el diseño
+    // (Design/pantallas/Detalle de oportunidad.dc.html) no deshabilita ninguno
+    // en esta pantalla. La guarda del servidor se conserva como respaldo: una
+    // llamada directa con el mismo valor sigue rechazándose.
+    if (stage === currentStage) {
+      handleClose();
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -1341,7 +1358,7 @@ function ChangeStageDialog({
       <Button variant="secondary" onClick={handleClose} disabled={loading}>
         Cancelar
       </Button>
-      <Button type="submit" form="change-stage-form" disabled={loading || stage === currentStage}>
+      <Button type="submit" form="change-stage-form" disabled={loading}>
         {loading ? "Guardando…" : "Guardar etapa"}
       </Button>
     </>
@@ -1410,7 +1427,19 @@ function ChangePriorityDialog({
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (loading || priority === currentPriority) return;
+    if (loading) return;
+    // AIT-84: igual que en el diálogo de etapa — sin cambios no hay nada que guardar, así que se cierra en vez de
+    // llamar a la mutation —que lo rechazaría con un error rojo por no haber
+    // tocado nada— y en vez de dejar el botón gris sin explicar por qué. El
+    // botón deja de estar `disabled` por este motivo: un control apagado no
+    // comunica nada en táctil ni con teclado (AIT-66), y el diseño
+    // (Design/pantallas/Detalle de oportunidad.dc.html) no deshabilita ninguno
+    // en esta pantalla. La guarda del servidor se conserva como respaldo: una
+    // llamada directa con el mismo valor sigue rechazándose.
+    if (priority === currentPriority) {
+      handleClose();
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -1434,7 +1463,7 @@ function ChangePriorityDialog({
       <Button
         type="submit"
         form="change-priority-form"
-        disabled={loading || priority === currentPriority}
+        disabled={loading}
       >
         {loading ? "Guardando…" : "Guardar prioridad"}
       </Button>
