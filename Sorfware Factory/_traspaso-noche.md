@@ -625,10 +625,54 @@ es quien decide si se numera.
 
 > *"Dos protecciones de las cuales solo una se ve es peor que una sola que se vea."*
 
-**La nota ya está escrita dentro de `.git/info/exclude`** —comentario, no cambia comportamiento—
-con cuándo quitarla, y **con el porqué, la fecha y la causa**, para que quien la encuentre dentro
-de seis meses no tenga que reconstruir esta noche. *(Se lo aprobé yo; T2 preguntó antes de
-tocarlo, que es la diferencia entera con lo de las 02:29.)*
+### CORRECCIÓN 3 — a mí mismo, cuatro minutos después de escribir lo de arriba
+
+Escribí aquí que la nota de T2 dentro de `.git/info/exclude` estaba bien y aprobada por mí.
+**Duró tres minutos.** El CEO la ha reemplazado y tenía razón. *(Este documento avisa en su
+cabecera de que caduca mientras se escribe; acabo de ser el ejemplo.)*
+
+**El fallo es mío y es más feo que "se quedó viejo".** La nota decía
+`QUITAR ESTA LÍNEA CUANDO AIT-108 PUBLIQUE /e2e/.auth/ EN EL .gitignore`. **Esa instrucción ya
+había sido derogada tres horas antes, en §6 de este mismo documento**: la propuse yo, T2 me dio el
+contraargumento mejor —las ramas que salen de commits viejos no llevan la línea— y quedó cerrado
+que **la capa se queda**. T2 la reescribió sin caer, y **yo la aprobé sin comprobarla contra la
+decisión que ya estaba tomada.** Rearmé una trampa que yo mismo había desactivado.
+
+**Y se disparó, exactamente como estaba escrito que se dispararía:** el Factory Architect decidió
+añadir `/e2e/.auth/` al `.gitignore` de `main`, el CEO lo ejecutó, **y con eso cumplió la condición
+de la nota sin saber que existía**. Quien la hubiera leído entonces habría borrado la capa de
+abajo.
+
+**Medido por mí ahora (02:38 local), rama por rama, no relayado:**
+
+```
+for b in $(git branch --no-merged main --format='%(refname:short)'); do
+  git show "$b:.gitignore" | grep -q 'e2e/\.auth' && echo "$b SI" || echo "$b NO"; done
+```
+
+| | ramas |
+|---|---|
+| Llevan la línea en su `.gitignore` | **1** — solo AIT-108 |
+| **Dependen de `info/exclude`** | **9** de 10 sin publicar (las 7 de la cola + AIT-92 + inventario v2) |
+
+*Control positivo: `main` sí la lleva (línea 114), y `git check-ignore -v` la resuelve.*
+
+⚠️ **Discrepancia declarada y NO resuelta:** a mí me salen **7 de 7** en la cola de publicación; la
+cifra que me llegó relayada era **«6 de 7»**. No sé de dónde sale la diferencia de uno y **no la
+persigo, porque no cambia ninguna decisión** —con 6 o con 7, la capa se queda—. La dejo escrita
+para que quien produjo el 6 pueda reconciliarla, no para que nadie la dé por buena.
+
+**Lo que hay ahora en el fichero, y es mejor que lo que yo aprobé:** el CEO cambió *cuándo*
+quitarla por **cómo comprobar si toca**, con el comando al lado. **Una condición que otro puede
+cumplir sin enterarse deja de ser una condición; una comprobación ejecutable no depende de que
+nadie te avise.**
+
+📌 **Candidata a decisión, del CEO, y la tercera instancia de la misma forma esta noche:**
+> **Quien escribe «cuando pase X, haz Y» se vuelve dependiente de que alguien le avise de X — y
+> nadie sabe que lo es.** La instrucción sobrevive a su condición y nadie vuelve a mirarla.
+> *Remedio observado: sustituir el disparador por una comprobación que el lector pueda ejecutar.*
+
+**Para el Factory Architect**, junto con la de T2. **No las numero yo.**
 
 ## 6bis. Dos que necesitan tu turno por la mañana, por motivos distintos
 
