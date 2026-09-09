@@ -147,14 +147,23 @@ test("Y6 · readState rechaza el fichero envenenado REAL y dice qué encontró",
   } catch (e) {
     mensaje = (e as Error).message;
   }
-  expect(mensaje).toContain("0 cookie(s)");
+  // EL CONTRATO ES FACTUAL: qué se encontró, qué falta, dónde está y cómo
+  // conservarlo. Ni una palabra sobre por qué.
+  expect(mensaje).toContain("0 cookie(s)"); // qué se encontró
   expect(mensaje).toContain("ninguna");
-  // Lo que esta aserción protege es que el mensaje NO se lea como una regresión
-  // del cambio que uno esté probando. Se afirma sobre eso, no sobre una causa
-  // concreta: decir "de una corrida anterior" era falso —puede romperse dentro
-  // de la corrida en curso o a mano— y estaba fijado aquí como si fuera cierto.
-  expect(mensaje).toContain("no la ha roto el cambio");
-  expect(mensaje).not.toContain("corrida anterior");
+  expect(mensaje).toContain(COOKIE_JWT); // qué falta, con nombre
+  expect(mensaje).toContain(COOKIE_REFRESH);
+  expect(mensaje).toContain(statePath("sales", dir)); // dónde está
+  expect(mensaje).toMatch(/c[óo]piala/i); // cómo conservar la evidencia
+
+  // Y LA MITAD QUE IMPORTA, que es la que este test tenía al revés: prohibir la
+  // atribución de causa, no exigirla. Antes esto fijaba «no la ha roto el
+  // cambio que estés probando» como requisito PERMANENTE, y con eso una
+  // regresión real de autenticación se archiva como problema preexistente del
+  // arnés. El error no sabe quién escribió el fichero: no puede decirlo.
+  expect(mensaje).not.toMatch(
+    /no la ha roto|no es culpa|preexistente|corrida anterior|de otra corrida|se guardó rota/i,
+  );
 });
 
 test("Y7 · readState acepta una instantánea válida", () => {

@@ -247,9 +247,15 @@ export function readState(role: Role, dir: string = AUTH_DIR): StorageState {
   // ESCRIBIR.
   const problema = problemaDeInstantanea(estado, role);
   if (problema !== null) {
+    // El mensaje dice QUÉ se ha encontrado y DÓNDE, y nada más. Nada de
+    // atribuir causa: aquí no se sabe quién dejó el fichero así, y una causa
+    // plausible puesta en un error se lee como diagnóstico. Si dijera de quién
+    // NO es la culpa, una regresión real de autenticación se archivaría como
+    // problema del arnés —que es exactamente hacia el verde—.
     throw new Error(
-      `[e2e] ${problema} Se guardó rota antes de esta lectura —en esta misma ` +
-        `corrida o en otra—; no la ha roto el cambio que estés probando. ${QUE_HACER}`,
+      `[e2e] ${problema} Fichero: ${ruta}. Si quieres conservarla para ` +
+        `mirarla, cópiala a un sitio fuera del repo antes de tocar nada. ` +
+        `${QUE_HACER}`,
     );
   }
   return estado;
