@@ -235,6 +235,14 @@ paró de producir y respetamos la pausa—:
 - **Arreglar un fallo quitando un paso deja el hueco que ese paso tapaba de refilón.** El `rm -f`
   era incorrecto **y hacía algo**: protegía de la ronda anterior. **Quitarlo sin decir quién hace
   ese trabajo lo dejó sin dueño.**
+- ⚠️ **UNA TENSIÓN SIN RESOLVER entre dos cosas escritas la misma noche, y conviene mirarla
+  antes de que alguien aplique la equivocada.** Para una **puerta** escribimos que *errar por
+  estricto es el lado correcto*: un falso negativo se investiga —alguien está bloqueado— y un
+  falso positivo no. Para un **vigilante** acabamos de decir lo contrario: el falso negativo es
+  peor, porque **no avisar nunca es silencioso**. **Las dos son ciertas, y lo que las separa es
+  si hay alguien delante esperando al instrumento.** Una puerta se sufre; un vigilante se
+  ignora. *Nadie ha escrito eso todavía, y "errar por estricto" suelto es un consejo peligroso
+  fuera de las puertas.*
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.

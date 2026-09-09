@@ -3750,9 +3750,17 @@ observar.**
    margen entre armar y disparar.
 
    **Y la comprobación de que funciona es de efecto, no de patrón:** que un marker de las
-   23:33 siguiera ahí **sin que la espera de T2 hubiera disparado** es la prueba. Por eso
-   **esos markers viejos no se borran "para limpiar"**: además de poder quitárselos a una
-   espera ajena, **son la única evidencia de que la comparación funciona.**
+   23:33 siguiera ahí **sin que la espera de T2 hubiera disparado** es la prueba.
+
+   > ⚠️ **Por eso esos markers viejos NO se borran "para limpiar": son el control positivo del
+   > detector.** Sin ellos, el arreglo solo habría **corrido limpio** — y un control que solo ha
+   > visto verde está **sin estrenar** (decisión 58). **Lo que parecía basura que limpiar era la
+   > única prueba de que el detector distingue.** *(Y además podrías quitárselo a una espera
+   > ajena, que es la razón menor.)*
+
+   📌 **Y por qué la precisión del orden no es un detalle: sin ella habríamos cambiado un falso
+   positivo por un falso negativo, que es el cambio malo.** De *avisar seis minutos antes* a **no
+   avisar nunca**. El primero se nota; el segundo no.
 2. **Ahora sí, dispara el trabajo**, encadenándole al final ese mismo marker — `touch
    /tmp/<marker>`, con un identificador único de esa tarea concreta (nunca reutilices un
    marker de otro propósito, p. ej. el del aviso de voz a Aitor — son cosas distintas).
