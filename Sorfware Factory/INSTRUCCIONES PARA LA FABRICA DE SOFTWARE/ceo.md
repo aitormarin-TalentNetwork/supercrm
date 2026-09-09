@@ -618,6 +618,26 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### ⚠️ Y dentro de cada worktree: el MÁXIMO de todos los transcripts, no el más reciente por `mtime`
+
+**Corregido el 2026-09-09, y el fallo era estructural aunque ese día no mordiera.** Hay **varias
+sesiones por worktree** —esa noche 3, 4 y 6— porque cada relanzamiento deja su `.jsonl`. Coger
+**el más reciente por `mtime`** y leerle su última actividad *funciona porque la sesión viva es la
+que está escribiendo*… **y eso es una suposición, no una garantía.**
+
+> **Basta con que algo toque un `.jsonl` viejo para que "T3: hace 0 min" sea de una sesión
+> muerta.** Y falla **hacia el verde**: daría *activa* a una terminal parada, que es **justo lo
+> contrario de lo que el barrido existe para detectar**.
+
+✅ **Lo correcto:** el **máximo timestamp de `assistant` entre TODOS los `.jsonl`** del
+directorio. Una línea más, y quita la suposición entera.
+
+📌 **Cuando se corrigió, los tres worktrees daban el mismo resultado por los dos métodos.** Eso
+**no es un argumento para dejarlo**: es la definición de *plausiblemente estable* — el criterio
+que **acierta siempre hasta el día que no**, y ese día no avisa. *(Lo encontró la Directora
+midiendo el instrumento del CEO, no revisando el suyo. Van tres veces la misma noche que el
+hallazgo sale de ir a comprobar lo de otro.)*
+
 ### ⚠️ Al resolver roles en el censo: directorio de proyecto, NUNCA el `cwd` de los eventos
 
 **Corregido el 2026-09-09 después de leerlo mal dos ciclos.** La 45.1 dice *"el desarrollador se
