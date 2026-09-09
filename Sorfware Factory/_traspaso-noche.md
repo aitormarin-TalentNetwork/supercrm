@@ -146,8 +146,15 @@ xattr ~/Documents        -> com.apple.file-provider-domain-id
 demonios vivos           -> cloudd 647 · bird 697 · fileproviderd 735
 espejo                   -> ~/Library/Mobile Documents/com~apple~CloudDocs/Documents  EXISTE
 ruta real del repo       -> /Users/aitor/Documents/curro + proyectos/...   (DENTRO)
-ficheros "* N.*"         -> 46  (find, excluyendo node_modules)
+ficheros "* N.*"         -> NO PONGO CIFRA AQUÍ A PROPÓSITO. Córrela tú:
+                            find . -name "* [0-9].*" -not -path "*/node_modules/*" | wc -l
 ```
+
+⚠️ **Ese recuento tiene vida útil de MINUTOS y por eso va el comando y no el número.** `.next` se
+regenera en cada compilación y la cuarentena se llena sola. **Si mañana te sale otra cifra, no
+significa que el problema creciera ni que se arreglara: significa que alguien compiló.** *(A las
+03:35 local daban 46, repartidos entre `_worktrees`, `.next`, la cuarentena y `test-results`, y
+**cero dentro de `.git`**. La cifra es de esa hora y de nada más.)*
 
 **«Escritorio y Documentos en iCloud» está activado, y el proyecto entero está debajo**: los cuatro
 `_worktrees`, los cuatro `.git`, los `.next`, y los documentos de la fábrica que tres o cuatro
@@ -166,8 +173,11 @@ ellos.** Y da mecanismo a cosas que esta noche tratamos como incidentes sueltos:
 ⚠️ **Lo que está VERIFICADO y lo que es INFERENCIA** (57.3): verificado, que el repo está en una
 carpeta sincronizada con los demonios activos. **Inferido**, que de ahí salgan las copias — el
 patrón encaja y ahora hay mecanismo, pero **nadie ha visto a iCloud crear una**.
-*(T3 contaba 56 duplicados y yo cuento 46: distinto patrón de búsqueda, no discrepancia de fondo.
-No la persigo porque no cambia la decisión.)*
+*(Hubo una discrepancia 56 vs 46 y **la expliqué mal**: escribí "distinto patrón de búsqueda"
+cuando **era el mismo comando** y el 56 era una foto de dos horas antes. T3 fue a medirlo en vez de
+dejarlo declarado y salió 46, el mío. **Atribuí una causa plausible en lugar de decir que no la
+sabía** — que es el defecto que este traspaso lleva media docena de veces, cometido esta vez al
+cerrar una discrepancia menor.)*
 
 **Ya estaba en tu lista como «sacar el proyecto de iCloud».** Sube de sitio porque ahora tiene
 causa medida en vez de sospecha, y porque **un repo con worktrees no debería estar en una carpeta
