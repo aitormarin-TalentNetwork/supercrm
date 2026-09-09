@@ -44,7 +44,18 @@
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <div class="pipe-hidesm" style="width:220px"><x-import component-from-global-scope="DesignSystem_ddd184.Input" size="sm" left-icon="{{ icons.search }}" placeholder="Buscar cliente…" value="{{ query }}" onInput="{{ onSearch }}" hint-size="100%,36px"></x-import></div>
-        <x-import component-from-global-scope="DesignSystem_ddd184.Button" left-icon="{{ icons.plus }}" on-click="{{ openAlta }}" hint-size="auto,44px">Nueva oportunidad</x-import>
+        <!-- AIT-85 (2026-09-08): RETIRADO el botón "Nueva oportunidad".
+             Gana el código (decisión del PM). Este diseño es ANTERIOR a
+             AIT-66, que puso las acciones rápidas en la cabecera de las diez
+             pantallas: `app/pipeline/page.tsx` monta <QuickActions />, así que
+             el alta rápida SÍ está disponible aquí, por otra vía. Y desde
+             AIT-74 también se crea una oportunidad desde la ficha del cliente.
+             No era una función que faltara: era una vía que AIT-66 sustituyó.
+             Un tercer punto de entrada no añade nada y ensancharía el MVP.
+             El diálogo de alta que había debajo (openAlta/createAlta) queda sin
+             disparador en la maqueta: se deja tal cual a propósito, porque
+             reescribir el modelo de comportamiento del mockup excede "el botón
+             ya no aparece". -->
       </div>
     </div>
 

@@ -223,9 +223,24 @@ class Component extends DCLogic {
     if (e) e.focus();
   }
 
+  // AIT-85 (2026-09-08/09): divergencia en la DIRECCIÓN INVERSA — el código va
+  // por DELANTE del diseño. Esta maqueta prometía MENOS que la aplicación, así
+  // que quien partiera de ella construiría algo peor de lo que ya existe.
+  // GANA EL CÓDIGO y **se actualiza la maqueta** (decisión del PM, 2026-09-09:
+  // "la reconciliación va en las dos direcciones; si el código va por delante,
+  // gana el código y se actualiza la maqueta"). La issue estaba escrita
+  // pensando solo en la dirección contraria — el PM asumió el sesgo.
+  // El aviso de abajo describía un flujo que NO existe ("pide a la dueña que
+  // restablezca tu acceso"). El real está en
+  // `components/auth/PasswordResetDialog.tsx`, enlazado desde
+  // `app/login/page.tsx:316`: pide el email, envía un código y deja elegir
+  // contraseña nueva. El texto se alinea con eso.
+  // No se reconstruye el diálogo entero en la maqueta: eso sería rehacer el
+  // modelo de comportamiento del mockup, y aquí basta con que deje de decir
+  // algo falso — el diseño de referencia de ese flujo es el componente.
   forgot(e) {
     if (e && e.preventDefault) e.preventDefault();
-    this.setState({ toast: { variant: 'info', title: 'Recuperar contraseña', message: 'Pide a la dueña de tu empresa que restablezca tu acceso.' } });
+    this.setState({ toast: { variant: 'info', title: 'Recuperar contraseña', message: 'Te pedimos el email, te enviamos un código y eliges contraseña nueva. Ver components/auth/PasswordResetDialog.tsx.' } });
     clearTimeout(this._toastT);
     this._toastT = setTimeout(() => this.setState({ toast: null }), 4800);
   }

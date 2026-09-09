@@ -336,6 +336,14 @@ class Component extends DCLogic {
     this.showToast('warning', 'Oportunidad perdida', 'Registrada con motivo: ' + motivo + '.');
   }
 
+  // AIT-85 (2026-09-08): este `reopen` NO está construido en el código —
+  // `grep -rn "Reabrir|reopen" app components convex` daba CERO. El diseño se
+  // MANTIENE tal cual: la divergencia se adjudicó a AIT-86 (MVP, prioridad
+  // alta), que sí lo construye. No es como el botón de Pipeline, donde la
+  // función existía por otra vía: aquí no había camino alternativo ninguno.
+  // Ojo al implementarlo: la etapa fija 'negociacion' de aquí abajo es el
+  // valor de la maqueta, no una regla. El PM decidió que vuelve a la etapa
+  // que tenía al cerrarse.
   reopen() {
     this.setState(s => ({ opp: { ...s.opp, etapa: 'negociacion', lossReason: null, paso: { accion: 'Retomar el seguimiento', fecha: 'Hoy', estado: 'pendiente' } } }));
     this.showToast('info', 'Oportunidad reabierta', 'Vuelve a estar en Negociación.');

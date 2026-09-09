@@ -352,6 +352,28 @@ class Component extends DCLogic {
   openRegistrar(id) { this.setState({ modal: 'registrar', activeId: id }); }
   openActividad() { this.setState({ modal: 'registrar', activeId: null, cliMode: 'existente', cliVal: (CLIENTS[0] && CLIENTS[0].name) || '', typeSel: 'llamada', fabOpen: false }); }
   openOportunidad() { this.setState({ modal: 'oportunidad', cliMode: 'existente', cliVal: (CLIENTS[0] && CLIENTS[0].name) || '', fabOpen: false }); }
+  // AIT-85 (2026-09-08): DIVERGENCIA ABIERTA, escalada al PM — no se resuelve
+  // aquí porque es FUNCIONALIDAD, no reconciliación.
+  // `openContacto`/`createContacto` dan de alta un CONTACTO SUELTO: un cliente
+  // con nombre y teléfono, SIN oportunidad. En el código eso no existe por
+  // ninguna vía: el único `insert("customers")` de todo el backend está en
+  // `convex/opportunities.ts::createQuick`, que SIEMPRE crea también una
+  // oportunidad. Verificado con grep sobre `convex/`.
+  // DIRECCIÓN ADJUDICADA: **gana el diseño**. La maqueta se queda tal cual y la
+  // funcionalidad se construye en **AIT-88** — "No se puede guardar un contacto
+  // sin inventarle una venta" (MVP, prioridad alta, creada 2026-09-09).
+  // No se construyó en AIT-85 porque es funcionalidad, no reconciliación
+  // (criterio 3 de la issue), pero la decisión NO queda pendiente: está tomada.
+  // Motivo del PM: obligar a inventarse una oportunidad mete ventas falsas en
+  // el pipeline y contamina lo que el producto mide — el valor en juego, la
+  // conversión y, sobre todo, la lista de "en riesgo", donde esos avisos
+  // falsos compiten con los de verdad.
+  //
+  // Lo que sí está cubierto y NO es divergencia: `setCliMode`/`resolveClient`
+  // —elegir entre cliente existente y nuevo— existe en el código por otra vía:
+  // AIT-74 crea la oportunidad sobre un cliente existente desde su ficha, y
+  // AIT-80 detecta el duplicado por teléfono en el propio alta rápida. Misma
+  // función, distinto vehículo.
   openContacto() { this.setState({ modal: 'contacto', fabOpen: false }); }
   toggleFab() { this.setState(s => ({ fabOpen: !s.fabOpen })); }
   setCliMode(v) { this.setState({ cliMode: v }); }
