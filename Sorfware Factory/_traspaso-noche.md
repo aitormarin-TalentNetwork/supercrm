@@ -12,9 +12,13 @@ del final para saber hasta cuándo llega.**
 > hacia adelante y llegó a 17 minutos.**
 > **La hora de verdad de cualquier párrafo es la del commit que lo trajo:**
 > `TZ=UTC git log --date=format-local:'%F %T' --pretty='%ad %s' -- "Sorfware Factory/_traspaso-noche.md"`
-> He corregido las dos de arriba y la del cierre. **Las horas del cuerpo NO las he reauditado
-> una a una** — no quiero cambiarlas a ojo por segunda vez. **Trátalas como aproximadas, con el
-> orden bien y el reloj corrido; los hechos y el orden no dependen de ellas.**
+> **Para que no dependas de acordarte de este aviso al caer en una sección suelta, cada hora
+> tecleada del cuerpo lleva ahora una tilde delante: `~02:31`.** La tilde significa *"la escribí
+> yo de memoria, va adelantada"*. **Una hora SIN tilde está anclada** a algo medible —un commit,
+> una fecha de deployment, `date -u`— o es una cita literal de otro. Así el aviso viaja pegado a
+> lo que avisa y no puede caerse. **No las he reauditado una a una** y no las voy a cambiar a ojo
+> por segunda vez: **el orden de los hechos es bueno, el reloj va corrido, y nada de lo que
+> importa depende de ellas.**
 > *Me lo cazó el Factory Architect, y a él le costó dar por perdido su propio latido 18 minutos
 > por copiar mi hora en vez de mirar el reloj: **un número sin su procedencia se usa como si la
 > tuviera**, y el mío se propagó a la sesión que vigila a las demás.*
@@ -325,17 +329,17 @@ recuerda por qué existe.
   `vm_stat` → **libre+inactiva**, que es lo reclamable de verdad · y el **agregado de RSS**,
   desglosando **tu Chrome / las sesiones / el Chrome del MCP**.
 
-  *Foto de las 04:17 UTC, y es una foto:* tu Chrome **1.508 MB en 30 procesos** · las nueve
+  *Foto de las ~04:17 UTC, y es una foto:* tu Chrome **1.508 MB en 30 procesos** · las nueve
   sesiones **1.913 MB** · el navegador de la fábrica **215 MB**.
 
   ⚠️ **Por qué insisto en que es una foto: el agregado de las sesiones cayó de 2.934 a 1.913 MB en
-  22 minutos, solo porque cuatro se quedaron ociosas.** A las 02:31 te dijimos *"nueve terminales
+  22 minutos, solo porque cuatro se quedaron ociosas.** A las ~02:31 te dijimos *"nueve terminales
   es lo que aprieta la máquina"* y **exagerábamos nuestra parte**. **Te hemos pasado fotos
   llamándolas propiedades tres veces.**
 
 - *(Registro histórico de lo que se te dijo antes y ya no vale)* — **EL DATO CAMBIÓ, y el Factory
-  Architect te pasó el anterior como límite de escalado.** A las 02:31 UTC medí swap 5.763/7.168 con **los siete procesos más pesados siendo
-  siete sesiones de Claude**. A las 02:39 UTC: **5.681/7.168, estable, y el proceso más pesado ya
+  Architect te pasó el anterior como límite de escalado.** A las ~02:31 UTC medí swap 5.763/7.168 con **los siete procesos más pesados siendo
+  siete sesiones de Claude**. A las ~02:39 UTC: **5.681/7.168, estable, y el proceso más pesado ya
   no es una sesión `claude` sino Chrome (515 MB)**. Sigue siendo cierto que **nueve terminales
   aprietan la máquina** y que esta noche el sistema mató **dos** corridas de tests — pero **el
   número concreto que te dieron para decidir si abres una terminal más ya no es el vigente**.
@@ -604,7 +608,7 @@ paró de producir y respetamos la pausa—:
   Architect.)*
 
   **Prueba de cargo:** **seis decisiones seguidas aceptadas sin una sola devolución**, entre las
-  02:00 y las 03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
+  ~02:00 y las ~03:00. **Prueba de descargo: la séptima se devolvió, y estaba mal — se retiró
   entera.** *La diferencia entre las seis y la séptima no fue la calidad de la decisión: fue que
   alguien paró a mirarla.*
   📌 **Y el mecanismo, que es mío y lo dije al explicar por qué no devolví ninguna:** *"venían bien
