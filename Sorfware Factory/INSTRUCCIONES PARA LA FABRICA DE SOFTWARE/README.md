@@ -1379,6 +1379,22 @@ Directora, porque **el total de una rama no es el total**:
 > `62d1d7a` con `npx playwright test --list`: **36 tests en 8 ficheros**. El QA había medido lo
 > mismo por su cuenta sobre `893488e` y lo señaló.
 >
+**Precondición fija para aceptar cualquier medición de la suite** (de la Directora, adoptada el
+2026-09-08 — **no es una decisión nueva, es lo que hace utilizable la 57.2**). Quien reporte
+verdes o rojos declara **tres cosas**, y sin ellas el número no se acepta:
+
+1. **Contra qué commit** mide.
+2. **Con qué `.env.local` / deployment.**
+3. **De quién era el puerto 3000** — o que lo desactivó (`reuseExistingServer: false` + puerto
+   propio).
+
+📌 **Las tres han pagado el mismo día**, y por eso son tres y no una. Y el dato que las convierte
+en precondición y no en buena costumbre: la Directora pudo salvar su diagnóstico del rojo de
+`main` **solo porque se lo había pedido a T1 y T2 un par de horas antes** —T1 declaró el PID y
+el `cwd` de su puerto; T2 declaró `reuseExistingServer: false` y puerto 3026—. **Sin esa
+condición previa no habría sabido si su propio diagnóstico valía**, que es exactamente lo que le
+pasó al CEO con el 31/5. **La condición no se puede pedir después: el dato ya nació sin ella.**
+
 > **La lección es de la (d) de §2quinquies y hay que aplicarla aquí:** una regla **no fija el
 > valor concreto de un estado mutable, dice dónde se consulta.** En un solo día ese número fue
 > **20, 30, 31, 36 y 47**, y todos eran ciertos de algo distinto. **El número de referencia es
