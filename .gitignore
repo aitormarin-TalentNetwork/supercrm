@@ -95,3 +95,10 @@ next-env.d.ts
 # el repo. Lo cazó el QA en el mismo minuto. Esto cierra el hueco por defecto.
 /tmp/
 /.tmp/
+
+# AIT-108: instantáneas de sesión del arnés e2e (e2e/global-setup.ts).
+# Contienen cookies y tokens de sesión REALES del deployment de este worktree.
+# Es el mismo agujero que cerró el bloque de arriba, por otra puerta: allí fue un
+# volcado del MCP que acabó suelto en la raíz, aquí sería un fichero que el
+# propio arnés crea en cada corrida. Se regeneran solas; no hay nada que salvar.
+/e2e/.auth/

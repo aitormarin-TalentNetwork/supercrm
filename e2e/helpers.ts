@@ -1,27 +1,61 @@
 import { Page, Locator, expect } from "@playwright/test";
+import { BASE_ORIGIN, HOME_BY_ROLE, readState, type Role } from "./authState";
 
-/** Nombre visible en el botón de autorrelleno de /login (componente
- * DEMO_ACCOUNTS en app/login/page.tsx) para cada rol. */
-const DEMO_ACCOUNT_LABEL = {
-  owner: "Marta Ledo",
-  sales: "Carlos Vega",
-} as const;
+/** AIT-108 — Siembra la sesión desde la instantánea que escribió
+ * `e2e/global-setup.ts` y deja al usuario en su pantalla de arranque por rol.
+ *
+ * MISMA FIRMA Y MISMA POSTCONDICIÓN que la versión que hacía el login por la
+ * UI: los 29 puntos de llamada no cambian. Lo que cambia es que la suite
+ * entera hace 2 logins en vez de 29, y ese número ya no crece al añadir specs.
+ *
+ * SE SIEMBRA EL CONTEXTO, NO EL NAVEGADOR. Cada test recibe un contexto nuevo,
+ * y los dos specs que abren dos sesiones a la vez (03 y 05) le dan una a cada
+ * rol: `ownerContext` y `salesContext` son contextos distintos, así que sembrar
+ * uno no pisa el otro.
+ *
+ * LO QUE SE COMPARTE ES UNA INSTANTÁNEA, NO UNA SESIÓN VIVA: se escribe una vez
+ * en el global setup y a partir de ahí solo se lee.
+ *
+ * ⚠️ ALCANCE DE ESA AFIRMACIÓN, y conviene leerla entera: la instantánea puede
+ * quedarse obsoleta por tres vías —que alguien la MUTE, que un contexto herede
+ * el de otro, o que un test provoque un REFRESCO y Convex Auth rote el refresh
+ * token—, y esas son las tres vías **alcanzables por los consumidores de hoy**,
+ * no una enumeración universal. Convex Auth permite además invalidarla con
+ * `signOut` o desactivando el usuario; ningún spec de hoy hace ninguna de las
+ * dos. Si mañana alguien añade un test que cierre sesión, esta enumeración deja
+ * de ser cierta sin que nada avise — por eso queda escrita como lo que es. */
+export async function loginAs(page: Page, role: Role) {
+  const estado = readState(role);
+  const contexto = page.context();
 
-/** URL a la que redirige app/page.tsx tras el login, según rol. */
-const HOME_BY_ROLE = {
-  owner: "/panel",
-  sales: "/hoy",
-} as const;
+  await contexto.addCookies(estado.cookies);
 
-/** Login vía el autorrelleno de cuentas de prueba de /login (no hardcodea
- * contraseñas en el test: usa el mismo botón "Usar" que expone la propia
- * UI). Deja al usuario en su pantalla de arranque por rol. */
-export async function loginAs(page: Page, role: "owner" | "sales") {
-  await page.goto("/login");
-  await page
-    .getByRole("button", { name: DEMO_ACCOUNT_LABEL[role], exact: false })
-    .click();
-  await page.getByRole("button", { name: "Entrar" }).click();
+  const origen = estado.origins.find((o) => o.origin === BASE_ORIGIN);
+  if (!origen) {
+    throw new Error(
+      `[e2e] la instantánea de "${role}" no tiene localStorage para ${BASE_ORIGIN}. ` +
+        `Orígenes: ${estado.origins.map((o) => o.origin).join(", ") || "(ninguno)"}.`,
+    );
+  }
+  // `addInitScript` corre ANTES del JS de la página en cada navegación, que es
+  // el único momento en que sirve: Convex Auth lee su sesión de localStorage al
+  // arrancar, así que escribirla después de cargar llega tarde.
+  await contexto.addInitScript((entradas: Array<{ name: string; value: string }>) => {
+    for (const { name, value } of entradas) window.localStorage.setItem(name, value);
+  }, origen.localStorage);
+
+  await page.goto(HOME_BY_ROLE[role]);
+
+  // `proxy.ts` decide con la COOKIE, en el servidor: si la instantánea no
+  // autentica, esto ya ha rebotado a /login. Sin este corte, el fallo saldría
+  // treinta segundos después como un `waitForURL` agotado que no dice por qué.
+  if (new URL(page.url()).pathname.startsWith("/login")) {
+    throw new Error(
+      `[e2e] la instantánea de "${role}" no autentica: ${HOME_BY_ROLE[role]} rebotó a /login. ` +
+        `Si el deployment cambió de credenciales, borra e2e/.auth/ y vuelve a correr.`,
+    );
+  }
+
   await page.waitForURL(`**${HOME_BY_ROLE[role]}`);
 }
 
