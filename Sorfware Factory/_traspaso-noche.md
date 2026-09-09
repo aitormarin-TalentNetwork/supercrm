@@ -482,12 +482,16 @@ cierto. Lo falso era el *"y por tanto ya no sirven"* añadido encima **como si s
 ello**. Y el diagnóstico de T2 sobre su propio fallo vale más que el dato: **abrió el fichero de
 la fuente que confirmaba lo que ya creía y no se preguntó si había una rama antes.**
 
-🔶 **MI DECISIÓN, y es la más discutible de la noche — dime mañana si me pasé:** **he autorizado a
-T2 a correr su propia suite en su propio deployment.** No es una maniobra de seguridad: **es la
-operación normal de su worktree**, y del mismo código que leí se sigue que **un refresco cualquiera
-avanza la cadena, el filtrado deja de ser el padre del activo y pasa a caer en la rama 3** — de
-conceder acceso a matar la sesión. **Reversible, sin datos reales, sin tocar producción ni el
-compartido.**
+🔶 **MI DECISIÓN, y es la más discutible de la noche — dime mañana si me pasé:** **autoricé a T2 a
+cerrar esas dos sesiones en su propio deployment**, en vez de dejarlo congelado hasta que
+despiertes. **Reversible, sin datos reales, sin tocar producción ni el compartido.**
+⚠️ **Y mi primera versión de esta autorización era mala, con el mismo fallo que llevamos toda la
+noche.** Escribí *"que corra su suite, que un refresco avanza la cadena"* — **una predicción sobre
+un mecanismo que ya nos había engañado una vez.** **La Directora la paró antes de que nadie la
+ejecutara**, con el dato que ni T2 ni yo habíamos mirado: **el `globalSetup` hace un login NUEVO,
+que probablemente abre otra sesión y deja la filtrada intacta.** Habría sido el cuarto movimiento
+a ciegas sobre lo mismo. **Lo que se hace en su lugar es lo verificable: cerrar las sesiones —un
+refresh token sin sesión no concede nada— y comprobarlo consultando la tabla, no prediciéndolo.**
 **Por qué esto no te lo dejo congelado como lo demás:** lo que te dejé era la EXCEPCIÓN a la regla
 de `CLAUDE.md` —*no* rotar—, y ésa sigue siendo tuya. **Rotar es cumplirla, no exceptuarla.** Y
 dejar credenciales confirmadas vivas cinco horas más con un arreglo rutinario a mano **es una
