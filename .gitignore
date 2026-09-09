@@ -112,3 +112,7 @@ next-env.d.ts
 # volcado del MCP que acabó suelto en la raíz, aquí sería un fichero que el
 # propio arnés crea en cada corrida. Se regeneran solas; no hay nada que salvar.
 /e2e/.auth/
+
+# Cuarentena: NUNCA dentro del repo (decisión 69). Vive en ~/.cuarentena-fabrica/.
+# Un `add` ancho la versionó el 2026-09-09 y dejó `tsc --noEmit` en rojo con el código sano.
+/Sorfware Factory/_copias-congeladas-por-revisar/
