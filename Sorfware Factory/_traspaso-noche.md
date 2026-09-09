@@ -453,9 +453,16 @@ verificado**. Es la mecánica exacta del *"AIT-94 huele a `opportunities`"* de d
 dependientes sobreviven en silencio)*:
 - **AIT-89 salió de la cola** y no se asignó en toda la noche. **Ya vuelve, con su Low correcto.**
 - **El barrido de la Directora la excluía cada ciclo.** Corregido.
-- ⚠️ **El PM creó AIT-109** —*"el proyecto no tiene forma de probar una función sola"*— **y dejó
-  AIT-89 bloqueada por ella.** **Esa issue puede sobrar entera, y ese bloqueo desde luego.** Se lo
-  he pasado; **decide él, que el alcance es suyo.**
+- ✅ **AIT-109 y el bloqueo: ya resueltos por el PM.** Retiró el bloqueo, marcó la premisa como
+  falsa **dentro** de la ficha, y devolvió AIT-89 a la cola libre con su Low. **AIT-109 no sobra
+  entera pero se queda en muy poco**, y lo que sobrevive es real y medido: `playwright.config.ts`
+  declara **un solo `webServer`**, así que las pruebas puras **arrancan el servidor sin
+  necesitarlo** y heredan las precondiciones de puerto. Hoy son dos; con AIT-89 serán seis. Low.
+- 📌 **Y le cambió el TÍTULO, que es lo que más enseña:** se llamaba literalmente *"El proyecto no
+  tiene forma de probar una función sola"* —**la afirmación falsa**—, con la corrección dentro.
+  **Un título se lee en un listado sin abrir nada**, así que la premisa seguía circulando **en el
+  único sitio donde la mayoría la iba a ver.** Ahora se llama *"Las pruebas de funciones puras
+  arrancan el servidor sin necesitarlo"*, **con el título viejo anotado arriba y no borrado.**
 
 📌 **Lo que hay que llevarse, y es del PM:** el argumento con el que se descartó *colgar pruebas
 puras del arnés* **era bueno y sigue siéndolo** —les regala sus precondiciones, y el Integrador
