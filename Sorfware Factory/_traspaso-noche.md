@@ -54,13 +54,40 @@ committers distintos                          ->  1   (el mismo)
 "Escrito por: Claude Code (Opus)"             ->  16, también idéntica
 ```
 
-**El historial es mudo sobre quién hizo qué.** Las atribuciones de este documento valen porque cada
-sesión declaró lo suyo y las demás lo leyeron — **no porque el repositorio lo registre.** Si mañana
-alguien intenta reconstruir quién publicó algo, no va a poder: **y el riesgo no es que falle, es que
-deduzca por el contenido del commit y acierte casi siempre**, cogiéndole confianza a un método que
-no la merece. *(Lo levantó T2 al aplicarse a sí mismo el hallazgo de que commitear en rama
-compartida publica; verificado por mí.)* **Es también la razón por la que la decisión 42 —la línea
-de autoría— no sirve para esto: identifica a la herramienta, no a la sesión.**
+**El historial de git es mudo sobre quién hizo qué.** Las atribuciones de este documento valen
+porque cada sesión declaró lo suyo y las demás lo leyeron — **no porque el repositorio lo registre.**
+**El riesgo no es que alguien falle al reconstruirlo: es que deduzca por el contenido del commit y
+acierte casi siempre**, cogiéndole confianza a un método que no la merece.
+
+✅ **Pero acoto esto, porque lo escribí demasiado ancho y T2 me lo corrigió: los EXPORTS sí lo
+llevan.** `Sorfware Factory/codigo para auditar/`, medido con patrón tolerante: **17 de 20 declaran
+su terminal y 17 de 20 llevan la línea de autoría.** O sea que *"quién hizo qué"* **no se reconstruye
+desde los commits, pero sí desde los exports** — que es además donde está el contenido auditable.
+
+**Dos formatos discriminan de verdad y los dos son mejores que un `T2` a secas:**
+
+```
+Terminal: T3 (sesión t3-f6)                     <- nombra la SESIÓN
+Terminal : T1 · Rama: aitormarin/ait-103-…      <- nombra la RAMA
+```
+
+Mañana habrá otra sesión en el worktree `T3`, y un `Terminal: T3` pelado no dirá cuál de las dos
+escribió el export. **Estos dos sí.** *(Ninguno de los dos formatos se acordó: los inventaron ellos.)*
+
+⚠️ **Y un aviso para quien automatice la comprobación de la decisión 42 —que es la puerta que da el
+GO—: un `grep` exacto marca como incumplidores a los que cumplen.** Medido:
+
+```
+patrón tolerante  ->  17 con terminal · 17 con autoría
+patrón rígido     ->  13 con terminal · 14 con autoría     (4 y 3 FALSOS INCUMPLIMIENTOS)
+```
+
+**La diferencia es el espaciado**, nada más. Automatizarlo con el formato de quien lo escriba
+convertiría la puerta en ruido, y **en la dirección peor: acusando a los que sí cumplen.**
+*(Lo cazó T2 en su propia medición, antes de mandármelo como hallazgo contra T1.)*
+
+**Y la decisión 42 por sí sola no cubre esto:** identifica a la **herramienta**, no a la sesión. La
+atribución la da la línea `Terminal:`, que no es parte de la decisión 42.
 
 Léelo en este orden. Lo de arriba es lo que necesita que decidas; lo de abajo es contexto.
 
