@@ -878,7 +878,32 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 
 ### ⛔ Comprobación fija Nº3: ¿sigue vivo el vigilante? (2026-09-09)
 
-**Se lee de un fichero, no de un mensaje** (corregido 2026-09-09, ver abajo):
+🔴 **RETIRADO el 2026-09-09: YA NO HAY VIGÍA. No busques su fichero — no lo escribe nadie.**
+**La comprobación cambia de sujeto: la haces TÚ, en línea, dentro de este barrido.**
+
+```bash
+# los 3 workers quietos a la vez >40 min = fabrica parada
+for d in ~/.claude/projects/*Sorfware-Factory--worktrees-T[123]; do
+  f=$(ls -t "$d"/*.jsonl | head -1)
+  ts=$(tail -c 60000 "$f" | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
+  echo "$(basename $d | tail -c 3): $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
+done
+```
+⚠️ **Con su control positivo, y hazlo con los valores MEDIDOS, no con valores fijos:** con umbral 0
+tiene que **disparar** los tres; con 40, **callar**. *La primera vez que lo escribí puse `[0,0,0]` a
+mano y el control no probaba nada — daba "calla" en los dos umbrales y parecía correcto.*
+
+⚠️ **POR QUÉ SE RETIRA, y no es un capricho: el vigía murió TRES veces en cinco horas.** Dos
+versiones en Python (~25 MB) y una en shell puro (**1,2 MB**). **El tamaño varió por veinte y el
+resultado fue idéntico** — *lo que mata no es el tamaño, es ser una tarea de fondo de una sesión
+bajo presión de memoria.*
+> **Un respaldo que se muere cada cuarenta minutos y deja un fichero congelado no es un respaldo:
+> es algo que PARECE presente.**
+🔻 **Y hay que decirlo donde toca: la decisión 78 manda que el Factory Architect arme un respaldo
+de máquina. En esta máquina, hoy, NO SE PUEDE.** Eso va escrito, **no se deja como si siguiera
+ahí** — que es justo lo que la 78 vino a impedir.
+
+*(Histórico, por si vuelve a haber vigía: se leía de un fichero, no de un mensaje.)*
 
 ```bash
 cat /tmp/fa-vigilante-estado.txt
