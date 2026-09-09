@@ -697,6 +697,27 @@ si es un segundo paso, se olvidará — once números lo demostraron. Y mientras
 índice siga abierto, **ese número no se cita**: una referencia que el lector no puede abrir es
 peor que ninguna.
 
+### Comprobación fija de tu barrido: el índice de decisiones
+
+Añadido 2026-09-08 (**decisión 56**). Una línea:
+
+```bash
+"Sorfware Factory/INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/comprobar-indice-decisiones.sh"
+```
+
+**Son DOS comprobaciones con alcances distintos y ninguna sustituye a la otra**, así que se
+reportan por separado: **(A) citas vs índice** caza una decisión *escrita y no indexada*;
+**(B) secuencia y huecos declarados** caza una decisión que *nunca llegó al disco* — el caso
+peor, y el que (A) no puede ver, porque **lo que no está escrito nadie lo cita**.
+
+⚠️ **Los huecos abiertos son parte del resultado, no ruido de fondo.** Mientras un número
+salga como `TEXTO NO LOCALIZADO`, **ese número no se cita**: una referencia que el lector no
+puede abrir es peor que ninguna.
+
+⚠️ **Y las filas del índice son punteros, no enunciados** (56.3), hasta que lleven ✅. Sirven
+para encontrar el texto, **nunca para citar la decisión** — el día que alguien cite el índice
+en vez de la fuente, habremos reescrito las decisiones por comodidad sin que nadie lo note.
+
 ### Al ESCRIBIR una regla que mande preguntar a un humano, fija el canal
 
 Aplica cuando ejecutas un cambio de proceso, no cuando obedeces uno — por eso está aquí y

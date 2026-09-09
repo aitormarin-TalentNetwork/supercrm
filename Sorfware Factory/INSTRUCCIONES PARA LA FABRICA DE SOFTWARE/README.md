@@ -925,6 +925,53 @@ identificador que ni siquiera resuelve.
 direccionables**, que es distinto — casi con seguridad están escritas en prosa, sin el número
 al lado. **Lo que falta es la etiqueta, no necesariamente la regla.**
 
+#### Decisión 56 — El índice lleva detector, y son DOS comprobaciones (2026-09-08)
+
+**La 55 arreglaba un problema y lo reproducía:** un índice es **un fichero que hay que mantener
+a mano**, y nada comprobaba que una decisión nueva pusiera su línea. Si se escribiera la 57 sin
+indexarla, no fallaría nada — **falla hacia el verde igual que antes, pero ahora con un índice
+que *parece* completo**, y quien no encuentre la 57 concluirá que no existe. Un índice
+incompleto es peor que ninguno.
+
+**56.1 y 56.2 — Dos comprobaciones con ALCANCES DISTINTOS, y ninguna sustituye a la otra.**
+Están en `comprobar-indice-decisiones.sh`, y corren en cada barrido del CEO:
+
+| | Qué caza | Qué NO puede ver |
+|---|---|---|
+| **(A) citas vs índice** | una decisión **escrita y no indexada** (la 45.3 aplicada a otro registro) | una decisión que nunca se escribió — **si no está en el disco, nadie la cita** |
+| **(B) secuencia y huecos declarados** | una decisión que **nunca llegó al disco**: un número ausente de la secuencia, o una fila marcada `TEXTO NO LOCALIZADO` | lo que sí está escrito pero sin etiquetar |
+
+⚠️ **El alcance va escrito en el propio script, no solo aquí.** Sin eso, (A) da sensación de
+cobertura completa y volvemos a donde estábamos.
+
+📌 **Y la (B) nació con el defecto que existía para cazar, lo cual conviene contar:** su primera
+versión comparaba conjuntos —*¿tiene fila este número?*— y **los once huecos TIENEN fila**, la
+que dice `TEXTO NO LOCALIZADO`. Daba verde sobre exactamente lo que la motivó: **una
+comprobación que no podía fallar** (enmienda 9). Se cazó al estrenarla con el estado real
+delante — que es la 46 haciendo su trabajo.
+
+*(Segundo defecto del mismo estreno, misma familia: el contador de filas verificadas hacía
+`grep -c '✅'` sobre el fichero entero y contaba el ✅ de la cabecera que **explica qué
+significa la marca**. Reportó "1 de 56 verificadas" con cero verificadas. Ahora cuenta solo
+dentro de la tabla.)*
+
+**56.3 — Hasta que se verifiquen, las filas son PUNTEROS, no enunciados.** El índice sirve para
+**encontrar** el texto, nunca para **citar** la decisión — y va escrito en la cabecera del
+fichero, no al pie. Los enunciados se redactaron desde el contexto de la primera mención de
+cada número, no leyendo cada decisión entera; **un índice con un enunciado equivocado dirige
+peor que uno vacío.**
+
+> **El riesgo concreto que eso previene, porque es real y silencioso: un resumen más cómodo de
+> leer que la fuente acaba desplazando a la fuente.** Nadie decide sustituirla — el índice está
+> a mano y el texto no, y a las veinte citas la decisión *es* lo que dice el índice. Con
+> enunciados sin verificar, eso sería **reescribir cincuenta y cinco decisiones por comodidad y
+> sin que nadie lo note**. Falla hacia el verde.
+
+**56.4 — El repaso por dirección del fallo verifica los enunciados como efecto secundario.** Al
+clasificar una decisión hay que leerla entera de todos modos, así que corregir su fila cuesta
+cero adicional: **una sola pasada, dos salidas.** La fila verificada se marca **✅**, para que el
+avance se vea y no dependa de la memoria de quién revisó qué.
+
 
 ---
 

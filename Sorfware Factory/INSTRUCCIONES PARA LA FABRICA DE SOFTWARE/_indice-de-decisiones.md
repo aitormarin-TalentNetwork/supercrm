@@ -16,6 +16,28 @@ el verde.
 en la conversación y el texto en el disco, y nada los ataba**. Este índice los ata; renumerar
 rompería las referencias que sí funcionan.
 
+> ## ⚠️ MIENTRAS NO ESTÉN VERIFICADAS, LAS FILAS SON PUNTEROS — NO ENUNCIADOS
+>
+> **Este índice sirve para ENCONTRAR el texto de una decisión. NUNCA para citarla.** Los
+> enunciados de abajo se redactaron a partir del contexto de la primera mención de cada
+> número, **no leyendo cada decisión entera** (decisión 56.3). Un índice con un enunciado
+> equivocado **dirige peor que uno vacío**.
+>
+> **Y el riesgo que esto previene, porque es real y silencioso:** un resumen más cómodo de
+> leer que la fuente **acaba desplazando a la fuente**. Nadie decide sustituirla — el índice
+> está a mano y el texto no, y a las veinte citas la decisión *es* lo que dice el índice. Con
+> enunciados sin verificar, eso sería **reescribir cincuenta y cinco decisiones por comodidad
+> y sin que nadie lo note**. Falla hacia el verde.
+>
+> **Una fila marcada ✅ sí ha sido verificada** leyendo la decisión completa, en el repaso por
+> dirección del fallo (56.4). Las demás, no.
+
+**Detector:** `./comprobar-indice-decisiones.sh` — dos comprobaciones con **alcances
+distintos**, y ninguna sustituye a la otra (decisión 56): **(A) citas vs índice** caza una
+decisión *escrita y no indexada*; **(B) secuencia y huecos declarados** caza una decisión que
+*nunca llegó al disco*, que es el caso peor y el que (A) **no puede ver** —si no está escrita,
+nadie la cita—. Corre en cada barrido del CEO.
+
 **Ficheros:** `R` = `README.md` · `C` = `ceo.md` · `D` = `director.md` · `I` = `integrador.md`
 · `Q` = `qa.md` · `IT` = `../intro-terminal.txt` · `AP` = `../auditor_prompt.txt`
 
@@ -71,6 +93,7 @@ rompería las referencias que sí funcionan.
 | 53 | La regla se ancla a un evento que el actor YA nota | R §2quinquies |
 | 54 | El push se hace portante: el revisor del PRD deja de leer el disco y se niega a revisar trabajo sin publicar | R §2quinquies |
 | 55 | Este índice. Una decisión no está ejecutada hasta que se puede encontrar por su número | este fichero |
+| 56 | El índice lleva detector, y dos comprobaciones con alcances distintos (56.3 las filas son punteros hasta verificarse; 56.4 el repaso las verifica de paso) | este fichero · `comprobar-indice-decisiones.sh` · C |
 
 ---
 
