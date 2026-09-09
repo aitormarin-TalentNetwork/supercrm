@@ -1053,6 +1053,24 @@ de un correo es un buzon conectado hay que poder comparar su direccion con algoâ
 de refresco **cifrado**, fecha de conexion, marca de ultima sincronizacion, marca incremental de Gmail, datos del canal
 push (identificador y **fecha de caducidad, para renovarlo**) y estado.
 
+**Cuantos buzones puede conectar una persona: los que quiera** (decidido en la v0.11,
+a peticion del auditor de AIT-92; hasta aqui el PRD hablaba de "una cuenta" y la maqueta
+decia "Conectar otra cuenta", y ninguno de los dos se sentia equivocado leido solo).
+
+- **La unicidad es (`userId`, direccion), no `userId` a secas.** Lo que se impide es
+  conectar **dos veces el mismo buzon**; conectar dos buzones distintos, no.
+- **El caso real que lo decide**: un vendedor con su cuenta y ademas el buzon comun de la
+  tienda (`info@...`). Prohibirlo dejaria fuera del CRM justo la correspondencia que mas
+  gente comparte.
+- **No rompe nada del modelo**: la deduplicacion es por (`storeId`, `Message-ID`), asi que
+  un correo que entre por dos buzones del mismo usuario sigue siendo **un solo registro**,
+  y `mailboxUserIds` es de usuarios, no de buzones.
+- **Y la direccion del cambio importa**: quitar un limite despues es facil, ponerlo con
+  datos dentro es una migracion. Ante la duda, la opcion que no hay que deshacer.
+
+Lo que sigue costando el doble es el **trabajo**: cada buzon se sincroniza y gasta cuota
+por separado. Aceptado, igual que en el caso de dos personas con el mismo buzon.
+
 **Entidad `emailIntents`** (nueva) â€” **es la que hace construible la regla del contexto
 del clic**. Sin ella, "la oportunidad que traia el clic" no tiene donde vivir: `emails`
 se escribe cuando llega el aviso push, minutos despues del clic, y no puede guardar algo
