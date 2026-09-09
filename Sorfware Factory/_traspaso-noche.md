@@ -311,6 +311,20 @@ paró de producir y respetamos la pausa—:
   de publicarlo"**, que era la única que importaba. **Van dos correcciones seguidas al mismo
   párrafo, y las dos las encontró alguien midiendo después de publicarlo, no nosotros
   revisando.**
+- 🔶 **PENDIENTE DE DECIDIR DESPIERTO: hacer permanente la revisión cruzada de instrumentos.**
+  Esta noche aparecieron **cuatro fallos de instrumento** —el `-f` sin comparar fechas, el `cwd`
+  como identidad, y el `ls -t | head -1` en **dos** barridos distintos— y **los cuatro salieron
+  de mirar el instrumento del otro. Ninguno de revisar el propio.** La Directora explicó por
+  qué: **sospechamos del instrumento cuando nos lleva la contraria y confiamos en él cuando nos
+  da la razón.**
+  **La forma propuesta, que es la parte que importa:** cada ciclo, rotando, **coger UN número
+  concreto que ese instrumento produjo y preguntar de dónde sale** — *no "¿cómo mides?"*, que se
+  contesta con el mismo párrafo cada vez y **no puede fallar**.
+  ⚠️ **Yo lo escribí como comprobación fija y el Factory Architect lo devolvió, con razón:**
+  añadir una comprobación a mi barrido es ejecución; **imponer una obligación recurrente sobre
+  el trabajo de otros cuatro roles, no.** Queda **autorizado solo para esta noche**. *Si mañana
+  no se sostiene, se pierde una noche de rotación; si se hubiera fijado hoy y estuviera mal,
+  quedaría una obligación permanente que nadie se atreve a quitar.*
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.

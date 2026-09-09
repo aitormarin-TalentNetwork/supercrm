@@ -618,27 +618,35 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
-### Comprobación fija de tu barrido: mira el instrumento de OTRO, por turno
+### ⏳ PROVISIONAL, SOLO PARA LA NOCHE DEL 2026-09-09: mirar el instrumento de otro
 
-Añadido 2026-09-09. **Una por ciclo, rotando**: le pides a un rol que te enseñe **cómo mide** —no
-qué mide— y lo lees. Watchdog del Factory Architect, barrido de la Directora, corrida del QA,
-gate del Integrador.
+⚠️ **Esto NO es una comprobación fija. Está autorizado para una noche y la decisión permanente
+está en el traspaso, pendiente de tomarse despierto.** *(El CEO lo escribió como fila fija y el
+Factory Architect lo devolvió: añadir una comprobación a tu propio barrido es ejecución;
+**imponer una obligación recurrente sobre el trabajo ajeno no lo es**. Y una regla que carga a
+cuatro roles es justo de las que no se fijan de madrugada: si mañana no se sostiene, se pierde
+una noche de rotación; si se fija hoy y está mal, queda una obligación permanente que nadie se
+atreve a quitar.)*
 
-**Por qué está en la lista de fijas y no en la de buenas intenciones:** esa noche aparecieron
-**cuatro fallos de instrumento** —el `-f` sin comparar fechas, el `cwd` como identidad, el `ls -t
-| head -1` en dos barridos distintos— y **los cuatro salieron de mirar el del otro. Ninguno de
-revisar el propio.**
+**La forma, que importa más que la idea:**
 
-> **El instrumento propio se lee con la expectativa de que funciona.** Mirar el ajeno es lo único
-> que rompe esa expectativa, y **sale gratis**.
+> **Cada ciclo, rotando, coges UN NÚMERO CONCRETO que ese instrumento haya producido en ese
+> ciclo y preguntas de dónde sale.** No *"¿cómo mides?"* sino ***"este 9, este 21, este «cero
+> colas» — ¿de dónde sale?"***
 
-⚠️ **Y las cuatro salieron por casualidad**: alguien contó lo suyo y el otro fue a mirar. **Un
-hallazgo que depende de que se mencione de pasada no es un mecanismo** — por eso esto pasa a ser
-una fila del barrido con turno, y no un consejo.
+⚠️ **Y por qué así: *"enséñame cómo mides" NO PUEDE FALLAR.*** Se contesta con el mismo párrafo
+cada vez y a las cinco rondas nadie lo lee — **la 46 esperando**. Una derivación concreta **sí
+puede rastrearse y sí puede estar mal**. Es la **enmienda 9 aplicada a la propia revisión: si no
+habría podido salir mal, no es una revisión.**
 
-📌 **No confundirlo con la vigilancia recíproca**, que comprueba **si el instrumento del otro está
-VIVO**. Esto mira **cómo está construido**. Son preguntas distintas y la segunda no la cubría
-nadie.
+📌 **Y es como salieron de verdad las cuatro de esa noche:** ninguna salió de una explicación
+general. **Salieron de alguien mirando un número concreto y preguntándose de dónde venía.**
+
+**Es recíproca**, y el Factory Architect pidió empezar por el suyo — *"tengo el instrumento que
+más veces ha fallado esta noche, doce versiones"*.
+
+📌 **No confundirlo con la vigilancia recíproca**, que comprueba si el instrumento del otro está
+**VIVO**. Esto mira **cómo está construido**, y esa pregunta no la cubría nadie.
 
 ### ⚠️ Y dentro de cada worktree: el MÁXIMO de todos los transcripts, no el más reciente por `mtime`
 
