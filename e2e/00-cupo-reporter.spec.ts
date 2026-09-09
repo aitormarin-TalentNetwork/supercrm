@@ -12,7 +12,7 @@ import RateLimitReporter, {
 // `00-customerValidation.spec.ts`, porque el proyecto no tiene runner de tests
 // unitarios (AIT-109) y el de Playwright las corre igual de bien.
 //
-// CINCO DE LOS ONCE CASOS SON EL REPORTER CALLANDO, y ahí está la trampa: un
+// LA MAYORÍA DE LOS CASOS SON EL REPORTER CALLANDO, y ahí está la trampa: un
 // test de "no dice nada" pasa sin ejercitar nada. Por eso `decidir` devuelve el
 // silencio CON MOTIVO, y estas pruebas afirman el motivo — que solo se puede
 // producir ejecutando la rama correcta.
@@ -92,6 +92,9 @@ test.describe("AIT-110 · decisión del reporter del cupo", () => {
     if (d.aviso === null) throw new Error(`esperaba aviso, motivo=${d.motivo}`);
     expect(d.caso).toBe("llego-agotado");
     expect(d.aviso).toContain("check-e2e-preconditions");
+    // El dato observado que sostiene la hora va en LOS TRES avisos, y el que más
+    // lo necesita es justo éste: "ya estaba agotado cuando llegaste".
+    expect(d.aviso).toContain("Último intento fallido registrado:");
     // Éste SÍ manda a mirar las credenciales; el otro no. Es la distinción.
     expect(d.aviso).toContain("credenciales");
   });
@@ -119,10 +122,35 @@ test.describe("AIT-110 · decisión del reporter del cupo", () => {
     expect(d).toEqual({ aviso: null, motivo: "sin-lectura" });
   });
 
-  test("8 · las lecturas posteriores rechazan, en corrida roja: calla", () => {
+  test("8a · las DOS lecturas posteriores rechazan: calla", () => {
     const d = decidir({
       t0: foto([fila(10)]),
       tf: null,
+      t1: null,
+      cuentasPassword: CUENTAS,
+    });
+    expect(d).toEqual({ aviso: null, motivo: "sin-lectura" });
+  });
+
+  // 8b y 8c son las combinaciones que el caso 8 original NO probaba: ponía las
+  // dos fotos a `null` A LA VEZ, que es justo lo que el código sí cubría. Un
+  // fixture escrito contra la implementación comparte su punto ciego.
+  test("8b · SOLO tf rechaza, y t1 muestra agotado: calla (no se puede situar el cruce)", () => {
+    // Sin `tf` no hay forma de saber si el cruce fue antes o después del primer
+    // fallo. Decir "los anteriores no son suyos" aquí sería inventarlo.
+    const d = decidir({
+      t0: foto([fila(10)]),
+      tf: null,
+      t1: foto([fila(0)]),
+      cuentasPassword: CUENTAS,
+    });
+    expect(d).toEqual({ aviso: null, motivo: "sin-lectura" });
+  });
+
+  test("8c · SOLO t1 rechaza, con tf agotado: calla", () => {
+    const d = decidir({
+      t0: foto([fila(10)]),
+      tf: foto([fila(0)]),
       t1: null,
       cuentasPassword: CUENTAS,
     });

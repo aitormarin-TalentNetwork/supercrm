@@ -110,8 +110,8 @@ function clasificar(
 }
 
 /** LA DECISIÓN, PURA. Sin red, sin reloj propio, sin Playwright: es lo que
- *  permite probar los once casos de e2e/00-cupo-reporter.spec.ts sin
- *  deployment — y cinco de ellos son el reporter CALLANDO, que es donde un test
+ *  permite probar los casos de e2e/00-cupo-reporter.spec.ts sin
+ *  deployment — y la MAYORÍA de ellos son el reporter CALLANDO, que es donde un test
  *  mal escrito pasa sin ejercitar nada. Por eso el silencio viaja con `motivo`.
  */
 export function decidir(entrada: {
@@ -127,9 +127,17 @@ export function decidir(entrada: {
   if (entrada.tf === undefined && entrada.t1 === undefined) {
     return { aviso: null, motivo: "sin-fallos" };
   }
-  // Fail-open: sin la foto inicial no hay transición que afirmar. El reporter
-  // no puede sostener algo que no ha podido observar.
-  if (entrada.t0 === null || (entrada.tf == null && entrada.t1 == null)) {
+  // Fail-open: si falta CUALQUIERA de las tres fotos, se calla. No es exceso de
+  // celo — es que sin `tf` no se puede saber si el cruce fue ANTES o DESPUÉS del
+  // primer fallo, y decir "los fallos anteriores no son suyos" sin esa foto es
+  // la atribución retroactiva que este reporter existe para no cometer.
+  //
+  // La condición anterior era `t0 === null || (tf == null && tf1 == null)`: con
+  // UNA sola nula seguía adelante usando la otra. Y el fixture que la vigilaba
+  // ponía las dos a null a la vez, o sea que probaba justo la combinación que el
+  // código SÍ cubría. Un fixture escrito contra la implementación en vez de
+  // contra el contrato comparte su punto ciego, porque sale de la misma cabeza.
+  if (entrada.t0 === null || entrada.tf == null || entrada.t1 == null) {
     return { aviso: null, motivo: "sin-lectura" };
   }
 
@@ -172,9 +180,10 @@ export function decidir(entrada: {
         return {
           aviso:
             `[e2e] el cupo de login de ${email} YA ESTABA AGOTADO al arrancar. ` +
-            `Ese caso lo avisa scripts/check-e2e-preconditions.mjs antes del runner; ` +
-            `si llegaste hasta aquí, esa comprobación no corrió. Mira tus credenciales ` +
-            `o restos de tu corrida anterior.`,
+            `Último intento fallido registrado: ${horaLegible(fila.lastAttemptTime)} ` +
+            `(hora observada). Ese caso lo avisa scripts/check-e2e-preconditions.mjs ` +
+            `antes del runner; si llegaste hasta aquí, esa comprobación no corrió. ` +
+            `Mira tus credenciales o restos de tu corrida anterior.`,
           caso: "llego-agotado",
         };
       }
