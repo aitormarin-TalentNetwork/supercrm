@@ -618,6 +618,32 @@ aquí es **detectar su ausencia y reportarla**, así que se detecta.
 `git-common-dir` apunta ahí y `extensions.worktreeConfig` no está activada, ambos
 verificados—, así que basta comprobarlo una vez desde la raíz.)*
 
+### ⚠️ El «cero colas» se mide contra el último evento USER, no contra el último de cualquier tipo
+
+**Corregido el 2026-09-09 preparando la revisión cruzada, antes de que nadie preguntara.**
+
+El censo cuenta los `enqueue` **posteriores a la última actividad**. La pregunta es **a qué
+actividad**, y hay dos candidatos:
+
+- ❌ **El último evento de cualquier tipo (`user` o `assistant`).** Es lo que hacía.
+- ✅ **El último evento `user`**, que es cuando la entrada encolada se consume de verdad.
+
+**Y no son intercambiables: el primero solo puede CONTAR DE MENOS.** Como el último de cualquier
+tipo es siempre ≥ que el último `user`, **los mensajes encolados en la ventana entre ambos son
+invisibles**.
+
+> ⚠️ **Y esa ventana es exactamente la que se abre cuando una sesión está trabajando sin drenar
+> —emitiendo `assistant` con un mensaje esperando—, o sea el caso que el barrido existe para
+> detectar.** El fallo está **correlacionado con el sujeto**, y va **hacia el verde**.
+
+📌 **Medido al corregirlo: los dos criterios daban lo mismo** (1 encolado, drenando). *Otra vez
+plausiblemente estable* — y otra vez eso **no es argumento para dejarlo**.
+
+**Y el contraste que conviene tener a mano para no volver al error de agosto:** en ese mismo
+censo había **1.220 `enqueue` totales** en las sesiones vivas y **0 pendientes**. Contar el total
+en vez de los posteriores no es un matiz: **es reportar 1.220 mensajes sin leer donde no hay
+ninguno.**
+
 ### ⏳ PROVISIONAL, SOLO PARA LA NOCHE DEL 2026-09-09: mirar el instrumento de otro
 
 ⚠️ **Esto NO es una comprobación fija. Está autorizado para una noche y la decisión permanente
