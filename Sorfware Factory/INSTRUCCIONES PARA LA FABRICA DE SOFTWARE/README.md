@@ -1283,11 +1283,37 @@ verde y rojo **convierte la ausencia de trabajo en evidencia de salud**.
 
 **Hay que separarla de todo lo demás de esta sección: aquí ninguna comprobación mintió.**
 
-- El desarrollador reportó **20/20** y era cierto **en su entorno**.
-- El auditor declaró que **no repite la suite** — y hace bien: es de solo lectura por diseño.
-- El Integrador **verificó el build**, y un build no corre e2e.
+⚠️ **Este texto se escribió por relevo —el CEO no vivió el incidente, y el Factory Architect
+tampoco— y la Directora lo verificó después contra las fuentes. Dos de los cuatro puntos
+cambiaron.** Se deja dicho porque es la regla del relevo aplicada a sí misma.
+
+- **El desarrollador reportó 20/20, y esa era la suite COMPLETA de su rama.** `main` tiene hoy
+  **47** (T1 midió 5 failed + 42 passed). **Nadie corrió 47.** La base de T2 era `86cd735`,
+  anterior a que AIT-82 mergeara sus 15 tests y AIT-86 los suyos:
+
+  > **La suite que el desarrollador corrió era completa cuando la corrió. Dejó de serlo antes de
+  > mergear.**
+
+  *(La primera redacción decía "era cierto en su entorno" — **una inferencia que nadie había
+  comprobado**, y que además sonaba a que su entorno era peculiar. Lo corrigió la Directora
+  señalando que era suya y sustituyéndola por el dato medido. **T2 no dejó nada sin correr: la
+  suite creció bajo sus pies mientras trabajaba.**)*
+- **El auditor fue MÁS preciso de lo que esta decisión le atribuía.** No dijo "no repito la
+  suite": dijo, literal, *"no repetí de manera independiente el montaje manual completo de los
+  dos builds ni los 20 E2E; su evidencia está documentada en el export. Sí verifiqué
+  directamente el código, el commit, los archivos protegidos y el build final"*. **Nombró el
+  número y declaró exactamente qué no repetía y qué sí** — que es la 57.3 hecha antes de que la
+  escribiéramos.
+- El Integrador **verificó el build**, y él mismo declaró que **un build no corre e2e**.
+- El rojo de `main` está verificado dos veces: por T1 y por la Directora sobre `199ac3e`.
 
 **Las tres correctas dentro de su alcance. Y `main` en rojo.**
+
+📌 **Y la implicación que no estaba, y que crece con el paralelismo:** si nadie corre la suite
+completa entre el GO y el merge, **cada rama reporta sobre su propia foto**. Ese día tres
+terminales reportaron **20, 30 y 31** tests. **Ninguna mentía, los tres números eran ciertos, y
+ninguno era el de `main`.** Es la familia del **dato correcto que caduca** — esta vez porque
+**el objeto medido creció**, no porque cambiara.
 
 > **Una comprobación lenta acaba corriendo. Un hueco entre comprobaciones no se cierra nunca —
 > la ventana no es larga, es infinita.**
@@ -1306,8 +1332,9 @@ compartido y **disputaría el cerrojo justo en el momento crítico** — coste r
 un fallo raro. Desacoplada, **acota la ventana a un intervalo conocido en vez de a la
 casualidad**. No la cierra: la acota, y eso ya es una propiedad y no una esperanza.
 
-**57.2 — El resultado se reporta con el número de los 47, no el de los 5.** Obligatorio, no
-preferencia: un arreglo que toca `webServer.env` cambia el entorno de **toda** la suite, y el
+**57.2 — El resultado se reporta con el número de los 47 SOBRE `main`, no el de los 5 ni el
+total de una rama.** Obligatorio, no preferencia — y la precisión *"sobre `main`"* la aporta la
+Directora, porque **el total de una rama no es el total**: un arreglo que toca `webServer.env` cambia el entorno de **toda** la suite, y el
 modo de fallo sería **arreglar cinco y romper dos que nadie mire**. Es el patrón de
 `helpers.ts` de AIT-78, y es la enmienda 9 — **si la comprobación solo mira lo que se arregló,
 no podía dar otro resultado.**
