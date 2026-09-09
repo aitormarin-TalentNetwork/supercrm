@@ -1,11 +1,11 @@
-<!-- prd: estado=DRAFT version=0.8 supersedes=- appetite=completo -->
+<!-- prd: estado=DRAFT version=0.9 supersedes=- appetite=completo -->
 
 # PRD — SuperCRM Ola 2: Email de clientes dentro del CRM
 
 | Campo | Valor |
 |---|---|
 | Estado | DRAFT |
-| Version | 0.8 |
+| Version | 0.9 |
 | Supersedes | — (sigue en DRAFT; 0.1 a 0.4 corregidas, no superseded) |
 | Fase actual | **6 — documento** (premisas cerradas en la 0.5, alcance en la 0.6; listo para una ronda nueva de review) |
 | Appetite | completo |
@@ -723,7 +723,7 @@ no un porcentaje — coherente con lo que declara esta seccion. La formulacion a
 | Entidad `emails` propia en vez de reutilizar `interactions` | mechanical | `interactions` exige oportunidad obligatoria, autor que sea usuario del CRM y una nota de texto plano: un email recibido no cumple ninguna de las tres (seccion 28) | PM, 2026-09-07 |
 | Un solo registro por email: no se crea interaccion espejo | mechanical | Dos registros del mismo hecho lo mostrarian dos veces en el historial | PM, 2026-09-07 |
 | La interaccion manual de tipo email se oculta con Gmail conectado | taste | Con cuenta conectada es redundante y ofrecer las dos vias invita a duplicar. Se conserva para quien no tenga cuenta conectada | Aitor lo detecto, PM lo resolvio, 2026-09-07 |
-| **Un email NUNCA crea un `nextStep`; solo un saliente puede tocar `lastActivityAt`** | mechanical | El codigo real exige accion y fecha escritas por el usuario para crear un proximo paso (seccion 28); un email no las aporta. Corrige el error H4 de la review | PM tras review, 2026-09-07 |
+| **Un email NUNCA crea un `nextStep`; solo un saliente puede tocar `lastActivityAt`** | taste | **Corregido el 2026-09-08**: el argumento anterior decia que el codigo exige accion y fecha escritas por el usuario, y **era falso** — tres de los cuatro sitios que crean pasos los generan solos, por canal o por etapa. El motivo real es de producto y no tecnico: **un email no dice que hay que hacer despues**. Un canal de origen o un cambio de etapa si implican un siguiente paso evidente; recibir un correo, no. Inventarlo llenaria "Hoy" de tareas que nadie ha decidido | PM 2026-09-07, argumento rehecho 2026-09-08 |
 | Cliente OAuth **propio** para Gmail, separado del login de AIT-60 | mechanical | Añadir permisos de Gmail al cliente existente cambiaria la pantalla de consentimiento del login **para todos**, pidiendo acceso al correo a quien solo quiere entrar. Contradice el "consentimiento explicito" de la seccion 24 | PM tras review ronda 2, 2026-09-08 |
 | La sincronizacion **historica** no toca `lastActivityAt` | taste | Dejar que el historico moviera la marca reescribiria de golpe el estado de riesgo de todo el pipeline (`lib/risk.ts`) el dia de la conexion. Cuesta que el CRM siga marcando como paradas oportunidades que se atendieron por email antes de conectar | Aitor, 2026-09-08, tras verlo en la review |
 | El bloqueo de borrado **por oportunidades se mantiene**; los emails no bloquean | taste | Conserva intacta la decision deliberada de AIT-65 y cumple lo pedido (que los emails no hagan imborrable a un cliente) sin ampliar el alcance a borrar ventas reales. Cuesta que el dialogo del recuento de emails sea un caso de esquina | Aitor, 2026-09-08, tras verlo en la review |
@@ -898,7 +898,9 @@ buzones conectados en los que aparece ese correo), `storeId`, `direction`
 (entrante/saliente),
 identificador de mensaje de Gmail, **`messageId` de la cabecera RFC**, identificador de
 hilo, remitente, destinatarios, copia, asunto, cuerpo en texto plano, extracto, fecha e
-indicador de adjuntos. Indices por cliente y por `messageId`.
+indicador de adjuntos. Indices por cliente y por **(`storeId`, `messageId`)** — nunca
+por `messageId` solo: un indice global reabriria por la puerta de atras la fuga entre
+tiendas que se cierra dos parrafos mas abajo.
 
 **Clave de deduplicacion: la cabecera, no el id de Gmail.** El identificador que da
 Gmail es unico **por buzon**, no por mensaje: el mismo correo que Carlos envia con Marta
@@ -949,21 +951,18 @@ haya ganado el desempate.
 texto libre, y **no tiene indice**: la tabla tiene `by_owner`, `by_store` y —desde
 AIT-80— `by_store_phone`, ninguno sobre el email. Buscar por direccion escanearia la
 tabla entera en cada mensaje. Por tanto:
-- **Indice nuevo `by_store_email`** por `storeId` + el propio campo `email`, **guardado
-  ya en forma canonica** — no un campo derivado aparte (misma decision y por el mismo
-  motivo que se tomo para el telefono: dos campos que hay que mantener a la par se
-  desincronizan en silencio). El alta ya guarda el email con `trim` + `toLowerCase`, asi
-  que **falta solo extender esa normalizacion** (cabecera `Nombre <a@b>`, etiqueta tras
-  `+`) y aplicarla en los **dos** escritores que hoy existen: `createQuick` y
-  `customers.update`.
-  **Y hace falta migracion**, sin ambiguedad: un indice sobre un campo canonico no
-  encuentra las filas que se guardaron antes de que existiera la normalizacion completa.
-  **Hay precedente exacto y reciente**: AIT-80
-  hizo justo esto para el telefono —campo guardado ya en forma canonica, indice
-  `by_store_phone`, y una migracion de una pasada para las filas anteriores—, asi que el
-  patron esta probado en este mismo repositorio y no hay que inventarlo. Lo que **si**
-  hay que repetir es la migracion: un indice sobre un campo normalizado no encuentra las
-  filas antiguas sin normalizar, y esas son justo los clientes veteranos.
+- **Indice nuevo `by_store_email`** por `storeId` + el campo `email` **tal como se
+  guarda**. Y se guarda **la direccion real**, no una forma recortada: `trim()` +
+  `toLowerCase()`, que es exactamente lo que ya hacen hoy los **dos** escritores de
+  `customers` — `createQuick` y `customers.update` (verificado).
+  **No hace falta migracion**: como no se cambia lo que se almacena, las filas existentes
+  ya estan en la forma que el indice necesita.
+  **Hay precedente cercano pero NO identico**: AIT-80 hizo algo parecido para el
+  telefono —indice `by_store_phone` y migracion de una pasada—, y la diferencia importa.
+  Alli el valor canonico **si** es el que se guarda, porque normalizar un telefono no
+  pierde nada. Aqui perderia: recortar la etiqueta tras `+` corrompe una direccion real.
+  Por eso el email **se guarda entero y se normaliza solo al comparar**, y por eso aqui
+  **no** hay migracion aunque alli si la hubiera.
 - **Normalizacion antes de comparar — y "comparar" es la palabra que importa.** Lo que se
   normaliza es **la clave de busqueda**, nunca la direccion que se guarda (hallazgo H2 de
   la ronda 2 del ciclo 2; es un error que introdujo la v0.7 y que habria roto la mitad de
@@ -1031,11 +1030,12 @@ decirlo:
   una cuenta de Gmail conectada. **Ojo al efecto que se pierde con ello** (hallazgo H10 de
   la ronda 2 del ciclo 2): esa mutation no solo registra la interaccion, tambien **cierra
   el proximo paso pendiente y crea el siguiente** con la accion y la fecha que escribe el
-  usuario. Al bloquear esa via, el vendedor con Gmail conectado **pierde la forma de
-  cerrar un proximo paso desde un email** — y los emails, por decision de la seccion 21,
-  nunca crean `nextStep`. Hay que decidirlo explicitamente al planificar: o el registro
-  manual sigue disponible **solo** para cerrar el proximo paso, o se acepta que eso se
-  haga desde la propia oportunidad. Lo que no vale es que el hueco aparezca en uso (criterio "vias de registro que no se solapan",
+  usuario. Al bloquear esa via, el vendedor con Gmail conectado deja de poder **cerrar el proximo paso por esa via
+  concreta**. **No se queda sin ninguna** (corregido el 2026-09-08: la version anterior
+  decia que "pierde la forma de cerrar un proximo paso" y era falso):
+  `nextSteps.markDone` existe y se usa desde "Hoy". Lo que se pierde es el atajo de
+  cerrarlo **mientras registras la interaccion**, no la capacidad. Queda declarado como
+  friccion aceptada, no como hueco (criterio "vias de registro que no se solapan",
   seccion 6). Ocultarlo solo en la interfaz contradiria la regla de la seccion 24 de
   aplicar las restricciones en el servidor.
 - `interactions.remove` recalcula hoy `lastActivityAt` como el maximo entre creacion,
@@ -1191,14 +1191,15 @@ reales en la base de datos del CRM.
     porque si no la regla no sirve de nada (hallazgo H1 de la ronda 2 del ciclo 2): la
     ficha de un cliente ajeno **sigue estando cerrada** para el, asi que un permiso sobre
     esos correos sin sitio donde ejercerlo es papel mojado.
-    **Donde se ven, sin ampliar el alcance de esta ola**: en el **hilo** al que ya puede
-    llegar desde Gmail, y en su propia pantalla de conexion, que muestra **cuantos**
-    correos suyos hay emparejados con clientes que no son suyos, sin listar cuales ni de
-    quien. Una **bandeja "mis correos"** dentro del CRM seria la superficie natural, y
-    **queda declarada fuera de esta ola**: es pantalla nueva y alcance nuevo. Lo que esta
-    ola garantiza es que **el dato no se pierde ni se le oculta** —`mailboxUserIds` lo
-    conserva— para que esa bandeja sea barata el dia que se decida, en vez de exigir
-    resincronizar.
+    **Donde se ven, y hay que ser honestos con el alcance**: en el **hilo** al que ya
+    puede llegar desde Gmail. Dentro del CRM, **en ninguna pantalla de esta ola** — una
+    bandeja "mis correos" seria la superficie natural y **queda declarada fuera**: es
+    pantalla nueva, no la dibuja ninguna maqueta de `pantallas/`, y la regla del proyecto
+    es no inventar UI (la version 0.8 de este documento se invento un contador en la
+    pantalla de conexion que no existia en ningun sitio; se retira).
+    Lo que esta ola **si** garantiza es que **el dato no se pierde ni se le niega**:
+    `mailboxUserIds` lo conserva y el permiso lo autoriza, asi que esa bandeja sera barata
+    el dia que se decida en vez de exigir resincronizar el buzon entero.
     Sin esa aclaracion, el tercer disyuntivo del permiso solo se activaria sobre fichas a
     las que el vendedor no puede entrar, que es tanto como no existir. La regla es de
     **permiso**, no una promesa de pantalla, y asi se declara aqui (decision de Aitor, 2026-09-08, cerrando el hallazgo H10 de la ronda
@@ -1233,6 +1234,20 @@ reales en la base de datos del CRM.
 - **Permisos pedidos a Google**: exactamente **uno**, `gmail.readonly`. Al delegar el
   envio en Gmail ya no hace falta `gmail.send`, y nunca se piden permisos de
   modificacion o borrado del buzon.
+- **⚠️ Esta ola dispara el `checklist de salida a produccion real`.** Es una regla dura
+  de `CLAUDE.md` y este documento no la mencionaba hasta la v0.9, que es una omision
+  seria: hasta hoy el CRM guarda datos de negocio escritos a mano, y esta ola mete en la
+  base **correspondencia de personas reales** —cuerpo, direcciones y fechas— sincronizada
+  desde un buzon de verdad. Ese es exactamente el salto que el checklist existe para
+  vigilar.
+  **Se ejecuta ANTES de la fase 2** (la que ensancha a todos los contactos), no al final:
+  la fase 1 sincroniza un solo contacto conocido y es reversible; a partir de la 2 hay
+  correo real de terceros en produccion. Lo dispara el PM y lo ejecuta el Director/CEO,
+  segun `checklist-produccion-real.md`.
+  Y hay un punto de ese checklist que esta ola vuelve urgente: **que ningun registro de
+  la fabrica capture contenido de produccion**. Con correo dentro, un volcado en un log o
+  en una transcripcion deja de ser una molestia y pasa a ser datos personales de alguien
+  que no es cliente nuestro.
 - **App Interna**: la exencion de CASA depende de que la app siga siendo Interna. Si
   algun dia se abre a terceros, esta seccion y la 12 se reabren ANTES, no despues.
 - **Al desconectar la cuenta**: los tokens se borran siempre y el canal push se cierra,
@@ -1346,7 +1361,13 @@ fichero; los fragmentos literales de codigo van citados como bloque.
   - El autor debe ser un usuario del CRM; el de un email recibido es el cliente.
   - La nota es texto plano unico: sin asunto, cuerpo, direccion, hilo ni adjuntos.
 
-- `convex/interactions.ts` — **el proximo paso NO es automatico** (verificado tras el
+- `convex/interactions.ts` — **el proximo paso de ESTA mutation no es automatico**
+  (matizado el 2026-09-08: la version anterior de este documento decia "no es
+  automatico" a secas y era falso — hay **cuatro** `insert("nextSteps")` en el codigo y
+  **tres de ellos ponen la accion solos**: `createQuick`, `createForCustomer` y
+  `changeStage` la sacan de tablas por canal o por etapa. El sistema **si** sabe crear
+  pasos automaticamente; lo que no hace es inventarlos **en el registro manual de una
+  interaccion**) (verificado tras el
   hallazgo H4 de la review): la mutation exige como argumentos obligatorios
   > nextStepAction: v.string()
   > nextStepDueDate: v.number()
