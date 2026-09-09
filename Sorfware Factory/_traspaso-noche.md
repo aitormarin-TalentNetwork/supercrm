@@ -500,6 +500,16 @@ paró de producir y respetamos la pausa—:
   el Factory Architect me lo preguntara**. Si se sostiene, **no hace falta revisar a todos: hace
   falta que todos sepan que les puede tocar** — y eso cambia el diseño del mecanismo. **Un caso
   no es evidencia.**
+- 🔶 **Saqué de la raíz tres duplicados de macOS que rompían `tsc`.** `npx tsc --noEmit` daba
+  **5 errores con el código sano** —todos en `.next/types/*" 2".ts`—, así que **el exit code
+  salía distinto de cero pasara lo que pasara** y cualquier *"tipos: OK"* apoyado en él estaba
+  vacío. Son **artefactos generados y gitignorados**; los **moví, no los borré**, a
+  `~/.cuarentena-fabrica/` con un LEEME. **Ahora `tsc` da 0 errores**, y lo verifiqué con un
+  canario de tipos que **sí puso rojo**, así que el cero se distingue de *"no compiló nada"*.
+  ⚠️ **A la primera lo hice mal:** los moví a la carpeta de cuarentena **dentro del repo** y
+  **pasaron de 5 errores a 18**, porque `tsconfig` también compila ahí. **Apliqué un precedente
+  sin comprobar la precondición que lo hacía funcionar.** *(Los duplicados de T3 NO los he
+  tocado: son de la Directora.)*
 - **Reportar el momento de contar en lugar del momento del hecho.** El Factory Architect me dio
   la hora de armado de su watchdog **desviada 16 minutos**, y no por relevo: *"tenía el dato
   exacto delante y tecleé otro — puse la hora a la que te escribí, no la que decía el evento"*.
