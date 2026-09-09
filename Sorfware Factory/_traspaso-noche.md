@@ -1451,6 +1451,20 @@ número que alguien produce en un ciclo que ya estaba corriendo.
 espera.** Nadie esperaba que el `tsc` estuviera en verde; nadie esperaba que el vigilante
 existiera. **Ahí no hay a quién darle la razón para preguntar.**
 
+🆕 **Y una que puede FUSIONAR dos candidatas, que es justo lo que buscamos al podar.** Los tres
+defectos que motivaron la 79 parecían tres cosas distintas; lo que comparten es más apretado:
+> **La medición y la decisión están sanas por separado. Lo que se rompió es el cable entre las dos.**
+> · la decisión lee un valor **que no es el que se midió** (una rama con el dato de otra)
+> · la medición existe y **la decisión no la lee** (se toma la tercera foto y se comparan dos)
+> · la clasificación **no cubre el caso**, así que la decisión nunca lo ve
+**Y lo accionable: comprobar la medición pasa, y comprobar la decisión pasa. Los dos extremos están
+bien.** Por eso ninguna verificación de cada pieza los caza — **hay que comprobar el ENLACE, que es
+lo que nadie mira porque no es de nadie.**
+🔗 **Y es el mismo eje que la candidata 76**, en el sentido contrario: allí *la acción no llegaba al
+mecanismo*; aquí *la medición no llega a la decisión*. **Las dos son el enlace, no los extremos.**
+*Si el repaso las mira juntas puede que sean **una sola regla con dos sentidos** — y eso es podar
+dos en una, que es exactamente lo que la meta-regla pedía decidir.*
+
 📌 **Y la pregunta que hay que hacerse ANTES de escribir ninguna, que es del FA:** la meta-regla es
 **una regla sobre reglas ya escritas**, así que **hay que decidir a la vez cuáles deja
 redundantes** — la 74, la 73, la 75 y la 76 son todas casos suyos. Escribirlas por separado deja
