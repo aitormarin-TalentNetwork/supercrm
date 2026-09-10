@@ -161,11 +161,40 @@ once terminales diciéndoles que estaban paradas — con la confianza de haber m
 lo que lo hace peor que no medir. Puesto detrás, el control me habría dado la razón **cuando
 ya daba igual**. Ésa es la diferencia entre **un control que informa y uno que impide**.
 
-⚠️ **Con la honestidad que toca sobre la fuerza de esta conclusión:** son seis casos
-observados, no un experimento controlado, y difieren en más cosas que el orden del control.
-**No está demostrado que el orden sea la causa** — es la hipótesis que mejor encaja con los
-seis. La regla es barata, así que la adoptamos igual; **pero sería irónico publicar una
-conclusión sobreafirmada precisamente en el informe sobre sobreafirmar.**
+⚠️ **Con la honestidad que toca sobre la fuerza de esta conclusión:** son casos observados, no
+un experimento controlado. **La regla se adopta porque es barata y porque encaja con todos los
+casos, no porque su causa esté demostrada.**
+
+**Y la enumeración completa, que es lo que la convierte en hallazgo y no en impresión** — la
+hice porque el Factory Architect dijo que era *"fuente agotable, un rato de lectura"*, y tenía
+razón. **Ocho instrumentos rotos, no seis:**
+
+| # | Instrumento | ¿Control antes? | ¿Se detectó solo? |
+|---|---|---|---|
+| 1 | Vigilante que se contaba a sí mismo | **no había ninguno** | no — lo cazó una discrepancia con otra terminal |
+| 2 | Patrón anclado del veredicto | **no había ninguno** | no — lo levantó T1 leyendo |
+| 3 | Conteo de menciones para atribuir un veredicto | **no había ninguno** | no — lo cazó que 93 vs 15 chirriara |
+| 4 | Conteo global de procesos de auditoría | **no había ninguno** | no — lo cazó otra terminal |
+| 5 | Mi primer detector de exports huérfanos (8 donde había 3) | **detrás** | no — lo cazó un listado impreso antes |
+| 6 | Mi orden de transcripts por fecha | **delante, PERO del eje equivocado** | no — lo cazó que un número chirriara |
+| 7 | Detector de punteros de la Directora (9 falsos) | **delante** | **sí** |
+| 8 | Mi conteo con `find -newermt` | **delante** | **sí** |
+
+🔑 **Y el nº 6 es el que corrige la regla, y no lo habríamos visto sin enumerar: yo TENÍA el
+control delante y aun así no me salvó.** Validaba que el instrumento sabía leer fechas — y lo
+sabía. **Lo que no validaba era el universo sobre el que las leía.** Así que la regla buena no
+es *"pon el control delante"*, es:
+
+> **Pon el control delante Y sobre el eje que decide.** Un control puesto sobre el eje
+> equivocado da luz verde con la misma cara.
+
+📌 **Dos correcciones que hubo que hacer para llegar aquí, y las dos van dichas porque el
+método importa más que la tabla:** el Factory Architect escribió que el orden era *"la única
+variable que cambia"* — **pero cinco casos no tenían el control detrás, es que no tenían
+control de ninguna clase**, así que el contraste "antes contra después" no existía en los
+datos. Y su *"el único que se detectó solo"* también era falso: **son dos**, porque la
+Directora también puso el suyo delante y también se cazó sola. **Él mismo señaló las dos, la
+segunda en la dirección que no le favorecía.**
 
 ### Un gate que resultó ser la sensación de un gate
 Puse un gate de autenticación. **Se reescribió cinco veces en tres horas** — por lista de
