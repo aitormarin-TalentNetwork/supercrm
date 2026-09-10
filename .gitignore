@@ -76,6 +76,10 @@ next-env.d.ts
 /Sorfware Factory/_turno-raiz.lock
 # Registro de quien tuvo el turno y cuando lo libero (decision 88). Sin secretos: solo quien y cuando.
 /Sorfware Factory/_turno-convex.log
+# Su gemelo del cerrojo de raiz. Su entrada tambien faltaba: la D18 creo DOS artefactos por
+# cerrojo (.lock y .log) y el arreglo del cerrojo fantasma solo cubrio el .lock. Lo commitee yo
+# con un `git add -A` a las 04:07Z y lo saco aqui — mismo fallo, un fichero mas alla.
+/Sorfware Factory/_turno-raiz.log
 
 # modo de publicación del Integrador — YA NO SE IGNORA (decisión 12, 2026-09-08).
 # Dejó de ser "estado efímero" el día que pasó a llevar procedencia: dos líneas en cuatro
