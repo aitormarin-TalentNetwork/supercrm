@@ -1011,3 +1011,74 @@ ventana abierta justo mientras se discute como cerrarla**.
 2. **Se DECLARA el hueco, no solo la retencion.** Si solo se comunica *"he retenido"*, la regla
    defectuosa sigue en pie y vuelve a fallar con el siguiente. Es la D37 otra vez: **retirar
    confianza de una regla mala es gratis; sustituirla es lo que cuesta.**
+
+## 🔴 CORRECCION DE LA D33 — MI PROPIO GATE ESTABA ESCRITO SOBRE EL CAMINO DE DESCUBRIMIENTO
+
+**Medido por T4 y me tumba a mi, no al CEO.** Escribi la D33 a las 04:0xZ asi: *"no se usa `npx
+convex deploy --env-file` desde un worktree"*. **Nombre un FLAG.**
+
+**T4 midio: `--url` + `--admin-key`, SIN `--env-file` por ninguna parte, borra exactamente
+igual.** O sea que **lo que dispara el dano no es el flag: es que el deployment se resuelva por
+URL + admin key en vez de por nombre.** `--env-file` era **una de las puertas**, y yo la converti
+en la definicion.
+
+**Gate corregido:** *desde un worktree, ningun comando de Convex que resuelva el deployment por
+**URL + admin key**; `--env-file` es un caso conocido, **no la definicion**; el camino permitido
+es **por nombre**.*
+
+⚠️ **Y el modo de fallo de un gate asi es el peor de todos los que llevamos esta noche, con la
+formulacion del CEO: un gate escrito sobre el camino de descubrimiento NO FALLA RUIDOSAMENTE.
+Falla el dia que alguien usa otra puerta — y esa persona tiene razon al decir que no incumplio
+ninguna regla escrita.** No hay culpable, no hay alarma, y **el dano ocurre igual**. Un gate que
+solo puede incumplirse sin querer y sin senal no es un gate: es una nota.
+
+✅ **Y hay un beneficio secundario que vale mas que el propio gate, y es de la medicion de T4: un
+hueco sin fondo se ha convertido en una enumeracion agotable.** La ficha decia *"no sabemos
+cuales mas lo son"* y la pregunta era *"¿que otros subcomandos?"* — **infinita, y por eso nadie la
+cerraba**. Ahora es **"¿quien resuelve por URL + admin key?"**, que **se puede enumerar hasta
+cerrarla**. *Cambiar la pregunta por una que se agota vale mas que responder mejor la que no.*
+
+📌 **Tres instancias de la D40 en una noche, dos del CEO y una MIA** — ficheros -> formas -> flag.
+**Las tres veces el autor creyo subir de NIVEL y solo cambio de LISTA.** Que me pasara a mi
+escribiendo la decision que corrige las otras dos es la prueba de que **no se evita sabiendolo**:
+la pregunta por el mecanismo es mas incomoda porque exige juicio en vez de comprobacion mecanica,
+y bajo prisa se coge siempre la mecanica.
+
+## Evidencia que valida la D39 — y valida las DOS lecturas, no la mia
+
+**Del CEO, y la anoto porque una regla mia recien escrita no se da por buena sola.**
+
+El primer intento de T4 con el stub dio **`exit 127`: `timeout` no existe en macOS**. El CLI
+**nunca llego a ejecutarse** y el fichero quedo **intacto**. Sin la puerta que el auditor le exigio
+en **M4, tres rondas antes**, T4 habria anotado *"fichero intacto, exit != 0"* y concluido **que el
+comando no dana**.
+
+🔑 **Es el falso verde exacto del que va esa ficha, cometido MIDIENDO esa ficha.** Y lo que
+demuestra es que **el ciclo protegio de verdad, y protegio ANTES del GO** — o sea que la Directora
+tenia razon. **Lo que giraba en vacio no eran las rondas: era repetir el mismo `SIN:`.** La D39
+corta exactamente eso y **no corta lo que funcionaba**, que era la unica forma de que la decision
+fuera correcta con las dos lecturas siendo ciertas.
+
+## D41 — una ficha nueva no es deuda CONTRAIDA, es deuda DESCUBIERTA
+
+**El CEO iba a mandarme *"10 issues creadas, 1 cerrada, balance −9"*. El PM se lo refuto antes, y
+la refutacion es la decision.**
+
+**Con esa metrica, una noche en la que nadie mira nada SALE MEJOR que esta:** cero creadas, balance
+cero. **Una metrica que premia no mirar es peor que no tener metrica**, porque la que no existe no
+dirige a nadie y esta si.
+
+**La forma buena son dos lineas que NUNCA se restan:** `cerrado = 1` · `deuda descubierta = 10, y
+ninguna es ruido`. Restarlas fabrica un numero que **no mide el trabajo ni el estado**: mide
+cuanto miraste, con el signo cambiado.
+
+**Lo que sobrevive de la preocupacion del CEO, que es real y mas pequena:** **nadie llevaba la
+cuenta**, y *descubrir en vez de cerrar fue una eleccion de alcance que nadie estaba viendo
+mientras la tomaba*. Eso si es materia de proceso: **la eleccion entre cerrar y descubrir se
+declara al tomarla**, no se deduce del recuento a la manana siguiente. Quien decide alcance es el
+PM (`CLAUDE.md`), asi que la cuenta va a el, sin restar.
+
+📌 **Y anoto el metodo, que es lo que hace util este apartado: el CEO me trajo la version refutada
+JUNTO con su refutacion, en vez de mandarme la buena y ahorrarse el desliz.** Su razon es exacta y
+la firmo: **si esto acaba en catalogo, la version mala no debe ser la que viaje.** Una metrica
+tumbada que nadie registra vuelve a proponerse.
