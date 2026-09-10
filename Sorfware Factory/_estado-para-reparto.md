@@ -298,3 +298,32 @@ Si coinciden son **dos clasificaciones independientes**. Al reves, la de la Dire
 convierte en la hipotesis que el va a confirmar — y confirmar lo que ya crees es donde
 medir parece mas innecesario y mas rinde. Se manda en el mismo mensaje; el orden lo pone
 quien lee.
+
+### 🔴 EL ENCARGO A UNA PLAZA ES UN SCRIPT, NO UN PROMPT (12:44Z, y me costo 33 minutos)
+
+`plaza-N.sh` linea 12 hace **`bash "$JOB.corriendo"`**. Le escribi un prompt en PROSA. Bash
+lo ejecuto como comandos, dio errores de sintaxis en una ventana que no veo, borro el
+fichero y volvio a esperar imprimiendo **"✔ PLAZA 1 libre otra vez"** — los mismos dos
+mensajes que produce una auditoria que sale bien. **La auditoria de AIT-127 r5 no arranco
+en 33 minutos y yo la reporte tres veces como "en curso".**
+
+**FORMATO CORRECTO** (copiado de los disparos que si funcionaron):
+
+    cd '<worktree>' && codex exec "$(cat '<scratchpad>/prompt-XXX.txt')" 2>&1 \
+      | tee '<...>/codigo para auditar/VEREDICTO_....txt' ; touch '/tmp/claude-crm-auditor-done-XXX'
+
+O sea: el prompt va en un fichero APARTE, y el `.job` es el script que lo invoca.
+
+**GUARD OBLIGATORIO ANTES DE ENCOLAR: `bash -n <fichero>`.** Probado que discrimina: contra
+el encargo en prosa **falla en la linea 3** (`syntax error near unexpected token '('`);
+contra el script bueno, pasa.
+
+**Y COMO LO ESTUVE CONFIRMANDO MAL DURANTE MEDIA HORA:** `ps | grep -c '[c]odex exec'` me
+daba 3, y eran **mi propio vigilante y mis propios comandos**, cuyas lineas contienen esa
+cadena. **El instrumento se contaba a si mismo**, asi que la rama "el auditor ha muerto" no
+podia dispararse nunca. Se mide con **`pgrep -f "^codex exec"`**, anclado, o por el fichero
+de marca `/tmp/claude-crm-auditor-done-*`.
+
+**Y la senal que si discrimina:** el `tee` escribe desde el primer segundo. Un veredicto de
+**0 bytes a los cinco minutos significa que NUNCA ARRANCO**, no que aun no ha terminado. Yo
+lei ese vacio como el estado comodo de los dos que admitia.
