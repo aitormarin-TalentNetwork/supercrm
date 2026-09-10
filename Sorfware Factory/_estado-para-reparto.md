@@ -388,3 +388,42 @@ Hasta entonces el que protege de verdad es el cerrojo.
 **La direccion importa:** este guard falla hacia BLOQUEADO, que es el lado que parece seguro
 y cuesta produccion. El anterior (encolar un prompt en vez de un script) fallaba hacia el
 verde. Los dos cuestan; solo uno se nota.
+
+### PUNTO DE CORTE DE LAS RONDAS DE PLAN (CEO, 14:43Z) — fijado ANTES de ver el resultado
+
+**La regla de "una ronda de plan como maximo" era SOLO para AIT-128 y AIT-129**, por su tamano.
+AIT-92, AIT-134 y AIT-141 nunca estuvieron dentro. (El CEO declara que no acoto el alcance de su
+propia regla, y que **es la cuarta vez hoy que una regla nueva sale sin decir a que se aplica**:
+su `VIGENTE_DESDE`, la clausula transitoria de la D73, la config de los worktrees, y esta.)
+
+**EL CORTE, y nombra el SUJETO y no el momento:**
+
+> La pasada de los diecisiete criterios es **UNA**. Si la ronda 5 de AIT-92 vuelve con hallazgos
+> de la **MISMA CLASE** —control positivo fuera del `FALLA si`— la enumeracion no funciono, y eso
+> si es senal de parar y replantear. Si vuelve con hallazgos de **OTRA clase**, es progreso
+> normal y sigue.
+
+Un *"si vuelve a fallar"* no sirve: se cumple con cualquier fallo. **La condicion tiene que
+nombrar por que falla.**
+
+### POR QUE NO SE PASA A CODIGO CON LOS MAJORS ANOTADOS
+
+Lo ofreci yo y el CEO lo rechazo con mi propio argumento: **los majors abiertos fallan hacia el
+verde, y son criterios que NO PUEDEN SUSPENDER.** Un plan asi no protege la implementacion que
+viene detras — se pasaria a codigo *con la sensacion* de tener criterios y sin tenerlos. **No es
+acelerar: es mover el rojo a mas tarde y mas caro.**
+
+⚠️ **Y la senal que distingue este bucle de un pozo:** el `SIN:` de la ronda 4 de AIT-92 dice
+**"nada"**. No hay huecos de ejecucion; lo que falta esta entero dentro del documento y es
+acotable. **Un bucle con `SIN: nada` es distinto de uno donde el auditor no puede comprobar.**
+
+### LA CORRECCION QUE ROMPE LA SERIE (y que debi ver dos rondas antes)
+
+    AIT-92 r2  M5    "los contratos estan descritos, no son criterios verificables"
+    AIT-92 r3  M5.2  C11, C13, C14, C16: control positivo FUERA del `FALLA si`
+    AIT-92 r4  M7    C2 y C5: control positivo FUERA del `FALLA si`
+
+Misma clase, criterios distintos, una tanda por ronda. **Cuando el mismo hallazgo aparece dos
+veces en criterios distintos, la instruccion correcta deja de ser "arregla estos" y pasa a ser
+"cuentalos todos"** — con el recuento escrito, para que el auditor pueda refutar CONTANDO en vez
+de volver a buscar. Un barrido de candidatos no se cierra; una enumeracion del universo si.
