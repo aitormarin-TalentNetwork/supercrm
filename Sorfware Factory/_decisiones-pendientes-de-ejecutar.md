@@ -1407,3 +1407,85 @@ reproducir el comprobador: su comando o script no forma parte del export"*. **No
 artefacto** — era un comando de una sesion y murio con ella. Ahora va a `scripts/`, versionado.
 ***Una medicion no es una herramienta hasta que alguien mas puede correrla.*** Es el mismo fallo de
 la decision 78 (el vigilante que vivia solo en la sesion que lo monto) en otro sitio.
+
+## D47 — la 79 no se retira: se REDACTA BIEN. El auditor no discrepaba, era un espejo
+
+**Medido por mi en `auditor_prompt.txt:80-83` y `AGENTS.md:87-90` (identicos, verificado con
+`diff`), seccion "Rondas de revision", punto 2:**
+
+> *"En rondas posteriores, revisa los hallazgos que seguian abiertos **MAS unicamente lo que cambio
+> desde la ronda anterior** — no reabras decisiones ya aprobadas ni areas sin cambios."*
+
+**Eso es, palabra por palabra, lo que los veredictos de AIT-123 y AIT-127 proponian.** Los dos
+auditores **no contradecian la 79: obedecian la instruccion que les dimos nosotros**, y coincidieron
+**porque leen el mismo documento**. La coincidencia que disparo el escalado **tenia causa mecanica,
+no de criterio**.
+
+📌 **La forma, y es la mejor de la noche en su genero: llevabamos una hora tratando al auditor como
+una VOZ EXTERNA DISCREPANTE cuando era un ESPEJO.** La contradiccion no estaba entre nosotros y el
+— **estaba entre dos documentos NUESTROS**, y llevaba viva desde que se escribio la 79. **El auditor
+nos devolvia nuestra propia instruccion vieja y la leiamos como una objecion suya.** La hipotesis
+mas aguda del CEO —*"descartamos lo que viene de quien no conoce nuestras reglas"*— **era la
+correcta por el lado inverso: las conocia demasiado bien, solo que las viejas.**
+
+**DECISION: no se retira ninguna de las dos. Se corrige la REDACCION de la 79**, que dice *"alcance
+completo"* cuando lo que quiere decir es:
+> **Lo corregido se audita como CODIGO NUEVO, aunque el area ya estuviera aprobada.**
+
+**Las dos protegen cosas distintas y las dos tienen cicatriz:** el punto 2 protege contra que el
+auditor **reabra lo aprobado** (sin eso el plan no converge nunca); la 79 protege contra que **el
+diff de la correccion entre sin leerse** — *la ronda que corrige es el codigo menos leido del
+ciclo*. Con la redaccion nueva, un auditor puede a la vez **no reabrir decisiones** y **no dar por
+leido lo que acaba de cambiar**. Ninguna cicatriz se pierde.
+
+**Es, otra vez, el patron de la noche: la regla era buena y el enunciado la traicionaba.**
+
+⚠️ **Y mientras se ejecuta, manda la conservadora — pero se comunica con la CAUSA CORRECTA**, no
+como *"el auditor propone algo que contradice nuestra regla"* sino como ***"nuestro prompt y nuestra
+79 se contradicen entre si"***. Para T3 y T4 la diferencia es material: **no estan recibiendo una
+opinion del auditor, estan en medio de una contradiccion nuestra.**
+
+🔴 **Y UN HALLAZGO QUE SALE DE PROPINA Y ES PEOR QUE EL ANTERIOR: el punto 4 de esa misma seccion
+—*"si tras dos rondas seguidas de NO-GO el plan sigue creciendo en alcance, deten la revision y
+recomienda dividir"*— YA DECIA LA D39 ANTES DE QUE YO LA ESCRIBIERA.** La redescubrimos anoche desde
+cero, mirando cuatro `SIN:` repetidos, **teniendola escrita en un documento propio**. La causa es la
+misma que la del espejo: **no leemos `auditor_prompt.txt` como fuente de reglas de proceso**, lo
+tratamos como configuracion de una herramienta ajena. **Es un documento de proceso de esta fabrica y
+tiene que estar en la lista que se consulta antes de decidir.**
+
+## D48 — la cola de disparo se verifica en la ENTRADA; el barrido se queda como backstop
+
+**Caso: AIT-114 loop6 de T2 publicado y sin disparar, 41 minutos de T2 parada — SEGUNDA vez en la
+misma ficha.** Y esta vez **no habia proceso que se muriera: el export no llego a entrar en la
+cola.** Lo cazo el barrido de huerfanos, **que es la ultima red y estaba actuando como la primera**.
+
+**DECISION — el umbral del barrido NO se toca (60 min):** bajarlo para cazar los 41 haria gritar en
+cada auditoria legitimamente lenta, y **un control que grita en cada corrida se apaga en la cabeza
+de quien lo lee**. Perderiamos la ultima red intentando convertirla en la primera. **Direccion
+buena, frecuencia baja: eso es lo que hace util un backstop, y por eso sigue siendo backstop.**
+
+**El arreglo va donde ocurre el hecho:** *publicar el export* y *entrar en la cola* son **el mismo
+acto, verificado POR EFECTO por quien publica** — quien deja el export **lee la cola de vuelta en un
+comando aparte** y confirma que su entrada esta. **Cuesta un `grep` y cierra la clase entera sin
+umbral que ajustar.** Se acumula al marcador de fin de export (D32/D45): certifica **terminado**,
+**completo** y **encolado**.
+
+📌 **Y el remate, que es del CEO sobre si mismo: la salvaguarda que nos salvo las dos veces es la
+suya y no estaba disenada para esto.** Tercera instancia del patron de T3 en una noche.
+
+## Fila — escribir la sintesis y seguir preguntando el dilema
+
+**Autocazada, con ayuda del CEO.** Le escribi: *"el punto 2 protege contra que el auditor reabra lo
+aprobado; la 79 protege contra que el codigo nuevo entre sin leerse. No son la misma cosa y las dos
+tienen razon"* — **y a continuacion le pregunte cual de las dos habia que retirar.** La respuesta ya
+estaba en mi propio parrafo anterior: **si protegen cosas distintas, no hay que elegir.**
+
+**La forma: producir el contenido decisivo y no PROMOVERLO a decision.** Es la hermana de la fila del
+CEO de hace una hora —*"escribi la objecion como un riesgo y no como una refutacion"*—: en la suya,
+un argumento que tumba se archiva como matiz; en la mia, **una sintesis que resuelve se archiva como
+observacion** y la pregunta binaria sigue en pie. **Las dos veces el texto bueno estaba escrito y
+ninguno de los dos lo ascendio.**
+
+**Regla practica: al plantear un dilema, releer lo que uno mismo acaba de escribir ANTES de pedir
+que lo resuelva otro.** El disyuntor —*"¿o A o B?"*— tiene fuerza propia: **se sostiene solo, aunque
+el parrafo de al lado lo haya disuelto.**
