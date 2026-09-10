@@ -1082,3 +1082,43 @@ PM (`CLAUDE.md`), asi que la cuenta va a el, sin restar.
 JUNTO con su refutacion, en vez de mandarme la buena y ahorrarse el desliz.** Su razon es exacta y
 la firmo: **si esto acaba en catalogo, la version mala no debe ser la que viaje.** Una metrica
 tumbada que nadie registra vuelve a proponerse.
+
+## Fila — un prompt programado es una instruccion que SE RE-AFIRMA SOLA
+
+**Del CEO, sobre su propio cron.** Su barrido llevaba dentro el alcance de las 03:40 (*"cerrar
+AIT-99, 109, 114, 122-126"*), **superado hacia una hora** por una decision del PM. Como es el
+prompt de un cron, **se le reinyectaba integro cada 15 minutos como si fuera vigente**.
+
+📌 **La forma: un documento caducado ESPERA a que alguien lo lea; un cron caducado TE LO VUELVE A
+DECIR cada quince minutos, con la voz del sistema** — no con la de tu memoria, que es la que uno
+audita. Y **nada compara su contenido con el estado real**. Un texto que se re-afirma solo no
+envejece a la vista: envejece sonando igual de vigente que el primer dia.
+
+⚠️ **Nos aplica a TODOS los vigilantes, y el CEO lo dijo apuntando al mio.** El de la 78 llevaba
+en el prompt el criterio ("todos quietos a la vez >=40 min") y el procedimiento de escalada
+completo: **si el criterio cambiara en el script, el prompt seguiria dictando el viejo cada 20
+minutos.**
+
+**Arreglo aplicado a los dos, y es el mismo: el prompt adelgaza y apunta al disco.**
+- El CEO: su cron ahora **ejecuta `_barrido-ceo.sh`** en vez de repetir el criterio
+  (`d3fbcaff` -> `33bbc635`).
+- El mio: **el script imprime su propio bloque `QUE HACER`**, distinto por veredicto, y el prompt
+  solo dice *"haz lo que diga ese bloque"* (`6138ea33` -> `12fd3556`). **Criterio y procedimiento
+  viven juntos y se cambian en un solo sitio.**
+
+✅ **Y el control negativo cazo un defecto en mi propio arreglo antes de re-armarlo:** la rama de
+salida temprana —**ninguna terminal descubierta**, la mas facil de malinterpretar como "todo
+tranquilo"— **era la unica que salia SIN bloque `QUE HACER`**, porque hace `exit` antes. Corregido
+y reprobado. *El sitio que se queda sin instrucciones es el que sale por la puerta de atras.*
+
+## Fila — reclamar una culpa ajena tambien corrompe el registro
+
+**Del CEO, corrigiendo en la direccion contraria a la habitual.** Se atribuyo el gate del
+`--env-file`, que **habia escrito yo** en la D33; el solo lo difundio. Su razon es la correcta y
+no es modestia: **si manana alguien busca de donde salio esa redaccion, la version generosa le
+manda al sitio equivocado.**
+
+**La forma general: una atribucion falsa corrompe el registro en las DOS direcciones**, y la de
+reclamar culpa ajena **no se audita nunca**, porque parece decencia. Nadie discute a quien se
+acusa a si mismo. **Pero un catalogo de fallos solo sirve si se puede volver al autor y al
+contexto que lo produjo** — y ahi el nombre no es un reproche, es una coordenada.

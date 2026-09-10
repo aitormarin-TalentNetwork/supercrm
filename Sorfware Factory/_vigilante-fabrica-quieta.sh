@@ -19,6 +19,9 @@ TERMS=$(ls -d $BASE/$PAT* 2>/dev/null | sed "s#.*--worktrees-##" \
 if [ -z "$TERMS" ]; then
   echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
   echo "VEREDICTO: INDETERMINADO (el descubrimiento no encontro NINGUNA terminal: patron o ruta mal)"
+  echo "QUE HACER: es un fallo DEL VIGILANTE, no una fabrica sana. Investigalo antes de dar"
+  echo "  nada por bueno. Un cero aqui no distingue 'no hay' de 'no supe mirar'."
+  echo "SIEMPRE: comprueba con ListAgents que el CEO sigue vivo (vigilancia reciproca)."
   exit 0
 fi
 
@@ -38,10 +41,23 @@ done
 echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
 echo "terminales DESCUBIERTAS: $(echo $TERMS | tr '\n' ' ')"
 echo "con transcript: $total | quietos >=${UMBRAL_MIN}min: $quietos$detalle"
+# El QUE HACER se imprime AQUI y no vive en el prompt del cron (fila del CEO,
+# 2026-09-10): un prompt programado es una instruccion que se RE-AFIRMA SOLA cada
+# ciclo, con la voz del sistema, y nada compara su contenido con el estado real.
+# Criterio y procedimiento viven juntos, en disco, y se cambian en un solo sitio.
 if [ "$total" -eq 0 ]; then
   echo "VEREDICTO: INDETERMINADO (terminales descubiertas pero ninguna con transcript)"
+  echo "QUE HACER: es un fallo DEL VIGILANTE, no una fabrica sana. Investigalo antes de"
+  echo "  dar nada por bueno. Un cero aqui no distingue 'no hay' de 'no supe mirar'."
 elif [ "$quietos" -eq "$total" ]; then
   echo "VEREDICTO: ALARMA (las $total terminales quietas a la vez)"
+  echo "QUE HACER: 1) avisa al CEO por SendMessage con esta salida CRUDA pegada — quien es"
+  echo "  el CEO sale de la entrada mas reciente de _registro-agentes.txt, y si no resuelve,"
+  echo "  de ListAgents; 2) avisa a Aitor con osascript -e 'display alert ...'."
+  echo "  PROHIBIDO AskUserQuestion o cualquier selector interactivo: deja la sesion sorda."
 else
   echo "VEREDICTO: OK"
+  echo "QUE HACER: nada, y no escribas nada largo. Una linea basta."
 fi
+echo "SIEMPRE: comprueba con ListAgents que el CEO sigue vivo (vigilancia reciproca). Si no"
+echo "  aparece, diselo a Aitor con la misma alerta visible."
