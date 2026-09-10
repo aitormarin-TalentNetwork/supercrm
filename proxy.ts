@@ -112,26 +112,39 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
 // El handler de arriba llama a `convexAuth.isAuthenticated()` (línea 79) en toda
 // ruta que el matcher capture, y eso es un `fetchQuery` a Convex SIN LÍMITE. La
 // ruta de cierre local existe justamente para el caso en que Convex no responde:
-// si pasara por aquí, se quedaría esperando a lo mismo que viene a rodear, y la
-// respuesta que borra las cookies no llegaría nunca.
+// si pasara por aquí, se quedaría esperando a lo mismo que viene a rodear.
 //
-// ⛔ NO VALE UN `return` TEMPRANO EN EL HANDLER. `convexAuthNextjsMiddleware`
-// ENVUELVE a nuestra función y puede intentar renovar tokens —otro `fetchAction`—
-// antes de que nuestro código corra. Lo único que garantiza cero Convex es que la
-// ruta no entre en el matcher.
+// ⛔ NO VALE UN `return` TEMPRANO EN EL HANDLER, y esto está MEDIDO en el paquete
+// instalado, no supuesto: `convexAuthNextjsMiddleware` ejecuta
+// `handleAuthenticationInRequest(request, options)` —que refresca tokens— ANTES
+// de invocar nuestra función (`dist/nextjs/server/index.js:48-66`). Cuando
+// nuestro código corre, el trabajo de red ya se hizo.
 //
-// ⚠️ ESTE REGEX NO SE VERIFICA LEYÉNDOLO. Son tres patrones con negación
-// anticipada y escapes dobles: es exactamente la clase de cosa que se lee
-// correcta y no lo es. Se comprueba POR EFECTO —con Convex pendiente, la ruta
-// tiene que responder dentro de su límite— y ese test existe en
-// `e2e/08-cierre-de-sesion.spec.ts`. Si alguien toca esta línea, ese test es el
-// que dice si sigue funcionando.
-const RUTA_CIERRE_LOCAL = "api/cerrar-sesion-local";
-
+// 🔴 Y LA FORMA DE ESTA LISTA NO ES ESTILO: ES LO ÚNICO QUE FUNCIONA. MEDIDO.
+// Escribí primero la exclusión con lookahead dentro del patrón de `/api`, que se
+// lee perfectamente bien. **Tumbaba la aplicación entera.** Probados con
+// servidor FRESCO por candidato, porque cambiar `config` en caliente no equivale
+// a arrancar con él:
+//
+//   `/(api|trpc)(?!/cerrar-sesion-local)(.*)`   -> servidor MUERTO (login 000)
+//   `/(?!api/cerrar-sesion-local)(api|trpc)(.*)` -> servidor MUERTO (login 000)
+//   separar `/api/` en su propio patrón          -> FUNCIONA
+//
+// O sea: una negación anticipada **junto a un grupo de captura** rompe el
+// matcher, y no avisa al escribirla — avisa cuando `/login` devuelve 500 y la
+// suite muere esperando al servidor. Que es exactamente como lo encontré.
+//
+// ⚠️ `/api/auth` TIENE que seguir capturado o el login deja de funcionar:
+// el cuarto patrón lo cubre. Comprobado por efecto: `POST /api/auth` -> 200.
 export const config = {
   matcher: [
-    `/((?!.*\\..*|_next|${RUTA_CIERRE_LOCAL}).*)`,
+    // Todo salvo ficheros con punto, `_next` y CUALQUIER `/api` (lo cubre el
+    // cuarto patrón, que es donde vive la exclusión).
+    "/((?!.*\\..*|_next|api).*)",
     "/",
-    `/(api|trpc)(?!/cerrar-sesion-local)(.*)`,
+    "/(trpc)(.*)",
+    // `/api/*` MENOS la ruta de cierre local. Aquí la negación funciona porque
+    // no comparte patrón con un grupo de captura.
+    "/api/((?!cerrar-sesion-local).*)",
   ],
 };
