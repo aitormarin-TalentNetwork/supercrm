@@ -203,8 +203,16 @@ manda el arreglo al sitio equivocado y deja el hueco real abierto con sensacion 
 ### PENDIENTE DE AITOR — actualizado 12:26Z, ahora son TRES
 
 1. **Los cuatro permisos de AIT-99** (desbloquean tambien AIT-125).
-2. **`~/.claude.json`** — sin el, AIT-97 no arregla las seis sesiones de raiz. Es fichero
-   personal suyo y NADIE de la fabrica lo toca.
+2. **`~/.claude.json`** — PASO CONCRETO: **aplicar la configuracion del MCP de cada
+   terminal**, que es lo que desbloquea AIT-97. Fichero personal suyo y NADIE de la fabrica
+   lo toca.
+   ⚠️ Este punto llevaba TODO EL DIA en mi lista como "`~/.claude.json`" a secas, y aqui
+   escrito con su CONSECUENCIA en vez de con su PASO. Lo cazo el criterio del PM aplicado
+   por mi a mi propia lista. **Una consecuencia bien escrita se siente como una
+   especificacion y no lo es**: dice POR QUE importa, no QUE hay que hacer — y falla hacia
+   el silencio, porque nadie pregunta "¿y que hay que hacer?" cuando el texto ya suena
+   informado. El dato lo tenia el PM desde hacia media hora, en otra ficha, y ninguno de los
+   dos lo conecto.
 3. **NUEVO: generar `GMAIL_TOKEN_ENCRYPTION_KEY`** y ponerla en el deployment. Medido por
    T2 con `convex env list --names-only`: **no existe en ningun sitio**, y el plan de
    AIT-92 dice que el refresh token se guarda cifrado con ella. Decidido por el PM que la
@@ -871,3 +879,37 @@ direccion tranquilizadora.**
 conversacion** y **con su etiqueta**. Y al LEER el limite de otro, tratarlo como **un puntero a
 donde mirar, no como una casilla ya marcada** — que es exactamente lo contrario de lo que hace el
 lector por defecto.
+
+
+---
+
+## 2026-09-10 17:12Z — LOS SIETE PENDIENTES DE AITOR SON PARADA, NO ESPERA
+
+Regla del PM, que cierra un hueco que yo le habia senalado en la suya:
+
+> **Un paso nombrado y NO PEDIDO no es espera: es PARADA.** La ficha declara **cuando se le
+> pidio al ejecutor**, no solo quien es.
+
+**Su motivo, que es el bueno:** *una ficha con dueno nombrado SE SIENTE ATENDIDA, y por eso deja
+de mirarse.* La fecha de peticion es lo unico que convierte "tiene dueno" en "esta en marcha".
+
+🔴 **Aplicado a mis siete pendientes de Aitor: a NINGUNO se le ha pedido nada, porque Aitor no ha
+estado en toda la sesion.** O sea que **los siete son PARADA y estan en nuestra mano, no en la
+suya.** Eso cambia lo que son: no es una lista en la que esperar, es **una lista que hay que
+entregarle en cuanto aparezca**, y cada minuto que no aparece no es tiempo de espera de nadie.
+
+Los siete, con su paso nombrado (el test: ¿PASO + QUIEN?):
+
+    1. cuatro permisos de AIT-99 (desbloquean AIT-125)   conceder             Aitor
+    2. `~/.claude.json`                                  aplicar config MCP   Aitor
+    3. `GMAIL_TOKEN_ENCRYPTION_KEY`                      generar -> Bitwarden Aitor
+    4. `getOverdueCountsByOwner` en produccion           mirar                Aitor
+    5. la query de AIT-141 en `stoic-impala-857`         mirar                Aitor
+       (bloquea marcar AIT-141 Done)
+    6. major que sale de un gate de plan sin cerrarse    decidir              Aitor via FA
+    7. sentada AIT-144 + AIT-91                          abrir Gmail, gate    Aitor
+       (primero el gate; si Google exige verificacion, la premisa 1 deja de importar)
+
+**Y el hueco que le quedaba a la regla del PM, que el mismo cerro:** su criterio distinguia
+abandono de espera, pero **no espera de espera indefinida** — una ficha con dueno nombrado sigue
+pasando el test para siempre. La fecha de peticion lo cierra.
