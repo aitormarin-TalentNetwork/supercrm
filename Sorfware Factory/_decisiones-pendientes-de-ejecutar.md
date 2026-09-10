@@ -1202,3 +1202,69 @@ compartido, retirada de las cinco cuentas, deployment virgen) — o sea **en el 
 **Y el resultado se reporta como es:** dos entregables comprometidos, **uno entregado**, con las
 dos opciones de AIT-99 costadas para que Aitor elija en dos minutos. **Un informe que dice "uno de
 dos" es mas util que uno que dice "dos de dos" con una ficha cerrada en falso.**
+
+## D42.1 — refinamiento de la v5: la evidencia tiene que hablar DE LO QUE EL GATE PROTEGE
+
+**El PM llego a la misma conclusion que yo, por su cuenta y sin ver mi respuesta**, tumbando la
+clausula del proposito con un argumento que es mejor que el mio en un punto: **"todo autor cree que
+su cambio mejora. Nadie manda un diff diciendo 'esto degrada la autenticacion'. Asi que la clausula
+no filtra NADA"** — y el que degrada por accidente **es justo el que el gate existe para atrapar,
+porque es el que no se ve venir**. Tambien declaro su interes antes de opinar (AIT-127 es su
+entregable), sin que nadie se lo pidiera.
+
+**Su propuesta:** *"se publica si se ha DEMOSTRADO que no degrada; ante la duda se retiene, y 'es
+un arreglo' no es una demostracion"*.
+
+**Se queda la v5 como disparador y requisito, con SU exigencia dentro, porque cada una arregla un
+hueco de la otra:**
+- **La v5 sola nombra artefactos** —GO de implementacion, revision del Integrador— que son
+  comprobables desde fuera. **Pero no dice de QUE tienen que hablar**, y un GO de implementacion
+  puede existir sin haber mirado el flujo de sesion.
+- **La del PM sola nombra la pregunta** —¿degrada?— **pero pide demostrar un negativo**, que no se
+  agota nunca y en la practica recae en "alguien lo miro y le parecio bien".
+
+**v5 definitiva:**
+> Un diff que **pueda cambiar lo que hace el sistema al autenticar** NO SE PUBLICA SIN **(a) GO de
+> IMPLEMENTACION** y **(b) revision final del Integrador** — **y (c) el `SIN:` de ese GO no puede
+> excluir el comportamiento de sesion/autenticacion.** Ante la duda se retiene, y **"es un arreglo"
+> no es una demostracion.**
+
+🔑 **La (c) es lo que ata la evidencia a lo que se protege, y sale de la D34: el `SIN:` es el mapa
+de las condiciones bajo las que el veredicto es valido.** Un GO cuyo `SIN:` diga *"sin probar el
+flujo de sesion"* **es un GO que no habla de esto** — existe, es autentico, y no sirve para
+levantar este gate. **Sin la (c), (a) y (b) se cumplen con papeles que miran a otro lado**, que es
+la "actividad adyacente autentica" ya catalogada.
+
+⚠️ **Y el PM aporta el conteo que yo no habia hecho: es la TERCERA vez que esta regla cambia de
+nivel sin salir del problema** — ficheros -> formas -> efecto -> **y en la ultima frase vuelve a la
+intencion**. *Cada version mejora y ninguna avisa de cuando deja de funcionar.*
+
+## Fila — declarar una objecion puede sustituir a seguirla, y parece rigor
+
+**Del CEO, sobre su propia v4.** Escribio tres objeciones contra su propia propuesta, y **la
+primera era suficiente para tumbarla**: *"el gate anterior no dependia de intenciones"*. Su
+diagnostico: **"la escribi como un riesgo y no como una refutacion"**.
+
+📌 **La forma: enumerar una objecion DESCARGA la obligacion de resolverla.** El texto queda mas
+honesto —hay autocritica, hay riesgos declarados— **y la propuesta sigue en pie**. Un lector ve
+rigor; lo que hay es **un argumento decisivo archivado como matiz**. Y encima **protege**: quien
+declaro el riesgo ya no puede ser acusado de no haberlo visto.
+
+**Regla: al escribir una objecion contra lo propio, decidir explicitamente si es un MATIZ o una
+REFUTACION, y decirlo.** Si es refutacion, la propuesta cae ahi mismo. **"Riesgo declarado" no es
+un estado de reposo valido para un argumento que, seguido hasta el final, tumba la tesis.**
+
+## Fila — el interes se neutralizo DOS veces, por dos vias, sin coordinacion
+
+**Dato del CEO, y merece anotarse porque es evidencia de diseno, no una anecdota.** Entre que me
+pidio la revision y que llego mi respuesta:
+1. **Yo cambie quien decide** — el tumbo alguien sin nada que ganar.
+2. **El PM le quito el incentivo** — corrigio su propio compromiso a la baja **antes de saber si el
+   gate iba a caer**, con la frase *"un gate que se levanta porque estorba a un compromiso no era un
+   gate"*. El CEO suspendio el efecto de su v4 media hora antes de que yo la tumbara.
+
+🔑 **Dos mecanismos distintos, desde dos sitios, sin coordinacion — y NINGUNO fue el criterio del
+interesado.** Eso es lo que hay que retener: **no fue que el CEO se resistiera bien a su propio
+interes; fue que el interes dejo de poder decidir.** Un sistema que depende de que la parte
+interesada se comporte bien no tiene control; uno que le quita la decision o el incentivo, si.
+**Y el CEO hizo lo unico que estaba en su mano y era lo correcto: declararlo y mandarlo fuera.**
