@@ -1,6 +1,6 @@
 import { chromium } from "@playwright/test";
+import { E2E_PORT } from "../playwright.config";
 import {
-  BASE_ORIGIN,
   capturarEstadoRodado,
   COOKIE_JWT,
   COOKIE_REFRESH,
@@ -12,6 +12,17 @@ import {
   type StorageState,
   writeStateAtomically,
 } from "./authState";
+
+/** El origen que sirve la app en ESTA invocación. Se deriva del punto único de
+ *  AIT-96, no de un 3000 cableado ni de una segunda tabla de puertos.
+ *
+ *  AIT-109 · Vive AQUÍ y no en `authState.ts` porque este fichero solo lo carga
+ *  el runner e2e, donde un `E2E_PORT` válido ya es obligatorio. En `authState.ts`
+ *  arrastraba a `playwright.config` a cualquiera que importara aquel módulo —
+ *  incluida una prueba pura que no usa esta constante para nada— y ese import
+ *  aborta la recogida entera si el puerto no vale. Es el único consumidor, así
+ *  que aquí no hay «segunda tabla»: hay UN sitio, y es el que la necesita. */
+const BASE_ORIGIN = `http://localhost:${E2E_PORT}`;
 
 // AIT-108 · UNA AUTENTICACIÓN POR CORRIDA, NO UNA POR SPEC
 // ============================================================================

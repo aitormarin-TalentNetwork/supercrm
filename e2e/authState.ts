@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { BrowserContext } from "@playwright/test";
-import { E2E_PORT } from "../playwright.config";
 
 // AIT-108 · EL CONTRATO DE LA INSTANTÁNEA DE SESIÓN
 // ============================================================================
@@ -36,9 +35,16 @@ export const HOME_BY_ROLE: Record<Role, string> = {
 
 export const ROLES: Role[] = ["owner", "sales"];
 
-/** El origen que sirve la app en ESTA invocación. Se deriva del punto único de
- *  AIT-96, no de un 3000 cableado ni de una segunda tabla de puertos. */
-export const BASE_ORIGIN = `http://localhost:${E2E_PORT}`;
+// AIT-109 · `BASE_ORIGIN` VIVÍA AQUÍ Y SE MUDÓ A `global-setup.ts`.
+// No lo devuelvas: era el ÚNICO motivo por el que este fichero importaba
+// `playwright.config`, y ese import es eager — cargar el módulo resuelve el
+// puerto en su ámbito y ABORTA si `E2E_PORT` no vale. Como
+// `00-instantanea-sesion.spec.ts` importa este fichero, la suite pura entera
+// moría por una constante que ninguna prueba pura usa: `E2E_PORT=abc` daba
+// `Total: 0 tests in 0 files`. La dependencia era TRANSITIVA, así que no se
+// veía mirando `playwright.unit.config.ts`, que es donde uno la busca.
+// Sigue derivándose del punto único de AIT-96; lo que cambia es DÓNDE, no de
+// dónde sale. Su único consumidor era, y sigue siendo, `global-setup.ts`.
 
 /** Ruta determinista por worktree: `e2e/` cuelga del árbol de trabajo, así que
  *  T1, T2 y T3 tienen la suya sin acordar nada. Ignorada por git: el fichero

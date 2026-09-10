@@ -532,6 +532,32 @@ Las escribe Convex solo. **Nunca se commitean.**
 | Comprueba precondiciones antes | no | sí (`scripts/check-e2e-preconditions.mjs`) |
 | Se puede correr con todo caído | **sí** | no |
 
+⚠️ **Las dos filas en negrita de arriba son afirmaciones que hay que MEDIR, y ya fueron
+falsas una vez.** En la ronda 1 de AIT-109 esta misma tabla decía «no necesita Convex» y
+`npm run test:unit` daba **91 passed** — porque se midió con Convex disponible, que es
+justo el escenario en el que la afirmación no significa nada. Con el deployment caído eran
+**86 passed y 5 failed**. El verde era cierto y no discriminaba.
+
+Se comprueban con el puerto inválido y el backend inalcanzable **a la vez**:
+
+```sh
+# 1. independencia del puerto: tiene que LISTAR, no abortar
+E2E_PORT=abc npx playwright test --list --config playwright.unit.config.ts
+
+# 2. independencia de Convex: un `npx` que falla, delante en el PATH, para que
+#    `npx convex function-spec` no llegue a salir del proceso. No toca .env.local.
+d=$(mktemp -d); printf '#!/bin/sh\nexit 127\n' > "$d/npx"; chmod +x "$d/npx"
+PATH="$d:$PATH" E2E_PORT=abc ./node_modules/.bin/playwright test --config playwright.unit.config.ts
+```
+
+**Ojo con el segundo:** invoca `./node_modules/.bin/playwright` directamente, **no**
+`npx playwright` — si no, el `npx` falso se come también al propio Playwright y el rojo
+que obtienes no es el que buscas.
+
+**Y el fallo que estos comandos hacen imposible:** correrlos con Convex disponible **no
+puede fallar**, así que no prueba nada. Un `PASA si` sin un mundo en el que falle se cumple
+con la cosa rota.
+
 **Por qué están separados y no es una optimización.** `playwright.config.ts` declara un
 único `webServer`, así que antes **toda** prueba arrastraba el arranque de la app aunque
 solo importara una función. Dos de las pruebas puras son precisamente **las del
