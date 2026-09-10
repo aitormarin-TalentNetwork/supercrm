@@ -715,3 +715,105 @@ ocho rondas de plan no vieron): ficha propia, High, **no bloquea AIT-92 porque h
 explotable —produccion no tiene credenciales de Gmail—**, pero es **PRECONDICION DURA para activar
 Gmail con usuarios reales**, igual que AIT-144. AIT-92 lleva un `FALLA si` para no cerrarse dando
 a entender que Gmail es seguro de activar.
+
+---
+
+## 2026-09-10 ~16:55Z — DOS COSAS DE SEGURIDAD QUE OCHO RONDAS DE PLAN NO VIERON
+
+### 🔴 AIT-92 CODIGO r1: NO-GO, y M1 es un XSS REFLEJADO
+
+    convex/http.ts:26,:43,:49 — `pagina()` concatena `detalle` en HTML SIN ESCAPAR
+    `error` viene directo de la query publica
+    EJECUCION ADVERSARIA del auditor: payload que cierra <p> e introduce <script>
+      -> scriptTags: 1 · escapedLt: 0
+
+`/gmail/oauth/callback?error=<payload>` -> el navegador ejecuta contenido activo bajo el origen
+`.convex.site`. **La puerta es la rama de manejo de errores** — la que existe para ser amable
+cuando algo falla. Direccion: *"la rama parece EXPLICAR el error, pero entrega HTML controlado por
+el solicitante"*. `CERRABLE CON TEXTO`.
+
+**Y es la SEGUNDA cosa de seguridad de esta ficha en una hora**, despues del ataque de fijacion
+del flujo OAuth (AIT-145). **Las dos aparecieron AL IMPLEMENTAR, no en ocho rondas de plan.**
+
+**M2 contesta la pregunta del arnes en contra de la salida barata:** *"si requiere incorporar
+`convex-test`, esa decision debe resolverse DENTRO de esta ficha porque el propio plan hizo
+obligatorio el arnes"*. Seis criterios no son atribuibles al codigo. Y su remate:
+**"M1 es una demostracion concreta de la clase de defecto que las pruebas puras no observan"** —
+el XSS vive exactamente en el encadenamiento que las funciones puras no tocan.
+
+**24 criterios marcados `NO EJECUTADO`.** Se lo pedi explicitamente como resultado legitimo, para
+que no lo convirtiera en PASA porque la evidencia del export pareciera suficiente.
+
+### EL RECURSO NO ERA EL QUE YO DECIA
+
+Llevaba el dia avisando con "memoria reclamable" (`vm_stat free+inactive`). **No es el recurso: lo
+que agota una corrida es el SWAP**, que estaba al 94%. Corregido por el Integrador — y su
+atribucion tambien era inexacta: dijo que mi numero *era* el swap, y son dos magnitudes distintas
+que coincidieron un minuto (0,85 vs 0,84 GB a las 16:47; **2,37 vs 0,95 GB un minuto despues**).
+**Encontro otro numero que coincidia y lo llamo el mio.**
+
+⚠️ **El daño del rotulo, que es lo que importa:** quien lea *"quedan 0,6 GB"* como DISCO borrara
+caches y `node_modules` **y no cambiara nada** — sobran 475 GB. La cifra sobrevive intacta al
+relayo y **el sustantivo que la acompaña es el que dirige la accion.**
+
+`encolar.sh` ya avisa con `sysctl vm.swapusage`. **No bloquea**: el umbral no esta calibrado y un
+guard que nunca deja pasar no protege, para. Y la cifra **no se relaya nunca sin hora**: 757M
+(Integrador), 901M (QA), 1400M y 991M (mias) en media hora.
+
+### 🔑 TRES CATEGORIAS, NO DOS (correccion de T3 a una regla mia de todo el dia)
+
+Llevaba doce horas repitiendo *"al respaldar, di con que lo comprobaste"* como si una afirmacion
+sin medir no valiera nada. **Falso, y el contraejemplo fue mio**: avise de que el peligro estaba en
+los verdes que discriminan menos —**una corazonada, no medida**— y T3 fue a comprobarlo y encontro
+un ablandamiento real que habria publicado un numero falso en una ficha.
+
+    afirmacion DECLARADA sin medir, que dispara una medicion .... vale mucho
+    afirmacion PRESENTADA COMO MEDIDA sin serlo ................. miente
+    afirmacion RESPALDADA EN CADENA sin que nadie mida .......... miente MAS: suma firmas
+
+> **La primera y la segunda se parecen en el papel y solo se distinguen por si el autor dice de
+> que clase es la suya.**
+
+**No reprimir la corazonada: ETIQUETARLA.**
+
+### EL ABLANDAMIENTO QUE T3 ENCONTRO, Y LA FRASE VIVA QUE LO NEGABA
+
+    ANTES: elServidorDejaEntrar = !(denegacion)        -> un ANOMALO CONTABA como entrada
+    AHORA: elServidorDejaEntrar = ===ACCESO_CONFIRMADO -> un ANOMALO no cuenta como NADA
+
+Suena mas estricto y **para los conteos es mas flojo**: C2a pasa mas facil y **C2c ACORTA la
+ventana residual medida** — un numero mas bonito por un fallo, no por un cierre. **Nada de esto se
+pone rojo.** El numero YA PUBLICADO de AIT-127 (162 ms mediana / 485 peor caso) **NO esta
+corrompido**: salio del predicado viejo. Lo que se habria corrompido son las mediciones futuras.
+
+⚠️ Y en su propio fichero seguia viva la frase que decia lo contrario (`:118`, *"los que CUENTAN
+entradas se vuelven mas exigentes -> hacia el rojo"*), **dentro del bloque que explica esa misma
+leccion**. Corregida citandola en pasado y etiquetada como falsa, no sustituida en limpio.
+
+**La leccion buena es mas fuerte que la que habia:** los CUATRO consumidores iban hacia el verde,
+por DOS mecanismos distintos — los que esperaban `true` porque pasan mas facil, y los que cuentan
+porque **pierden el caso**.
+
+### AIT-142: TRES RONDAS Y EL HUECO SE MUDA A LA FRONTERA NUEVA
+
+    r1 M1: prueba una DERIVADA (quito los tipos para ejecutar)
+    r1 M1: verbatim, pero la funcion NO ES AUTONOMA -> no arranca
+    r2 M1: arranca, pero puede no entregar una `initials` INVOCABLE -> falla DENTRO de la comparacion
+
+**Cada arreglo mueve la frontera y el hueco se muda a la frontera nueva.** Lo que lo corta no es
+afinar otra vez: es lo que pide el auditor ahora, **un RECUENTO POSITIVO de 17 casos ejecutados
+POR CADA COPIA** — un numero que tiene que salir, en vez de una lista de fallos que no deben salir.
+**Una expectativa negativa cumplida no implica la positiva**, y llevabamos tres rondas
+comprobando la negativa.
+
+**M2 RESUELTO:** mover el corpus a `e2e/casos-iniciales.ts` en vez de duplicarlo. El auditor:
+*"mantiene una unica fuente contractual y evita que dos copias diverjan. NO recomiendo duplicar."*
+Reparto medido antes: **ninguna rama tiene `e2e/00-initials.spec.ts` en su huella
+`origin/main...punta`**, con control positivo de que el comando SI ve ficheros de `e2e/`.
+
+### COLA (16:55Z)
+
+    T3   suite completa de AIT-134 — LA PLAZA QUEDA PARADA hasta que termine (11 min, swap al 93%)
+    T2   AIT-92: cuatro majors, empezando por el XSS
+    T1   AIT-142 r3: la frase del cuarto estado + recuento positivo por copia
+    AIT-141 publicada y desplegada · SIN Done: el `PASA si` es de Aitor
