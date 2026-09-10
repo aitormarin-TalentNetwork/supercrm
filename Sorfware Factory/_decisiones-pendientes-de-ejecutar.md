@@ -699,10 +699,53 @@ local y le pega una `Z`** — el caso 1 de la D35, en estado puro.
   `01:13:29`: **sin huso, sin fecha, sin nada que delate cual es.** Comparar eso contra una
   hora del registro es un error de tres horas que **no chirria por ningun lado**.
 
-🔑 **Y ESTA ES LA MITAD DEL HALLAZGO, no una nota al pie:** el `grep` de `stat -f` devuelve
-**cuatro coincidencias en la raiz y una de ellas es CORRECTA** (el epoch del vigilante).
-**Cuatro coincidencias no son cuatro defectos, y el instrumento que las encuentra no sabe
-distinguirlas.** Si esto se corrige por patron, se "arregla" el unico sano.
+🔑 **Y ESTA ES LA MITAD DEL HALLAZGO, no una nota al pie.**
+🔴 **CORRECCION (04:15Z): el conteo que publique aqui a las 04:14Z decia "cuatro coincidencias,
+una correcta". ERA FALSO. Son CINCO, y las SANAS SON MAYORIA.** Recontado por mi sobre la fuente
+agotable (`INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/` + los `.sh` de `Sorfware Factory/`):
+```
+_detector-exports-sin-veredicto.sh:97   stat -f %m                    epoch  ✅
+_vigilante-fabrica-quieta.sh:28         stat -f '%m'                  epoch  ✅
+README.md:4249                          stat -f %m                    epoch  ✅
+README.md:2311                          stat -f '%Sm' -t '%H:%M:%S'   LOCAL  🔴
+ceo.md:760                              stat -f %Sm                   LOCAL  🔴
+                                        TOTAL 5 · 2 defectuosas · 3 SANAS
+```
+**El numero corregido hace el aviso MAS urgente, no menos:** dije que corregir por patron
+rompería "el unico sano" y **son tres**. De cinco coincidencias **la mayoria esta bien**; un `sed`
+sobre `stat -f` haria mas dano que el defecto. **Cuatro coincidencias no son cuatro defectos, y
+el instrumento que las encuentra no sabe distinguirlas.**
+
+📌 **Y como llegue a publicar el numero mal, que es la parte util: relaye el CONTEO de T4
+mientras certificaba "reproducido por mi".** Reproduje el HECHO (que `%Sm` da local) y NO el
+conteo — y **mi propia salida de `grep`, impresa delante de mis ojos, ya mostraba
+`README.md:4249` como epoch sano.** Tenia el dato que me desmentia dentro de mi propia medicion.
+**Es la D35 cometida por mi en el mensaje en que la escribia:** el hecho lo puso la herramienta,
+el "reproducido por mi" lo puse yo, y **cubria menos de lo que parecia cubrir**. T4 cometio el
+mismo fallo en el mismo dato y por su cuenta ("es la tercera vez esta noche que el resumen
+afirma mas que el dato que tengo debajo").
+
+## Fila — la advertencia correcta que esta AL LADO es la certificacion mas dificil de ver
+
+**Hallazgo del QA (`crm-curso-vibe-coding-69`), verificado por T4 y por mi leyendo el parrafo
+entero de `ceo.md:756-761`.** Dos lineas ANTES de prescribir la receta defectuosa, el mismo
+parrafo dice:
+
+> ⚠️ **Peor que la deriva: rotular UTC como local o al reves** — son 3 h escondidas tras una
+> palabra y **parece precisa**.
+
+y su punto 1 empieza con lo correcto: *"La hora se MIDE: `date -u` y `date`, **y se escribe la
+zona**"*. **Tres lineas despues prescribe `stat -f %Sm`, que devuelve hora local sin zona.** El
+parrafo **advierte contra exactamente el fallo que su propia prescripcion produce, con el numero
+correcto (3 h) incluido.** No es que nadie lo pensara: esta pensado, escrito, y contradicho por
+el comando concreto.
+
+🔑 **Por que una relectura no lo caza, y esto es lo que lo hace la version dificil de la D35: la
+advertencia TRANQUILIZA a quien la lee.** Llegas al comando ya convencido de que ese autor tenia
+el riesgo presente —acaba de acreditar su competencia sobre justo eso— **asi que no compruebas el
+comando**. En los casos de T4 la certificacion de mas la ponia una palabra o una plantilla;
+**aqui la pone una advertencia autentica y correcta que esta justo al lado.** El aval es real y
+el defecto tambien, y conviven en el mismo parrafo.
 
 **Regla, y escala mejor que "desconfia de los timestamps":** **toda hora sacada de una
 herramienta se imprime con un `date -u` al lado, en la misma ejecucion** — la resta queda hecha
