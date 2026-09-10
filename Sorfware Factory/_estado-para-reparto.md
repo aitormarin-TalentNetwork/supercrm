@@ -2816,3 +2816,74 @@ condicion de que el segundo que publique compruebe que el array tiene LOS TRES y
   = no hay ninguno fuera de e2e/)"* impreso debajo de 110 rutas. **La frase que explica un vacio
   se imprime igual cuando no hay vacio, y se lee como si lo hubiera.** El arreglo no es acordarse:
   es **que el texto salga del resultado** (`test -z "$OUT" && echo ...`), no del guion.
+
+---
+
+## 2026-09-10, ~23:45Z — SONDA 7 y la LINEA BASE de AIT-143 (lo unico que rindio sin cupo)
+
+### LINEA BASE `test:unit` — el ANTES, con sus coordenadas
+
+    2026-09-10T23:40:41Z · rama aitormarin/ait-143-instantanea-rodada-muere
+    HEAD 1ad4090 · arbol 0 sucios
+      test:unit entero ................... 176 passed (1.2s)
+      la 12a aislada (00-instantanea-sesion.spec.ts, config de unitarias)
+                                              9 passed (298ms)
+
+**Un antes sin sus coordenadas no es un antes: es un numero.** Esta suite corre **sin gate,
+sin navegador y SIN CUPO**, asi que es el unico antes/despues real que AIT-143 podia producir
+con el gate caido.
+
+### SONDA 7: LA RAZON DE LA PROHIBICION ES FALSA (medida por T3, cableado verificado por mi)
+
+Salio de una **corazonada mia declarada y sin medir**: *si `globalSetup` corre en cada
+invocacion, "suite entera" y "test suelto" regeneran igual, asi que la razon de la prohibicion
+estaria tan caducada como el consejo positivo.*
+
+    proyecto de usar y tirar, globalSetup que solo imprime [GLOBAL-SETUP CORRIO]:
+      (a) suite entera          [GLOBAL-SETUP CORRIO]   2 passed
+      (b) -g UNO (test suelto)  [GLOBAL-SETUP CORRIO]   1 passed
+      (c) un fichero por ruta   [GLOBAL-SETUP CORRIO]   2 passed
+    ⛔ CONTROL NEGATIVO: misma sonda, config SIN la linea `globalSetup`, modos (a) y (c)
+       -> 2 passed y NINGUNA linea impresa
+
+    cableado, verificado por mi sobre 9c2cb67:
+      playwright.config.ts:131     globalSetup: "./e2e/global-setup.ts"
+      global-setup.ts:117-119      for (const role of ROLES) { writeStateAtomically(...) }
+                                     SIN CONDICION: no mira si existe, ni si vale, ni si caduco
+      CONTROL del grep: 'testDir' sale en las dos configs -> el patron discrimina
+
+> **En la config de e2e NO hay diferencia entre "relanzar un test suelto" y "lanzar la SUITE
+> ENTERA" en lo que a regenerar las instantaneas respecta: las dos regeneran.**
+> ⛔ `e2e/authState.ts:136-137` **puede seguir siendo una regla correcta por otras razones,
+> pero la razon que ella misma da es falsa hoy.**
+
+⚠️ **LIMITE DECLARADO POR T3, que viaja con el hallazgo:** lo medido es el comportamiento del
+**runner** con un `globalSetup` cualquiera, **no** una corrida real de `e2e/global-setup.ts`
+haciendo los dos logins (eso consume cupo). **El segundo eslabon esta LEIDO, NO EJECUTADO.**
+
+### ⛔ LA CLASE NUEVA, Y NO LA TENIAMOS: EL TEST Y EL FENOMENO VIVEN EN SUITES DISTINTAS
+
+    playwright.unit.config.ts:15   // globalSetup — el de e2e hace dos logins y consume cupo...
+                                      ^ COMENTADO A PROPOSITO: unit NO lo cablea
+
+**El spec que vigila el consejo corre bajo `test:unit`, donde NO hay `globalSetup`** — o sea,
+**en un contexto donde el mecanismo del consejo ni siquiera se aplica.**
+> **Esa es la razon estructural de que esas aserciones pudieran pasar meses sin que nadie
+> notara que el consejo habia caducado: SE COMPRUEBAN DONDE EL FENOMENO NO OCURRE.**
+No es que el test estuviera mal escrito. Es que el test y el fenomeno estan en suites distintas.
+
+### Y DOS LECCIONES DE INSTRUMENTO
+
+- ⛔ **CONTROL POSITIVO Y CONTROL NEGATIVO NO SON LO MISMO, Y A MI ME FALTABA EL SEGUNDO.**
+  El positivo dice *"el instrumento sabe dar OTRA cosa"*; el negativo dice *"el instrumento
+  sabe NO DAR NADA"*. **Un rotulo que aparece siempre y un fenomeno que ocurre siempre son
+  indistinguibles hasta que quitas el gancho.** Mi 24 de esta noche tenia el positivo y no el
+  negativo. **Al barrido.**
+- ⚠️ **EL MERITO ES DE LA MEDICION, NO DE LA CORAZONADA.** *Una advertencia sin medir que hace
+  medir a otro vale exactamente lo que el dato que produce* — y el dato es de T3, con su
+  control negativo y su limite declarado. **Que la corazonada acertara no acredita corazonar.**
+
+**Decision pendiente, del PM y de nadie mas:** si la prohibicion se **mantiene con otra
+justificacion**, se **estrecha** o se **retira**. Ni T3 ni yo hemos tocado el texto ni propuesto
+redaccion. *Se ha caido la RAZON, no el enunciado — y una regla que se cumple por una razon
+falsa es la que se retira el dia que alguien refuta la razon.*
