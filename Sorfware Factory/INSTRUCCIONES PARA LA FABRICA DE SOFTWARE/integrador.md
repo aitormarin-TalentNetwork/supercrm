@@ -237,6 +237,61 @@ commits que otros dejaron sin publicar en ese mismo local**, los conozcas o no. 
 del PM. Ninguno tocaba código de aplicación, así que fue un rebuild sin cambio de producto —
 pero **nadie decidió publicarlos**.
 
+### ⛔ D27-bis · EL CERROJO CUBRE DESDE EL COMMIT HASTA EL PUSH, NO SOLO EL PUSH (2026-09-10)
+
+> **Quien commitea CÓDIGO en el checkout de la raíz mantiene `_turno-raiz.lock` DESDE EL
+> COMMIT HASTA HABER EMPUJADO.** Los commits de **proceso o documentación no lo necesitan** y
+> pueden trenzarse libremente.
+
+**POR QUÉ, y es lo que la D27 de arriba no cubre: el trenzado se forma en el `commit`, no en
+el `push`.** El cerrojo guardaba solo la mitad de atrás. Mientras un merge sin verificar está
+en la pila local, **cualquiera de los seis puede meter código encima o publicarlo sin verlo** —
+y **quien empuja por error no está desobedeciendo: está publicando algo que no sabe que tiene
+delante.** Un `git push` desde la raíz **no se siente como publicar el trabajo de otro.**
+
+**Con esto el estado peligroso deja de poder existir:** el que quiera meter código **se
+encuentra el cerrojo y para** — no se encuentra un aviso que puede leer o no.
+
+**No es práctica nueva:** es lo que ya se hizo con AIT-109. **Lo único que cambia es no
+soltarlo hasta haber empujado.**
+
+⚠️ **Y por qué los commits de proceso NO se bloquean: el daño no es simétrico.** Publicar el
+fichero de estado de otro es inofensivo; publicar su merge sin suite no lo es. **Bloquear los
+inofensivos haría que el cerrojo gritara todo el día**, y un cerrojo que estorba sin proteger
+se acaba saltando. *Y no commitear tampoco es la salida: el árbol de trabajo TAMBIÉN es
+compartido, así que un fichero sin commitear es un estado **anónimo** que cualquiera puede
+arrastrar con un `git add -A`, mientras que un commit sin empujar es **nombrado y
+reversible**.*
+
+### 🔒 BACKSTOP, para cuando alguien no pasó por el cerrojo: ¿HAY CÓDIGO AJENO EN LA PILA?
+
+**Antes de `git push` desde la raíz:**
+
+```
+git log --format='%H' origin/main..main | while read h; do
+  git show --stat --format='' "$h" | grep -cE '^ (app|components|convex|lib|e2e|scripts)/'
+done
+```
+
+> **Si hay algún commit que toca código y no lo hiciste tú: PARA y pregunta.** Los que solo
+> tocan proceso no bloquean.
+
+🔴 **Y POR QUÉ ESTA PREGUNTA Y NO *"¿DE QUIÉN SON?"*, que es la que sale sola: LA ATRIBUCIÓN NO
+EXISTE EN ESTE REPO.** Medido el 2026-09-10 sobre todos los commits del día:
+
+    git log --format='%an'  ->  UN SOLO AUTOR para los seis roles
+    git log --format='%ae'  ->  el mismo email
+
+**Lo único que identifica a un rol es el cuerpo del mensaje, que es autodeclarado.** Cualquier
+regla que dependa de `%an` es humo. *(Lo cazó el Integrador sobre su propia enumeración:
+«llevo el día enumerando con un campo que no discrimina».)*
+✅ **En cambio "toca código" se mide sin creer a nadie**, y **"no lo hice yo" sí es medible —
+no desde el log, sino desde el que empuja, que sabe cuáles hizo él.**
+
+⚠️ **LÍMITE DECLARADO, y no se cita sin él: esto INFORMA, no IMPIDE.** No bloquea el push;
+lo pone en la ruta obligatoria de quien empuja. **El que impide es el cerrojo de arriba.**
+Las dos, y en ese orden.
+
 ### 🔑 `origin/main` ES GLOBAL A TODA LA FÁBRICA, TAMBIÉN DESDE UN WORKTREE (2026-09-10)
 
 **No es "en la raíz": es en TODAS las sesiones.** Medido: los worktrees **no tienen `.git`
