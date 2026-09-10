@@ -24,6 +24,20 @@ import { PUSH_ENDPOINT_KEY } from "./useSyncPushSubscription";
 // sería ajustar el criterio al resultado. Se vuelve al PM.
 const LIMITE_LIMPIEZA_MS = 1000;
 
+// AIT-127 (hallazgo de auditoría de código, M1) — Margen para la limpieza de
+// estado del cliente DESPUÉS de que el cierre ya esté confirmado.
+//
+// Es más corto que el de arriba a propósito, y la razón es la asimetría de lo
+// que hay en juego: allí se intenta un trabajo que aún no se ha hecho (borrar la
+// fila push); aquí la sesión YA está cerrada en el servidor y lo único que queda
+// es que la librería tire su copia local. Retener el cierre por eso sería pagar
+// con lo importante por lo accesorio.
+//
+// Y el criterio C3 lo acota por arriba: `/login` en ≤3 s. Con 1000 ms de
+// limpieza push + una ida y vuelta de cierre + estos 500 ms, el peor caso sigue
+// dentro con margen.
+const LIMITE_LIMPIEZA_CLIENTE_MS = 500;
+
 /** AIT-127: lo único que detiene el cierre es que el cierre falle. */
 export type ResultadoCierre = { ok: true } | { ok: false; motivo: "cierre" };
 
@@ -117,7 +131,25 @@ export function useSignOutAndUnlinkPush() {
     //    ⛔ NO SE FUSIONAN "para simplificar": la primera cierra y DICE si
     //    funcionó; ésta limpia el cliente. Que hoy la librería haga la primera y
     //    se coma el resultado es justo el defecto que esto rodea.
-    await signOut();
+    //
+    // 🔴 Y VA ACOTADA, porque `signOut()` HACE OTRA LLAMADA al mismo endpoint y
+    //    NO TIENE TIMEOUT. Su `catch` interno solo cubre el rechazo, **no que la
+    //    promesa se quede pendiente**: con la red degradada, un `await` a secas
+    //    aquí no retorna nunca, el hook no devuelve `{ok:true}`, ningún
+    //    consumidor navega, y la pantalla autenticada se queda visible. Sería el
+    //    defecto de esta ficha reaparecido **después** de que el cierre ya haya
+    //    funcionado.
+    //    Aquí la sesión YA está cerrada en el servidor, así que esto es limpieza
+    //    de cliente en mejor esfuerzo: se le da un margen corto para que en el
+    //    caso sano termine —y borre el JWT que la librería guarda— y si no
+    //    responde **se abandona y se sigue**. Misma semántica que la limpieza
+    //    push: abandonar, nunca retener.
+    await Promise.race([
+      signOut(),
+      new Promise<void>((resolver) =>
+        setTimeout(resolver, LIMITE_LIMPIEZA_CLIENTE_MS),
+      ),
+    ]);
     removeDeviceValue(PUSH_ENDPOINT_KEY);
     return { ok: true };
   }, [signOut, unsubscribe]);

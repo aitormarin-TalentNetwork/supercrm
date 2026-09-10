@@ -160,3 +160,43 @@ test("C7 · si el cierre FALLA: alerta visible, NO se navega, y la sesión sigue
 
   await pagina.context().close();
 });
+
+test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /login en ≤3 s", async ({
+  browser,
+}) => {
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // El camino de EN MEDIO, que no cubría ninguno de los otros dos tests:
+  //   · el normal comprueba que todo va bien,
+  //   · C7 aborta la PRIMERA petición, así que nunca llega a la segunda.
+  // Aquí la primera responde bien —el cierre SÍ ocurre y las cookies se
+  // borran— y la segunda, la que hace `signOut()` de la librería, se queda
+  // PENDIENTE para siempre. `signOut()` no tiene timeout y su `catch` solo
+  // cubre el rechazo, no que la promesa nunca resuelva.
+  let peticionesDeCierre = 0;
+  await pagina.route("**/api/auth", async (route) => {
+    const cuerpo = route.request().postData() ?? "";
+    if (!cuerpo.includes("signOut")) return route.fallback();
+    peticionesDeCierre++;
+    if (peticionesDeCierre === 1) return route.fallback(); // la primera, normal
+    return new Promise(() => {}); // la segunda no se resuelve NUNCA
+  });
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+
+  // Lo que M1 rompía: el hook no devolvía, nadie navegaba, y la pantalla
+  // autenticada se quedaba visible. Con el margen acotado, se abandona la
+  // limpieza de cliente y se sigue.
+  await pagina.waitForURL("**/login", { timeout: 3000 });
+  expect(pagina.url()).toContain("/login");
+
+  // CONTROL: que de verdad se llegó a la segunda llamada. Sin esto, un verde
+  // aquí no distingue "se abandonó bien" de "nunca hubo segunda petición que
+  // colgar" — y entonces el test no estaría probando nada.
+  expect(
+    peticionesDeCierre,
+    "no se llegó a la segunda llamada de cierre: el test no ejercita M1",
+  ).toBeGreaterThanOrEqual(2);
+
+  await pagina.context().close();
+});
