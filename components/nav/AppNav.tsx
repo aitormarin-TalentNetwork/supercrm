@@ -110,9 +110,19 @@ export function AppNav() {
         <div
           onClick={close}
           aria-hidden="true"
-          // Mismo tono de scrim que components/ui/Dialog.tsx
-          // (bg-[rgba(15,23,42,.45)]) — consistencia visual entre los dos
-          // overlays de la app.
+          // AIT-127 (ronda 5, M3): también `inert` mientras el cierre está en
+          // vuelo. Este scrim es un CONTROL —`onClick={close}`— que ocupa la
+          // pantalla entera (`fixed inset-0`), y vive FUERA del <aside>, así
+          // que el `inert` del panel nunca lo cubrió.
+          //
+          // 🔴 Y ES EL CASO QUE JUSTIFICA HABER TIRADO LA LISTA DE SELECTORES:
+          // no es enfocable (no tiene `tabindex`) y su manejador es de React,
+          // no un atributo `onclick`. O sea que NO lo veía la lista de la
+          // ronda 4 (`button`, `[onclick]`, `[tabindex]`…) NI lo ve una sonda
+          // de foco. Sólo aparece preguntando qué hay debajo del puntero.
+          // Lo encontró la rejilla de `elementFromPoint` la primera vez que se
+          // ejecutó, en 10 de 10 activaciones del camino del menú.
+          inert={cerrandoSesion !== null}
           className="fixed inset-0 z-[60] bg-[rgba(15,23,42,.45)]"
         />
       )}

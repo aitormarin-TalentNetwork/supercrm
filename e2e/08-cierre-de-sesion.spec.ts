@@ -215,29 +215,32 @@ for (const role of ["owner", "sales"] as Role[]) {
   }
 }
 
-test("C2a · control positivo: un control que NO sea un enlace y NO pase por el bloqueante pone C2a en rojo", async ({
+test("C2a · control positivo (teclado): una etiqueta INVENTADA que el enumerador no puede conocer pone C2a en rojo", async ({
   browser,
 }) => {
   // 🔴 EL SEGUNDO DIENTE DE C2a, textual del PM: "se añade un enlace de prueba
   // que no pase por el bloqueante y C2a se pone roja. Sin eso no se sabe si la
   // enumeración enumera."
   //
-  // ⚠️ RONDA 4 (M3): EL ADVERSARIO ERA DEL TIPO EQUIVOCADO. Antes inyectaba un
-  // `<a href>` — justo el elemento que mi enumerador ya sabía ver. Un señuelo
-  // diseñado desde dentro de la implementación no prueba nada: confirma. Ahora
-  // se inyecta un `<button>`, que es como navega de verdad esta app en
-  // app/clientes y app/pipeline (`router.push` desde un manejador), y que la
-  // versión anterior del enumerador NO habría visto.
+  // ⚠️ HISTORIA DE ESTE ADVERSARIO, PORQUE SE HA EQUIVOCADO DOS VECES SEGUIDAS
+  // Y SIEMPRE EN LA MISMA DIRECCIÓN:
+  //   ronda 3 -> inyectaba un `<a href>`: justo lo que el enumerador de
+  //              entonces (`a[href]` + un selector del panel) ya sabía ver.
+  //   ronda 4 -> lo cambié a `<button>` creyendo haberlo arreglado... y
+  //              `button` era la SEGUNDA entrada de mi propia lista
+  //              `INTERACTIVOS`. Lo señaló el auditor (M3 de la ronda 4).
+  // Las dos veces el señuelo estaba DENTRO del conocimiento previo del
+  // detector, así que confirmaba en vez de probar.
   //
-  // Y se inyecta en `document.body`, fuera de <AreaBloqueable> y del panel,
-  // porque ahí es donde el mecanismo NO llegaba.
+  // ✅ AHORA EL ADVERSARIO ES UNA ETIQUETA QUE NO EXISTE: `<control-inventado>`.
+  // No es HTML estándar, no la conoce el navegador, y sobre todo NO PUEDE estar
+  // en ninguna lista mía, ni en la de hoy ni en la que alguien escriba mañana.
+  // Es alcanzable por `tabindex="0"` y navega desde su manejador.
   //
-  // ⚠️ ESTE ADVERSARIO SIGUE SIENDO MÍO, Y ESO ES SU LÍMITE. Valida el
-  // instrumento (el enumerador ve un control que no es un enlace) y nada más.
-  // El hueco que este comentario describía —«cualquier cosa montada a nivel de
-  // layout con un control dentro quedaría alcanzable»— NO era hipotético:
-  // <NewVersionNotice> era exactamente eso. Nombrar la clase no cerró el
-  // ejemplar. Lo cierra el test de abajo, que usa un componente REAL.
+  // 🔑 Y ES EL TEST QUE OBLIGA A QUE EL INSTRUMENTO SEA CONDUCTUAL. Con la
+  // lista de selectores de la ronda 4 este test sale ROJO — ningún selector
+  // casa con una etiqueta inventada. Sólo pasa si el enumerador le pregunta al
+  // navegador «¿le das el foco?» en vez de «¿estás en mi lista?».
   const pagina = await abrirSesionPropia(browser, "sales");
   const control = await prepararCierre(pagina, "ajustes");
 
@@ -247,11 +250,13 @@ test("C2a · control positivo: un control que NO sea un enlace y NO pase por el 
   await enVuelo;
 
   await pagina.evaluate(() => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = "control adversario";
-    b.addEventListener("click", () => history.pushState({}, "", "/pipeline"));
-    document.body.appendChild(b);
+    const raro = document.createElement("control-inventado");
+    raro.setAttribute("tabindex", "0");
+    raro.textContent = "control adversario";
+    raro.addEventListener("click", () =>
+      history.pushState({}, "", "/pipeline"),
+    );
+    document.body.appendChild(raro);
   });
 
   const durante: string[] = await pagina.evaluate(
@@ -261,9 +266,58 @@ test("C2a · control positivo: un control que NO sea un enlace y NO pase por el 
 
   expect(
     durante.join(" · "),
-    "el enumerador NO vio un control puesto delante de sus narices durante el " +
-      "cierre: su cero en los otros cuatro tests no distingue nada",
+    "el enumerador NO vio un control de etiqueta desconocida puesto delante de " +
+      "sus narices durante el cierre: su cero en los otros tests no distingue nada",
   ).toContain("control adversario");
+});
+
+test("C2a · control positivo (puntero): un control que NO toma foco pero sí recibe clic pone C2a en rojo", async ({
+  browser,
+}) => {
+  // 🔴 LA OTRA MITAD, Y EXISTE PORQUE LA SONDA DE FOCO NO LA CUBRE. Un `<div>`
+  // sin `tabindex` con un manejador de clic NO es enfocable: la sonda de
+  // teclado lo da por no alcanzable, y con razón — desde el teclado no lo es.
+  // Pero con el ratón sí, y C2a habla de lo que una PERSONA puede alcanzar.
+  //
+  // Sin este test, la sonda 2 (rejilla de `elementFromPoint`) no estaría
+  // validada: devolvería cero en los demás tests y ese cero no distinguiría
+  // "el bloqueo cubre la superficie clicable" de "la rejilla no mira nada".
+  // Un comprobador que sólo ha dado verde no está validado, está sin usar.
+  //
+  // ⚠️ El adversario se coloca con posición fija y tamaño grande para que la
+  // rejilla (paso de 32 px) lo pise sí o sí. Eso es una propiedad del muestreo,
+  // no del criterio: un control real más pequeño que el paso podría escaparse,
+  // y lo declaro aquí en vez de fingir que la rejilla es exhaustiva.
+  const pagina = await abrirSesionPropia(browser, "sales");
+  const control = await prepararCierre(pagina, "ajustes");
+
+  const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, () =>
+    control.click(),
+  );
+  await enVuelo;
+
+  await pagina.evaluate(() => {
+    const d = document.createElement("div");
+    d.textContent = "control adversario de puntero";
+    d.setAttribute(
+      "style",
+      "position:fixed;top:0;left:0;width:300px;height:300px;z-index:99999;background:#fff",
+    );
+    // Sin tabindex a propósito: no es enfocable. Sólo se alcanza con el ratón.
+    d.addEventListener("click", () => history.pushState({}, "", "/pipeline"));
+    document.body.appendChild(d);
+  });
+
+  const durante: string[] = await pagina.evaluate(
+    ENUMERAR_CONTROLES_ALCANZABLES,
+  );
+  soltar();
+
+  expect(
+    durante.join(" · "),
+    "la rejilla de puntero NO vio un control clicable de 300x300 px durante el " +
+      "cierre: su cero en los demás tests no distingue nada",
+  ).toContain("control adversario de puntero");
 });
 
 test("C2a · control positivo con un componente REAL del layout: el aviso de versión nueva no deja controles alcanzables durante el cierre", async ({
@@ -528,15 +582,26 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
   );
 
   const RETARDO_CIERRE_MS = LIMITE_CIERRE_MS - 50;
+
+  /** Holgura para granularidad de temporizadores y para el desfase entre que
+   *  el navegador despacha la petición y el manejador de `route` la observa.
+   *  Va en la dirección PERMISIVA de cada suelo, así que no puede fabricar un
+   *  verde: sólo evita un rojo por 3 ms. */
+  const TOLERANCIA_ETAPA_MS = 40;
+
   let peticiones = 0;
+  let tPrimeraPeticion = 0;
+  let tRespuesta = 0;
   await pagina.route("**/api/auth", async (route) => {
     if (!(route.request().postData() ?? "").includes("signOut")) {
       return route.fallback();
     }
     peticiones++;
     if (peticiones === 1) {
+      tPrimeraPeticion = Date.now();
       await new Promise((r) => setTimeout(r, RETARDO_CIERRE_MS));
       await pagina.context().setOffline(false);
+      tRespuesta = Date.now();
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -556,9 +621,29 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
 
   const forzado =
     LIMITE_LIMPIEZA_MS + RETARDO_CIERRE_MS + LIMITE_LIMPIEZA_CLIENTE_MS;
+
+  // 🔴 RONDA 5 (M5): ANTES ESTO SÓLO SE IMPRIMÍA. El test calculaba `forzado`,
+  // lo sacaba por consola y luego comprobaba únicamente el TECHO
+  // (`total <= 3000`). Un número que se imprime y no se compara es una
+  // observación, no un control — y el modo de fallo es exactamente el que
+  // describe el auditor: si una etapa termina antes de tiempo (una promesa que
+  // rechaza, un límite que no llega a consumirse), el total BAJA, las dos
+  // peticiones se alcanzan igual, y `total <= 3000` sigue verde SIN haber
+  // ejercitado el peor camino que el test dice ejercitar. Falla hacia el verde.
+  //
+  // Ahora se observa el consumo EFECTIVO de cada etapa por separado, con su
+  // propio suelo. Un techo sin suelo mide que no te pasaste; no mide que
+  // llegaras.
+  const etapaPush = tPrimeraPeticion - t0;
+  const etapaCierre = tRespuesta - tPrimeraPeticion;
+  const etapaCliente = total - (tRespuesta - t0);
+
   console.log(
     `[AIT-127 · C3] gesto → /login = ${total} ms · forzado = ${forzado} ms · ` +
-      `sobrecarga = ${total - forzado} ms (margen reservado ${MARGEN_SOBRECARGA_MS} ms)`,
+      `sobrecarga = ${total - forzado} ms (margen reservado ${MARGEN_SOBRECARGA_MS} ms)\n` +
+      `[AIT-127 · C3] etapas medidas: push ${etapaPush} ms (límite ${LIMITE_LIMPIEZA_MS}) · ` +
+      `cierre ${etapaCierre} ms (retenido ${RETARDO_CIERRE_MS}) · ` +
+      `cliente ${etapaCliente} ms (límite ${LIMITE_LIMPIEZA_CLIENTE_MS})`,
   );
 
   // CONTROL: las dos peticiones se alcanzaron. Sin esto, un total pequeño no
@@ -568,6 +653,37 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
     "no se alcanzaron las dos llamadas de cierre: las etapas no se forzaron",
   ).toBeGreaterThanOrEqual(2);
 
+  // SUELO POR ETAPA — cada una tuvo que consumir su límite de verdad.
+  expect(
+    etapaPush,
+    `la limpieza push consumió ${etapaPush} ms y su límite es ${LIMITE_LIMPIEZA_MS} ms: ` +
+      `no se agotó, así que el peor camino NO se ejercitó`,
+  ).toBeGreaterThanOrEqual(LIMITE_LIMPIEZA_MS - TOLERANCIA_ETAPA_MS);
+
+  expect(
+    etapaCierre,
+    `la primera llamada de cierre estuvo retenida ${etapaCierre} ms y se pidieron ` +
+      `${RETARDO_CIERRE_MS} ms: no se retuvo lo que este test afirma retener`,
+  ).toBeGreaterThanOrEqual(RETARDO_CIERRE_MS - TOLERANCIA_ETAPA_MS);
+
+  expect(
+    etapaCliente,
+    `la limpieza de cliente consumió ${etapaCliente} ms y su límite es ` +
+      `${LIMITE_LIMPIEZA_CLIENTE_MS} ms: no se agotó`,
+  ).toBeGreaterThanOrEqual(LIMITE_LIMPIEZA_CLIENTE_MS - TOLERANCIA_ETAPA_MS);
+
+  // SUELO DEL TOTAL, derivado del retardo REALMENTE forzado. Es redundante con
+  // los tres de arriba y se conserva a propósito: si mañana alguien añade una
+  // cuarta etapa y se olvida de darle suelo, este sigue cazando que el
+  // recorrido completo se acortó.
+  expect(
+    total,
+    `del gesto a /login pasaron ${total} ms, por debajo de los ${forzado} ms que ` +
+      `este test fuerza: alguna etapa no se consumió y el techo de abajo daría ` +
+      `verde sin haber medido el peor camino`,
+  ).toBeGreaterThanOrEqual(forzado - TOLERANCIA_ETAPA_MS);
+
+  // TECHO: el criterio C3 propiamente dicho.
   expect(
     total,
     `del gesto a /login pasaron ${total} ms y C3 da ${PRESUPUESTO_C3_MS} ms`,

@@ -585,11 +585,27 @@ en cada ejecución). Concuerda con la latencia de `auth:signOut` medida aparte:
 navegación entra.
 
 **Decisión 1 — la app no ofrece navegación durante la ventana.** Al pulsar
-"Cerrar sesión" el control pasa a "Cerrando sesión…" y `disabled`, y **todo lo
-que navega dentro del área autenticada deja de ser alcanzable**: los enlaces del
-panel dejan de tener `href` (son `<span>`, no `<a>` apagados), el botón ☰ se
-deshabilita **y además `toggle` guarda en `NavContext`**, y la pantalla activa
-va `inert` vía `components/nav/AreaBloqueable.tsx`.
+"Cerrar sesión" el control pasa a "Cerrando sesión…" y `disabled`, y **no queda
+NINGÚN control alcanzable** — no sólo los que navegan.
+
+La regla es **lista de permitidos, no de prohibidos**, y está escrita así en
+`app/layout.tsx`: durante el cierre va `inert` **todo lo que cuelga del layout**
+—la pantalla activa, `PushSubscriptionSync` y `NewVersionNotice`, los tres bajo
+`components/nav/AreaBloqueable.tsx`— más el panel de `AppNav`, que lleva su
+propio `inert`. **Lo único que queda fuera es `AvisoCierreSesion`**, que es
+quien tiene que poder hablar, y que a propósito **no ofrece ninguna acción**: ni
+botón de cerrar ni de reintentar. *«Cero salvo los míos» no es cero.*
+
+Se conserva además, redundante y declarado como tal, que los enlaces del panel
+dejen de tener `href` (son `<span>`, no `<a>` apagados) y que `toggle` guarde en
+`NavContext`: no dependen del soporte de `inert`.
+
+> 🔴 **Por qué la lista es de permitidos.** La versión anterior de este ADR
+> decía «la pantalla activa va `inert`», y era cierta y estrecha: enumeraba lo
+> que se bloquea. Con esa forma, `NewVersionNotice` —montado a nivel de layout,
+> hermano y no hijo del área bloqueada— quedaba **fuera del bloqueo con un
+> botón «Recargar» alcanzable**, que recarga la página. **Enumerar lo que hay
+> que bloquear deja fuera al siguiente componente que alguien monte.**
 
 ⚠️ **Esto NO cierra la ventana, solo la puerta que abre la app.** La barra de
 direcciones sigue entrando durante esos milisegundos, y **la única mitigación
@@ -597,8 +613,29 @@ real es la revocación en servidor (AIT-133)**. Cualquier redacción futura que 
 a entender que la ventana desapareció es falsa.
 
 **Decisión 2 — si el cierre falla, NO se redirige a `/login`.** Se suelta el
-bloqueo, el control vuelve a estar vivo y un `role="alert"` dice que **la sesión
-sigue abierta**. Alternativas descartadas, y las dos por motivos distintos:
+bloqueo, el control vuelve a estar vivo y un `role="alert"` dice que **el cierre
+no se ha podido confirmar**, sin afirmar en qué estado quedó el servidor.
+
+> 🔴 **Y esto es una corrección, no una redacción más fina.** Este documento
+> decía «un `role="alert"` dice que **la sesión sigue abierta**», y esa frase
+> era **falsa**: el cierre se abandona con `AbortController` al vencer su
+> límite, y **abortar no informa de si el servidor llegó a procesar la
+> petición** — puede haberse cerrado y no haber llegado la respuesta. Afirmar
+> «sigue abierta» es afirmar un estado del servidor que el propio código
+> declara no conocer.
+>
+> El texto de la UI se corrigió a *«No se ha podido confirmar el cierre de
+> sesión. Puede que se haya cerrado y puede que no.»* y **esta línea del ADR se
+> quedó una versión por detrás**: el mismo defecto sobrevivió en el documento
+> después de morir en la pantalla. Lo peor es la dirección — *un mantenedor
+> toma el ADR como contrato e implementa la rama suponiendo sesión viva*, que
+> es justo el estado falso que la corrección venía a eliminar.
+>
+> **Se corrige aquí y no sólo en la UI porque el ADR es el sitio que se CITA,
+> y la pantalla el que se VE.** Las correcciones caen por gravedad en el
+> extremo que casi nadie vuelve a abrir.
+
+Alternativas descartadas, y las dos por motivos distintos:
 
 | | |
 | -- | -- |
