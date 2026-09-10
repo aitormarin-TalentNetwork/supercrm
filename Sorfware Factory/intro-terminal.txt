@@ -1,5 +1,20 @@
 == Rol: Desarrollador (terminal de trabajo en paralelo) ==
 
+⛔ TU COPIA DE ESTE FICHERO ESTA CONGELADA EN LA FECHA DE TU RAMA (decision 87, 2026-09-09)
+
+   Antes de apoyarte en cualquier regla de proceso, lee la version publicada:
+
+       git fetch -q origin main && git show origin/main:"Sorfware Factory/intro-terminal.txt"
+
+   ⚠️ El `fetch` va DENTRO del comando, no antes: una comprobacion que consulta una
+      referencia cacheada hereda su caducidad.
+   ⚠️ Medido el 2026-09-09: los tres worktrees estaban 4, 8 y 11 commits por detras, y
+      NINGUNO tenia la regla de credenciales escrita esa misma manana.
+   🔴 Y la forma tiene una inversion desagradable: **cuanto mas trabajo llevas en vuelo,
+      mas vieja es tu copia** — o sea que el mas desactualizado es siempre el que esta
+      en medio de la tarea que la regla nueva gobierna.
+
+
 Plantilla de rol pensada para ser reutilizable en cualquier proyecto que use este
 montaje de "fábrica de software" multi-agente, no solo SuperCRM. La sección "PARTE
 GENÉRICA" no debería necesitar cambios al adaptarse a otro proyecto; la sección
@@ -467,6 +482,62 @@ una vez que el trabajo pasa auditoría.
   no config). Formato, una línea por check-in, se añade con `>>` sin borrar lo anterior:
   `timestamp | sesión | rol | terminal/carpeta | motivo`. Ejemplo:
   `date '+%Y-%m-%d %H:%M:%S'` seguido de `| T2 | Desarrollador | T2 | arranque`.
+- 🔴 **ANTES DE CUALQUIER COMANDO `convex`: respalda tu `.env.local` y compara el hash
+  después.** No es paranoia — está MEDIDO (T2, 2026-09-09, sonda de AIT-114):
+
+      md5 antes .... 7518ba3e5d97adf47b60d96850d50c93
+      md5 después .. 8d6fb5ae1328d0e5093aeae7280a80a6   <- sin CONVEX_DEPLOYMENT
+
+  `npx convex dev --env-file <otro-fichero>` **BORRÓ la línea `CONVEX_DEPLOYMENT` del
+  `.env.local` del worktree que lo invocó.** Creíamos justo lo contrario: que `--env-file`
+  servía para NO tocar el fichero de nadie. **Esa mitigación era falsa**, y la dimos por
+  buena dos roles a la vez (T2 y el PM) sin comprobarla.
+
+  **Por qué muerde y no avisa:** un `.env.local` sin `CONVEX_DEPLOYMENT` no da error — deja
+  a tu worktree sin saber contra qué backend corre. El siguiente que ejecute la suite mide
+  otra cosa, o falla sin motivo aparente, y nada apunta al comando que lo causó.
+
+      md5 .env.local          # ANTES. Apunta el hash. No copies nada todavía.
+      md5 .env.local          # DESPUÉS: ¿el mismo?
+
+  **Por defecto NO se copia el fichero: se apunta su `md5`.** Un hash no es un
+  secreto y detecta el cambio igual. La copia solo hace falta para RESTAURAR, y
+  entonces va al scratchpad de TU sesión, que es `drwx------` y tuyo:
+
+      cp .env.local "$SCRATCH/env.bak"    # solo si vas a necesitar restaurar
+      cp "$SCRATCH/env.bak" .env.local    # restaurar
+      rm "$SCRATCH/env.bak"               # al terminar, siempre
+
+  🔴 **NO copies el `.env.local` dentro del repo, ni siquiera con un nombre
+  gitignoreado.** Que git lo ignore no es la única fuga: **el repo lo sincroniza
+  iCloud**, así que un respaldo ahí SALE DE LA MÁQUINA aunque nunca se commitee.
+  No es teórico — iCloud ya ha duplicado ficheros de credenciales dentro del repo:
+
+      _worktrees/T1/e2e/.auth/owner 2.json    <- tokens de sesión, duplicados
+      _worktrees/T1/e2e/.auth/sales 2.json       por iCloud, no por nosotros
+
+  Y si aun así lo pones en el repo, **el nombre no es libre**: `.gitignore:37`
+  protege con el patrón `.env*` y nada más — medido con `git check-ignore -v`,
+  `.env.local.bak` ✅ pero `env-backup.txt` y `copia-env.txt` 🔴 son commiteables,
+  y son justo los nombres que salen con prisa.
+
+  **Tampoco `/tmp` a secas** (`drwxrwxrwt`, compartido con todo lo que corra en
+  la máquina). El scratchpad de sesión sí: `/private/tmp/claude-501/…` es
+  `drwx------`.
+
+  ⚠️ **La huella se toma con `md5`, NUNCA abriendo el fichero "para ver si está
+  bien".** `.env.local` lleva contraseñas en claro: abrirlo las mete en el
+  transcript, que es exactamente el fallo que costó la rotación de agosto.
+  Y **cada worktree tiene su propio `md5`** — no hay un hash "bueno" compartido:
+  registras el tuyo ANTES, y comparas contra ese.
+
+  Lo cazó T2 SOLO porque había respaldado y comparaba hashes. Hazlo igual.
+
+  📏 **Lo MEDIDO fue `--env-file`, y solo eso.** Esta regla es más ancha a
+  propósito (respaldar cuesta cero), pero dentro de una semana sigue sin estar
+  medido qué hacen `convex dev` a secas, `deploy`, `env set` ni `--configure`.
+  No la cites como si lo estuviera.
+
 - **Turno de recurso compartido — Convex:** antes de CUALQUIER `npx convex dev` (no
   solo la primera vez), mira primero `CONVEX_DEPLOYMENT` en tu propio `.env.local`:
     - Si es un deployment propio de tu terminal (no `third-goldfinch-805`): ya estás
@@ -504,7 +575,28 @@ una vez que el trabajo pasa auditoría.
         - **Si `mkdir` falla** (ya existe): no asumas que está libre. Lee `titular.txt`
           para saber quién lo tiene y contáctala directamente por `SendMessage` para
           coordinar (¿cuánto le queda?, ¿puedes esperar?) — no hace falta pasar por la
-          Directora para esto. Solo escala a la Directora (o a tu Líder de célula, si las
+          Directora para esto.
+
+          🔴 **CERROJO SIN `titular.txt` DENTRO ≠ CERROJO ABANDONADO (decisión del Factory Architect,
+          2026-09-10).** El directorio puede existir **vacío**, sin `titular.txt` — medido en vivo esa
+          noche: a las 01:22 UTC existía y estaba vacío, a las 01:23 ya no existía.
+
+          > **El procedimiento de "cerrojo abandonado" consiste en LEER `titular.txt`. Con el fichero
+          > ausente no tiene entrada: no da una duda, da un VACÍO — y la lectura natural de un vacío es
+          > "no lo tiene nadie".**
+
+          **La causa es estructural, no un descuido de quien lo reclamó:** `mkdir` es atómico y protege
+          la **reclamación**; escribir `titular.txt` es un **segundo comando**. **La atomicidad protege el
+          turno y no protege la IDENTIFICACIÓN.** La decisión 34.4 se ocupó de que el identificador no
+          caducara; nadie escribió qué pasa cuando **todavía no existe**. Es un tercer modo de fallo,
+          distinto del nombre podrido.
+
+          ✅ **REGLA: `titular.txt` ausente significa "reclamación EN VUELO o rota", nunca "abandonado".
+          La acción es ESPERAR Y VOLVER A MEDIR — jamás reclamar.** Solo se declara abandonado con un
+          `titular.txt` legible **cuyo titular se haya comprobado que no produce**. Al final de ese otro
+          camino está el incidente del 2026-08-09: reclamar un turno ajeno, desplegar con rama vieja y
+          borrar funciones de otra terminal.
+ Solo escala a la Directora (o a tu Líder de célula, si las
           hay) si hay una disputa real, o si esa terminal no responde y no puedes
           confirmar por otros medios que sigue trabajando de verdad — mismo criterio que
           para dar una terminal por parada: nunca reclames un cerrojo ajeno por comodidad.
@@ -611,6 +703,55 @@ una vez que el trabajo pasa auditoría.
   Para la fase de plan (paso 1, antes de implementar), mismo patrón con infijo `plan-`:
   T<n>_AIT-<id>_<slug>_plan-loop<N>-para-auditor.txt — mismo criterio de un solo fichero
   activo, se borra y se recrea en cada ronda si hay NO-GO al plan.
+- ⛔ AL LIBERAR EL TURNO DE CONVEX, DEJA TRAZA ANTES DEL `rmdir` (decision 88, 2026-09-09):
+      cat "Sorfware Factory/_turno-convex.lock/titular.txt" >> "Sorfware Factory/_turno-convex.log"
+      echo "  | liberado $(date '+%Y-%m-%d %H:%M %Z')"        >> "Sorfware Factory/_turno-convex.log"
+  El dato YA EXISTE en `titular.txt` —titular, tarea, deployment y hora con huso—.
+  Hoy se tira al borrar el directorio, **y con el la unica prueba de que alguien
+  escribio en esa ventana.**
+  🔑 **Por que la carga esta aqui y no en el que mide:**
+     > **El que escribe SABE que escribe. El que mide NO puede saber que alguien va a
+     > escribir despues.**
+     Pedirselo al que mide seria cargar al unico de los dos que no puede saber lo que
+     hace falta saber.
+  ⚠️ **Y por que el cerrojo no basta:** un cerrojo es exclusion mutua —dice quien escribe
+     AHORA— y **no dice nada de antes de que llegaras ni de despues de que salieras**.
+     Una medicion es una afirmacion sobre un estado PASADO. **Exclusion y validez son dos
+     problemas distintos: el cerrojo resuelve el primero; el segundo necesita REGISTRO.**
+
+- ⛔ EN EL EXPORT, JUNTO A LA CASILLA DEL BACKEND: di CUANDO mediste (decision 88)
+      Medido contra <recurso compartido> a las <hora CON HUSO>: <valores>
+  Caso real: T3 midio "38 passed" a las 10:15 contra el compartido; a las 10:36 T1 tomo
+  el turno y desplego funciones nuevas EN ESE MISMO deployment; a las 11:23 se relanzo la
+  auditoria. **El numero de T3 era cierto al escribirlo y ya no lo era al leerlo** — y si
+  el auditor re-ejecuta y sale otra cosa, **el rojo tiene causa de T1 y el nombre de T3
+  encima.** Nadie hizo nada mal.
+
+- ⛔ ANTES DE CUALQUIER COMANDO DE `convex` QUE NO SEA DE SOLO LECTURA: RESPALDA
+  `.env.local` Y COMPARA SU `md5` DESPUES. Si cambio, restaura y avisalo.
+  🔴 `npx convex dev --env-file <otro-fichero>` **NO protege el `.env.local` del que lo
+     invoca**: el 2026-09-09 le **borro la linea `CONVEX_DEPLOYMENT`** a T2. Verificado
+     por hash antes/despues y restaurado byte a byte.
+  ⚠️ **Y el dano no avisa:** un worktree sin `CONVEX_DEPLOYMENT` **no falla al instante**
+     — se queda sin saber contra que backend corre, y **el siguiente que lance la suite
+     mide otra cosa o falla sin motivo aparente**. Es AIT-96 entrando por otra puerta.
+  ⚠️ **Medido solo para `--env-file`.** `convex dev` a secas, `deploy`, `env set` y
+     `--configure` NO se han comprobado: la regla es **mas ancha que la medicion a
+     proposito** (ver AIT-123).
+  🔑 **Y el argumento que la justifica mejor que el incidente:**
+     > **Que `--env-file` exista hizo MAS probable el dano, no menos.** Sin ninguna opcion
+     > de ambito, nadie habria dado por protegido el fichero. **Una mitigacion que no
+     > funciona es peor que ninguna: quita el cuidado que su ausencia habria provocado.**
+  📌 **Y como se cazo, que es lo reutilizable:** no por desconfiar mas, sino porque T2
+     tenia el habito de **respaldar y comparar hashes antes de actuar**. Una medicion
+     obligatoria antes de actuar, no vigilancia.
+
+- ⛔ CUANDO UN NOMBRE ENCAJA SOSPECHOSAMENTE BIEN CON LO QUE QUIERES, ESA ES LA SEÑAL DE
+  COMPROBARLO. El ajuste de un nombre mide TU ENCUADRE, no el comportamiento de la
+  herramienta. (`--env-file` sonaba a "ambito acotado"; un `keygen` que no genera claves
+  de auth suena a que si.) **El nombre es autentico y contesta a OTRA pregunta** — misma
+  familia que una precaucion real que protege contra un fallo que no es el tuyo.
+
 - ⛔ EL RÓTULO SE CORRIGE PRIMERO, NO AL FINAL (decisión 86, 2026-09-09)
 
 **Cuando una corrección contradiga el TÍTULO de algo —issue, documento, fichero, test—, el rótulo

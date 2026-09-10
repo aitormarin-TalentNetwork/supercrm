@@ -319,6 +319,27 @@ cerrojo bien hecho sí. Y añade su comprobación a tu barrido periódico (más 
 cerrojo abandonado que nadie más necesita todavía puede quedarse invisible durante
 mucho tiempo si nadie lo mira proactivamente.
 
+🔴 **CERROJO SIN `titular.txt` DENTRO ≠ CERROJO ABANDONADO (decisión del Factory Architect,
+2026-09-10).** El directorio puede existir **vacío**, sin `titular.txt` — medido en vivo esa
+noche: a las 01:22 UTC existía y estaba vacío, a las 01:23 ya no existía.
+
+> **El procedimiento de "cerrojo abandonado" consiste en LEER `titular.txt`. Con el fichero
+> ausente no tiene entrada: no da una duda, da un VACÍO — y la lectura natural de un vacío es
+> "no lo tiene nadie".**
+
+**La causa es estructural, no un descuido de quien lo reclamó:** `mkdir` es atómico y protege
+la **reclamación**; escribir `titular.txt` es un **segundo comando**. **La atomicidad protege el
+turno y no protege la IDENTIFICACIÓN.** La decisión 34.4 se ocupó de que el identificador no
+caducara; nadie escribió qué pasa cuando **todavía no existe**. Es un tercer modo de fallo,
+distinto del nombre podrido.
+
+✅ **REGLA: `titular.txt` ausente significa "reclamación EN VUELO o rota", nunca "abandonado".
+La acción es ESPERAR Y VOLVER A MEDIR — jamás reclamar.** Solo se declara abandonado con un
+`titular.txt` legible **cuyo titular se haya comprobado que no produce**. Al final de ese otro
+camino está el incidente del 2026-08-09: reclamar un turno ajeno, desplegar con rama vieja y
+borrar funciones de otra terminal.
+
+
 ### Escalar a varias células (opcional, cuando una sola capa no basta)
 
 Si el proyecto crece lo bastante como para sostener varias terminales trabajando en
@@ -676,6 +697,37 @@ verificables". La Directora lo reprodujo desde la raíz —**funciona, exit 0**�
 entorno y quedó cerrado. **El hecho de proceso se queda igual: pudo perder una comprobación y
 decirlo donde es fácil que no lo lea nadie.**)*
 
+### ⛔ ANTES DE JUZGAR UNA MEDICIÓN CONTRA UN COMPARTIDO, MIRA EL REGISTRO DEL TURNO (decisión 88)
+
+```bash
+cat "Sorfware Factory/_turno-convex.log"   # quien tuvo el turno y cuando lo libero
+```
+**Si alguien tuvo el turno ENTRE la medición y la lectura, la medición es anterior a una
+escritura**: se re-mide, o se atribuye a eso — **NO al cambio auditado.**
+
+⚠️ **El turno protege la ESCRITURA; no protege la VALIDEZ de lo ya medido.** *No es que el cerrojo
+se quede corto: **es estructuralmente incapaz.** Dice quién escribe **ahora** y no dice nada de
+antes ni de después. Una medición es una afirmación sobre un estado **pasado**.*
+> **Exclusión y validez son dos problemas distintos: el cerrojo resuelve el primero; el segundo
+> necesita un registro de cambio.**
+
+### ⛔ CASILLA OBLIGATORIA DEL EXPORT: en qué backend escribe (2026-09-09)
+
+```
+Backend en el que escribe: <nombre> | compartido: si/no | toma el turno: si/no
+```
+**"No escribe en ningún backend" es respuesta válida y HAY QUE ESCRIBIRLA** — *para que la ausencia
+no se confunda con el olvido.*
+
+⚠️ **Por qué es del molde y no del auditor:** AIT-99 llegó a la **ronda 7** con un §6 que **crea,
+revoca y borra una identidad sin decir en qué backend** — y esa terminal apuntaba al **compartido**,
+que en ese momento usaban la raíz y otra terminal. **Siete rondas, ninguna falló.** *Como lo dijo
+T1: "no es un fallo del auditor: la pregunta no estaba en el artefacto, así que no había nada que
+auditar."*
+🔻 **Y el matiz que impide darlo por cubierto:** el plan **sí** llevaba trazabilidad y limpieza en
+`finally`. Eso cubre *"si algo falla, se ve y se limpia"*; **NO cubre "otro está midiendo aquí a la
+vez"**. **Dos propiedades distintas — y una daba cobertura aparente a la otra.**
+
 ### ⛔ QUÉ GARANTIZA UN FICHERO DE VEREDICTO (decisión 83, 2026-09-09)
 
 > **GARANTÍA: este fichero significa que un auditor INDEPENDIENTE leyó el export E y el commit C,
@@ -732,6 +784,18 @@ cita.*
   necesita a una persona: **ahí Aitor sí es imprescindible.** Pídeselo **UNA vez**, con **qué MCP,
   en qué terminal y qué comando escribir**, y **registra que se pidió. No lo repitas cada ciclo** —
   *el silencio de quien no actúa no puede volver a leerse como "pendiente" treinta y una veces.*
+
+- ⛔ **AL ASIGNAR UNA TAREA, RECUÉRDALE QUE SU COPIA DEL PROCESO ESTÁ CONGELADA** (decisión 87,
+  2026-09-09). La copia de `intro-terminal.txt` de cada worktree **se quedó en la fecha de su
+  rama**. Se lee la publicada:
+  ```bash
+  git fetch -q origin main && git show origin/main:"Sorfware Factory/intro-terminal.txt"
+  ```
+  ⚠️ *Medido ese día: 4, 8 y 11 commits por detrás, y **ninguno tenía la regla de credenciales
+  escrita esa misma mañana**. Lo descubrió el PM teniendo que repartirla a mano.*
+  🔴 **Y la inversión que lo hace grave: cuanto más trabajo lleva en vuelo una terminal, más vieja
+  es su copia** — *el más desactualizado es siempre el que está en medio de la tarea que la regla
+  nueva gobierna.*
 
 - ⛔ **ESCRIBIR EN EL CHECKOUT RAÍZ VA BAJO EL CERROJO QUE YA EXISTE** (decisión 84, 2026-09-09).
   **Las operaciones de ESCRITURA sobre la raíz —`merge`, `push`, `commit`, cambiar de rama— pasan

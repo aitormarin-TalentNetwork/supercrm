@@ -812,6 +812,30 @@ control en **una foto con suerte**.* **Caso del mismo día:** un control propues
 activa **dejó de discriminar en cinco minutos**, porque esa sesión volvió a producir; el sujeto
 bueno resultó ser **una sesión muerta desde hacía tres días**, con 53 h de divergencia estable.
 
+### 🔴 CORROBORACIÓN FALSA: cuando confirmas el hallazgo de otro con un instrumento roto
+
+> **Cuando vayas a confirmar el hallazgo de otro, tu control tiene que incluir un caso donde
+> esperes el resultado CONTRARIO.** Si todos tus sujetos deberían dar lo mismo que dice el
+> hallazgo, **tu instrumento roto y el hallazgo correcto producen la misma salida.**
+
+⚠️ **No es un falso positivo ni un falso negativo: es una CORROBORACIÓN FALSA, y es peor que las
+dos.** *No contradice nada — **refuerza algo cierto con basura**, y a partir de ahí el hallazgo
+verdadero se apoya en parte en nada, sin que se pueda distinguir qué mitad lo sostiene.*
+
+**Caso real, 2026-09-09:** al confirmar que los worktrees estaban desactualizados, mi patrón dio
+`T1:0 · T2:0 · T3:0` — **y también `RAÍZ:0`**. *Si solo hubiera mirado los tres worktrees, habría
+confirmado un hallazgo correcto con un patrón que no encontraba nada en ninguna parte.* **Lo que
+lo destapó fue meter la raíz, cuyo valor esperado era `1`.**
+> **El control funcionó porque su valor esperado era DISTINTO del hallazgo**, no porque fuera más
+> riguroso.
+
+📌 **Es hermana de la de abajo, en el eje de la confirmación entre roles: el acuerdo solo informa
+donde podríais DISCREPAR.**
+🔻 **Y pasó dos veces en veinte minutos, en los dos sentidos del canal:** al otro lado, una
+explicación coherente —*"la raíz también está atrasada"*— **habría sido un segundo hallazgo falso
+apoyado en el primero verdadero.** *La cazó ir a comprobar la diferencia **en vez de explicarla** —
+y explicar sale primero, siempre.*
+
 ### 🔴 DOS VARIANTES DE LA MISMA COMPROBACIÓN NO SE VALIDAN ENTRE SÍ CON EL SISTEMA SANO
 
 > **Dos implementaciones de la misma comprobación coinciden en el estado sano POR DISEÑO** — si no
@@ -906,6 +930,35 @@ escrituras sobre el checkout raíz** —`merge`, `push`, `commit`, cambiar de ra
 *El `main` local del Integrador cambió dos veces solo, porque otra sesión empuja desde el mismo
 checkout.* **No es una comprobación nueva: es la misma línea con un sujeto más.**
 
+🔴 **CERROJO SIN `titular.txt` DENTRO ≠ CERROJO ABANDONADO (decisión del Factory Architect,
+2026-09-10).** El directorio puede existir **vacío**, sin `titular.txt` — medido en vivo esa
+noche: a las 01:22 UTC existía y estaba vacío, a las 01:23 ya no existía.
+
+> **El procedimiento de "cerrojo abandonado" consiste en LEER `titular.txt`. Con el fichero
+> ausente no tiene entrada: no da una duda, da un VACÍO — y la lectura natural de un vacío es
+> "no lo tiene nadie".**
+
+**La causa es estructural, no un descuido de quien lo reclamó:** `mkdir` es atómico y protege
+la **reclamación**; escribir `titular.txt` es un **segundo comando**. **La atomicidad protege el
+turno y no protege la IDENTIFICACIÓN.** La decisión 34.4 se ocupó de que el identificador no
+caducara; nadie escribió qué pasa cuando **todavía no existe**. Es un tercer modo de fallo,
+distinto del nombre podrido.
+
+✅ **REGLA: `titular.txt` ausente significa "reclamación EN VUELO o rota", nunca "abandonado".
+La acción es ESPERAR Y VOLVER A MEDIR — jamás reclamar.** Solo se declara abandonado con un
+`titular.txt` legible **cuyo titular se haya comprobado que no produce**. Al final de ese otro
+camino está el incidente del 2026-08-09: reclamar un turno ajeno, desplegar con rama vieja y
+borrar funciones de otra terminal.
+
+⚠️ **Y un límite conocido de la propia 84, ENRUTADO Y ESPERANDO (dueño: el Factory Architect,
+2026-09-10):** la 84 le dio al cerrojo un **segundo sujeto** y le dejó **un solo procedimiento de
+liberación**, diseñado para el primero. Efecto: liberar un cerrojo abandonado pasa a ser liberar
+todo el checkout, entre roles que no comparten el recurso original. Es la 57 aplicada a nuestras
+propias decisiones. **Reutilizar el turno existente en vez de inventar un segundo primitivo de
+coordinación siguió siendo lo correcto** —este README ya tiene catalogado ese error—, así que
+partir el cerrojo es cambiar el primitivo de coordinación de la fábrica: **sustancial, se habla
+con Aitor despierto, no se decide de madrugada.** No se lee como resuelto por estar dicho.
+
 ### ⛔ Comprobación fija Nº1 de tu barrido: ¿cuántos trabajan, y cuántos podrían? (decisión 77)
 
 **Va la primera, antes que cualquier otra**, y **ninguna ronda puede cerrarse con "sin cambios"
@@ -966,15 +1019,44 @@ nada**: su silencio te llega exactamente igual que su calma, y ésa es la averí
 
 ```bash
 # los 3 workers quietos a la vez >40 min = fabrica parada
+# OJO 1: "Sorfware-Factory" NO es opcional en el glob. Sin ese calificador matchea los
+#        worktrees de OTROS proyectos de la maquina y cuentas terminales ajenas (comprobado).
+# OJO 2: 400 KB, no 60. Un solo resultado de herramienta grande llena la ventana: el
+#        2026-09-09 T1 tenia 0 eventos `assistant` en los ultimos 60 KB y 11 en 400 KB,
+#        con un transcript de 14 MB. Con 60 KB el comando la habria PERDIDO en silencio.
 for d in ~/.claude/projects/*Sorfware-Factory--worktrees-T[123]; do
-  f=$(ls -t "$d"/*.jsonl | head -1)
+  # OJO 3: TODOS los ficheros del directorio, no solo el mas reciente por mtime. Durante una
+  #        parada larga el fichero mas nuevo puede NO ser el de la sesion activa. Cada worktree
+  #        tiene entre 3 y 6 transcripts, asi que la diferencia no es teorica.
+  n=$(basename "$d" | tail -c 3)
+  ls "$d"/*.jsonl >/dev/null 2>&1 || { echo "$n: SIN FICHERO"; continue; }
   # el filtro NO es un detalle: es el "segun quien" del timestamp. Sin el, coge el ultimo
   # evento de CUALQUIER tipo —incluidos los mensajes que RECIBE— y una terminal parada que
   # recibe mensajes parece que produce. Medido: una sesion muerta divergia 3.216 min (53 h).
-  ts=$(tail -c 60000 "$f" | grep '"type":"assistant"' | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4)
-  echo "$(basename $d | tail -c 3): $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
+  ts=$(for f in "$d"/*.jsonl; do tail -c 400000 "$f" | grep '"type":"assistant"' \
+        | grep -o '"timestamp":"[^"]*"' | tail -1 | cut -d'"' -f4; done | sort | tail -1)
+  [ -z "$ts" ] && { echo "$n: SIN DATO (ventana insuficiente)"; continue; }
+  echo "$n: $(( ( $(date -u +%s) - $(date -u -j -f "%Y-%m-%dT%H:%M:%S" "${ts%.*}" +%s) ) / 60 )) min"
 done
 ```
+✅ **VALIDADO CONTRA EL FALLO REAL, no contra un sujeto sintético.** Los transcripts son un
+registro *append-only*, así que **el pasado se puede volver a medir**: reproducido hora por hora
+contra la parada del 2026-09-09, **habría disparado a las 07:30 UTC** — *y Aitor llegó a las 09:15,
+hora y tres cuartos después.* **Cero falsos positivos** antes y después, y **el umbral discrimina de
+verdad: a las 07:00 T2 estaba en 38 min y NO disparó.**
+⚠️ **Y esa reproducción destapó que se estaba validando una cosa y ejecutando otra:** la
+reproducción miraba **todos** los ficheros y el comando solo el más reciente. *De ahí el OJO 3.*
+> **O validas lo que ejecutas, o ejecutas lo que validaste.**
+*(Comprobado que hoy las dos versiones dan lo mismo — **y eso no prueba nada**: dos variantes de la
+misma comprobación coinciden con el sistema sano **por diseño**.)*
+
+🔴 **TRES ESTADOS, no dos: una cifra · `SIN DATO` · `SIN FICHERO`.**
+> **Un worker que NO APARECE en la salida no es un worker produciendo: es el comando roto.**
+⚠️ **Dirección del fallo de la versión anterior, y es la peor posible:** si los tres se pararan
+**y** sus colas no tuvieran eventos `assistant`, **el comando no imprimiría NADA y eso se leería
+como "sin novedad"**. *Un falso verde **dentro del detector de fábrica parada**.*
+⚠️ **Si alguno sale `SIN DATO`, NO se puede descartar la parada: se avisa igual.**
+
 🔴 **Y el control positivo de ESTE comando no puede hacerse contra una sesión sana: los dos
 comandos —con filtro y sin él— dan IDÉNTICO cuando la terminal está produciendo.** *El defecto solo
 aparece en el caso para el que existe la comprobación.* **Busca un transcript cuyo último evento no
@@ -992,9 +1074,32 @@ resultado fue idéntico** — *lo que mata no es el tamaño, es ser una tarea de
 bajo presión de memoria.*
 > **Un respaldo que se muere cada cuarenta minutos y deja un fichero congelado no es un respaldo:
 > es algo que PARECE presente.**
-🔻 **Y hay que decirlo donde toca: la decisión 78 manda que el Factory Architect arme un respaldo
-de máquina. En esta máquina, hoy, NO SE PUEDE.** Eso va escrito, **no se deja como si siguiera
-ahí** — que es justo lo que la 78 vino a impedir.
+🔻 ~~**Y hay que decirlo donde toca: la decisión 78 manda que el Factory Architect arme un
+respaldo de máquina. En esta máquina, hoy, NO SE PUEDE.**~~
+
+> # ✅ CORREGIDO EL 2026-09-10: SÍ SE PUEDE, Y ESTÁ ARMADO.
+>
+> **Cron de sesión `c9e8f2e7`, cada 20 min (`7,27,47`), verificado por efecto con `CronList` y no
+> por el retorno de su creación.** Lo midió el Factory Architect en vez de aceptar el "no se
+> puede".
+>
+> **Por qué el texto tachado era falso:** su evidencia —el vigía murió tres veces— es sobre
+> **tareas de fondo residentes**, y no dice nada de un cron de sesión, que no es un proceso
+> residente y al que esa presión de memoria no le llega. **Una conclusión que excede a su
+> medición**, y llevaba escrita lo bastante como para que un CEO nuevo lo diera por imposible sin
+> volver a mirarlo.
+>
+> ⚠️ **Su precio, que va aquí y no como nota al pie:** el cron **muere con la sesión del Factory
+> Architect** y **expira solo a los 7 días**. Eso nos deja con **dos puntos únicos que se cubren
+> mutuamente** —tu barrido y su cron— que es exactamente la situación que la decisión 78 vino a
+> escribir en los dos documentos. No es un respaldo de máquina de verdad; es lo mejor disponible
+> hoy, y se lee como tal.
+>
+> **Qué alarma:** los desarrolladores quietos **TODOS a la vez** más de 40 min. La quietud de uno
+> no es alarma nunca. **Tres resultados, no dos: ALARMA · SIN NOVEDAD · SIN SUJETO** — sin
+> desarrolladores devuelve SIN SUJETO, así que no grita en su primer ciclo y la 46 está
+> satisfecha. Si alarma, llega **la tabla** con los minutos de cada `T<n>` y la hora en UTC, no
+> la conclusión sola.
 
 *(Histórico, por si algún día vuelve a haber vigía: **se leía de un fichero y no de un mensaje**,
 y **el fichero llevaba su condición de caducidad dentro**, así que no dependía de que el CEO
@@ -1086,10 +1191,33 @@ indicador** — *¿ha muerto algo?* vale más que cualquier porcentaje. Y si vas
 > ausente"*, ciclo tras ciclo.**
 
 🔴 **Caso real, y es de este barrido: 31 ciclos pidiéndole a Aitor `git config core.hooksPath
-.githooks`.** Medido con control positivo: **`.githooks` NO EXISTE y no ha existido nunca en
-ninguna rama** (`git log --all --diff-filter=A -- .githooks` → 0; control: `docs/` → 1). **Si lo
+.githooks`.** ~~Medido con control positivo: **`.githooks` NO EXISTE y no ha existido nunca en
+ninguna rama** (`git log --all --diff-filter=A -- .githooks` → 0; control: `docs/` → 1).~~ **Si lo
 hubiera ejecutado el primer día no habría pasado nada** — `git` no ejecuta hooks de un directorio
 inexistente— **y esta comprobación se habría dado por satisfecha.**
+
+> # 🔴 EL TEXTO TACHADO DE ARRIBA ES FALSO DESDE EL 2026-09-09. NO LO USES.
+>
+> **`.githooks/pre-commit` EXISTE** (2090 bytes, `-rwxr-xr-x`, trackeado, creado por el commit
+> `04f5db1`), y `git log --all --diff-filter=A -- .githooks` da **1**, con el mismo control
+> positivo `docs/` → 1 que antes daba la asimetría. Medido el 2026-09-10 por el CEO, y
+> reproducido de forma independiente por el Factory Architect y por el PM.
+>
+> **Se deja tachado y no borrado a propósito:** quien recuerde haber leído "no existe" tiene que
+> poder ver que cambió. Y es la peor de las cuatro instancias que dejó ese commit, por una razón
+> que aporta el PM: **no es un dato desactualizado, es uno que APAGA la comprobación** — le
+> ahorra el `ls` a quien lo lea. Un texto que dice *"eso no existe"* silencia mejor que el
+> silencio.
+>
+> **Qué es cierto hoy, y es lo que va en el barrido:** la mitad nuestra está hecha; la de Aitor,
+> no. `core.hooksPath` sigue **sin configurar** y **`.git/hooks/pre-commit` tampoco existe**
+> (medición del PM, por una vía que ni el CEO ni el Factory Architect usaron — y es la que cierra
+> el hallazgo: sin ella, *"no está en `core.hooksPath`"* solo prueba que git no mira `.githooks`,
+> y deja abierto que hubiera un hook en la ruta por defecto haciendo el trabajo). **Hoy no corre
+> ningún pre-commit por ninguna de las dos rutas: el hook está inerte, medido por dos caminos.**
+>
+> **La petición a Aitor dejó de ser inejecutable y pasó a ser real.** Lo que sigue vigente de
+> esta sección es su lección de método —*midió un extremo y jamás el otro*—, no su dato.
 
 ⚠️ **Por qué fue invisible 31 veces, y es de casa:** la comprobación miraba **la configuración** y
 **nunca lo que la configuración apunta**. Midió un extremo y jamás el otro — ***el cable, no los

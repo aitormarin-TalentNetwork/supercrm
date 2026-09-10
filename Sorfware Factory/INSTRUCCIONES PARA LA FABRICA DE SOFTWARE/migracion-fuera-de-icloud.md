@@ -3,6 +3,31 @@
 **Decidido por Aitor el 2026-09-09** tras AIT-116. **No ejecutado todavía**: espera a
 que no haya trabajo en vuelo. Lo ejecuta el PM con Aitor delante.
 
+## Registro de aplazamientos (decisión 81: la respuesta se registra, sea cual sea)
+
+> **Por qué existe esta sección:** la decisión 81 obliga al PM a comprobar dónde vive el
+> repositorio **antes de crear a nadie**, y a **anotar qué contestó Aitor**. Sin este
+> registro, cada arranque de `/factory` se lo vuelve a preguntar y el silencio se lee como
+> "pendiente de decidir" cuando en realidad ya se decidió (decisión 80).
+
+- **2026-09-09 22:02 local (2026-09-10 01:02 UTC) — APLAZADA. Decide Aitor, pregunta el PM
+  (`crm-curso-vibe-coding-a8`), al arrancar `/factory` con la fábrica entera apagada.**
+  El PM le planteó que ése era el momento de coste más bajo —**ninguna terminal viva, nada
+  a medias**— y midió que las precondiciones se cumplían casi todas: `main` = `origin/main`,
+  las tres ramas de T1/T2/T3 subidas, `git fetch` exit 0, **`refs/` sin duplicados ese día**,
+  y el `detached HEAD` del worktree de QA (`d441549`) alcanzable desde `main` (sin commit
+  huérfano). **Único bloqueo medido:** T1 con 2 ficheros sin commitear (`convex/users.ts`
+  modificado + `e2e/00-comprobadores.spec.ts` sin trackear), restos de AIT-99.
+  **Aitor eligió levantar el equipo y migrar en el siguiente hueco.** La ventana se cerró al
+  arrancar la fábrica: a partir de la primera tarea repartida, la precondición 1 deja de
+  cumplirse.
+  ⚠️ **Esto NO reabre la decisión de migrar** — sigue decidida y sigue pendiente. Lo que se
+  aplazó es *cuándo*. El siguiente PM que llegue aquí no tiene que volver a preguntarlo:
+  tiene que **buscar el próximo hueco con la fábrica parada** y proponerlo entonces.
+  📌 Y que `refs/` estuviera limpio **ese día** no dice nada del siguiente: se midieron
+  duplicados activos de iCloud en los worktrees en ese mismo momento (`package 3.json`,
+  `framework 4.json`, `sales 2.json`). El daño de AIT-116 es intermitente, no resuelto.
+
 ## Por qué
 
 La carpeta vive en `~/Documents`, que iCloud sincroniza por la opción *"Carpetas
