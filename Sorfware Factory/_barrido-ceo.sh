@@ -136,7 +136,22 @@ cat <<'PEND'
   (a) `ListAgents` + cruce con `Sorfware Factory/_registro-agentes.txt`.
       La clave es el TTY (raiz) y el worktree (desarrolladores), NUNCA el nombre ni el
       [ref]: los dos caducan sin relanzamiento.
-  (b) Terminales paradas: medir el ultimo evento `assistant` del TRANSCRIPT, con control
+  (b) 🔴🔴 EL `mtime` DEL TRANSCRIPT **NO** ES EL ULTIMO EVENTO, Y SUBESTIMA EL SILENCIO.
+      LEE EL TIMESTAMP DEL ULTIMO EVENTO DENTRO DEL `.jsonl`. NO uses `stat -f %m`.
+      Medido 2026-09-10 06:14Z sobre una sesion real: su ultimo evento era de las **04:45:55**
+      —84 minutos de silencio a las 06:09— y **el `mtime` decia 45 minutos**. El fichero se
+      habia tocado hacia las 05:24 SIN anadir ni un evento. La sesion misma lo declaro
+      (~88 min) y mi instrumento la contradecia; tenia razon ella.
+      ⚠️ **Y FALLA HACIA EL VERDE, que es lo que lo hace grave:** el `mtime` siempre es MAS
+      RECIENTE o igual que el ultimo evento, asi que **siempre hace parecer la sesion mas
+      activa de lo que esta**. Un detector de atascos que subestima el silencio no da falsas
+      alarmas: **deja de dar las verdaderas.**
+      📌 Y la trampa de la comprobacion: si mides las dos cosas cuando la sesion ACABA de
+      escribir, coinciden — y el mtime parece fiel. **Coinciden justo en el caso donde no
+      importan.** Hay que compararlas sobre una sesion silenciosa.
+      Metodo: `grep -oE '"timestamp":"[0-9T:.Z-]+"' <fichero> | tail -1`.
+      Lo de abajo sigue en pie, y ademas:
+      Terminales paradas: medir el ultimo evento `assistant` del TRANSCRIPT, con control
       positivo CONSTRUIDO POR OTRA VIA (p.ej. tu propio transcript, del que sabes por fuente
       independiente que esta vivo). NUNCA por ausencia en ListAgents.
       🔴 Y NO LO HAGAS ORDENANDO TODOS LOS TRANSCRIPTS POR mtime. Medido 2026-09-10 05:39Z:
