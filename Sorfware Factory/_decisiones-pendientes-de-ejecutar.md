@@ -2729,3 +2729,53 @@ un rojo falso pare una migracion correcta.
 coste"* — y **el momento de arreglarlo es ahora, mientras da 0**, porque **un rojo falso en una
 migracion se lee como "menos mal que lo comprobamos" y nadie vuelve a mirar el patron.** Decide la
 Directora; lo registro porque el aviso llego con el defecto todavia sin morder, que es lo raro.
+
+## D71 — el cruce transcript/sesion NO es un vigilante nuevo: es un paso del CENSO
+
+**Diseño para que lo ejecute el CEO. Yo no lo monto — me lo recordo el, y tenia razon:** *"tu decides
+el ajuste y me lo entregas, nunca lo implementas tu mismo"*. **Lo habia ofrecido y era pasarme.** Su
+razon es la buena: **la separacion entre quien decide el proceso y quien lo toca es lo que impide que
+un rol se audite a si mismo**, y esta noche esa separacion nos ha salvado tres veces.
+
+**El problema, medido a las 10:35Z:** mi vigilante daba **T4 activo hace 19 min** y `ListAgents` **ya
+no la mostraba**. Los dos correctos: **el mio mide el TRANSCRIPT y el suyo la SESION.** De ahi la
+fila: *un vigilante de actividad no detecta muertes; silencio y muerte se ven iguales dentro de la
+ventana del umbral, y fuera de ella una terminal muerta es indistinguible de una esperando.*
+
+### Por que RECHAZO las dos implementaciones obvias
+
+**1. Emparejar por nombre o `[ref]`: descartado, y su aviso es exacto.** `ListAgents` **no da el
+worktree**, da nombre y `[ref]`, **y los dos caducan** — hoy ya se han relanzado terminales **tres
+veces**. Un cruce por nombre **produciria falsos rojos justo el dia que alguien relanza**, o sea hoy.
+
+**2. Contar sin emparejar (su sugerencia): mejor, pero no cierra.** *"N worktrees con transcript
+fresco vs N sesiones vivas"* **no compara lo mismo**: las sesiones vivas incluyen los **seis roles de
+raiz**, que inflan el lado derecho y **hacen que la desigualdad casi nunca dispare**. Para separarlos
+haria falta reconocer cuales son desarrolladores — **y eso es emparejar por nombre otra vez, por la
+puerta de atras.**
+
+### El diseño: la identidad se pide, y ya hay un sitio donde se pide
+
+🔑 **El cruce no necesita un vigilante nuevo, porque el CENSO ya establece identidad por
+autodeclaracion — que es la unica clave que no caduca.**
+
+- **QUE CANTA:** en el censo, **cada desarrollador declara SU WORKTREE** (no su nombre de sesion, que
+  caduca). El CEO compara ese conjunto contra **la lista que mi vigilante ya imprime**
+  (`terminales DESCUBIERTAS` + cuales tienen transcript fresco).
+  **Canta si hay un worktree con transcript FRESCO que NINGUNA sesion viva reclama.** Ese es el unico
+  estado que ninguno de los dos instrumentos ve por separado.
+- **CADA CUANTO:** **solo en el censo. Ningun control periodico nuevo.** Con el sistema sano **no
+  dispara nunca**, y reutiliza un paso que ya ocurre. Un vigilante mas seria justo lo que mi propia
+  regla prohibe: *un control que grita con el sistema sano se aprende a ignorar* — y ademas seria **un
+  cuarto proceso que el sistema puede matar.**
+- **QUE NO CUBRE, declarado:** si el censo no corre, el cruce no corre. **No detecta una muerte en
+  tiempo real y no pretende hacerlo.** Detecta **una muerte no advertida entre dos censos**, que es el
+  caso que nos ocupo hoy.
+
+📌 **Y la razon de fondo, que vale mas que el mecanismo: no hay ninguna clave estable que una un
+transcript con una sesion.** Ni el nombre, ni el `[ref]`, ni el `cwd` (que cambia solo, D25). **La
+unica fuente fiable es que la sesion diga de si misma donde vive** — y eso solo existe en el censo.
+**Cualquier cruce automatico que no pase por ahi esta inventando una clave que no existe.**
+
+**Contexto operativo del CEO, registrado:** T4 no la recrea el — **se lo ha preguntado a Aitor**,
+porque puede ser deliberado. **AIT-136 sin terminal**; lo doy por hecho en mis ciclos.
