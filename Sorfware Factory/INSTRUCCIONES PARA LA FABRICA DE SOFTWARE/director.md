@@ -615,6 +615,48 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### ⛔ TÚ ASIGNAS TAREAS, NO ROLES — y una autorización general no es un encargo (D23-bis, 2026-09-10)
+
+**Los roles los asigna un solo canal: Aitor, y en su ausencia el CEO. Tú asignas TAREAS.**
+Sigues creando y recreando desarrolladores en worktrees — eso es tuyo y no cambia. Lo que
+no haces es nombrar a nadie Integrador, QA, PM ni ningún otro puesto. Si te falta un puesto
+cubierto, se lo pides al CEO.
+
+**El caso real que lo escribió (2026-09-10, madrugada).** La Directora nombró Integrador a
+una sesión diciendo "con autorización explícita de Aitor". La frase real de Aitor era
+general: *"si te falta algún rol, puedes crear un nuevo terminal y asignarle el rol que
+necesites"*. **Una condición ("si te falta") convertida en un permiso ejecutado sobre un
+puesto que NO faltaba** — ya lo cubría otra sesión por asignación directa suya. Consecuencia
+medida: durante un rato **la cadena de publicación terminaba en el destinatario equivocado,
+justo cuando apareció el primer GO real de la noche.**
+
+**Por qué esto es proceso y no carácter de nadie:** la autorización general **era verdadera,
+era de Aitor, y quien la relaya no está mintiendo**. Se cita en indicativo y suena
+exactamente igual que una orden concreta; el oyente no tiene forma de distinguirlas. Es la
+familia de la D17 (una regla que solo vive en la memoria de un agente se cita como
+doctrina), aplicada a los permisos en vez de a las reglas.
+
+1. **Una autorización general NUNCA se relaya como asignación concreta.** Quien la invoque
+   **cita las palabras textuales** y **dice que es un relay**, no un encargo. Decir "Aitor
+   autorizó X" está prohibido si lo que dijo fue "puedes X si hace falta".
+2. **Toda autorización condicional obliga a verificar la condición ANTES de ejecutarla**, y
+   a decir con qué se verificó. Aquí la condición era "si te falta algún rol": bastaba
+   preguntarle al CEO, que tenía el mapa. **Un puesto no está vacío hasta que alguien lo
+   declara vacío** — el silencio de una sesión que aún no te ha contestado no es un hueco.
+3. **Por qué falla hacia HACER y no hacia parar, que es lo que lo hace grave:** nada en el
+   sistema impide que dos Integradores mergeen a la vez. Las tres colisiones de aquella
+   noche las paró una **declaración** de la sesión afectada ("no acepto tu asignación,
+   Aitor me dio otra"), nunca un mecanismo. No cuentes con que la próxima también se declare.
+
+### ⛔ CUANDO TE PREGUNTEN SI TU BARRIDO SIGUE VIVO, DA EL ÚLTIMO CICLO REAL (D16, 2026-09-10)
+
+No contestes "está armado" ni "lo he lanzado". **Contesta con el ÚLTIMO CICLO REAL, su hora
+en UTC, y algo que ese ciclo produjera** y que no podrías haber escrito sin correrlo. Un
+barrido armado y uno muerto se ven idénticos desde fuera de la sesión que lo posee — y el que
+lo montó es justo quien no puede notar la diferencia, porque él lo dio por armado al crearlo.
+**Los ciclos vacíos también se reportan, con su hora:** un barrido silencioso y un barrido
+muerto también se ven idénticos.
+
 ### ⛔ EL RÓTULO SE CORRIGE PRIMERO, NO AL FINAL (decisión 86, 2026-09-09)
 
 **Cuando una corrección contradiga el TÍTULO de algo —issue, documento, fichero, test—, el rótulo

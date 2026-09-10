@@ -597,6 +597,62 @@ respondiendo correctamente. Es el mismo principio, un escalón más arriba: ning
 dos es un punto ciego para el otro. Tampoco tienes que hacer nada especial para esto —
 solo saber que existe, para no sorprenderte si alguna vez te verifican o te saltan.
 
+### 🔑 EL CENSO LO RECONSTRUYES TÚ Y SOLO TÚ, tras cualquier relanzamiento (D26, 2026-09-10)
+
+**Primer acto tras un relanzamiento de la fábrica: reconstruir el censo. Es tuyo y de nadie
+más. Los demás roles NO barren: te preguntan a ti.** Un rol que te pregunte y no obtenga
+respuesta en 5 minutos sí barre — y lo dice al escribirlo, para que se sepa que ese dato
+salió de un barrido de emergencia y no del censo bueno.
+
+**Síntoma medido que lo escribió (2026-09-10, madrugada): CINCO censos en paralelo sobre los
+mismos diez peers en una hora** — CEO, PM, Directora, QA y Factory Architect, cada uno
+descubriendo por su cuenta que estaba ciego. El síntoma barato es el trabajo repetido. **El
+caro es que nadie sabe si el censo está hecho**, porque cinco barridos parciales y ninguno
+se ven igual desde fuera.
+
+1. **La clave del registro NO es el `[ref]` ni el nombre de sesión.** Los dos caducan a la
+   vez: el Factory Architect dejó escrito a las 03:18 UTC que su nombre **y** su ref
+   cambiaron **sin perder contexto**, y esa madrugada ninguno de los diez nombres apuntados
+   resolvía ya a una sesión viva. La clave es el **TTY** para los puestos de raíz y el
+   **worktree** para los desarrolladores. Es lo único que sobrevivió a tres encarnaciones
+   del mismo puesto.
+2. **Cada dato del registro se etiqueta MEDIDO o RELAYADO, con la fuente pegada.** `pwd -P`,
+   `tty`, `git worktree list`, el `titular.txt` del cerrojo = **medido**. "Me lo dijo X" =
+   **relayado**, con el nombre de X. Sin esto, el próximo relanzamiento **hereda el mismo
+   error con más confianza**, porque la repetición lo hace sonar firme.
+3. **Un censo es un estado en movimiento, no una foto.** Aquella noche pregunté a las diez
+   sesiones a la vez, las diez contestaron "sin rol", y repartí seis puestos sobre esa
+   respuesta — mientras Aitor iba ventana por ventana asignando roles en paralelo. Tres de
+   mis seis asignaciones chocaron con una suya. **La foto ya estaba caducada cuando la usé,
+   y nada me avisó.** Si repartes sobre un censo, di la hora a la que lo mediste y acepta
+   que cada minuto que pasa vale menos.
+
+### 🔑 «¿SIGUE ARMADO TU LOOP?» NO SE PREGUNTA — se pide el último ciclo real (D16, 2026-09-10)
+
+Ni se pregunta ni se contesta así. **Pide, y da, el ÚLTIMO CICLO REAL con su hora en UTC y
+algo que ese ciclo produjera** que no se pueda escribir sin haberlo corrido. **Un loop armado
+y uno muerto se ven idénticos desde fuera de la sesión que lo posee**, y el que lo montó es
+justo quien peor lo distingue: lo dio por armado en el instante de crearlo. La evidencia de
+esta decisión fue exactamente eso — el Factory Architect dio su cron por armado al crearlo, y
+el CEO contestó "no está armado todavía" a una pregunta que solo cabía contestar así porque
+se la hicieron bien. **Los ciclos vacíos también se reportan, con su hora:** un barrido
+silencioso y uno muerto también se ven idénticos.
+
+### 🔴 EL `exit` QUE IMPRIMES PUEDE SER EL DE LA TUBERÍA, NO EL DEL COMANDO (2026-09-10)
+
+**Cazado en vivo en el sitio más irónico posible: dentro de la propia prueba de un mecanismo
+anti-falso-verde.** Verificando que el hook de secretos rechaza un commit con una clave
+privada, se imprimió el `exit` del `git commit` y salió **0** — pero era el de `tail`, no el
+de git. De haberse fiado de ese número, la conclusión habría sido que **el hook deja pasar
+una clave privada**, teniendo delante un hook que funcionaba: un falso ROJO sobre el control
+de secretos, que manda a cavar en el sitio equivocado.
+
+**Lo que salvó la medición no fue un código de retorno: fue que HEAD no se movió** (mismo
+commit antes y después, árbol limpio). **La evidencia buena es el EFECTO, no el código de
+retorno.** Regla corta: **si canalizas la salida, el `$?` que lees no es del comando que te
+importa.** Es el mismo patrón que `npm test | tail`, y reaparece cada vez que se lee un
+resultado a través de una tubería.
+
 ### ⛔ CÓMO SE LEE UN VEREDICTO DEL AUDITOR — me equivoqué y se propagó tres veces (2026-09-09)
 
 ```bash

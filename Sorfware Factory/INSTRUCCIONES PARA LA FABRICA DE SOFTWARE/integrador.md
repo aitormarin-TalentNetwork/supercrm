@@ -197,6 +197,53 @@ está libre, coordina con el rol coordinador igual que hacen las terminales
 desarrolladoras — es quien arbitra esos turnos (ver Configuración para el caso concreto
 de este proyecto).
 
+### 🔑 UN CERROJO PROTEGE EL RECURSO QUE SU `titular.txt` NOMBRA (D18 ampliada, 2026-09-10)
+
+**Un cerrojo NO se define por una clase de operación, sino por el recurso concreto que su
+`titular.txt` nombra en el campo `Alcance:`.** Si el cerrojo vigente declara alcance
+`convex` y lo que vas a hacer es escribir en el checkout raíz, **no esperas: no es tu
+cerrojo**.
+
+**El porqué, y es lo que impide que esto sea una excepción de conveniencia: el cerrojo
+existe para lo que falla en SILENCIO.** Dos escrituras concurrentes en un deployment de
+Convex se pisan sin decir nada — ahí el cerrojo es lo único que te protege. **Dos `push`
+concurrentes a `main`, en cambio, NO fallan en silencio**: git rechaza el non-fast-forward y
+falla ruidosamente hacia PARAR. Lo que ya grita solo no necesita cerrojo, y ponérselo solo
+compra bloqueos espurios.
+
+**Incidente real que lo escribió (2026-09-10, 03:36:32Z):** dos commits de solo
+documentación esperaron tras un cerrojo de alcance **Convex** con el que no compartían un
+solo byte. Y la procedencia honesta importa: **el bloqueo lo causó una redacción del Factory
+Architect**, no un error del Integrador — el criterio que le habían dado era *"pasa por el
+cerrojo lo que toca índice/HEAD/rama/remoto"*, que **enuncia por la clase de operación en vez
+de por lo que se puede corromper**. El Integrador lo aplicó bien y por eso se quedó parado.
+
+1. **Dos cerrojos, no uno.** `_turno-convex.lock` protege el deployment de Convex;
+   `_turno-raiz.lock` protege la escritura sobre el checkout raíz. **Alcances disjuntos =
+   cero espera.**
+2. **`Alcance:` es obligatorio en el `titular.txt` de los dos**, con uno de estos valores:
+   `checkout-raiz`, `convex` o `ambos`.
+3. **Los ficheros IGNORADOS por git no entran en ningún cerrojo** (`_registro-agentes.txt`,
+   `_registro-qa.txt`, `_decisiones-pendientes-de-ejecutar.md`). No tocan índice, HEAD, rama
+   ni remoto, y son de solo-anexar — que es la forma correcta de escribir concurrente sin
+   cerrojo.
+4. **Nadie reclama un cerrojo ajeno, nunca.**
+
+### ⚠️ EN UN CHECKOUT COMPARTIDO, TU `push` PUBLICA LO QUE OTROS DEJARON A MEDIAS (D27)
+
+La raíz la comparten seis roles. **Cuando haces `git push` desde ahí, subes también los
+commits que otros dejaron sin publicar en ese mismo local**, los conozcas o no. Ocurrió el
+2026-09-10: el QA publicó su ronda y el push arrastró un commit del Factory Architect y otro
+del PM. Ninguno tocaba código de aplicación, así que fue un rebuild sin cambio de producto —
+pero **nadie decidió publicarlos**.
+
+Y el mismo fallo visto del otro lado, que es el que más engaña: **tu copia local de
+`origin/main` envejece sin avisar.** Antes de concluir nada sobre qué falta por publicar,
+**mide el remoto de verdad con `git ls-remote origin main`** o un `fetch`, nunca con tu
+`origin/main` local. Esa noche una sesión leía `28006d3` mientras el remoto iba por
+`61c8b38`. **Enumera antes de empujar** (`git log origin/main..main` tras el fetch) y di en
+tu ficha qué commits ajenos arrastras.
+
 ---
 
 ## Configuración de este proyecto (SuperCRM)
