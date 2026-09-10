@@ -574,6 +574,42 @@ esta entrada, el siguiente uso sería implícito.
 
 **Estado:** 🟢 Cerrada.
 
+### ADR-0xx · Qué hace la app mientras un cierre de sesión está en vuelo — 2026-09-10 (AIT-127)
+
+**Contexto.** Cerrar la sesión no es instantáneo: entre el clic y el momento en
+que el servidor deja de aceptar la credencial pasa un tiempo real. **Medido en
+`dev`, con el gesto cronometrado de verdad: la ventana queda acotada entre 27 y
+364 ms** según la corrida (`e2e/08-cierre-de-sesion.spec.ts`, C2c, que la publica
+en cada ejecución). Concuerda con la latencia de `auth:signOut` medida aparte:
+162 ms de mediana, 485 ms el peor caso. Durante esa ventana, cualquier
+navegación entra.
+
+**Decisión 1 — la app no ofrece navegación durante la ventana.** Al pulsar
+"Cerrar sesión" el control pasa a "Cerrando sesión…" y `disabled`, y **todo lo
+que navega dentro del área autenticada deja de ser alcanzable**: los enlaces del
+panel dejan de tener `href` (son `<span>`, no `<a>` apagados), el botón ☰ se
+deshabilita **y además `toggle` guarda en `NavContext`**, y la pantalla activa
+va `inert` vía `components/nav/AreaBloqueable.tsx`.
+
+⚠️ **Esto NO cierra la ventana, solo la puerta que abre la app.** La barra de
+direcciones sigue entrando durante esos milisegundos, y **la única mitigación
+real es la revocación en servidor (AIT-133)**. Cualquier redacción futura que dé
+a entender que la ventana desapareció es falsa.
+
+**Decisión 2 — si el cierre falla, NO se redirige a `/login`.** Se suelta el
+bloqueo, el control vuelve a estar vivo y un `role="alert"` dice que **la sesión
+sigue abierta**. Alternativas descartadas, y las dos por motivos distintos:
+
+| | |
+| -- | -- |
+| ⛔ Limpiar el estado de cliente y redirigir | Es la **señal falsa**: pantalla de login con la sesión **viva en el servidor**. La forma más convincente de no arreglar nada. |
+| ⛔ Redirigir sin limpiar | **No funciona**: `app/login/page.tsx` devuelve a `/` a quien sigue autenticado en cliente — y el estado de cliente es justo lo que el fallo deja intacto. El usuario acabaría **dentro de la app y sin ningún aviso**. |
+| 🟡 Tocar ese rebote de `/login` | No es incorrecta; se descarta **por alcance** (ensancha la ficha a la pantalla de login por una rama de fallo que tiene salida dentro). |
+
+> **Un cierre honesto que no te mueve es mejor que uno que te mueve y miente.**
+
+**Estado:** 🟢 Cerrada.
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:
