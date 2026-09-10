@@ -163,6 +163,30 @@ Si vuelve en la ronda 6, escala en el momento.
 > *"Prefiero eso a un Done que no aguanta la primera pregunta, y en particular prefiero no
 > cerrar AIT-127 antes que cerrar un 'cerrar sesión' que no cierra la sesión."*
 
+### El volumen del ciclo, medido: 49 rondas de auditoría, 4 GO
+```
+veredictos de esta noche .......  49    (control: 46 mas son de noches anteriores)
+  GO ...........................   4    (8%)
+  NO-GO ........................  45
+fichas cerradas ................   2
+```
+**Los cuatro GO:** AIT-109 (03:42), el plan de AIT-123 (05:48), el plan de AIT-127 (06:22) y
+**el código de AIT-123 (07:27)** — el único GO de implementación de la noche.
+
+**Cómo leerlo, y las dos lecturas son ciertas a la vez:** ninguno de los 45 NO-GO fue una pega
+de forma — **todos trajeron hallazgos reales y ninguno repitió al anterior**, y varios evitaron
+que entrara código que daba verde con acoplamiento real. **Y aun así, 49 rondas para 2 fichas
+es el dato de coste de esta fábrica**, y prefiero que lo veas crudo antes de que nadie te lo
+interprete, yo incluido.
+
+⚠️ **Y una corrección mía sobre este mismo número, porque es la lección de la noche aplicada a
+mí:** hace veinte minutos te dije *"cerca de veinticinco veredictos"*. **Era el doble y con
+menos GO.** Lo dije **de memoria**, sin medir, después de pasarme la noche exigiendo a todos
+que midieran. Y cuando fui a medirlo, mi primer conteo dio **95** — porque conté **todos** los
+ficheros de veredicto del repo, incluidos los de noches anteriores. **El mismo error de
+universo que llevo corrigiendo a otros desde las cuatro de la mañana**, en el recuento con el
+que iba a juzgar el rendimiento de la noche.
+
 **Las dos líneas de arriba nunca se restan.** Lo intenté —presenté "10 creadas, 1 cerrada,
 balance −9"— y el PM me lo tumbó con el argumento que lo cierra: **con esa métrica, una noche
 en la que nadie mira nada sale mejor que ésta.** Una ficha nueva **no es deuda contraída, es
