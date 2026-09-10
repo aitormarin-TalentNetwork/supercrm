@@ -148,6 +148,25 @@ tomaba.**
 
 ## 4. Lo que aprendimos, incluido lo que no nos deja bien
 
+### 🔑 Si de esta sección te llevas una sola cosa, que sea ésta
+**No basta con poner un control positivo: hay que ponerlo ANTES de mirar el resultado.**
+
+Esta noche se rompieron **seis instrumentos** en seis sitios distintos. **Cinco se cazaron por
+casualidad, por un tercero o por una discrepancia entre dos medidas.** El sexto **se detectó a
+sí mismo**, y es el único que tenía el control positivo **delante** del resultado.
+
+**El contrafactual es lo que lo hace concreto:** ese instrumento me dijo *"0 transcripts
+activos en 40 minutos"* con doce sesiones vivas. Sin el control delante, **habría escrito a
+once terminales diciéndoles que estaban paradas — con la confianza de haber medido**, que es
+lo que lo hace peor que no medir. Puesto detrás, el control me habría dado la razón **cuando
+ya daba igual**. Ésa es la diferencia entre **un control que informa y uno que impide**.
+
+⚠️ **Con la honestidad que toca sobre la fuerza de esta conclusión:** son seis casos
+observados, no un experimento controlado, y difieren en más cosas que el orden del control.
+**No está demostrado que el orden sea la causa** — es la hipótesis que mejor encaja con los
+seis. La regla es barata, así que la adoptamos igual; **pero sería irónico publicar una
+conclusión sobreafirmada precisamente en el informe sobre sobreafirmar.**
+
 ### Un gate que resultó ser la sensación de un gate
 Puse un gate de autenticación. **Se reescribió cinco veces en tres horas** — por lista de
 ficheros, por formas de cambio, por efecto, por propósito, por evidencia. Cada versión la
