@@ -740,6 +740,34 @@ plan es el export, no el commit"**. Medido con las dos métricas a la vez, a las
 la noche: **1.257 minutos sin tocar código era CIERTO.** No era un número falso — era un número
 exacto contestando una pregunta que no era la que se le hacía.
 
+### La foto del arranque que se lee como si fuera de ahora (mía, 09:55)
+Di la alarma de que un fichero de 2.534 líneas —la cola entera de decisiones de la fábrica—
+estaba **fuera de git y a punto de perderse**. Era falso: llevaba en `origin` desde las 06:31.
+
+**De dónde saqué el dato:** del bloque `gitStatus` que toda sesión recibe **al arrancar**, donde
+figuraba como `??`. Y era **cierto cuando se midió** — el fichero se commiteó después. Lo usé
+horas más tarde como si describiera el presente.
+
+**Y lo "confirmé" con una comprobación que no contesta esa pregunta:**
+
+| lo que corrí | lo que contesta | lo que yo leí |
+|---|---|---|
+| `git check-ignore` | si está **ignorado** | "entonces está untracked" ❌ |
+| `git ls-files` | si está **trackeado** | *no lo corrí hasta que el `git add` no encontró nada* |
+
+**"No ignorado" es compatible con trackeado y con untracked.** Cogí una medición que no
+discrimina entre las dos opciones y la leí como si eligiera una.
+
+🔴 **Lo que lo hace de catálogo y no una torpeza suelta:** el bloque de arranque **avisa por
+escrito de que es una foto**, y aun así se lee como estado actual, porque llega **con la voz
+del sistema y sin fecha visible en el sitio donde lo usas.** Es la misma forma que el cron que
+repetía gates caducados cada quince minutos: *no es que el dato mienta — es que nada te
+recuerda cuándo se tomó, y el presente es la lectura por defecto.*
+
+**Lo que sí quedó del rato perdido:** antes de commitear hice el barrido de secretos sobre las
+2.534 líneas, con control positivo (2 de 2 sobre un canario fabricado, 0 sobre el fichero).
+**Nadie lo había comprobado nunca y ahora está comprobado.**
+
 ### Y una que no es de esta fábrica sino de cualquiera: dónde se prueba un gate
 La Directora encontró que `grep` en la terminal interactiva **no es el mismo programa** que
 `grep` dentro de un script (uno recursa en directorios y devuelve 0/1; el otro se niega y
