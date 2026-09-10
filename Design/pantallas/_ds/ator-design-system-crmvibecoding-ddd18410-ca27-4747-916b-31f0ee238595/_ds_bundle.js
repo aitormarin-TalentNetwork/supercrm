@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":3,"namespace":"DesignSystem_ddd184","components":[{"name":"Avatar","sourcePath":"components/core/Avatar.jsx"},{"name":"Badge","sourcePath":"components/core/Badge.jsx"},{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Card","sourcePath":"components/core/Card.jsx"},{"name":"IconButton","sourcePath":"components/core/IconButton.jsx"},{"name":"StatusBadge","sourcePath":"components/core/StatusBadge.jsx"},{"name":"KanbanColumn","sourcePath":"components/data/KanbanColumn.jsx"},{"name":"Pagination","sourcePath":"components/data/Pagination.jsx"},{"name":"Table","sourcePath":"components/data/Table.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"EmptyState","sourcePath":"components/feedback/EmptyState.jsx"},{"name":"ProgressBar","sourcePath":"components/feedback/ProgressBar.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumb","sourcePath":"components/navigation/Breadcrumb.jsx"},{"name":"SidebarNav","sourcePath":"components/navigation/SidebarNav.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"}],"sourceHashes":{"components/core/Avatar.jsx":"6c08f0cbcc72","components/core/Badge.jsx":"54d07f25b8a3","components/core/Button.jsx":"e5fa633aecd2","components/core/Card.jsx":"29d43c3e851f","components/core/IconButton.jsx":"e0483ad7c796","components/core/StatusBadge.jsx":"6d714ca57567","components/data/KanbanColumn.jsx":"3fd4dfc040ad","components/data/Pagination.jsx":"7576d1710cb7","components/data/Table.jsx":"5fe4775d15d9","components/feedback/Dialog.jsx":"67ec0d933c8b","components/feedback/EmptyState.jsx":"04664174ba7d","components/feedback/ProgressBar.jsx":"d7a1cd415f48","components/feedback/Toast.jsx":"70a6fc0b869b","components/feedback/Tooltip.jsx":"b5a344568574","components/forms/Checkbox.jsx":"779635ab25e1","components/forms/Input.jsx":"00d7ca16513d","components/forms/Radio.jsx":"4c6d4c31c4eb","components/forms/Select.jsx":"3f765b6e6f88","components/forms/Switch.jsx":"431ca3a0752d","components/forms/Textarea.jsx":"d0740b58a883","components/navigation/Breadcrumb.jsx":"11863e82a8ce","components/navigation/SidebarNav.jsx":"825c534edbe8","components/navigation/Tabs.jsx":"e167700c8a17"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":3,"namespace":"DesignSystem_ddd184","components":[{"name":"Avatar","sourcePath":"components/core/Avatar.jsx"},{"name":"Badge","sourcePath":"components/core/Badge.jsx"},{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Card","sourcePath":"components/core/Card.jsx"},{"name":"IconButton","sourcePath":"components/core/IconButton.jsx"},{"name":"StatusBadge","sourcePath":"components/core/StatusBadge.jsx"},{"name":"KanbanColumn","sourcePath":"components/data/KanbanColumn.jsx"},{"name":"Pagination","sourcePath":"components/data/Pagination.jsx"},{"name":"Table","sourcePath":"components/data/Table.jsx"},{"name":"Dialog","sourcePath":"components/feedback/Dialog.jsx"},{"name":"EmptyState","sourcePath":"components/feedback/EmptyState.jsx"},{"name":"ProgressBar","sourcePath":"components/feedback/ProgressBar.jsx"},{"name":"Toast","sourcePath":"components/feedback/Toast.jsx"},{"name":"Tooltip","sourcePath":"components/feedback/Tooltip.jsx"},{"name":"Checkbox","sourcePath":"components/forms/Checkbox.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"},{"name":"Radio","sourcePath":"components/forms/Radio.jsx"},{"name":"Select","sourcePath":"components/forms/Select.jsx"},{"name":"Switch","sourcePath":"components/forms/Switch.jsx"},{"name":"Textarea","sourcePath":"components/forms/Textarea.jsx"},{"name":"Breadcrumb","sourcePath":"components/navigation/Breadcrumb.jsx"},{"name":"SidebarNav","sourcePath":"components/navigation/SidebarNav.jsx"},{"name":"Tabs","sourcePath":"components/navigation/Tabs.jsx"}],"sourceHashes":{"components/core/Avatar.jsx":"9c07d2748f43","components/core/Badge.jsx":"54d07f25b8a3","components/core/Button.jsx":"e5fa633aecd2","components/core/Card.jsx":"29d43c3e851f","components/core/IconButton.jsx":"e0483ad7c796","components/core/StatusBadge.jsx":"6d714ca57567","components/data/KanbanColumn.jsx":"3fd4dfc040ad","components/data/Pagination.jsx":"7576d1710cb7","components/data/Table.jsx":"5fe4775d15d9","components/feedback/Dialog.jsx":"67ec0d933c8b","components/feedback/EmptyState.jsx":"04664174ba7d","components/feedback/ProgressBar.jsx":"d7a1cd415f48","components/feedback/Toast.jsx":"70a6fc0b869b","components/feedback/Tooltip.jsx":"b5a344568574","components/forms/Checkbox.jsx":"779635ab25e1","components/forms/Input.jsx":"00d7ca16513d","components/forms/Radio.jsx":"4c6d4c31c4eb","components/forms/Select.jsx":"3f765b6e6f88","components/forms/Switch.jsx":"431ca3a0752d","components/forms/Textarea.jsx":"d0740b58a883","components/navigation/Breadcrumb.jsx":"11863e82a8ce","components/navigation/SidebarNav.jsx":"825c534edbe8","components/navigation/Tabs.jsx":"e167700c8a17"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -30,12 +30,28 @@ const TINTS = [{
   bg: '#F1F5F9',
   fg: '#475569'
 }];
-function initials(name = '') {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+// MISMO algoritmo que lib/initials.ts. Los marcadores de abajo los usa
+// e2e/00-initials-design-system.spec.ts para extraer este bloque y comprobar que
+// las dos copias y el producto dan lo mismo. Si lo tocas, tocalo en los DOS
+// ficheros. El marcador va SOLO en su linea: el extractor corta por lineas.
+// >>> AIT-142 iniciales
+const LETRA = /\p{L}/u;
+function soloLetras(palabra) {
+  return Array.from(palabra).filter((c) => LETRA.test(c)).join('');
 }
+function initials(name = '') {
+  // Se filtra lo que NO es letra antes de elegir nada: antes, `[QA] Tester` daba
+  // `[B` y `3M Espana` daba `3E`. `\p{L}` y no `[A-Za-z]` porque con el rango
+  // ASCII `N. Perez` o `Angel` perderian su inicial — el arreglo introduciria un
+  // defecto nuevo en la direccion contraria. `Array.from` y no indices: indexar
+  // una cadena parte por la mitad los caracteres fuera del BMP.
+  const parts = name.trim().split(/\s+/).map(soloLetras).filter(Boolean);
+  if (!parts.length) return '?';
+  const chars = (p) => Array.from(p);
+  if (parts.length === 1) return chars(parts[0]).slice(0, 2).join('').toUpperCase();
+  return (chars(parts[0])[0] + chars(parts[parts.length - 1])[0]).toUpperCase();
+}
+// <<< AIT-142 fin iniciales
 function pick(name = '') {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = h * 31 + name.charCodeAt(i) >>> 0;
