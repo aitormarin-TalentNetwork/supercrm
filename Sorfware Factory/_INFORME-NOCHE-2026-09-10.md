@@ -160,7 +160,7 @@ si el gate iba a caer.
 |---|---|
 | **CERRADO** | **2** — AIT-109 y **AIT-123** |
 | **NO LLEGA, decisión tuya** | **1** — AIT-99 |
-| **NO LLEGA, aún en el bucle** | **1** — AIT-127. Ronda 5 **NO-GO** (verificado por mí: línea 871, `SIN:` en la 872, mtime 05:16:10Z). Dos majors, ningún blocker |
+| **NO LLEGA, aún en el bucle** | **1** — AIT-127. Pasó el plan y llegó a **código ronda 3: NO-GO** a las 09:47:35Z. **Seis majors, ninguno de diseño** — todos de verificación. Va a la ronda 4 |
 | **EN VUELO al cierre** | AIT-123 (ronda 6 auditándose, **la primera sin el `SIN:` repetido**), AIT-114 y AIT-122 encoladas |
 | **DEUDA DESCUBIERTA** | **10 fichas** — AIT-124 a AIT-133. **Ninguna es ruido.** |
 
@@ -179,6 +179,36 @@ Si vuelve en la ronda 6, escala en el momento.
 > **Su frase, que es el argumento entero de por qué no la cerré:**
 > *"Prefiero eso a un Done que no aguanta la primera pregunta, y en particular prefiero no
 > cerrar AIT-127 antes que cerrar un 'cerrar sesión' que no cierra la sesión."*
+
+### Desenlace de AIT-127, ya con el veredicto en la mano (09:47:35Z)
+Escribí "no llega" **antes** de conocerlo, y se cumplió. Pero el contenido del NO-GO es mejor
+noticia de lo que sugiere la palabra, y conviene que lo veas separado:
+
+**Lo que quedó cerrado y acreditado:** el `AbortController` sobre la primera petición está
+implementado; la comprobación de cierre **cubre owner y sales por los dos botones**, con
+alerta, ausencia de navegación y **sesión verificada contra el servidor**; y existe el candado
+que impide subir el presupuesto de 3.000 ms en silencio. **Las tres condiciones que puso el PM
+están cumplidas.**
+
+**Los seis majors son TODOS de verificación, ninguno de diseño** — y tres comparten una única
+forma, que es la misma que nos ha perseguido toda la noche: **el control no observa el sujeto
+que dice observar.** El test de la petición cuenta que se alcanzó pero no que se cancelara; el
+enumerador contra el DOM es **una lista cerrada de dos mecanismos** cuando la app ya navega con
+`button` + `router.push`; y una guarda **suma temporizadores en vez de tiempo real desde el
+clic**. Hay además uno que va hacia el rojo *y* hacia una afirmación falsa: al vencer, el aviso
+le dice al usuario **"la sesión sigue abierta"** cuando el propio código reconoce que no puede
+saberlo.
+
+> 🔴 **Y el séptimo es el hallazgo de la noche, porque salta de la fábrica al producto.**
+> A las 09:42 T4 midió que en esta máquina hay herramientas que **avisan en vez de fallar**
+> (exit 0 con el error en `stderr`). A las 09:47 el auditor encontró **exactamente ese patrón
+> dentro de `check-e2e-preconditions.mjs`**: una precondición convierte un `stderr` con aviso
+> y exit 0 **en una tabla vacía válida**. Código que T3 había escrito antes de que nadie
+> conociera el aviso, y que **nadie fue a buscar**.
+>
+> **Eso convierte "las herramientas avisan en vez de fallar" de curiosidad de shell en defecto
+> de producto.** Es la primera vez esta noche que una lección de proceso aparece sola dentro
+> del código, sin que nadie la trasladara.
 
 ### El volumen del ciclo, medido: 49 rondas de auditoría, 4 GO
 ```
