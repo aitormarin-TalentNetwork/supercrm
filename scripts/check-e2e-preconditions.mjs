@@ -272,13 +272,36 @@ export function valorDeClave(contenido, clave) {
  * el entorno por accidente.
  */
 export function problemasDelEnvLocal(contenido) {
-  // Un self-hosted legítimo no tiene `CONVEX_DEPLOYMENT` y sus URLs no derivan
-  // de ningún nombre: el propio CLI prohíbe tener las dos cosas a la vez. Hoy
-  // no hay ninguno en la fábrica; si lo hubiera, esta comprobación tiene que
-  // saberlo en vez de gritar.
-  if (valorDeClave(contenido, "CONVEX_SELF_HOSTED_URL")) return [];
+  // ── self-hosted: se reconoce por COHERENCIA, no por la presencia de una clave.
+  //
+  // ⚠️ La primera versión hacía `if (hay CONVEX_SELF_HOSTED_URL) return []`, y eso
+  // era un BYPASS del gate entero: un fichero con la clave self-hosted, con
+  // `CONVEX_DEPLOYMENT` puesto Y con las dos URLs repuntadas se aceptaba sin
+  // validar nada. **Que el CLI no genere normalmente esa combinación no convierte
+  // un fichero contradictorio en sano** — y un fichero contradictorio es
+  // exactamente lo que deja una herramienta a medio camino.
+  //
+  // Un self-hosted LEGÍTIMO tiene sus dos campos obligatorios y NO tiene la
+  // configuración Cloud: el propio CLI aborta si están las dos
+  // (`deploymentSelection.js`, "must not be set when ... are set").
+  const shUrl = valorDeClave(contenido, "CONVEX_SELF_HOSTED_URL");
+  const shKey = valorDeClave(contenido, "CONVEX_SELF_HOSTED_ADMIN_KEY");
+  const deploymentCloud = valorDeClave(contenido, "CONVEX_DEPLOYMENT");
+  if (shUrl || shKey) {
+    const problemas = [];
+    if (!shUrl) problemas.push("hay `CONVEX_SELF_HOSTED_ADMIN_KEY` pero falta `CONVEX_SELF_HOSTED_URL`");
+    if (!shKey) problemas.push("hay `CONVEX_SELF_HOSTED_URL` pero falta `CONVEX_SELF_HOSTED_ADMIN_KEY`");
+    if (deploymentCloud !== null) {
+      problemas.push(
+        "conviven la configuración self-hosted y `CONVEX_DEPLOYMENT`: el CLI las " +
+          "declara incompatibles, así que este fichero está en un estado que nadie " +
+          "configuró a propósito",
+      );
+    }
+    return problemas;
+  }
 
-  const crudo = valorDeClave(contenido, "CONVEX_DEPLOYMENT");
+  const crudo = deploymentCloud;
   if (crudo === null) {
     return ["falta la línea `CONVEX_DEPLOYMENT`"];
   }
@@ -327,13 +350,22 @@ export function formatEnvLocalMessage(problemas) {
 }
 
 /** Lee el fichero. Separada de la lógica para poder inyectarla en las pruebas.
- *  Si no existe, devuelve `null`: Railway y CI no tienen `.env.local`, y esa
- *  ausencia no es el daño que esto detecta. */
+ *
+ *  `null` SOLO si el fichero NO EXISTE (`ENOENT`): Railway y CI no tienen
+ *  `.env.local`, y esa ausencia no es el daño que esto detecta.
+ *
+ *  ⚠️ CUALQUIER OTRO ERROR SE PROPAGA, y esto es lo contrario de lo que hacía la
+ *  primera versión. Tragarse permisos, EIO o un directorio en vez de un fichero
+ *  y devolver `null` convertía "no pude leerlo" en "no hay nada que comprobar":
+ *  los dos consumidores continuaban y la suite medía contra un backend no
+ *  verificado. **Fallar abierto aquí reproduce el defecto que este módulo
+ *  existe para impedir.** */
 export function readEnvLocal(cwd = process.cwd()) {
   try {
     return readFileSync(path.join(cwd, ".env.local"), "utf8");
-  } catch {
-    return null;
+  } catch (causa) {
+    if (causa && causa.code === "ENOENT") return null;
+    throw causa;
   }
 }
 
@@ -705,7 +737,17 @@ export async function run({
   // comprobación de AIT-95 pregunta "¿está desplegado lo que el código espera?"
   // CONTRA UN DEPLOYMENT — si el `.env.local` apunta a otro, esa pregunta se
   // responde sobre el sujeto equivocado y su verde no significa nada.
-  const contenidoEnv = leerEnvLocal();
+  let contenidoEnv;
+  try {
+    contenidoEnv = leerEnvLocal();
+  } catch (causa) {
+    // FALLA CERRADA y con mensaje NUESTRO. Dejar que la excepción suba daría un
+    // rechazo sin manejar: el proceso muere igual —o sea que tampoco pasa la
+    // suite— pero con un volcado de Node en vez de con la causa.
+    err(`[e2e] PRECONDICIÓN AIT-123 NO COMPROBABLE — no se pudo leer .env.local (${causa.code ?? causa.message}).`);
+    err("[e2e] no se ejecuta ningún test: no se puede saber contra qué backend correría la suite.");
+    return 1;
+  }
   if (contenidoEnv !== null) {
     const problemas = problemasDelEnvLocal(contenidoEnv);
     if (problemas.length > 0) {

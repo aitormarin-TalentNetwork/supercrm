@@ -39,6 +39,31 @@ export const PATRON_MECANISMO =
  */
 export const MARCA_DE_EJEMPLOS = /son \*\*ejemplos, no la definición\*\*/i;
 
+/** Los flags NUNCA definen lo prohibido. Solo pueden aparecer como ejemplos. */
+export const PATRON_FLAG = /--env-file|--admin-key|--url\b/;
+
+/** Verbos que convierten una mención en NORMA en vez de en ejemplo. */
+export const PATRON_NORMATIVO =
+  /prohibid|no se (usa|permite|debe)|nunca se usa|est[áa]n? permitid|se permite|puedes usar|es seguro/i;
+
+/**
+ * El bloque de ejemplos: desde la marca que los declara como tales hasta el
+ * final de la lista que la sigue (primera línea que no es viñeta ni vacía).
+ *
+ * SE DELIMITA A PROPÓSITO, y ésta es la corrección de B1: la primera versión
+ * comprobaba que la marca ESTUVIERA, en cualquier sitio. Un documento que
+ * conserve la frase del mecanismo y la marca, y **añada después** «está
+ * prohibido `--env-file`; `--url`/`--admin-key` están permitidos», la pasaba
+ * entera. O sea que el comprobador que cierra M9 tenía el agujero de M9 dentro.
+ */
+export function rangoDeEjemplos(lineas) {
+  const inicio = lineas.findIndex((l) => MARCA_DE_EJEMPLOS.test(l));
+  if (inicio === -1) return null;
+  let fin = inicio + 1;
+  while (fin < lineas.length && (lineas[fin].trim() === "" || /^\s*[-*·]/.test(lineas[fin]))) fin++;
+  return [inicio, fin];
+}
+
 /**
  * Problemas del documento, como lista. Vacía = cumple C6.
  *
@@ -62,11 +87,27 @@ export function problemasDeLaProhibicion(contenido) {
     );
   }
 
-  if (!MARCA_DE_EJEMPLOS.test(contenido)) {
+  const lineas = contenido.split("\n");
+  const rango = rangoDeEjemplos(lineas);
+  if (rango === null) {
     problemas.push(
       "los flags no están marcados como ejemplos, así que funcionan como definición " +
         "de lo prohibido.",
     );
+  } else {
+    // TERCER RECUENTO, el que faltaba: menciones de un flag que además llevan un
+    // verbo normativo y caen FUERA del bloque de ejemplos. Cada una es una norma
+    // definida por flag, y una norma así se puede cumplir causando el daño.
+    const [ini, fin] = rango;
+    lineas.forEach((linea, i) => {
+      if (i >= ini && i < fin) return;
+      if (PATRON_FLAG.test(linea) && PATRON_NORMATIVO.test(linea)) {
+        problemas.push(
+          `línea ${i + 1}: define la norma por un FLAG y está fuera del bloque de ` +
+            `ejemplos — «${linea.trim().slice(0, 90)}»`,
+        );
+      }
+    });
   }
 
   return problemas;

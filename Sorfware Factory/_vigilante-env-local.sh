@@ -21,6 +21,12 @@
 # `T1 T2 T3` escrita a pelo no habria visto a T4, que nacio la noche del 2026-09-09,
 # y su silencio se lee igual que "todo va bien".
 #
+# CODIGOS DE SALIDA, y son tres a proposito:
+#   0 = ok            todos los .env.local descubiertos son coherentes
+#   1 = ALARMA        al menos uno no apunta a su propio deployment
+#   2 = INDETERMINADO el descubrimiento no encontro NADA -> falla el vigilante,
+#                     no la fabrica. Un cero sin sujeto no es un verde.
+#
 # NO IMPRIME NINGUN VALOR SECRETO: `NEXT_PUBLIC_*` es publico por definicion y el
 # nombre del deployment ya circula por los documentos de proceso. Ninguna otra clave
 # del fichero se lee.
@@ -41,8 +47,12 @@ echo "== vigilante .env.local (AIT-123) == $(date -u '+%Y-%m-%d %H:%M UTC')"
 if [ -z "$FICHEROS" ]; then
   # Un cero sin sujeto no es un verde: si el descubrimiento no encuentra nada, lo
   # que falla es el descubrimiento, no la fabrica.
+  # EXIT 2, NO 0. Distinguirlo en el TEXTO y fusionarlo en el codigo de salida
+  # era el mismo fallo que este vigilante existe para cazar: un cron o un
+  # supervisor leen el exit code, no la linea, y "no encontre nada" les llegaba
+  # como "todo bien". El vigilante podia desaparecer de facto sin disparar nada.
   echo "VEREDICTO: INDETERMINADO (el descubrimiento no encontro NINGUN .env.local)"
-  exit 0
+  exit 2
 fi
 
 total=0; malos=0; detalle=""

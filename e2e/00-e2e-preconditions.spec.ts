@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import {
   MAX_FAILED_ATTEMPTS_PER_HOUR,
@@ -16,6 +18,7 @@ import {
   valorDeClave,
 } from "../scripts/check-e2e-preconditions.mjs";
 import { problemasDeLaProhibicion } from "../scripts/check-prohibicion-por-mecanismo.mjs";
+import { readEnvLocal } from "../scripts/check-e2e-preconditions.mjs";
 
 // AIT-103 — pruebas de la precondición del límite de intentos de login.
 // Sobre funciones puras y con lecturas inyectadas, mismo patrón que
@@ -405,5 +408,122 @@ Subcomando afectado: \`convex dev\`. Evidencia: medido el 2026-09-10 contra conv
   test("la receta anterior no sobrevive en el documento", () => {
     expect(REAL).not.toContain("única forma de desplegar sin esa confirmación");
     expect(REAL).not.toContain("aísla el comando de la");
+  });
+});
+
+// ============================================================================
+// AIT-123 · los cuatro caminos a falso verde que encontró la auditoría de código
+// ============================================================================
+// Los cuatro eran lo mismo con cuatro caras: dos estados distintos produciendo el
+// mismo valor, siempre hacia el lado tranquilizador. Cada uno tiene aquí el caso
+// que lo habría cazado.
+
+test.describe("AIT-123 · B1 — C6 comprueba el ÁMBITO, no la presencia", () => {
+  const MECA = "resuelva el deployment **POR URL + ADMIN KEY en vez de POR NOMBRE**";
+  const MARCA = "Formas conocidas — son **ejemplos, no la definición**:";
+
+  test("🔑 el adversario MIXTO suspende: conserva mecanismo y marca, y define por flag DESPUÉS", () => {
+    // Éste es B1. La primera versión de C6 comprobaba que la frase del mecanismo
+    // y la marca ESTUVIERAN, en cualquier sitio — así que un documento podía
+    // conservarlas y añadir después una norma por flag. El comprobador que cierra
+    // M9 tenía dentro el agujero de M9.
+    const mixto = [
+      "### Prohibido: resolver por URL+admin key",
+      `**Está prohibido cualquier invocación que ${MECA}.**`,
+      "",
+      MARCA,
+      "",
+      "- `--env-file` con vars self-hosted",
+      "- `--url` + `--admin-key`",
+      "",
+      "En la práctica: **está prohibido `--env-file`**; `--url` y `--admin-key` están permitidos.",
+    ].join("\n");
+    const problemas = problemasDeLaProhibicion(mixto);
+    expect(problemas.length).toBeGreaterThan(0);
+    expect(problemas.join(" ")).toContain("fuera del bloque de ejemplos");
+  });
+
+  test("el adversario PURO (solo el flag) sigue suspendiendo", () => {
+    const puro = "**Está prohibido usar `--env-file` con `convex dev`.** Evidencia: medido 2026-09-10.";
+    expect(problemasDeLaProhibicion(puro).length).toBeGreaterThan(0);
+  });
+
+  test("los flags DENTRO del bloque de ejemplos no suspenden (control en la otra dirección)", () => {
+    // Sin esta mitad, C6 podría estar rechazando cualquier documento que nombre
+    // un flag, y entonces su rojo no significaría nada.
+    const bueno = [
+      `**Está prohibido cualquier invocación que ${MECA}.**`,
+      "",
+      MARCA,
+      "",
+      "- `--env-file` con vars self-hosted",
+      "- `--url` + `--admin-key`, sin `--env-file` por ninguna parte",
+    ].join("\n");
+    expect(problemasDeLaProhibicion(bueno)).toHaveLength(0);
+  });
+});
+
+test.describe("AIT-123 · B4 — el self-hosted se reconoce por COHERENCIA", () => {
+  test("🔑 self-hosted + CONVEX_DEPLOYMENT + URLs repuntadas NO se acepta", () => {
+    // Éste es B4. La excepción que cerraba el límite R2 con dos líneas abría un
+    // bypass del gate entero: bastaba una clave self-hosted para saltarse toda la
+    // validación. Que el CLI no genere normalmente esa combinación no convierte un
+    // fichero contradictorio en sano — y contradictorio es justo lo que deja una
+    // herramienta a medio camino.
+    const bypass = [
+      "CONVEX_SELF_HOSTED_URL=https://interno.example",
+      "CONVEX_SELF_HOSTED_ADMIN_KEY=k",
+      "CONVEX_DEPLOYMENT=dev:X",
+      "NEXT_PUBLIC_CONVEX_URL=http://otro-destino",
+      "NEXT_PUBLIC_CONVEX_SITE_URL=http://otro-destino",
+    ].join("\n");
+    expect(problemasDelEnvLocal(bypass).length).toBeGreaterThan(0);
+  });
+
+  test("un self-hosted legítimo (sus dos campos, sin config Cloud) sigue sin gritar", () => {
+    const legit = "CONVEX_SELF_HOSTED_URL=https://interno.example\nCONVEX_SELF_HOSTED_ADMIN_KEY=k\n";
+    expect(problemasDelEnvLocal(legit)).toHaveLength(0);
+  });
+
+  test("un self-hosted a medias (falta un campo obligatorio) grita", () => {
+    expect(problemasDelEnvLocal("CONVEX_SELF_HOSTED_URL=https://interno.example\n").length).toBeGreaterThan(0);
+  });
+});
+
+test.describe("AIT-123 · B3 — la lectura falla CERRADA", () => {
+  test("un fichero ausente sigue devolviendo null (ENOENT no es el daño)", () => {
+    expect(readEnvLocal(path.join(os.tmpdir(), `ait123-no-existe-${Date.now()}`))).toBeNull();
+  });
+
+  test("🔑 cualquier OTRO error se propaga en vez de convertirse en «no hay nada que comprobar»", () => {
+    // Éste es B3. `catch { return null }` tragaba permisos, EIO y un directorio en
+    // lugar de un fichero, y los dos consumidores lo trataban igual que «CI sin
+    // fichero»: la suite seguía y medía contra un backend no verificado.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ait123-b3-"));
+    fs.mkdirSync(path.join(dir, ".env.local"));
+    try {
+      expect(() => readEnvLocal(dir)).toThrow(/EISDIR|EACCES|illegal/i);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("y el consumidor NO continúa: run() devuelve 1 con mensaje propio", async () => {
+    const errores: string[] = [];
+    const codigo = await run({
+      leerEnvLocal: () => {
+        const e: NodeJS.ErrnoException = new Error("EIO simulado");
+        e.code = "EIO";
+        throw e;
+      },
+      out: () => {},
+      err: (l: string) => errores.push(l),
+      readSources: () => [],
+      readDeployed: async () => new Set(),
+      readRateLimits: async () => [],
+      readPasswordAccounts: async () => new Map(),
+    });
+    expect(codigo).toBe(1);
+    expect(errores.join(" ")).toContain("NO COMPROBABLE");
   });
 });
