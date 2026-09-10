@@ -829,8 +829,32 @@ REDUCCIÓN de lo que el GO cubre**, y va **junto a la línea del veredicto**, no
 baja atención. **La forma va en el prompt que tú le mandas:**
 
 ```
-Veredicto del auditor: GO — SIN: <comprobacion que no pudo ejecutarse>
+Veredicto del auditor: GO — SIN: <hueco que el DESARROLLADOR puede cerrar>
+LIMITES DE LA CAJA: <lo que el auditor NO PUEDE hacer por diseno>
 ```
+
+> 🔴 **DOS CAMPOS, NO UNO (D74, 2026-09-10). Un hueco cerrable y una PARED se leen igual,
+> y solo uno se puede actuar.**
+
+```
+SIN:                 lo que el desarrollador puede cerrar. ES SU LISTA DE TRABAJO.
+LIMITES DE LA CAJA:  lo que el auditor no puede hacer POR DISENO. Afecta a la VALIDEZ
+                     del veredicto, NO al trabajo de nadie.
+```
+
+**POR QUÉ, con dos instancias medidas el mismo día:** el auditor **no tiene red** y **no
+puede escribir el fichero del veredicto** (lo captura el `tee`), **y declara las dos con las
+mismas palabras que un hueco del export.** T2 se quedó en la ronda 2 con un `SIN:` que **no
+podía cerrar por mucho que mejorara su export**, y la segunda instancia obligó a la Directora
+a avisar a dos desarrolladores para que no la persiguieran.
+
+🔑 **Formulación de la Directora:** *el `SIN:` debería ser el mapa de lo que el desarrollador
+puede cerrar, no la lista de las paredes de la caja.* **Perseguir una pared produce trabajo que
+nunca converge**, que es lo peor que se le puede dar a alguien en una ronda N+1.
+
+⛔ **Las limitaciones de la caja NO se suprimen, se SEPARAN.** Borrarlas rompería la D34 —*el
+`SIN:` es el mapa de las condiciones bajo las que el veredicto es válido*— y cambiaríamos un
+fallo por otro.
 ⚠️ **`SIN:` vacío o ausente NO vale como "todo verificado": la línea SIEMPRE lleva el campo**,
 aunque diga `SIN: nada`. *Un campo ausente y un campo vacío se leen igual, y ya sabemos cómo acaba
 eso.*

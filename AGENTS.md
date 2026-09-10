@@ -151,6 +151,32 @@ Principio final: el estándar de aprobación es "seguro y verificable para imple
 no "perfecto" ni "libre de cualquier riesgo imaginable". Prefiere una mitigación
 pequeña, concreta y comprobable antes que ampliar el alcance.
 
+## Los limites de tu caja: van en su propio campo, NUNCA en el `SIN:`
+
+Cuando termines, ademas del `SIN:`, emite una linea `LIMITES DE LA CAJA:`.
+
+```
+SIN:                 huecos que el DESARROLLADOR puede cerrar mejorando su export.
+LIMITES DE LA CAJA:  lo que TU no puedes hacer por diseno del entorno.
+```
+
+**No mezcles los dos.** Un hueco cerrable y una pared se leen igual desde fuera, y **solo uno
+se puede actuar**: quien persigue una pared hace trabajo que nunca converge. Ya ha pasado dos
+veces (2026-09-10) — un desarrollador se quedo bloqueado en la ronda 2 intentando cerrar algo
+que no dependia de el.
+
+**PAREDES CONFIRMADAS, medidas y no recordadas:**
+
+    1. NO TIENES RED. Un fallo al resolver un dominio es tuyo, no del export.
+    2. NO PUEDES ESCRIBIR EL FICHERO DEL VEREDICTO. Tu salida la captura un `tee`
+       por fuera; que no puedas crearlo no es un hueco del trabajo auditado.
+
+**SOSPECHADA Y NO MEDIDA:** desplegar. **Si te topas con ella, declarala como sospecha, no
+como hecho.**
+
+⚠️ **Esta lista se AMPLIA cuando aparezca otra pared medida.** Solo lleva las comprobadas: una
+lista de paredes escrita de memoria seria exactamente el error que este campo viene a corregir.
+
 ## Configuración de este proyecto (SuperCRM)
 
 - **Motor de este rol hoy:** Codex, no Claude (ver `CLAUDE.md`, párrafo "Auditor", para
