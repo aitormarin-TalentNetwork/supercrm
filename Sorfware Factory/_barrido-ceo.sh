@@ -26,11 +26,34 @@ set -u
 RAIZ="${BARRIDO_RAIZ:-/Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding}"
 UMBRAL_EXPORT="${1:-60}"
 
+# QUE HACER cuando este script NO ha podido medir nada. Se imprime SIEMPRE en esa rama.
+# ⚠️ POR QUE EXISTE ESTA FUNCION (2026-09-10, hallazgo del Factory Architect sobre su propio
+# vigilante, reproducido aqui): la rama de salida temprana era la UNICA que salia sin decir
+# que hacer, porque hace `exit` antes de llegar al bloque de instrucciones. Y es **justo la
+# rama donde mas falta hacen**: es la unica en la que NO se ha medido nada, o sea la unica
+# en la que el operador esta ciego. **El sitio que se queda sin instrucciones es el que sale
+# por la puerta de atras.**
+que_hacer_si_no_pude_medir() {
+  cat <<'QH'
+
+--- QUE HACER AHORA (este barrido NO ha medido nada) ---
+  🔴 ESTO NO ES "TODO TRANQUILO". Es "no se ha mirado". No lo anotes como ciclo sano.
+  1. Comprueba la ruta: la raiz se pasa en BARRIDO_RAIZ, y por defecto se deduce de donde
+     vive el script. Ojo: el directorio primario de una sesion CAMBIA SOLO (D25), asi que
+     un `cd` previo puede haberte movido sin avisar. Usa ruta absoluta.
+  2. Mientras no corra, haz A MANO lo minimo: `test -d` sobre los dos cerrojos con control
+     positivo, `git ls-remote origin main` contra tu `main`, y `git status --short`.
+  3. Dilo en tu renglon de estado como INDETERMINADO, con la hora. Un ciclo que no midio y
+     uno que midio y salio limpio se ven igual en un resumen si no lo declaras.
+QH
+}
+
 if [ ! -d "$RAIZ/.git" ]; then
   echo "INDETERMINADO: '$RAIZ' no parece la raiz del repo (no hay .git). No se ha comprobado NADA."
+  que_hacer_si_no_pude_medir
   exit 2
 fi
-cd "$RAIZ" || { echo "INDETERMINADO: no se pudo entrar en la raiz."; exit 2; }
+cd "$RAIZ" || { echo "INDETERMINADO: no se pudo entrar en la raiz."; que_hacer_si_no_pude_medir; exit 2; }
 
 echo "===== BARRIDO DE CEO — $(date -u '+%Y-%m-%d %H:%M:%S UTC') ====="
 echo "(hora medida con \`date -u\`, nunca deducida)"
