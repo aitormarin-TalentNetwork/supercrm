@@ -1,4 +1,23 @@
 #!/bin/bash
+
+# --- CENSO DE SECCIONES, EN UN `trap` Y NO EN CADA SALIDA -------------------
+# 🔑 POR QUE UN TRAP Y NO UNA COPIA POR SALIDA (2026-09-10, a peticion del
+# Factory Architect): el defecto que estamos cerrando es que **un bloque detras
+# de un `exit` NO FALLA: NO EXISTE**, y su ausencia se lee igual que "no hay nada
+# que reportar". Poner el contador a mano en cada salida repite ese mismo error:
+# **la salida que alguien anada manana no lo llevaria**, y volveria a morir en
+# silencio. El trap se ejecuta en TODAS, incluidas las que aun no existen.
+TOTAL_SECCIONES=3
+censo_de_secciones() {
+  echo "secciones ejecutadas: ${SECCIONES:-0} de $TOTAL_SECCIONES"
+  if [ "${SECCIONES:-0}" -lt "$TOTAL_SECCIONES" ]; then
+    echo "  🔴 FALTAN SECCIONES POR EJECUTAR — no han fallado: NO SE HAN EJECUTADO."
+    echo "     Ocurrio de verdad: la seccion de NO-GO sin reaccion estuvo 6 h sin correr,"
+    echo "     apagada EXACTAMENTE cuando habia huerfanos, que es cuando hacia falta."
+  fi
+}
+trap censo_de_secciones EXIT
+
 # Detector de exports que llevan tiempo esperando un veredicto del auditor.
 #
 # POR QUE EXISTE (2026-09-10, decision del CEO tras un hallazgo del PM):
@@ -121,7 +140,10 @@ done
 # CONTROL POSITIVO OBLIGATORIO: el detector tiene que demostrar que sabe encontrar un
 # veredicto cuando existe. Sin esto, un "0 pendientes" no distingue "todo auditado" de
 # "el patron no casa con nada".
+
+SECCIONES=0   # cuantas secciones han LLEGADO A EJECUTARSE (ver nota de las salidas)
 VEREDICTOS=(VEREDICTO_*.txt)
+SECCIONES=$((SECCIONES+1))
 echo "---"
 echo "exports comprobados: $COMPROBADOS · no juzgados (INDETERMINADO): $INDET · veredictos visibles: ${#VEREDICTOS[@]} (control positivo: si esto es 0, el detector NO esta discriminando)"
 
@@ -148,8 +170,14 @@ fi
 # 63 rojos en su primera corrida — que es la definicion de un control que se aprende
 # a ignorar (la regla del propio Factory Architect: uno que grita con el sistema sano
 # no protege, gasta). Solo se juzgan los veredictos POSTERIORES a VIGENTE_DESDE.
+# ⚠️ CONDICION DEL FACTORY ARCHITECT PARA QUE EL CORTE NO SE VUELVA PERMANENTE:
+# en cuanto exista UN veredicto posterior al corte, este control tiene que
+# DISCRIMINAR de verdad y dejar de declarar "aun no puedo". **Si a las 24 h sigue
+# diciendo "aun no puedo", es que la marca RELAYADO no se esta poniendo — y eso es
+# otro falso verde, no un control joven.** Revisar el 2026-09-11 despues de las 12:10Z.
 VIGENTE_DESDE="2026-09-10T12:10:11Z"
 VD=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$VIGENTE_DESDE" +%s 2>/dev/null || echo 0)
+SECCIONES=$((SECCIONES+1))
 echo "---"
 echo "veredictos PRODUCIDOS pero NO RELAYADOS (regla vigente desde $VIGENTE_DESDE):"
 SIN_MARCA=0; JUZGADOS=0
@@ -173,15 +201,6 @@ fi
 echo "  🔴 UN VEREDICTO SIN RELAYAR ES INDISTINGUIBLE DE UNO QUE AUN NO HA SALIDO."
 echo "     Por eso se marca en el propio fichero: el mensaje se pierde, el disco no."
 
-if [ "$PENDIENTES" -gt 0 ]; then
-  echo "RESULTADO: $PENDIENTES export(s) SIN FICHERO DE VEREDICTO por encima de ${UMBRAL} min."
-  echo "🔴 NO SIGNIFICA que esas tareas esten paradas. Este detector mide FICHEROS, no TAREAS."
-  echo "   Antes de disparar ninguna auditoria, CONSULTA EL ESTADO EN LINEAR: un export viejo"
-  echo "   sin veredicto puede ser (1) olvidado, (2) fuera de alcance, o (3) de una tarea YA"
-  echo "   CERRADA por otra via. Las tres se ven identicas aqui. Incidente real: AIT-83 (ver cabecera)."
-  exit 1
-fi
-
 # ============================================================================
 # LA HUERFANA EN LA OTRA DIRECCION: un veredicto ENTREGADO que nadie relayo.
 # ----------------------------------------------------------------------------
@@ -202,6 +221,7 @@ fi
 # que se relayara y la terminal aun no haya exportado. Es una senal, no un hecho.
 echo "---"
 
+SECCIONES=$((SECCIONES+1))
 echo "veredictos NO-GO sin reaccion (la huerfana en la otra direccion):"
 NOREACC=0
 ls VEREDICTO_*.txt 2>/dev/null | grep -oE '(T[0-9]+_)?(AIT-[0-9]+|[a-z-]+-falso)' | sort -u | while read key; do
@@ -216,6 +236,16 @@ ls VEREDICTO_*.txt 2>/dev/null | grep -oE '(T[0-9]+_)?(AIT-[0-9]+|[a-z-]+-falso)
   fi
 done
 echo "  (si no hay lineas 🔴 arriba, ninguno pasa el umbral de ${UMBRAL} min)"
+
+if [ "$PENDIENTES" -gt 0 ]; then
+  echo "RESULTADO: $PENDIENTES export(s) SIN FICHERO DE VEREDICTO por encima de ${UMBRAL} min."
+  echo "🔴 NO SIGNIFICA que esas tareas esten paradas. Este detector mide FICHEROS, no TAREAS."
+  echo "   Antes de disparar ninguna auditoria, CONSULTA EL ESTADO EN LINEAR: un export viejo"
+  echo "   sin veredicto puede ser (1) olvidado, (2) fuera de alcance, o (3) de una tarea YA"
+  echo "   CERRADA por otra via. Las tres se ven identicas aqui. Incidente real: AIT-83 (ver cabecera)."
+  exit 1
+fi
+
 
 if [ "$INDET" -gt 0 ]; then
   echo "RESULTADO: ningun export EMPAREJABLE por encima de ${UMBRAL} min sin veredicto,"
