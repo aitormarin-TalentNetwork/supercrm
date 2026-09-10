@@ -146,6 +146,40 @@ una vez que el trabajo pasa auditoría.
        excepción de verdad, se le pide a Aitor a través del Factory Architect; nadie más
        puede concederla.
     2. Desarrollas.
+🔴 UNA COMPROBACION VA SOLA EN SU `if`. NUNCA ENCADENADA (2026-09-10)
+
+   **En cuanto comparte linea con la accion, LA VISTA LA LEE COMO CONDICION Y EL SHELL NO.**
+
+   ⛔ MAL, con los dos operadores:
+       cerrojo_libre && git push          <- el `&&` cuelga de lo que va DELANTE
+       git add -A && comprobar && push    <- la condicion es el `git add`, no la comprobacion
+       rmdir "$LOCK" || echo "liberado"   <- imprime EXITO justo cuando ha FALLADO
+
+   ✅ BIEN:
+       if comprobacion; then accion; else echo "🔴 no se hace"; exit 1; fi
+
+   🔑 NO ES UN DESCUIDO DE NADIE: ES UNA FORMA QUE EL SHELL HACE FACIL (diagnostico del QA).
+      `cmd_A && cmd_B` **se lee como "si A, entonces B" aunque A sea el `git add` que va
+      delante** y no la comprobacion que uno cree estar poniendo.
+
+   ⚠️ HA MORDIDO DOS VECES EL MISMO DIA, con dano real, en dos roles que no se habian visto:
+       04:08Z  el Factory Architect solto EL CERROJO DE OTRO
+               -> el `&&` colgaba del `rmdir`, no de la comprobacion
+       06:58Z  el QA empujo a `main` CON EL CERROJO DE OTRO PUESTO
+               -> su comando IMPRIMIA el titular y empujaba igual,
+                  porque el `&&` colgaba del `git add`
+
+   🔴 Y LO QUE LO HACE INDETECTABLE: **su control llevaba CINCO CICLOS EN VERDE**, y
+      funcionaba solo porque el cerrojo siempre habia estado libre. **Y dejaba un rastro que
+      PARECE DILIGENCIA: el titular impreso en el log.**
+
+   📌 EVIDENCIA EMPIRICA, del experimento del QA: **la version que INFORMABA acumulo cinco
+      verdes sin impedir nada; la que ABORTA paro una pasada real en su primer dia.**
+      *Un control que informa y uno que impide se parecen mucho en el guion y no se parecen
+      en nada en el efecto.* La pregunta que los distingue, y se contesta en cinco segundos:
+      **¿este paso puede DETENER la accion, o solo puede DESCRIBIRLA?**
+
+
        ⚠️ ANTES DE LANZAR CUALQUIER SCRIPT QUE REESCRIBA FICHEROS DEL WORKING TREE,
        COMMITEA (decision 67, 2026-09-09). El working tree NO tiene reflog: lo
        commiteado se recupera aunque lo pierdas de vista; lo que solo esta en disco,
