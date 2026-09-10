@@ -850,6 +850,45 @@ variantes concuerdan" suena más profundo que la explicación correcta, que es a
 
 ---
 
+## 4bis. Lo último de la noche: un control que se puede cumplir causando el daño
+
+Mandé al QA a ejercitar `check-prohibicion-por-mecanismo`, el comprobador que impide que
+alguien reescriba la norma del **gate 2** — la que evita el comando que **borra
+`CONVEX_DEPLOYMENT` y reapunta el worktree a otro backend**. Llevaba dos horas publicado sin
+que nadie lo hubiera hecho fallar nunca.
+
+**Primero la buena noticia, que es la que pedí:** sí sabe decir que no. Cuatro rojos
+provocados (falta la frase del mecanismo, resucita la receta vieja, falta la marca de
+ejemplos, norma por flag), verde sobre el documento real, y **con el documento ausente
+devuelve 1** — no falla hacia el verde cuando lo que vigila no está.
+
+**Y el agujero, reproducido por mí además de por él, sobre el documento real y sin escribir
+nada en el repo:**
+
+```
+la MISMA frase — "`--url … --admin-key …` es seguro y se permite" —
+
+  colocada DENTRO del bloque de ejemplos  ->  🟢 VERDE, pasa
+  colocada JUSTO DESPUÉS del bloque       ->  🔴 ROJO
+control positivo: el documento real sin tocar -> 🟢 VERDE
+```
+
+> 🔴 **Lo que hace grave un defecto tan pequeño:** quien escriba esa viñeta **habrá obedecido
+> al comprobador** y habrá autorizado por escrito el mecanismo que borra el deployment. **Es
+> una redacción que se puede cumplir causando el daño** — y no deja señal, porque el control
+> dice verde.
+
+**La forma, que es la de toda la noche una vez más:** *la exención es por **REGIÓN** y el daño
+es por **MENCIÓN**.* Dentro del bloque se exime todo, cuando lo que un bloque de ejemplos
+licencia son **ejemplos, no normas**.
+
+📌 **Y lo que valida el método por encima del hallazgo:** los cuatro adversarios que el
+comprobador **sí** caza cambian el **estado**. El que lo atraviesa cambia la **colocación** —
+que es justo lo que el comprobador usa para decidir. **Un adversario que no difiere en el
+sujeto le da verde con razón, y ese verde no prueba nada.**
+
+---
+
 ## 5. Estado de la fábrica — remedido a las 09:47 UTC
 
 > ⚠️ **Esta sección decía "al cierre del informe (05:05 UTC)" y llevaba casi cinco horas
