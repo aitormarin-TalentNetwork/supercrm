@@ -15,7 +15,13 @@
 # COMO SE USA:
 #   ./_detector-exports-sin-veredicto.sh [minutos_umbral]   (por defecto 60)
 # Salida: una linea por export sin veredicto, con su antiguedad en minutos.
-# Codigo de salida: 0 si no hay ninguno por encima del umbral, 1 si hay alguno.
+# Codigos de salida — SON CUATRO, y el 3 existe para no mentir en verde:
+#   0 = ninguno pendiente y todos se pudieron juzgar. **El unico verde limpio.**
+#   1 = hay export(es) por encima del umbral sin fichero de veredicto.
+#   2 = INDETERMINADO total: no se pudo mirar (directorio ausente, cero exports, cero
+#       veredictos). NO es "todo bien": es que no se midio.
+#   3 = ninguno pendiente **de los que se pudieron juzgar**, pero alguno quedo sin juzgar.
+#       Verde parcial: el verde NO cubre esos. Hay que mirarlos a mano.
 #
 # 🔴 LO QUE ESTE DETECTOR **NO** SABE, y es lo primero que hay que leer:
 # **Mide la antiguedad de un FICHERO, y de ahi NO se deduce el estado de su TAREA.**
@@ -79,16 +85,26 @@ fi
 AHORA=$(date +%s)
 PENDIENTES=0
 COMPROBADOS=0
+INDET=0
 
 for f in "${EXPORTS[@]}"; do
   term=$(echo "$f" | grep -oE '^T[0-9]+')
   ait=$(echo "$f"  | grep -oE 'AIT-[0-9]+')
   loop=$(echo "$f" | grep -oE '(plan-)?loop[0-9]+')
 
-  # Si no se puede derivar la clave, se DICE. No se cuenta como sano.
+  # Si no se puede derivar la clave, se DICE — y va a su PROPIO contador.
+  # ⚠️ ANTES esto sumaba a PENDIENTES, y el resumen acababa afirmando "N exports SIN
+  # FICHERO DE VEREDICTO" incluyendo ficheros que **si tenian veredicto** y que el script
+  # simplemente no supo emparejar. Caso real (2026-09-10 04:23Z):
+  # `T3_authstate-comentario-falso_plan-loop1-para-auditor.txt` no lleva numero de ficha
+  # (se declara "SIN ISSUE DE LINEAR", cambio suelto), asi que el patron no casaba — pero
+  # `VEREDICTO_T3_authstate-comentario-falso_plan-loop1.txt` existia. El detector dijo la
+  # verdad linea a linea ("no pude derivar") y **mintio en el total**.
+  # LA REGLA: "no pude juzgarlo" y "no tiene veredicto" son estados DISTINTOS y no se
+  # suman. Fundirlos convierte una declaracion de ignorancia en una acusacion.
   if [ -z "$term" ] || [ -z "$ait" ] || [ -z "$loop" ]; then
-    echo "INDETERMINADO: no pude derivar terminal/issue/loop de '$f'. NO cuenta como sano."
-    PENDIENTES=$((PENDIENTES + 1))
+    echo "INDETERMINADO: no pude derivar terminal/issue/loop de '$f'. NO se juzga (puede tener veredicto o no)."
+    INDET=$((INDET + 1))
     continue
   fi
 
@@ -107,7 +123,7 @@ done
 # "el patron no casa con nada".
 VEREDICTOS=(VEREDICTO_*.txt)
 echo "---"
-echo "exports comprobados: $COMPROBADOS · veredictos visibles en el directorio: ${#VEREDICTOS[@]} (control positivo: si esto es 0, el detector NO esta discriminando)"
+echo "exports comprobados: $COMPROBADOS · no juzgados (INDETERMINADO): $INDET · veredictos visibles: ${#VEREDICTOS[@]} (control positivo: si esto es 0, el detector NO esta discriminando)"
 
 if [ ${#VEREDICTOS[@]} -eq 0 ]; then
   echo "INDETERMINADO: no veo NINGUN fichero de veredicto. El cero de arriba no es fiable."
@@ -123,5 +139,10 @@ if [ "$PENDIENTES" -gt 0 ]; then
   exit 1
 fi
 
+if [ "$INDET" -gt 0 ]; then
+  echo "RESULTADO: ningun export EMPAREJABLE por encima de ${UMBRAL} min sin veredicto,"
+  echo "           pero $INDET no se pudieron juzgar. El verde NO los cubre: mirarlos a mano."
+  exit 3
+fi
 echo "RESULTADO: ningun export por encima de ${UMBRAL} min sin veredicto."
 exit 0

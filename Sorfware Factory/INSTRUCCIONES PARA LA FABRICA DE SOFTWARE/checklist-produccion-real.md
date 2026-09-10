@@ -110,5 +110,27 @@ de alcance/producto, no se asume silencio como aprobación.
     backend, rutas protegidas redirigen sin sesión, y `third-goldfinch-805` sigue
     respondiendo con normalidad para las 3 terminales. No cambia la fila de arriba
     (credenciales en claro en el login) — eso sigue pendiente, sin relación con esta.
+  - **La sesión sobrevive a "Cerrar sesión", por dos vías distintas** (añadido por el PM,
+    2026-09-10). **Las dos entran aquí porque su gravedad HOY depende de que producción no
+    tenga datos reales — que es exactamente la condición que este checklist vigila.**
+    - **AIT-127** — al pulsar "Cerrar sesión" hay una ventana de **~3,3-3,8 s** (cuatro
+      medidas en tres builds) en la que la sesión sigue viva, **la app no redirige nunca**
+      y no hay ninguna señal. Urgent, en curso.
+    - **AIT-133** — **el servidor sigue aceptando el token ya emitido hasta que expira:
+      una hora.** Cerrar sesión impide *renovar*, no impide *usar*.
+      ⚠️ **Medido en `third-goldfinch-805` (DESARROLLO), replicado por dos instrumentos
+      independientes con control positivo y negativo. En producción NO está medido**, y
+      puede no ser confirmable: la prueba que lo cerraría —capturar un token, cerrar
+      sesión y reusarlo— **es un replay contra un sistema real y está vetada**. *"Ninguna
+      evidencia en contra" no es "medido".*
+    🔴 **Y aquí está el motivo de que esto sea un ítem de checklist y no una issue más:**
+    hoy la exposición es baja **porque las cuentas de producción son de demostración con la
+    contraseña publicada en la propia pantalla de acceso** — o sea que **el token no es lo
+    que protege ese deployment**. Esa frase deja de ser cierta **el mismo día que entre
+    dato real de un negocio**, y ese día las dos suben de gravedad **sin que nadie tenga
+    que acordarse**. Es la fila de arriba (credenciales en claro) sosteniendo el argumento
+    de ésta: **si se resuelve aquélla y no éstas, la protección se retira y el agujero se
+    queda.**
+
 - Añade aquí cualquier otro ítem que se descubra después, con la misma disciplina —
   este documento es acumulativo, no se sustituye.

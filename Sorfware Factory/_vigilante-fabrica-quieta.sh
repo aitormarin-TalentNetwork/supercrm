@@ -19,13 +19,25 @@ TERMS=$(ls -d $BASE/$PAT* 2>/dev/null | sed "s#.*--worktrees-##" \
 if [ -z "$TERMS" ]; then
   echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
   echo "VEREDICTO: INDETERMINADO (el descubrimiento no encontro NINGUNA terminal: patron o ruta mal)"
+  echo "QUE HACER: es un fallo DEL VIGILANTE, no una fabrica sana. Investigalo antes de dar"
+  echo "  nada por bueno. Un cero aqui no distingue 'no hay' de 'no supe mirar'."
+  echo "SIEMPRE: comprueba con ListAgents que el CEO sigue vivo (vigilancia reciproca)."
   exit 0
 fi
 
 quietos=0; total=0; detalle=""
 for d in $TERMS; do
+  # 2026-09-10, D53: NO se usa `stat -f %m`. El mtime del .jsonl NO es el ultimo evento
+  # de la sesion: es la fecha del fichero, y algo puede tocarlo sin anadir un evento.
+  # Medido esta noche en este mismo disco: deltas de 36, 39, 502, 512, 585 y hasta
+  # 17.784 minutos entre mtime y ultimo evento real. Con mtime, basta que UNA sesion
+  # parezca viva para que una alarma de SIMULTANEIDAD no salte NUNCA.
   m=$(find "$BASE" -maxdepth 1 -type d -name "$PAT$d" 2>/dev/null | while read -r p; do
-        find "$p" -maxdepth 1 -name '*.jsonl' -exec stat -f '%m' {} \; 2>/dev/null
+        for f in "$p"/*.jsonl; do
+          [ -f "$f" ] || continue
+          ts=$(grep -oE '"timestamp":"[0-9]{4}-[0-9-]+T[0-9:]+' "$f" 2>/dev/null | tail -1 | grep -oE '[0-9]{4}-[0-9-]+T[0-9:]+')
+          [ -n "$ts" ] && date -j -u -f '%Y-%m-%dT%H:%M:%S' "$ts" +%s 2>/dev/null
+        done
       done | sort -rn | head -1)
   [ -z "$m" ] && { detalle="$detalle
   $d: SIN TRANSCRIPT"; continue; }
@@ -38,10 +50,23 @@ done
 echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
 echo "terminales DESCUBIERTAS: $(echo $TERMS | tr '\n' ' ')"
 echo "con transcript: $total | quietos >=${UMBRAL_MIN}min: $quietos$detalle"
+# El QUE HACER se imprime AQUI y no vive en el prompt del cron (fila del CEO,
+# 2026-09-10): un prompt programado es una instruccion que se RE-AFIRMA SOLA cada
+# ciclo, con la voz del sistema, y nada compara su contenido con el estado real.
+# Criterio y procedimiento viven juntos, en disco, y se cambian en un solo sitio.
 if [ "$total" -eq 0 ]; then
   echo "VEREDICTO: INDETERMINADO (terminales descubiertas pero ninguna con transcript)"
+  echo "QUE HACER: es un fallo DEL VIGILANTE, no una fabrica sana. Investigalo antes de"
+  echo "  dar nada por bueno. Un cero aqui no distingue 'no hay' de 'no supe mirar'."
 elif [ "$quietos" -eq "$total" ]; then
   echo "VEREDICTO: ALARMA (las $total terminales quietas a la vez)"
+  echo "QUE HACER: 1) avisa al CEO por SendMessage con esta salida CRUDA pegada — quien es"
+  echo "  el CEO sale de la entrada mas reciente de _registro-agentes.txt, y si no resuelve,"
+  echo "  de ListAgents; 2) avisa a Aitor con osascript -e 'display alert ...'."
+  echo "  PROHIBIDO AskUserQuestion o cualquier selector interactivo: deja la sesion sorda."
 else
   echo "VEREDICTO: OK"
+  echo "QUE HACER: nada, y no escribas nada largo. Una linea basta."
 fi
+echo "SIEMPRE: comprueba con ListAgents que el CEO sigue vivo (vigilancia reciproca). Si no"
+echo "  aparece, diselo a Aitor con la misma alerta visible."

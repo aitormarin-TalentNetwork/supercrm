@@ -26,11 +26,34 @@ set -u
 RAIZ="${BARRIDO_RAIZ:-/Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding}"
 UMBRAL_EXPORT="${1:-60}"
 
+# QUE HACER cuando este script NO ha podido medir nada. Se imprime SIEMPRE en esa rama.
+# ⚠️ POR QUE EXISTE ESTA FUNCION (2026-09-10, hallazgo del Factory Architect sobre su propio
+# vigilante, reproducido aqui): la rama de salida temprana era la UNICA que salia sin decir
+# que hacer, porque hace `exit` antes de llegar al bloque de instrucciones. Y es **justo la
+# rama donde mas falta hacen**: es la unica en la que NO se ha medido nada, o sea la unica
+# en la que el operador esta ciego. **El sitio que se queda sin instrucciones es el que sale
+# por la puerta de atras.**
+que_hacer_si_no_pude_medir() {
+  cat <<'QH'
+
+--- QUE HACER AHORA (este barrido NO ha medido nada) ---
+  🔴 ESTO NO ES "TODO TRANQUILO". Es "no se ha mirado". No lo anotes como ciclo sano.
+  1. Comprueba la ruta: la raiz se pasa en BARRIDO_RAIZ, y por defecto se deduce de donde
+     vive el script. Ojo: el directorio primario de una sesion CAMBIA SOLO (D25), asi que
+     un `cd` previo puede haberte movido sin avisar. Usa ruta absoluta.
+  2. Mientras no corra, haz A MANO lo minimo: `test -d` sobre los dos cerrojos con control
+     positivo, `git ls-remote origin main` contra tu `main`, y `git status --short`.
+  3. Dilo en tu renglon de estado como INDETERMINADO, con la hora. Un ciclo que no midio y
+     uno que midio y salio limpio se ven igual en un resumen si no lo declaras.
+QH
+}
+
 if [ ! -d "$RAIZ/.git" ]; then
   echo "INDETERMINADO: '$RAIZ' no parece la raiz del repo (no hay .git). No se ha comprobado NADA."
+  que_hacer_si_no_pude_medir
   exit 2
 fi
-cd "$RAIZ" || { echo "INDETERMINADO: no se pudo entrar en la raiz."; exit 2; }
+cd "$RAIZ" || { echo "INDETERMINADO: no se pudo entrar en la raiz."; que_hacer_si_no_pude_medir; exit 2; }
 
 echo "===== BARRIDO DE CEO — $(date -u '+%Y-%m-%d %H:%M:%S UTC') ====="
 echo "(hora medida con \`date -u\`, nunca deducida)"
@@ -113,12 +136,73 @@ cat <<'PEND'
   (a) `ListAgents` + cruce con `Sorfware Factory/_registro-agentes.txt`.
       La clave es el TTY (raiz) y el worktree (desarrolladores), NUNCA el nombre ni el
       [ref]: los dos caducan sin relanzamiento.
-  (b) Terminales paradas: medir el ultimo evento `assistant` del TRANSCRIPT, con control
-      positivo. NUNCA por ausencia en ListAgents.
+  (b) 🔴🔴 EL `mtime` DEL TRANSCRIPT **NO** ES EL ULTIMO EVENTO, Y SUBESTIMA EL SILENCIO.
+      LEE EL TIMESTAMP DEL ULTIMO EVENTO DENTRO DEL `.jsonl`. NO uses `stat -f %m`.
+      Medido 2026-09-10 06:14Z sobre una sesion real: su ultimo evento era de las **04:45:55**
+      —84 minutos de silencio a las 06:09— y **el `mtime` decia 45 minutos**. El fichero se
+      habia tocado hacia las 05:24 SIN anadir ni un evento. La sesion misma lo declaro
+      (~88 min) y mi instrumento la contradecia; tenia razon ella.
+      ⚠️ **Y FALLA HACIA EL VERDE, que es lo que lo hace grave:** el `mtime` siempre es MAS
+      RECIENTE o igual que el ultimo evento, asi que **siempre hace parecer la sesion mas
+      activa de lo que esta**. Un detector de atascos que subestima el silencio no da falsas
+      alarmas: **deja de dar las verdaderas.**
+      📌 Y la trampa de la comprobacion: si mides las dos cosas cuando la sesion ACABA de
+      escribir, coinciden — y el mtime parece fiel. **Coinciden justo en el caso donde no
+      importan.** Hay que compararlas sobre una sesion silenciosa.
+      Metodo: `grep -oE '"timestamp":"[0-9T:.Z-]+"' <fichero> | tail -1`.
+      Lo de abajo sigue en pie, y ademas:
+      Terminales paradas: medir el ultimo evento `assistant` del TRANSCRIPT, con control
+      positivo CONSTRUIDO POR OTRA VIA (p.ej. tu propio transcript, del que sabes por fuente
+      independiente que esta vivo). NUNCA por ausencia en ListAgents.
+      🔴 Y NO LO HAGAS ORDENANDO TODOS LOS TRANSCRIPTS POR mtime. Medido 2026-09-10 05:39Z:
+      hay **119 transcripts y 12 sesiones vivas**. Los otros ~107 son fabricas anteriores,
+      muertas, con mtimes de horas o semanas. Consecuencias, las dos silenciosas:
+        - `sort -n | head` te ensena los mas RECIENTES, no los parados. Buscar ahi una
+          terminal atascada es mirar donde el fallo no puede estar.
+        - **Una sesion VIVA y parada 90 min es indistinguible por mtime de una MUERTA hace
+          90 min.** El numero es identico; lo que cambia es si hay alguien detras.
+      EL METODO CORRECTO: parte de `ListAgents` (quien esta vivo), resuelve CADA sesion viva
+      a su transcript, y mide SOLO esos. El universo lo define quien esta vivo, no el disco.
+      En la practica funciona asi: cuenta transcripts tocados en los ultimos N minutos y
+      comparalo con el numero de sesiones vivas. Si sobran sesiones, hay silenciosas.
+      ⚠️ DOS EJES, Y HAY QUE COMPROBAR LOS DOS ANTES DE MIRAR EL RESULTADO:
+        eje 1 - ¿el instrumento sabe leer fechas? (tu propio transcript debe dar 0-1 min)
+        eje 2 - ¿el universo es el correcto? (frescos vs sesiones vivas)
+      El 2026-09-10 06:09Z el eje 1 daba verde y el eje 2 disparo. **Un control sobre el eje
+      equivocado da luz verde con la misma cara.**
+      🔴 Y EL LIMITE, QUE ES LO QUE MAS SE OLVIDA: ESTE CONTEO DICE **CUANTAS** ESTAN
+      SILENCIOSAS, NUNCA **CUALES**. No intentes desempatar por el directorio del transcript:
+        - el directorio primario de una sesion CAMBIA SOLO (ver D25 mas arriba), asi que una
+          sesion de worktree puede estar escribiendo en el transcript de la raiz;
+        - y hay varios transcripts por directorio, de fabricas muertas.
+        **Usar el directorio como identidad es usar como clave un campo que se mueve.** Lo
+        hice el 2026-09-10 06:10Z y me corrigio la propia sesion que yo habia "identificado".
+      PARA SABER CUALES: preguntarles. Un `SendMessage` pidiendo `pwd -P` y si su silencio es
+      elegido o por atasco. **Silencio elegido y silencio por atasco se ven identicos desde
+      fuera** — y esa es justo la pregunta que ningun instrumento de disco puede responder.
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
-      viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, o (3) DE UNA TAREA
-      YA CERRADA. Las tres se ven identicas en disco. Incidente real: AIT-83 se escalo como
-      "26 h parada" estando DONE desde el 2026-09-09T00:42:40Z.
+      viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
+      CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
+      trabajo no es codigo. Las cuatro se ven identicas en disco.
+      **"AL MENOS cuatro" es literal: el CEO enumero tres y el Factory Architect encontro la
+      cuarta en diez minutos.** No hay razon para creer que sean cuatro.
+      INCIDENTE REAL (2026-09-10), con DOS fallos superpuestos:
+        (a) ESTADO — se escalo "AIT-83, 26 h parada, o la disparas o la declaras abandonada".
+            Las dos salidas eran falsas: estaba DONE desde 2026-09-09T00:42:40Z.
+        (b) SUJETO — y ademas AIT-83 en Linear NO es lo que decia el nombre del fichero. El
+            export se llama `T2_AIT-83_fix-arnes-e2e_...` pero la ficha AIT-83 es otra cosa
+            ("Una pestaña abierta durante un despliegue queda rota", Low, Post-MVP). El
+            propio export lo dice en su cabecera: es la correccion del arnes DE AIT-83, con
+            "ficha de Linear propia, pedida al PM". **Lleva en el nombre el numero de OTRA
+            ficha.**
+      🔴 CONSULTAR LINEAR ARREGLA (a) PERO NO (b): si el identificador del fichero no es el
+      de su tarea, la consulta devuelve el estado **de otra cosa** — y devuelve algo, no un
+      error. La comprobacion cruzada falla hacia el lado tranquilizador. Antes de fiarte del
+      numero del fichero, LEE SU CABECERA.
+  (d) 🔴 Y NADA DE ESTO SE COMPRUEBA EJECUTANDO ESTE SCRIPT: hay que LEER su salida.
+      Ejecutar un instrumento no es leerlo. Esta misma lista se contradijo con la cabecera
+      del detector (tres historias aqui, cuatro alli) y **sobrevivio a una corrida real** sin
+      que nadie lo notara, a veinte lineas de distancia y en el mismo directorio.
 PEND
 echo
 echo "===== fin del barrido ====="
