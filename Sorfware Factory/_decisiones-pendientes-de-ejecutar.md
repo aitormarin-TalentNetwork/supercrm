@@ -1815,3 +1815,53 @@ alcance produce el hueco que existia para cerrar.**
 resolvian y apuntaban al sitio equivocado**, T2 **cinco afirmaciones invalidadas**, T3 **dos** —
 **ninguna en ningun diff**. Eso es exactamente la tercera pieza del alcance (*lo que no cambio al
 lado de lo que si*), y ya tiene nueve instancias medidas.
+
+## D53 — mi vigilante medía el MTIME del transcript, no el último evento. Fallaba hacia el verde
+
+**Detectado por el CEO en su propio vigilante y traído al mío. Verificado por mí en este disco, con
+la muestra que discrimina.** `_vigilante-fabrica-quieta.sh:31` usaba `stat -f '%m'`.
+
+**`stat -f %m` no es el último evento de la sesión: es la fecha del FICHERO**, y algo puede tocarlo
+sin añadir un evento. **Deltas medidos ahora mismo entre `mtime` y último `"timestamp"` real:**
+```
+T1 4292db91 -> 36 min   T2 19c77e13 -> 39 min   T1 5be01215 -> 508 min
+T2 2391c607 -> 502      T3 0184688c -> 512      T3 d2043fdf -> 585
+T3 6ab6c632 -> 17.784 minutos (el fichero se toco 12 dias despues de su ultimo evento)
+```
+
+🔴 **Y en MI vigilante eso lo inutilizaba entero, por lo mismo que lo hacía bueno: la alarma exige
+SIMULTANEIDAD.** Con `mtime`, **basta con que UNA sesión parezca viva para que la alarma no salte
+NUNCA** — y cualquier cosa que toque un `.jsonl` sin añadir evento la hace parecer viva. **La
+condición más difícil de cumplir es justo la que el defecto volvía inalcanzable.**
+
+**Dirección del fallo: hacia el VERDE.** Un vigilante de quietud que sobreestima la actividad **no
+da falsas alarmas — deja de dar las verdaderas**, y su silencio es indistinguible de "todo bien".
+**Exactamente lo que la D78 existe para evitar.**
+
+📌 **Y la trampa que casi absuelve al instrumento, que el CEO señaló y confirmo con mis datos: sobre
+una sesión ACTIVA, `mtime` y último evento coinciden AL SEGUNDO** — en mi tabla, delta 0 en las
+cuatro sesiones vivas. **Coinciden justo donde da igual.** La comparación **solo significa algo
+sobre una sesión silenciosa**, que es la muestra que hay que elegir y la que nadie elige, porque la
+cómoda es la que tienes delante.
+
+**Corregido:** el último evento sale de `grep -oE '"timestamp":"..."' | tail -1`, no del `mtime`.
+**Reprobado con 6 casos, y el primero es el que discrimina:**
+```
+mtime=AHORA + ultimo evento hace 90 min, las tres   -> ALARMA   (el metodo viejo daba OK)
+una de las tres con evento reciente                  -> OK
+39 min las tres / 41 min las tres                    -> OK / ALARMA
+fichero sin timestamps                               -> SIN TRANSCRIPT (no cuenta como activo)
+ruta sin terminales                                  -> INDETERMINADO, nunca OK
+```
+
+## Fila — la parte verdadera de un mensaje avala la falsa
+
+**Del CEO, separando dos cosas que le llegaron juntas.** El mismo mensaje traía el hallazgo del
+`stat` —**real**— y la afirmación de que `0c0570e` seguía sin estar en `origin` —**falsa**: lo
+midió, está en `origin/main` desde el push del QA de las 04:0x, con control positivo del
+comprobador sobre un commit publicado conocido. **El dato era cierto tres horas antes y caducó.**
+
+**Su decisión de separarlos explícitamente es la fila: venían con la misma confianza y en el mismo
+mensaje.** Un hallazgo verificado **presta autoridad a lo que viaja a su lado**, y esta noche ya
+vimos la versión larga de eso — cuatro comprobaciones encadenadas sobre media frase. **Al relayar,
+cada afirmación lleva su propia procedencia y su propia hora, aunque compartan mensaje y autor.**

@@ -27,8 +27,17 @@ fi
 
 quietos=0; total=0; detalle=""
 for d in $TERMS; do
+  # 2026-09-10, D53: NO se usa `stat -f %m`. El mtime del .jsonl NO es el ultimo evento
+  # de la sesion: es la fecha del fichero, y algo puede tocarlo sin anadir un evento.
+  # Medido esta noche en este mismo disco: deltas de 36, 39, 502, 512, 585 y hasta
+  # 17.784 minutos entre mtime y ultimo evento real. Con mtime, basta que UNA sesion
+  # parezca viva para que una alarma de SIMULTANEIDAD no salte NUNCA.
   m=$(find "$BASE" -maxdepth 1 -type d -name "$PAT$d" 2>/dev/null | while read -r p; do
-        find "$p" -maxdepth 1 -name '*.jsonl' -exec stat -f '%m' {} \; 2>/dev/null
+        for f in "$p"/*.jsonl; do
+          [ -f "$f" ] || continue
+          ts=$(grep -oE '"timestamp":"[0-9]{4}-[0-9-]+T[0-9:]+' "$f" 2>/dev/null | tail -1 | grep -oE '[0-9]{4}-[0-9-]+T[0-9:]+')
+          [ -n "$ts" ] && date -j -u -f '%Y-%m-%dT%H:%M:%S' "$ts" +%s 2>/dev/null
+        done
       done | sort -rn | head -1)
   [ -z "$m" ] && { detalle="$detalle
   $d: SIN TRANSCRIPT"; continue; }
