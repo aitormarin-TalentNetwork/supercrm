@@ -133,11 +133,28 @@ worktree corriendo contra otro backend, de forma persistente.** Merge `46bfcbb`,
 93 s, con la suite corrida **con el merge dentro** (38 e2e + 111 unitarios, exit real 0) antes
 de publicar, no después. Ocho rondas de plan y tres de código.
 
-🟡 **Y AIT-127 —una de las dos comprometidas— está a una comprobación:** GO de plan,
-implementación commiteada y verificada salvo un criterio, que se estaba ejecutando contra el
-backend cuando se escribió esto. **Si aterriza, la noche cierra tres y una sí es de las
-prometidas.** No lo doy por hecho: lo digo para que se lea con el estado real y no con el
-desenlace que me gustaría.
+🔴 **AIT-127 —la única de las dos comprometidas que seguía viva— NO LLEGA. Lo escribo antes de
+que se cumpla, no después.**
+
+**Estado real, que es bueno y por eso lo doy entero:** dos de sus tres criterios **cerrados y
+verificados**, la suite completa en verde, implementación commiteada. **Lo que queda es una
+ronda de código, no trabajo abierto.**
+
+**Por qué digo que no llega, con tasa base medida y no con una impresión:** sus **dos** rondas
+de código de esta noche volvieron NO-GO; el ciclo completo de auditoría tiene una mediana de
+**205 s** (n=50); y falta exportar, auditar, relayar, **y si sale NO-GO otra vuelta entera**, y
+si sale GO todavía revisión final, publicación y build. La Directora lo estima **entre un
+cuarto y un tercio**, y declara que **el número es blando porque n=2**.
+
+**Lo que lo empuja abajo:** la ronda que viene **mete superficie nueva grande de golpe**, y las
+dos anteriores volvieron NO-GO con menos cambio cada una.
+**Lo que lo empuja arriba, y no lo callo:** T3 ha traído hoy **sus dos últimos majors antes que
+el auditor**. Pero eso es una racha, no una medición, **y una racha no sostiene una promesa en
+un informe.**
+
+📌 **Prefiero un "no llega" dicho a tiempo con la ficha a un paso, que una posibilidad abierta
+que no se cumpla.** Es la misma razón por la que el PM bajó su compromiso anoche antes de saber
+si el gate iba a caer.
 
 | | |
 |---|---|
@@ -198,6 +215,38 @@ el CRM ni un poco.
 tomaba.**
 
 ---
+
+## 2bis. Alcance que se decidió mientras dormías — puedes deshacerlo, y quiero que lo veas
+**No te pido permiso por nada de esto. Te lo enseño porque son decisiones que podrías deshacer
+sin llegar a saber que se tomaron.** Las decidió el PM, que es a quien le corresponde.
+
+**(a) 🔑 CONVENCIÓN NUEVA DE ARQUITECTURA, y es la que más quiero que veas porque vivirá años:
+`localStorage` se estrena en código propio del proyecto.** Hasta esta noche había **cero** usos
+(medido). Entra con **helper obligatorio** y con una **frontera escrita en
+`docs/01-arquitectura.md`**: *nunca para credenciales, tokens ni nada que autentique*.
+**Decidido esta madrugada, dentro de otra tarea.** Si no te gusta, es más barato deshacerlo hoy
+que dentro de un mes con tres usos más encima.
+
+**(b) AIT-127 entrega MENOS de lo que promete su título, con dos recortes declarados.** La
+limpieza de push al cerrar sesión **sale a AIT-57**; y la navegación por barra de direcciones
+durante la ventana residual **no se cubre** — pasa de ~3.500 ms a ~485 de peor caso, **no a
+cero**, y su única mitigación real es AIT-133. **Los dos están en la ficha con destino
+nombrado, pero tú aprobaste esa tarea entera y ahora es parcial.**
+
+**(c) AIT-57 está en `Done` y puede que no aguante la primera pregunta.** No se ha reabierto
+—hay un confusor sin resolver— pero la nota está dentro y **una sola medición la decide**.
+
+**(d) La rama de fallo de "cerrar sesión" cambia el comportamiento visible:** aparece un estado
+*"Cerrando sesión…"* y, si falla, **la app no redirige y avisa**. Es UI nueva en su
+comportamiento, aunque no en sus componentes.
+
+### Y tres fichas nuevas creadas esta noche — no necesitan tu permiso, es solo que existen
+**AIT-134** (un cierre de sesión que falla deja las cookies vivas), **AIT-135** (la suite no
+puede ejecutar el recorrido de push: solo un worktree tiene la clave VAPID) y **AIT-136**
+(`check-env-local` **da verde sobre un fichero que no llegó a abrir** — defecto en código **ya
+publicado**, High, con el arreglo listo).
+**Van aparte de tu lista de decisiones a propósito:** si entraran ahí parecería que se te pide
+algo, y no se te pide nada.
 
 ## 3. Lo que se arregló sin preguntarte
 
@@ -668,6 +717,27 @@ Architect me tumbó el tercero, el PM me tumbó la métrica, la Directora me cor
 T2 la corrigió a ella, y el QA se desdijo **cuatro veces de sí mismo** sin que nadie se lo
 pidiera.
 
-Eso no compensa que haya una sola tarea cerrada. **Lo pongo porque es lo que hace que las diez
-fichas valgan algo:** escritas sin corregirnos, serían diez fichas con datos mal sujetados
-dirigiendo a quien las implemente — peor que no tenerlas.
+Eso no compensa que haya dos tareas cerradas y ninguna comprometida. **Lo pongo porque es lo
+que hace que las fichas valgan algo:** escritas sin corregirnos, serían una docena de fichas
+con datos mal sujetados dirigiendo a quien las implemente — peor que no tenerlas.
+
+**Y hay una variante que no sale en ninguna métrica:** esta noche **cuatro decisiones cambiaron
+porque alguien se quitó la razón a sí mismo** — T3 tres veces, T4 con su propio comprobador, la
+Directora con su enumerador, el PM con la rama de fallo. **Eso no aparece en "fichas cerradas",
+y es lo único que ha impedido publicar cosas falsas.**
+
+### 🔑 El mecanismo que de verdad funcionó no fue la vigilancia
+La formulación es de la Directora, sobre sí misma, y es la conclusión que yo me llevo:
+
+> **"Esto no funciona porque yo sea fiable. Funciona porque la fábrica tiene cuatro terminales
+> dispuestas a contradecirme, y lo han hecho todas. La vigilancia no escala; la contraparte
+> sí."**
+
+**Los números lo respaldan:** de los ocho instrumentos rotos que encontramos, **dos se
+detectaron solos y seis los cazó otro rol** — con un señuelo, con una discrepancia entre dos
+filtros, o simplemente yendo a leer el fichero.
+
+⚠️ **Y eso mismo es lo que hace el sistema frágil, no robusto: cada vez dependió de que alguien
+declarara una discrepancia que podía haber callado.** Funcionó **todas** las veces esta noche.
+**No hay nada que garantice la siguiente.** Si de este informe sale una sola decisión de
+proceso, yo pondría ésa encima de la mesa antes que cualquier gate nuevo.
