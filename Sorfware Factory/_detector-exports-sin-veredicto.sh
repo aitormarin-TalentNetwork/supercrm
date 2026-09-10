@@ -139,6 +139,40 @@ if [ "$PENDIENTES" -gt 0 ]; then
   exit 1
 fi
 
+# ============================================================================
+# LA HUERFANA EN LA OTRA DIRECCION: un veredicto ENTREGADO que nadie relayo.
+# ----------------------------------------------------------------------------
+# POR QUE EXISTE (2026-09-10 06:5xZ): el Integrador estuvo 2h30 reteniendo una
+# publicacion esperando un veredicto **que llevaba desde las 04:25 en disco**.
+# Llego y no le llego. Lo encontro el mismo comprobando su propio estado.
+# 🔴 Y LA PARTE QUE ME TOCA: este detector NO PODIA VERLO, porque su pregunta era
+# "¿falta el fichero de veredicto?" — y no faltaba. **La pregunta que faltaba es la
+# contraria: ¿hay un veredicto que nadie ha atendido?** Un detector construido
+# alrededor de una ausencia es ciego a los fallos de presencia.
+# CRITERIO, acotado para no gritar con el sistema sano:
+#   - solo el veredicto MAS RECIENTE de cada tarea (los viejos son historia),
+#   - solo si es NO-GO (un GO no exige ronda siguiente),
+#   - solo si NO hay export posterior a ese veredicto (si lo hay, se atendio),
+#   - y solo por encima del umbral.
+# Probado al escribirlo: marca 2 de 5 tareas, y las 2 eran reales.
+# ⚠️ NO dice "nadie lo relayo": dice "nadie ha reaccionado todavia". Puede ser
+# que se relayara y la terminal aun no haya exportado. Es una senal, no un hecho.
+echo "---"
+echo "veredictos NO-GO sin reaccion (la huerfana en la otra direccion):"
+NOREACC=0
+ls VEREDICTO_*.txt 2>/dev/null | grep -oE '(T[0-9]+_)?(AIT-[0-9]+|[a-z-]+-falso)' | sort -u | while read key; do
+  [ -z "$key" ] && continue
+  V=$(ls -t VEREDICTO_*"${key}"*.txt 2>/dev/null | head -1); [ -z "$V" ] && continue
+  VM=$(stat -f %m "$V"); EDAD=$(( (AHORA - VM) / 60 ))
+  VER=$(grep -oE "Veredicto del auditor: *(GO|NO-GO)" "$V" | tail -1 | grep -oE "(GO|NO-GO)$")
+  NUEVO=$(ls -t *"${key}"*para-auditor.txt 2>/dev/null | head -1)
+  if [ -n "$NUEVO" ]; then NM=$(stat -f %m "$NUEVO"); else NM=0; fi
+  if [ "$VER" = "NO-GO" ] && [ "$NM" -lt "$VM" ] && [ "$EDAD" -ge "$UMBRAL" ]; then
+    echo "  🔴 ${EDAD} min · ${key} · NO-GO sin export posterior · $V"
+  fi
+done
+echo "  (si no hay lineas 🔴 arriba, ninguno pasa el umbral de ${UMBRAL} min)"
+
 if [ "$INDET" -gt 0 ]; then
   echo "RESULTADO: ningun export EMPAREJABLE por encima de ${UMBRAL} min sin veredicto,"
   echo "           pero $INDET no se pudieron juzgar. El verde NO los cubre: mirarlos a mano."
