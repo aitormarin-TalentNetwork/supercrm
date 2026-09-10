@@ -1,5 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
+import { PATRON_PRUEBAS_PURAS } from "./e2e/pruebas-puras";
 
 // Suite E2E de los 5 procesos clave del PRD §7 (AIT-26). Corre contra el
 // servidor de desarrollo local (Next.js) con el deployment de Convex ya
@@ -114,6 +115,16 @@ const BASE_URL = `http://localhost:${E2E_PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // AIT-109: las pruebas puras (`00-*.spec.ts`) las corre `npm run test:unit` con
+  // su propia config, SIN levantar el servidor de abajo. Se excluyen aquí para que
+  // cada prueba se ejecute en un sitio y solo uno — el patrón es el mismo objeto
+  // que usa el otro config como `testMatch`, así que no pueden separarse.
+  //
+  // ⚠️ ESTO ESTRECHA LO QUE AFIRMA `npm run test:e2e`: pasa de ejecutar toda la
+  // suite a ejecutar solo las de navegador. El nombre del comando no cambia, así
+  // que quien lea «test:e2e pasó» estará afirmando MENOS que antes sin que ningún
+  // diff se lo enseñe. La puerta previa a publicar son ahora DOS comandos.
+  testIgnore: PATRON_PRUEBAS_PURAS,
   // AIT-108: una autenticación por rol y por corrida, en vez de una por spec.
   // Corre DESPUÉS del webServer de abajo (en el runner, `globalSetup` va detrás
   // de los plugins y el webServer es uno).

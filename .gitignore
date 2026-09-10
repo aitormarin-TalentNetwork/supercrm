@@ -50,6 +50,14 @@ yarn-error.log*
 # export contamina la evidencia de una auditoria.
 playwright.*.config.ts
 
+# EXCEPCION (AIT-109): esta SI es del repo y va versionada. Corre las pruebas puras
+# sin `webServer`, o sea que no es una config que nadie se fabrique para esquivar un
+# puerto — es justo la que no usa ninguno. La regla de arriba caza por FORMA del
+# nombre y esto casa por accidente; la excepcion va aqui, pegada a la regla, y no
+# renombrando el fichero para esquivarla: un nombre que escapa por un guion deja al
+# siguiente sin poder ver por que uno se ignora y el otro no.
+!playwright.unit.config.ts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

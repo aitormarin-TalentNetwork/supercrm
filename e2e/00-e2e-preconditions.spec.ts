@@ -112,6 +112,22 @@ test.describe("El secreto no sale por ninguna salida, ni cuando algo revienta", 
     version: () => SUPPORTED_AUTH_VERSION,
     readRateLimits: async () => [],
     readPasswordAccounts: async () => new Map(),
+    // AIT-109 · LA PUERTA AIT-95, NEUTRALIZADA A PROPÓSITO Y SIN SALIR DEL PROCESO.
+    // `run()` comprueba lo primero de todo que el backend tenga las funciones que
+    // el código espera, y sus valores por defecto son los REALES: `readSources`
+    // recorre `convex/` en disco y `readDeployed` lanza `npx convex function-spec`
+    // contra el deployment. Estas cinco pruebas no miden esa puerta —miden que el
+    // secreto no se escape por ninguna salida— pero tenían que atravesarla, así que
+    // consultaban Convex de verdad. Con el deployment inaccesible fallaban las
+    // cinco, que es justo el escenario que AIT-109 promete que funciona.
+    // Los dos vacíos van EN PAREJA y el orden importa: `selectMissingFunctions`
+    // devuelve lo que está en el código y no desplegado, así que vaciar solo
+    // `readDeployed` haría faltar las 28 funciones reales y `run()` saldría con 1
+    // antes de llegar a lo que se prueba. Vaciando los dos, `faltan` es [] y la
+    // puerta pasa sin tocar disco ni red. Cualquier caso que quiera ejercitar la
+    // puerta de verdad los sobreescribe: `...extra` va después.
+    readSources: () => [],
+    readDeployed: async () => [],
     ...extra,
   });
 

@@ -42,7 +42,7 @@ test.describe("Comprobadores del repositorio", () => {
     //
     // Y el alcance en números, medido hoy y no heredado: mira los 43 `.tsx` de
     // `app/` y `components/`, y NO mira los 6 `.ts` de esas mismas carpetas ni
-    // los 25 de `convex/`. O sea 43 de 74. Un cero aquí no habla de los otros 31.
+    // los 28 de `convex/`. O sea 43 de 77. Un cero aquí no habla de los otros 34.
     const fugas = buscarFugas();
     const detalle = fugas
       .map((f: { fichero: string; linea: number; texto: string }) =>
