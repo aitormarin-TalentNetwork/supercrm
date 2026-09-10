@@ -1998,3 +1998,95 @@ commiteada (`test:e2e` 38/9, `test:unit` 91/8) y `_cobertura-de-los-comandos.sh`
 no solo que el detector lo note: **si un comando de test devuelve menos tests de los que su foto
 dice, sale distinto de cero.** El coste de mantenimiento es el que ya pagamos — actualizar la foto
 en el mismo commit que cambia la cobertura, con su motivo, que es la D30.
+
+## D58 — una prescripcion del auditor es una AFIRMACION sobre la herramienta, y se verifica antes de obedecerla
+
+**Medido por T2 antes de escribir nada, que es lo que lo convierte en hallazgo:**
+```
+git grep · sin coincidencias    exit 1 · stderr 0 B
+git grep · ruta inexistente     exit 1 · stderr 0 B   <- INDISTINGUIBLES
+grep -r  · ruta inexistente     exit 2 · stderr 61 B
+```
+El auditor pidio *"que el escaneo falle ante errores de ruta o lectura"*. **Con `git grep` eso es
+incumplible.**
+
+🔴 **Y falla de la peor manera: quien la implemente CREERA HABERLA CUMPLIDO**, porque el criterio se
+lee satisfecho y **el cero sigue saliendo**. No hay ningun momento en que alguien descubra que no se
+cumplio.
+
+**ACEPTADA COMO DECISION, y contesto su contrapeso** —*"solo muerde cuando la prescripcion cita una
+herramienta concreta, quiza sea estrecho"*—: **no es estrecho, y la razon es la asimetria de arriba.**
+Una prescripcion imposible que **produce sensacion de cumplimiento** es peor que una prescripcion
+dificil, y **llega con la autoridad del veredicto, que es justo lo que impide que nadie la
+compruebe**. El `SIN:` nos dice donde el auditor no miro; **esto es otra cosa: donde el auditor
+afirmo algo sobre una herramienta sin ejecutarla.**
+
+**Regla:** *toda correccion minima que nombre un comportamiento de una herramienta se VERIFICA contra
+esa herramienta antes de aceptarse.* **Y la mitad que mas importa: si no es ejecutable, el
+desarrollador lo DECLARA y propone el sustituto** — porque el camino por defecto es **fingir
+cumplimiento sin saber que se finge.**
+**La solucion de T2 tiene la forma correcta:** la validacion **sale del escaner** (`git cat-file -e`
+sobre los objetivos + escaneo con estado), *porque el paso que falta es justo el que el escaner no
+puede dar.*
+
+📌 Es *una prescripcion se ejecuta antes de mandarla* — la fila que escribimos contra nosotros —
+**aplicada al auditor**. Vale en las dos direcciones.
+
+## D59 — un desarrollador SI puede reabrir un hallazgo que el auditor cerro, DECLARANDOLO
+
+**El caso, medido por la Directora en el veredicto del loop15 de T2:** el auditor cerro **M7.1**
+aceptando que *"el cambio de hash de `env.otra` acredita que actuo"* — **el observable de la COSTURA,
+no del COMPARADOR**, que es lo que T2 habia refutado media hora antes. Y **en el mismo fichero abrio
+M7.2 y M7.3 diciendo esa misma cosa con otras palabras**: *"el sujeto del control puede estar ausente
+mientras solo queda acreditado el andamiaje"*.
+
+**O sea: nombra la clase cuando la ve y no la ve cuando la tiene delante con sello de resuelto.**
+
+**DECISION — SI puede, y respaldo lo que hicisteis, con una condicion de forma:**
+1. **El desarrollador NO puede cerrar por su cuenta lo que el auditor abrio.** Eso no cambia.
+2. **SI puede mantener ABIERTO lo que el auditor cerro, declarandolo explicitamente como
+   DESACUERDO**, con el argumento citado y refutado — no en silencio, no como si el auditor no
+   hubiera dicho nada. **Asi el auditor lo ve en la ronda siguiente y concede o refuta.**
+3. **La razon es de direccion, y es de T2:** *un hallazgo con sello de "resuelto" no lo vuelve a
+   mirar nadie.* Sin esta via, **un cierre erroneo es IRREVERSIBLE**, y el error queda protegido por
+   el sello. **Mantener abierto cuesta una ronda; cerrar en falso cuesta el defecto.**
+4. **No debilita al auditor:** un desacuerdo declarado **le devuelve la decision a el**, no se la
+   quita. Lo que se prohibe sigue siendo lo mismo: que el desarrollador se autoabsuelva.
+
+**Y la contramedida directa ya esta escrita: la D55 exige el observable AL SUJETO DEL CONTROL, no a
+cualquier actor que participe.** Ese es exactamente el hueco por el que se colo M7.1.
+
+## Fila — un detector que puede fallar en las DOS direcciones necesita DOS controles
+
+**De T4, con falso positivo medido.** Su filtro de muerte por capacidad, corrido sobre un veredicto
+de **1,1 MB**, caso con `re.code==="rate_limited"` **dentro de un volcado de HTML minificado que el
+auditor estaba grepeando**. Su patron `rate.limit` llevaba un `.` que es comodin. **Estuvo a punto de
+declarar muerta una auditoria sana que despues produjo 1.476 lineas mas, con veredicto y cita de
+cierre.**
+
+**Dos defensas, y cubren riesgos DISTINTOS:** patron **literal** (inmune al comodin, este donde este)
+**y** acotado a la **cola** del fichero (el error de capacidad aparece donde el proceso muere; el
+contenido leido aparece en medio). **El limite, nombrado por T4: si un auditor muriera justo despues
+de volcar un fichero, el `tail` no salvaria — por eso hacen falta las dos.**
+
+🔑 **La forma general: el filtro se diseño contra TRAGARSE UNA MUERTE; el falso positivo va al reves
+y TIRA UNA AUDITORIA BUENA.** Un detector que puede fallar en las dos direcciones **necesita un
+control por direccion** — que es la D54 §1 aplicada a un instrumento en vez de a una afirmacion. **Y
+el negativo lo encontraron por accidente**, como casi todo esta noche.
+
+⚠️ **Y hay un agravante estructural que conviene nombrar: el log de un proceso que BUSCA X contiene
+X.** Un detector que lee el transcript de una auditoria esta leyendo un fichero **lleno de las cosas
+que el auditor fue a buscar**. Es la fila de *"un patron no distingue cometer un error de
+describirlo"*, en su version mas dificil: aqui **ni siquiera hay descripcion, hay materia prima
+citada.**
+
+## Forma recomendada del export — el bloque fechado (de T2)
+
+**Adoptada como forma, sin necesidad de decision nueva:** el dato volatil va en un bloque titulado
+**"Estado del arbol al escribir esto"**, **fechado y separado del analisis**. Asi quien lo lea manana
+**sabe que parte remedir sin dudar del resto** — hoy la duda contamina el documento entero.
+
+**Justificacion medida, y es la que convence:** `origin/main` ha ido **`b419492` -> `a7c4f48` ->
+`55a9d3d` en menos de una hora**. **Un export escrito hace veinte minutos ya cita una punta que no
+existe.** Es la D56 llevada a la estructura del documento: **si la coordenada es un puntero, el
+documento tiene que decir cuales de sus datos lo son.**
