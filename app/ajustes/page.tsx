@@ -25,6 +25,7 @@ import { QuickActions } from "@/components/nav/QuickActions";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
 import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
 import { useSignOutAndUnlinkPush } from "@/components/push/useSignOutAndUnlinkPush";
+import { ConexionGmail } from "@/components/settings/ConexionGmail";
 import { StoreLogoSection } from "@/components/settings/StoreLogoSection";
 import { VersionInfo } from "@/components/settings/VersionInfo";
 
@@ -146,6 +147,10 @@ export default function AjustesPage() {
               {canManageUsers && <StoreLogoSection />}
 
               {canManageUsers && <UsersSection />}
+
+              {/* AIT-92 (Ola 2): sección "Correo". Va aquí y no en una ruta
+                  nueva porque la maqueta la sitúa dentro de Ajustes. */}
+              <ConexionGmail />
 
               <div className="mx-auto w-full max-w-[480px]">
                 <Button

@@ -232,6 +232,36 @@ Una fila por dispositivo/navegador suscrito (un usuario puede tener varias). La 
 
 ---
 
+### `gmailAccounts` (Post-MVP, Ola 2, AIT-92 — no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `userId` | id(`users`) | De quién es la conexión. Nadie desconecta la de otro, ni `owner` ni `storeManager` (PRD CU6) |
+| `storeId` | id(`stores`) | La tienda del usuario en el momento de conectar |
+| `emailAddress` | string | Dirección del buzón conectado. **No es decorativa**: sin ella no se puede saber después si el remitente de un correo es una cuenta conectada |
+| `refreshTokenCipher` | string | Token de refresco **cifrado** (`v1.<nonce>.<datos>`, AES-256-GCM). Nunca en claro, nunca devuelto al cliente |
+| `connectedAt` | number | Fecha de conexión. Es la que pinta la pantalla — **no** "última sincronización", que no existe hasta AIT-98 |
+| `writeCount` | number | Escrituras con éxito sobre esta fila |
+| `status` | "connected" \| "disconnected" | |
+| `lastSyncAt`, `historyId`, `watchExpiration` | opcionales | Los fija el PRD para la sincronización (AIT-98). **Declarados y sin usar** en AIT-92 |
+
+**Una fila por (usuario, buzón).** El MISMO usuario no conecta dos veces el mismo buzón, pero **dos usuarios distintos SÍ pueden conectar el mismo** — es el caso de la tienda con buzón compartido, para el que el PRD §21 tiene `mailboxUserIds`. Por eso **no hay índice único por `emailAddress`**: lo prohibiría, y habría que quitarlo después con datos dentro.
+
+🔴 **Y el índice `by_user_email` NO garantiza la unicidad**: Convex admite varias filas con la misma clave de índice. Es un mecanismo de **búsqueda**. La unicidad la impone la escritura (`convex/gmail.ts:guardarConexion`), que consulta por ese índice **dentro de la misma mutation** y reutiliza la fila si existe. Su desenlace (`creada` / `reutilizada`) y `writeCount` son el observable de que un segundo flujo de OAuth llegó a escribir — y `writeCount` se puede leer con el cifrado roto, que es justo por qué no se usa "¿cambió el cipher?" para eso.
+
+⚠️ **La clave de cifrado vive en el entorno del deployment, no aquí** (`GMAIL_TOKEN_ENCRYPTION_KEY`, ver `docs/03-setup.md` §6quinquies). Guardarla en la base sería ponerla al lado del dato que protege. Si se pierde o se rota, estas filas dejan de poder descifrarse y hay que **reconectar**; no se pierde correo.
+
+### `gmailOauthStates` (interna, Ola 2, AIT-92 — no es una de las 7 entidades del PRD)
+| Campo | Tipo | Notas |
+|---|---|---|
+| `state` | string | 32 bytes del generador criptográfico, en hex |
+| `userId` | id(`users`) | A quién pertenece el flujo. **El usuario de la conexión sale de aquí, nunca de la petición de vuelta** |
+| `expiresAt` | number | Vida corta: es un ida y vuelta por el navegador, no una sesión |
+| `consumedAt` | number opcional | Se marca al usarlo. Un `state` vale UNA vez |
+
+Vive en tabla y no en una firma porque las cuatro propiedades que hacen falta —impredecible, con caducidad, ligado a su usuario y **consumible**— no las da una firma: **un `state` firmado pero reutilizable permite vincular un buzón ajeno reenviando el flujo**. Firmado y no reutilizable son cosas distintas.
+
+---
+
 ## 3. Datos que NO se guardan (se calculan)
 
 Guardarlos sería garantizar que se desfasan. Se calculan en la query:
