@@ -167,32 +167,60 @@ type Metrica = { etiqueta: string; unidad: string; atributos: readonly string[] 
  *
  *  Lo usan la prueba real y su control positivo: un verificador distinto del
  *  verificado sería una segunda opinión peor informada. */
-/** Quita comentarios antes de buscar. AIT-128 ronda 4: el detector usaba
- *  `includes` sobre el fuente crudo, así que una referencia COMENTADA contaba
- *  como renderizada — `{/* label={METRICAS.atrasados.etiqueta} *' + '/}` daba verde con
- *  el rótulo sin pintar. Es el mismo verde falso que el detector existe para cerrar.
+/** Quita comentarios antes de buscar la referencia RENDERIZADA.
  *
- *  Cubre las tres formas: bloque, JSX (`{`+bloque+`}`) y línea. El `[^:]` delante
- *  de `//` evita comerse un `https://`.
+ *  AIT-128 ronda 5. La versión anterior llevaba `(^|[^:])` delante del `//` para
+ *  no comerse un `https://`. **Esa excepción abrió un verde falso**, y lo
+ *  encontró el auditor:
  *
- *  SESGADO A SOBRE-ELIMINAR A PROPÓSITO: si de más, un rótulo real desaparece y
- *  el detector dice "falta" -> ROJO, ruidoso y visible. Si de menos, un comentario
- *  sobrevive y dice "está" -> VERDE FALSO, que es el fallo que no avisa. */
+ *      const x={slot:// <KpiCard label={METRICAS.atrasados.etiqueta} />
+ *      null};
+ *
+ *  El `//` va precedido por `:`, el patrón lo tomaba por una URL y lo conservaba,
+ *  así que un rótulo COMENTADO contaba como renderizado.
+ *
+ *  🔑 Lo que aprendí y es la razón del rediseño: la excepción existía para tapar
+ *  un ROJO FALSO que yo mismo había encontrado sondeando. **Al taparlo abrí un
+ *  agujero en el propio sesgo que me protegía.** El sesgo no era el problema —el
+ *  auditor lo dice— ; el problema fue hacerle una excepción para quitar ruido.
+ *  Un rojo falso molesta; un verde falso no avisa. No se cambia lo segundo por
+ *  lo primero.
+ *
+ *  Así que NO hay excepción: cualquier `//` abre comentario. Un `https://` dentro
+ *  de una cadena hace desaparecer el resto de SU línea, y si ahí había un rótulo
+ *  el detector dirá "falta" -> ROJO, ruidoso y visible. Es el precio elegido, y
+ *  está fijado con una prueba para que nadie lo "arregle" sin leer esto. */
 function sinComentarios(fuente: string): string {
   return fuente
     .replace(/\/\*[\s\S]*?\*\//g, " ")
-    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    .replace(/\/\/[^\n]*/g, "");
 }
 
 export function rotulosDesconectados(
   fuente: string,
   metricas: Record<string, Metrica> = METRICAS,
 ): string[] {
-  const codigo = sinComentarios(fuente);
+  // ⚠️ LAS DOS MITADES QUIEREN SESGOS OPUESTOS, y por eso miran fuentes distintas.
+  // Es lo que no vi en la ronda 4, cuando las hacía pasar a las dos por el mismo
+  // filtrado:
+  //
+  //   mitad POSITIVA  ("tiene que estar `label={METRICAS.x.etiqueta}`")
+  //       filtrar de más -> no lo encuentra -> "falta"        -> ROJO   (seguro)
+  //       filtrar de menos-> sobrevive un comentario -> "está" -> VERDE  (peligroso)
+  //     => quiere el filtrado AGRESIVO.
+  //
+  //   mitad NEGATIVA  ("no puede estar el literal escrito a mano")
+  //       filtrar de más -> se pierde el literal -> "no está"  -> VERDE  (peligroso)
+  //       filtrar de menos-> lo ve en un comentario           -> ROJO   (seguro)
+  //     => quiere el fuente CRUDO, sin filtrar nada.
+  //
+  // Un solo preprocesado para las dos tenía que dejar una de ellas fallando hacia
+  // el verde. Cada una se lleva el suyo.
+  const renderizado = sinComentarios(fuente);
   const problemas: string[] = [];
   for (const [clave, m] of Object.entries(metricas)) {
     for (const atributo of m.atributos) {
-      if (!codigo.includes(`${atributo}={METRICAS.${clave}.etiqueta}`)) {
+      if (!renderizado.includes(`${atributo}={METRICAS.${clave}.etiqueta}`)) {
         problemas.push(
           `${clave}: falta ${atributo}={METRICAS.${clave}.etiqueta} en la página`,
         );
@@ -203,7 +231,7 @@ export function rotulosDesconectados(
       `title="${m.etiqueta}"`,
       `>${m.etiqueta}<`,
     ]) {
-      if (codigo.includes(patron)) {
+      if (fuente.includes(patron)) {
         problemas.push(`${clave}: rótulo escrito a mano (${patron})`);
       }
     }

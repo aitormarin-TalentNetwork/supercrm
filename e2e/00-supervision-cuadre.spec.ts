@@ -254,15 +254,31 @@ test.describe("AIT-128 · el detector de rótulos desconectados se pone rojo", (
 // crudo. Mi mundo de fallo era *borrar* la línea; *comentarla* es otra puerta a lo
 // mismo y no la había mirado.
 //
-// LAS FORMAS DE QUE EL RÓTULO NO LLEGUE A LA PANTALLA, y cuáles cubre esto:
-//   1. borrado                       -> CUBIERTO
-//   2. sustituido por otra constante -> CUBIERTO
-//   3. comentado (bloque, JSX, línea)-> CUBIERTO desde esta ronda
-//   4. dentro de una rama muerta o tras un `return` temprano  -> NO CUBIERTO
-//   5. renderizado pero oculto por CSS                        -> NO CUBIERTO
-// Las dos últimas NO las puede ver un análisis del TEXTO del fichero: harían falta
-// render y árbol de accesibilidad. Se declaran en vez de dejarlas implícitas —
-// un límite escrito se puede refutar; uno omitido se lee como cobertura.
+// QUÉ CATEGORÍAS CUBRE ESTE DETECTOR, y cuáles no. Es una lista de CATEGORÍAS, no
+// una enumeración exhaustiva de las formas de que un rótulo no llegue a la
+// pantalla: no sé cuántas hay.
+//
+//   CUBIERTO — ausencia o desconexión visible en el TEXTO del fichero:
+//     · el rótulo borrado
+//     · el rótulo sustituido por otra constante
+//     · el rótulo comentado (bloque, JSX, línea)
+//     · un literal escrito a mano en paralelo a la constante
+//
+//   NO CUBIERTO — este detector se basa en presencia textual y no analiza:
+//     · flujo de control (rama muerta, `return` temprano) -> el texto está y no se
+//       renderiza
+//     · visibilidad efectiva (CSS, `aria-hidden`) -> se renderiza y no se percibe
+//
+// ⚠️ CORREGIDO EN LA RONDA 5 (M3): antes esto decía que esas dos "NO las puede ver
+// NINGÚN análisis del TEXTO". Eso afirmaba de más. Lo cierto es que ESTE detector
+// no las ve, porque no analiza flujo ni estilo — no que ningún análisis estático
+// pudiera. Un análisis con AST y evaluación de condiciones podría alcanzar parte
+// del flujo de control.
+//
+// Se declara igual, y por lo mismo que se declaraba antes: un límite escrito se
+// puede refutar, y uno omitido se lee como cobertura. La diferencia es que ahora
+// dice lo que puedo sostener. Lo que cierra estas dos categorías es mirar la
+// pantalla renderizada — el encargo del QA no es un extra, es esta parte.
 test.describe("AIT-128 · una referencia comentada NO cuenta como renderizada", () => {
   const SANA = `
     <KpiCard label={METRICAS.comerciales.etiqueta} />
@@ -300,12 +316,46 @@ test.describe("AIT-128 · una referencia comentada NO cuenta como renderizada", 
     expect(rotulosDesconectados(f)).toEqual([FALTA_LABEL]);
   });
 
-  // CONTROL DE QUE NO SOBRE-ELIMINA: el filtrado se sesga a quitar de más, y de
-  // más significa borrar código real y gritar por un rótulo que sí está. Una URL
-  // lleva `//` y no abre un comentario.
-  test("una URL con // no hace desaparecer el código que va detrás", () => {
+  // LOS DOS MUNDOS DE LA EXCEPCIÓN `:`, que el auditor pidió juntos (M1 loop4).
+  // La ronda 4 llevaba `(^|[^:])` delante del `//` para no comerse un `https://`.
+  // Esa excepción abría un VERDE FALSO: un `//` precedido de `:` se conservaba,
+  // así que un rótulo comentado tras `slot:` contaba como renderizado.
+  //
+  // Se retiró la excepción. Los dos mundos quedan fijados aquí para que nadie la
+  // reponga "para quitar ruido" sin ver lo que cuesta.
+  test("MUNDO 1 · un // precedido de ':' SÍ es un comentario (el verde falso de la ronda 4)", () => {
+    const f = SANA.replace(
+      "<KpiCard label={METRICAS.atrasados.etiqueta} />",
+      "const x={slot:// <KpiCard label={METRICAS.atrasados.etiqueta} />\n    null};",
+    );
+    // Con la excepción puesta esto devolvía [] con el rótulo comentado.
+    expect(rotulosDesconectados(f)).toEqual([FALTA_LABEL]);
+  });
+
+  test("MUNDO 2 · el precio: una URL en la MISMA línea que un rótulo lo tapa", () => {
+    // Éste es el rojo falso que la excepción venía a evitar, y que ahora se acepta
+    // a propósito. Se fija como prueba para que sea una decisión visible y no una
+    // sorpresa: un rojo molesta, un verde falso no avisa.
+    const f = SANA.replace(
+      "<KpiCard label={METRICAS.atrasados.etiqueta} />",
+      '<a href="https://x.test"/> <KpiCard label={METRICAS.atrasados.etiqueta} />',
+    );
+    expect(rotulosDesconectados(f)).toEqual([FALTA_LABEL]);
+  });
+
+  test("y una URL en OTRA línea no afecta a los rótulos", () => {
     const f = `${SANA}\n    <a href="https://ejemplo.test/x">ver</a>`;
     expect(rotulosDesconectados(f)).toEqual([]);
+  });
+
+  // La mitad NEGATIVA mira el fuente CRUDO, no el filtrado: si mirara el filtrado,
+  // un literal escrito a mano se perdería al sobre-eliminar y saldría VERDE.
+  // Las dos mitades quieren sesgos opuestos y por eso miran fuentes distintas.
+  test("un literal a mano se caza aunque esté en una línea con //", () => {
+    const f = `${SANA}\n    const u="https://x"; <KpiCard label="${METRICAS.atrasados.etiqueta}" />`;
+    expect(rotulosDesconectados(f)).toContain(
+      `atrasados: rótulo escrito a mano (label="${METRICAS.atrasados.etiqueta}")`,
+    );
   });
 
   // Y el control negativo del propio filtrado: un comentario que NO tapa nada no
