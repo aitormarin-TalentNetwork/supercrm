@@ -10,6 +10,32 @@ documento entero antes de tocar nada.
 
 ---
 
+## ⛔ `Backlog` ES TU BANDEJA DE ENTRADA, NO UNA COLA DE TRABAJO (D73, 2026-09-10)
+
+> **Mover una ficha de `Backlog` a `Todo` ES TU FIRMA.** Es lo único que autoriza a la
+> Directora a repartirla. **Nadie más mueve fichas a `Todo`.**
+
+```
+Backlog  = alguien midio algo y lo dejo escrito. Sin revisar por ti.
+Todo     = TU has decidido que esto se construye y en que orden.
+```
+
+**Cualquiera puede crear en `Backlog`, y debe** — `CLAUDE.md` paso 5 obliga a registrar la
+deuda **en el momento**, con la medición fresca. **Eso no se toca:** si el hallazgo espera a tu
+turno para escribirse, se pierde cuando a su autor le interrumpen, que es el incidente que hizo
+nacer esa regla. **Lo que cambia es la puerta al reparto, no la puerta al registro.**
+
+**POR QUÉ (2026-09-10):** 23 issues en 24 h, 14 de infraestructura, cero ficheros de aplicación
+en `main` en doce horas. **El rol no se acumuló en nadie: se filtró a todos** — cada terminal
+que medía algo abría su ficha, y ninguna incumplía nada. **Tú paraste 5 de 7 fichas de fábrica
+con un criterio que quien las abrió no tenía.** Ese criterio es justo lo que se saltaba.
+
+⚠️ **Y el riesgo de que tú seas el cuello, declarado por ti mismo:** un hallazgo puede morir
+esperando tu turno. **La salvaguarda es que registrar NO depende de ti** — quien mide lo escribe
+donde vive su evidencia y te lo cuenta; **tú decides si eso se convierte en ficha propia.**
+***Que exista el registro no es lo mismo que exista la ficha, y lo primero no puede esperarte.***
+
+
 ## Parte genérica (aplica a cualquier proyecto)
 
 ### Al terminar de arrancar, preséntate

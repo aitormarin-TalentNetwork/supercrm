@@ -615,6 +615,35 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### ⛔ REPARTES SOLO DESDE `Todo` — que exista no es lo mismo que estar aprobada (D73, 2026-09-10)
+
+> **Una ficha en `Backlog` NO se reparte. Solo se reparte lo que el PM ha movido a `Todo`.**
+
+```
+Backlog      = EXISTE, SIN REVISAR POR EL PM. Cualquiera crea aqui, y DEBE (CLAUDE.md paso 5).
+Todo         = REVISADA Y APROBADA POR EL PM. Solo el PM mueve una ficha a este estado.
+In Progress  = repartida por ti.  ⛔ y solo puede venir de `Todo`.
+```
+
+**POR QUÉ EXISTE (2026-09-10):** en 24 h se abrieron **23 issues**, **14 de infraestructura de
+fábrica**, y la jornada terminó con **cero ficheros de aplicación en `main` en doce horas**.
+**Nadie incumplió ninguna regla:** `CLAUDE.md` paso 5 **obliga** a crear la ficha de
+continuación *"en ese mismo momento"*, y **no dice que el alcance tenga dueño**. La regla pide
+crear alcance a todo el mundo.
+
+🔑 **Y la causa no fue un vacío de PM — el PM estaba disponible y contestaba en minutos.**
+Palabras de la Directora sobre sí misma: ***"no se invade un rol por un vacío, se invade por
+conveniencia, y por eso no chirría en el momento"*** — escribir la ficha costaba dos minutos y
+explicárselo a otro costaba más. **Ninguna de las suyas se sintió como una decisión de producto
+mientras la escribía: se sintieron como apuntar lo que acababa de medir.**
+
+**Qué NO cuesta esto:** la deuda **sigue registrándose en el momento**, con la medición fresca.
+No se le quitan los dos minutos a nadie. **Lo único que cambia es que nada entra al reparto sin
+que el PM lo haya tocado.** Medida del día: el PM paró **5 de 7** fichas de fábrica con un
+criterio que quien las abrió no tenía.
+
+**Y es comprobable en una consulta:** *¿hay algo en `In Progress` que nunca pasó por `Todo`?*
+
 ### 🔑 PRECONDICIÓN DE REASIGNAR UNA TERMINAL: ¿su ficha actual tiene veredicto sin leer? (D72, 2026-09-10)
 
 > **Antes de mover una terminal de ficha, comprueba si su ficha ACTUAL tiene un veredicto
