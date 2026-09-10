@@ -186,6 +186,18 @@ detectaron solos, **la mayoría los cazó otra persona con otro método** — un
 dos filtros, un señuelo, una sesión que puso un número que no cuadraba. **Un control propio es
 barato y ayuda; una comprobación ajena construida por otra vía es lo que realmente separa.**
 
+**Y hay una SEGUNDA instancia, con otro mecanismo, que convierte esto en clase y no en
+anécdota.** T2 diseñó unos señuelos para escapar de su propio punto ciego… **y los escribió
+llamando a una función que exige usuario autenticado.** O sea: **sus señuelos nunca habrían
+escrito nada, y su comprobación habría salido verde porque no pasó nada — no porque no hubiera
+agujero.** La primera vez el control heredó la ceguera por **la forma sintáctica**; ésta, por
+**la invocabilidad**. Distinto mecanismo, mismo resultado.
+
+**Lo encontró el auditor, no ella.** Y su propia cita de cierre de esa ronda, escrita **antes**
+de saberlo:
+> *"Un caso de prueba escrito por quien escribió el instrumento hereda sus puntos ciegos: no
+> prueba el detector, lo confirma."*
+
 **Y la enumeración completa, que es lo que la convierte en hallazgo y no en impresión** — la
 hice porque el Factory Architect dijo que era *"fuente agotable, un rato de lectura"*, y tenía
 razón. **Ocho instrumentos rotos, no seis:**
