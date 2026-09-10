@@ -102,12 +102,133 @@ export const PRESUPUESTO_C3_MS = 3000;
 // los LÍMITES los que bajan — nunca el presupuesto.
 export const MARGEN_SOBRECARGA_MS = 350;
 
+// AIT-134 — EL PRESUPUESTO DEL CAMINO DE FALLO. Decisión del PM, 2026-09-10.
+//
+// C3 exige `/login` en ≤ `PRESUPUESTO_C3_MS` desde el clic. Hasta AIT-134 eso
+// gobernaba un solo camino, porque **el de fallo no navegaba**. Al hacer que la
+// recuperación navegue, C3 empezaba a aplicarle — y no cabía:
+//     750 + 1400 + 500 + MARGEN(350) = 3000 ms   <- el presupuesto ENTERO
+// o sea **cero hueco** para la ruta local y la confirmación, que son dos idas y
+// vueltas HTTP y una de ellas pasa por el middleware.
+//
+// 🔑 POR QUÉ ESTO NO ES AJUSTAR EL CRITERIO AL RESULTADO, que es la pregunta que
+// hay que hacerle a cualquier presupuesto nuevo: **C3 se escribió para el camino
+// normal, y el de recuperación NO EXISTÍA cuando se escribió.** Ese hecho es
+// ANTERIOR al rojo. Aplicarle a un camino nuevo un criterio redactado para otro
+// es retroajuste, no cumplimiento.
+//
+// ⚠️ Y DE DÓNDE SALE EL 5000, dicho como lo que es: **es un juicio del PM, NO una
+// medición.** No sale de lo que cuesta esta implementación —se fijó antes de
+// saberlo— sino del usuario: en un camino de fallo la restricción no es parecer
+// rápido, es **que la persona no se rinda y se vaya antes de que termine**,
+// porque irse creyendo que ha salido es exactamente el daño de AIT-127.
+// Lo cambiaría evidencia sobre cuándo se abandona una pantalla que te habla.
+//
+// ⛔ GUARDA 1 — NO CASCADEA. Ningún otro camino hereda este margen. Es de este
+//    camino y de ninguno más.
+// ⛔ GUARDA 2 — DEPENDE DE UNA FICHA AJENA, Y ESTO ES LO QUE NO SE PUEDE PERDER:
+//    lo que hace aceptables 5 segundos es **la alerta de AIT-127**, que aparece a
+//    los ~102 ms. El usuario no espera en silencio: espera informado. **Si esa
+//    alerta desaparece, este presupuesto vuelve a 3 s el mismo día.**
+//    Está escrito también en `docs/01-arquitectura.md` porque quien toque
+//    AIT-127 no va a leer este fichero.
+export const PRESUPUESTO_C3_FALLO_MS = 5000;
+
+/** AIT-134: el plazo de la ruta de cierre local (`/api/cerrar-sesion-local`).
+ *  Sólo se gasta en el camino de RECUPERACIÓN, cuando el cierre normal no se
+ *  confirmó. La ruta no habla con Convex —está fuera del matcher de `proxy.ts`—
+ *  así que su coste es el de nuestro propio servidor.
+ *  ⚠️ VALOR PROVISIONAL HASTA MEDIRLO. Se publica el número medido en el export
+ *  y este literal se ajusta a él. No es un número elegido por bonito. */
+export const LIMITE_CIERRE_LOCAL_MS = 600;
+
+/** AIT-134: el plazo de la CONFIRMACIÓN POR EFECTO.
+ *  🔴 VA ACOTADA POR EL MISMO MOTIVO QUE TODO LO DEMÁS, y esto no es obvio:
+ *  confirmar por efecto significa pedir una ruta protegida, y una ruta protegida
+ *  **pasa por el middleware**, o sea por el mismo `fetchQuery` a Convex sin
+ *  límite que estamos rodeando. **La confirmación hereda la dependencia.**
+ *  Si no puede completarse -> NO se ha confirmado -> no se navega, se avisa.
+ *  La regla se aplica sola: no hace falta escribirle ninguna excepción.
+ *  ⚠️ VALOR PROVISIONAL HASTA MEDIRLO, igual que el de arriba. */
+export const LIMITE_CONFIRMACION_MS = 600;
+
+/** AIT-134: la ruta protegida contra la que se confirma por efecto. */
+export const RUTA_PROTEGIDA_CONFIRMACION = "/pipeline";
+
+/** AIT-134 · Los TRES estados del acceso. Ninguno se deduce de la negación de
+ *  otro, y eso es el arreglo, no un detalle de estilo.
+ *
+ *  🔴 EL DEFECTO QUE CIERRA: un predicado binario mete en el mismo saco *"me
+ *  dejó entrar"* y *"pasó algo raro"*. **"No es la denegación esperada" NO
+ *  implica "el servidor deja entrar."** Con dos estados, un 500 o una respuesta
+ *  corrupta se leían como sesión cerrada y la app navegaba afirmando un cierre
+ *  que nadie comprobó.
+ *
+ *  ⛔ `ANOMALO` NUNCA SE ABSORBE: no cuenta como acceso ni como denegación.
+ *  Falla cerrado, que aquí significa no confirmar y por tanto no navegar. */
+export type EstadoAcceso =
+  | "ACCESO_CONFIRMADO"
+  | "DENEGACION_ESPERADA"
+  | "ANOMALO";
+
+/** ⚠️ DECLARACIÓN DE UNA DIFERENCIA REAL ENTRE PRODUCTO Y PRUEBA, y va aquí
+ *  porque es justo la clase de hueco que se paga caro si se descubre después.
+ *
+ *  La prueba e2e clasifica con `maxRedirects: 0` y lee la cabecera `Location`.
+ *  **Desde el navegador eso es imposible:** un `fetch` con `redirect:"manual"`
+ *  devuelve una respuesta OPACA —`type:"opaqueredirect"`, `status: 0`— y la
+ *  cabecera `Location` no es legible por JavaScript. No es una limitación que se
+ *  pueda rodear: es el modelo de seguridad del navegador.
+ *
+ *  Así que producto y prueba comparten la SEMÁNTICA —*redirección del mismo
+ *  origen al `pathname` exacto `/login`*— y **no el mecanismo**: aquí se deja
+ *  seguir la redirección y se mira `response.redirected` y el `pathname` de
+ *  `response.url`, que es el mismo hecho observado por el único canal que el
+ *  navegador expone. Lo digo en vez de dejar que alguien lo lea como que
+ *  divergen por descuido. */
+async function clasificarAccesoProtegido(
+  limiteMs: number,
+): Promise<EstadoAcceso> {
+  const control = new AbortController();
+  const corte = setTimeout(() => control.abort(), limiteMs);
+  try {
+    const respuesta = await fetch(RUTA_PROTEGIDA_CONFIRMACION, {
+      signal: control.signal,
+      cache: "no-store",
+    });
+    const destino = new URL(respuesta.url, window.location.origin);
+    if (
+      respuesta.redirected &&
+      destino.origin === window.location.origin &&
+      destino.pathname === "/login"
+    ) {
+      return "DENEGACION_ESPERADA";
+    }
+    if (!respuesta.redirected && respuesta.ok) return "ACCESO_CONFIRMADO";
+    return "ANOMALO";
+  } catch {
+    // Aborto por plazo, rechazo de red, URL inválida: NO es denegación y NO es
+    // acceso. Es exactamente el tercer estado, y por eso existe.
+    return "ANOMALO";
+  } finally {
+    clearTimeout(corte);
+  }
+}
+
 /** AIT-127: lo único que detiene la NAVEGACIÓN es que el cierre no se confirme.
  *  ⚠️ "No confirmado" incluye tres cosas distintas y a propósito: que responda
  *  mal, que rechace, y que **venza el plazo sin responder**. Las tres se tratan
  *  igual porque en las tres **no sabemos** si la sesión se cerró — y esta ficha
- *  prohíbe reportar éxito sin confirmación. */
-export type ResultadoCierre = { ok: true } | { ok: false; motivo: "cierre" };
+ *  prohíbe reportar éxito sin confirmación.
+ *
+ *  AIT-134 añade `"recuperado"`: el cierre normal NO se confirmó, pero la ruta
+ *  de cierre local quitó la credencial **y se comprobó por efecto contra el
+ *  servidor**. Es un `ok:true` porque la sesión está cerrada de verdad; lleva
+ *  motivo propio para que quien lo consuma pueda distinguirlo del camino sano
+ *  sin tener que adivinarlo. */
+export type ResultadoCierre =
+  | { ok: true; via: "normal" | "recuperado" }
+  | { ok: false; motivo: "cierre" };
 
 // AIT-57 (hallazgo de auditoría NO-GO ronda 3): la mutation
 // `pushSubscriptions.unsubscribe` exige usuario autenticado (`requireUser`), así
@@ -205,11 +326,62 @@ export function useSignOutAndUnlinkPush() {
     }
 
     if (!cierreConfirmado) {
-      // NO se llama a `signOut()`: limpiaría el estado del cliente y la app
-      // parecería desconectada con la sesión viva — la señal falsa exacta.
-      // NO se borra el endpoint: si el usuario reintenta, hará falta.
-      // Y NO se navega: de eso se encarga quien llama.
-      return { ok: false, motivo: "cierre" };
+      // ── AIT-134 · RECUPERACIÓN ──────────────────────────────────────────
+      // Hasta aquí llegaba AIT-127: devolvía `{ok:false}` y paraba. Era honesto
+      // —no mentía— pero **dejaba la sesión USABLE**: nadie había emitido el
+      // `Set-Cookie` que borra las cookies, así que el servidor seguía dejando
+      // entrar. Medido por efecto en la fase de plan, no leído.
+      //
+      // Se intenta quitarle la credencial al navegador por la única vía que no
+      // depende de Convex, y **sólo se reporta éxito si se confirma por efecto**.
+      const controlLocal = new AbortController();
+      const corteLocal = setTimeout(
+        () => controlLocal.abort(),
+        LIMITE_CIERRE_LOCAL_MS,
+      );
+      let rutaLocalOk = false;
+      try {
+        const r = await fetch("/api/cerrar-sesion-local", {
+          method: "POST",
+          signal: controlLocal.signal,
+        });
+        rutaLocalOk = r.ok;
+      } catch {
+        rutaLocalOk = false;
+      } finally {
+        clearTimeout(corteLocal);
+      }
+
+      // ⛔ `rutaLocalOk` NO ES LA CONFIRMACIÓN, y no fusionarlos es el punto.
+      // Que la ruta devuelva 200 dice que respondió, no que el navegador se
+      // haya quedado sin credencial utilizable. Reportar éxito con esto sería
+      // exactamente `ok:true` significando "el fetch no reventó" — la señal
+      // falsa que esta ficha existe para quitar. La confirmación es de EFECTO.
+      const confirmado = rutaLocalOk
+        ? (await clasificarAccesoProtegido(LIMITE_CONFIRMACION_MS)) ===
+          "DENEGACION_ESPERADA"
+        : false;
+
+      if (!confirmado) {
+        // Ni el cierre normal ni la recuperación. NO se llama a `signOut()`:
+        // limpiaría el estado del cliente y la app parecería desconectada con la
+        // sesión viva — la señal falsa exacta. NO se borra el endpoint: si el
+        // usuario reintenta, hará falta. Y NO se navega.
+        return { ok: false, motivo: "cierre" };
+      }
+
+      // Confirmado por efecto: el servidor ya NO deja entrar. La sesión está
+      // cerrada de verdad, así que se limpia el cliente y se navega — no
+      // navegar aquí sería la mentira nueva: dejar al usuario en una pantalla
+      // autenticada con un aviso diciendo que no se cerró, cuando sí se cerró.
+      await Promise.race([
+        signOut(),
+        new Promise<void>((resolver) =>
+          setTimeout(resolver, LIMITE_LIMPIEZA_CLIENTE_MS),
+        ),
+      ]);
+      removeDeviceValue(PUSH_ENDPOINT_KEY);
+      return { ok: true, via: "recuperado" };
     }
 
     // 5. Cerrado de verdad. Ahora sí `signOut()`, que es la que limpia el estado
@@ -237,6 +409,6 @@ export function useSignOutAndUnlinkPush() {
       ),
     ]);
     removeDeviceValue(PUSH_ENDPOINT_KEY);
-    return { ok: true };
+    return { ok: true, via: "normal" };
   }, [signOut, unsubscribe]);
 }

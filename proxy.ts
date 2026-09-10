@@ -106,6 +106,32 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   );
 });
 
+// AIT-134: `/api/cerrar-sesion-local` queda FUERA del matcher, y es la pieza de
+// la que depende que esa ruta sirva para algo.
+//
+// El handler de arriba llama a `convexAuth.isAuthenticated()` (línea 79) en toda
+// ruta que el matcher capture, y eso es un `fetchQuery` a Convex SIN LÍMITE. La
+// ruta de cierre local existe justamente para el caso en que Convex no responde:
+// si pasara por aquí, se quedaría esperando a lo mismo que viene a rodear, y la
+// respuesta que borra las cookies no llegaría nunca.
+//
+// ⛔ NO VALE UN `return` TEMPRANO EN EL HANDLER. `convexAuthNextjsMiddleware`
+// ENVUELVE a nuestra función y puede intentar renovar tokens —otro `fetchAction`—
+// antes de que nuestro código corra. Lo único que garantiza cero Convex es que la
+// ruta no entre en el matcher.
+//
+// ⚠️ ESTE REGEX NO SE VERIFICA LEYÉNDOLO. Son tres patrones con negación
+// anticipada y escapes dobles: es exactamente la clase de cosa que se lee
+// correcta y no lo es. Se comprueba POR EFECTO —con Convex pendiente, la ruta
+// tiene que responder dentro de su límite— y ese test existe en
+// `e2e/08-cierre-de-sesion.spec.ts`. Si alguien toca esta línea, ese test es el
+// que dice si sigue funcionando.
+const RUTA_CIERRE_LOCAL = "api/cerrar-sesion-local";
+
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    `/((?!.*\\..*|_next|${RUTA_CIERRE_LOCAL}).*)`,
+    "/",
+    `/(api|trpc)(?!/cerrar-sesion-local)(.*)`,
+  ],
 };

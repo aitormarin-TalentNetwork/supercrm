@@ -5,6 +5,9 @@ import {
   LIMITE_LIMPIEZA_CLIENTE_MS,
   PRESUPUESTO_C3_MS,
   MARGEN_SOBRECARGA_MS,
+  PRESUPUESTO_C3_FALLO_MS,
+  LIMITE_CIERRE_LOCAL_MS,
+  LIMITE_CONFIRMACION_MS,
 } from "../components/push/useSignOutAndUnlinkPush";
 
 /** AIT-127 — El criterio C3 mide el TOTAL, no cada tramo.
@@ -66,4 +69,58 @@ test("C3 · el presupuesto no se ha relajado por la puerta de atrás", () => {
   // PRESUPUESTO_C3_MS y las dos pruebas siguen en verde. El 3000 no es un número
   // nuestro: es el criterio de la ficha, y cambiarlo es cambiar el criterio.
   expect(PRESUPUESTO_C3_MS).toBe(3000);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AIT-134 — EL CAMINO DE FALLO TIENE SU PROPIO PRESUPUESTO, Y SUS PROPIAS GUARDAS
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("C3-fallo · el camino de recuperación cabe en su presupuesto", () => {
+  // 🔴 POR QUÉ EXISTE ESTE SEGUNDO PRESUPUESTO. Al hacer que la recuperación
+  // navegue (M3), C3 empezó a aplicarle un criterio escrito para otro camino. Y
+  // no cabía: las etapas que ya existían suman el presupuesto ENTERO —
+  //     750 + 1400 + 500 + 350 = 3000
+  // — o sea CERO hueco para la ruta local y la confirmación.
+  //
+  // ⚠️ Y el número que hay que usar en esa cuenta es el MARGEN DECLARADO (350),
+  // no la mejor sobrecarga medida (278). Con la medición quedaban 72 ms y con la
+  // constante quedan 0: usar el número favorable inventa margen que no existe.
+  const total =
+    LIMITE_LIMPIEZA_MS +
+    LIMITE_CIERRE_MS +
+    LIMITE_CIERRE_LOCAL_MS +
+    LIMITE_CONFIRMACION_MS +
+    LIMITE_LIMPIEZA_CLIENTE_MS +
+    MARGEN_SOBRECARGA_MS;
+
+  expect(
+    total,
+    `el camino de recuperación suma ${total} ms (push ${LIMITE_LIMPIEZA_MS} + ` +
+      `cierre ${LIMITE_CIERRE_MS} + ruta local ${LIMITE_CIERRE_LOCAL_MS} + ` +
+      `confirmación ${LIMITE_CONFIRMACION_MS} + limpieza ${LIMITE_LIMPIEZA_CLIENTE_MS} + ` +
+      `margen ${MARGEN_SOBRECARGA_MS}) y su presupuesto es ${PRESUPUESTO_C3_FALLO_MS} ms. ` +
+      `No subas el presupuesto: baja los límites nuevos, o vuelve al PM.`,
+  ).toBeLessThanOrEqual(PRESUPUESTO_C3_FALLO_MS);
+});
+
+test("C3-fallo · el presupuesto del camino de fallo no se ha relajado", () => {
+  // Mismo control que el de 3000: el 5000 no es un número nuestro, es una
+  // decisión del PM. Cambiarlo es cambiar la decisión, no ajustar una constante.
+  expect(PRESUPUESTO_C3_FALLO_MS).toBe(5000);
+});
+
+test("C3-fallo · el presupuesto del camino NORMAL no ha heredado el margen del de fallo", () => {
+  // ⛔ GUARDA 1 DEL PM, EJECUTABLE: "no cascadea". Sin esto, el 5000 se convierte
+  // con el tiempo en el presupuesto de todo — que es como un margen concedido a
+  // un caso acaba siendo la norma sin que nadie lo decida.
+  //
+  // 🔑 Y este test tiene mundo en el que falla: si alguien iguala los dos
+  // presupuestos "para simplificar", se pone rojo. Un criterio que no puede
+  // suspender no es un criterio.
+  expect(
+    PRESUPUESTO_C3_MS,
+    `el presupuesto del camino normal (${PRESUPUESTO_C3_MS}) se ha igualado al ` +
+      `del camino de fallo (${PRESUPUESTO_C3_FALLO_MS}). El margen del fallo NO ` +
+      `cascadea: es de ese camino y de ninguno más.`,
+  ).toBeLessThan(PRESUPUESTO_C3_FALLO_MS);
 });
