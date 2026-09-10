@@ -462,7 +462,39 @@ tu ficha qué commits ajenos arrastras.
   ancla FIJA que sepas que lleva código (`e847ad8~1 e847ad8` → 5). *Si el control
   da 0, la medida no se cuenta.* Aquel día no coló únicamente porque el control
   dio 0 donde toda la tarde daba 5 — **lo cazó un testigo puesto antes, no leer
-  con más atención**. *Por qué se
+  con más atención**.
+
+  📌 **Y el punto ciego no cae en cualquier sitio: cae sobre CADA ENTREGA DE
+  CÓDIGO.** Medido por el QA el mismo día — los merges más recientes del repo son
+  `e379117` (AIT-141), `b1cdbf2` (AIT-128) y `c579d48` (AIT-127): **las tres
+  publicaciones de producto**. Sobre `e379117`, `git show --name-only` da
+  **0 líneas** donde `diff ~1` da 6 ficheros, 5 de código. *Un gate ciego
+  exactamente en la población que existe para vigilar no es un gate débil: no es
+  ninguno.*
+
+  ✅ **Lo que NO hay que repasar, para que nadie audite medidas que están bien:**
+  un **rango de dos puntos** (`git diff A..B`) **sí ve el contenido de los
+  merges**, porque compara extremos — comprobado, 6 ficheros en `7fe3c94..c4aa030`.
+  **El agujero era sólo del examen por commit**, así que el comando canónico de
+  arriba y las medidas de ronda nunca lo tuvieron.
+
+  ⚠️ **Declara la semántica de `~1` en vez de asumirla: `~1` es el PRIMER PADRE.**
+  Para un merge *hacia* `main` eso es la punta anterior de `main`, que es la
+  comparación que quieres. **Pero si alguien mergea `main` DENTRO de una rama, ese
+  `~1` es la rama y el diff te cuenta lo contrario de lo que crees.** No es
+  hipotético: `ec34cda` ("Merge remote-tracking branch 'origin/main' into
+  aitormarin/corregir-comentario-falso-authstate") ya está en este repo.
+
+  🔎 **Y para saber si un commit ES un merge, cuenta PADRES.** `git log --merges
+  <sha>` lista los merges **alcanzables desde** ese commit, no si el commit lo es:
+  contesta bien a otra pregunta, y un rótulo encima la convierte en la tuya.
+
+  ```bash
+  git log -1 --format='%p' <sha> | wc -w    # 1 = normal · 2+ = merge
+  ```
+  Con control positivo (`e379117` → 2) y negativo (`04eee50` → 1).
+
+  *Por qué se
   estrechó así:* la primera redacción decía "para si `main` lleva commits que no son
   tuyos", y como aquí commitean seis roles, eso te convertía en cuello de botella de todo
   — el 2026-09-08 las once decisiones de proceso del día se quedaron media tarde sin subir
