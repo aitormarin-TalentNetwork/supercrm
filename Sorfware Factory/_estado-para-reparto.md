@@ -913,3 +913,64 @@ Los siete, con su paso nombrado (el test: ¿PASO + QUIEN?):
 **Y el hueco que le quedaba a la regla del PM, que el mismo cerro:** su criterio distinguia
 abandono de espera, pero **no espera de espera indefinida** — una ficha con dueno nombrado sigue
 pasando el test para siempre. La fecha de peticion lo cierra.
+
+---
+
+## 2026-09-10 17:27Z — RESTAURAR UNA ROTURA DELIBERADA: LAS CUATRO FORMAS DE FALLAR
+
+Salio de tres desarrolladores tropezando con el MISMO defecto en dos horas, cada uno por una causa
+distinta. **Yo lo aprendi del primero, lo verifique, lo escribi en mi cuaderno y NO lo reparti** —
+el segundo lo cazo mirando la salida por casualidad, y el tercero encontro la forma peor. **El
+fallo no fue de conocimiento sino de DIFUSION**, y esos no se arreglan acordandose mejor: por eso
+esto va aqui y al `intro-terminal.txt`.
+
+### Las cuatro formas
+
+    (1) fichero TRACKEADO, restauras, y el exit se pierde en una TUBERIA
+        `git checkout -- X` grita: stderr + exit 1. Pero `$?` detras de `| tee` es el de `tee`.
+        -> se restauro mal y el script sigue como si nada.        [T2, con un XSS dentro]
+
+    (2) fichero SIN TRACKEAR: no hay indice del que restaurar
+        exit 1 + "pathspec did not match any file(s) known to git", y LA ROTURA SE QUEDA.
+        ⚠️ Si el TEST tampoco esta trackeado, se commitea el defecto CON SU TEST EN VERDE AL LADO
+        — no un fallo silencioso: una ACREDITACION FABRICADA del fallo.        [T3]
+
+    (3) commiteaste el fichero YA ROTO y restauras -> **exit 0** y el fichero sigue roto
+        No es un fallo de git: restauro al indice, que estaba envenenado. **Esta NO GRITA.**
+        > El exit dice "restaure al INDICE", NO "el fichero esta BIEN".
+        > Son dos afirmaciones distintas y solo la primera esta medida.        [T1]
+
+    (4) el estado de referencia se SUPONE bueno
+        Es (3) un paso antes: no basta con "el md5 de antes de romper".        [T3]
+        > **La referencia es el md5 de un estado cuyas PRUEBAS ESTAN EN VERDE.**
+
+### El procedimiento que cubre las cuatro
+
+    1. dejar el arbol con las pruebas EN VERDE   <- esto define "bueno", no la intuicion
+    2. md5 de cada fichero que se va a romper    <- APUNTARLO
+    3. commitear ese estado (si el fichero es nuevo, tambien: si no, no hay a donde volver)
+    4. romper
+    5. restaurar — y leer el exit del comando EN LA LINEA SIGUIENTE, sin tuberia
+    6. md5 otra vez y COMPARAR con el del paso 2   <- lo unico que mide lo que importa
+
+**El paso 5 dice que git hizo algo. El paso 6 dice que el fichero esta bien.** Y para el caso (2)
+—fichero sin trackear— **el paso 6 es lo unico que queda**, porque el commit previo no existe.
+
+### Y la regla de export, del Integrador
+
+> **Un export que diga "rompi X y restaure" solo esta acreditado si trae el HASH de antes y el de
+> despues y COINCIDEN. Si solo dice "restaurado", NO esta acreditado y se pregunta antes de
+> mergear.**
+
+Con su motivo, que es lo que lo hace suyo: **un rojo fabricado y mal restaurado entra en `main`
+con aspecto de trabajo normal** — un fichero nuevo con contenido plausible, no un diff que grita.
+
+### Y una del mismo turno, sobre el REVERSO de un criterio
+
+Al estrechar C7 hubo que escribir su negacion como test. T3 le anadio una tercera condicion que
+nadie habia pedido, y su motivo es general:
+
+> **Al escribir la negacion de un criterio, la negacion hereda el MUNDO pero no las GARANTIAS.**
+
+Su caso: *navega + no avisa* lo cumplia exactamente **el defecto que C7 existia para impedir**.
+Hay que volver a preguntarse **que defecto satisface la negacion**.
