@@ -255,6 +255,35 @@ cat <<'PEND'
       PARA SABER CUALES: preguntarles. Un `SendMessage` pidiendo `pwd -P` y si su silencio es
       elegido o por atasco. **Silencio elegido y silencio por atasco se ven identicos desde
       fuera** — y esa es justo la pregunta que ningun instrumento de disco puede responder.
+
+      🔑 PERO ANTES DE PREGUNTAR, PREGUNTATE SI TE HACE FALTA SABER CUALES (2026-09-10
+      09:58Z, de la sesion t1-f7 y es la mejor correccion que ha recibido este censo):
+        **"No preguntes quien cubre el puesto: mira si el puesto avanza."**
+      El censo persigue la identidad de una SESION, que es un dato que se mueve, que el
+      disco no sabe y que solo se obtiene molestando a todo el mundo. **Lo que de verdad
+      te importa no es quien esta en la silla, es si el trabajo sale.** Y eso ya lo mide
+      la seccion "actividad por terminal" de este mismo script, sin preguntar a nadie:
+      el HEAD de cada worktree y su export mas reciente.
+      **El control que lo cerro no dependio de que nadie dijera la verdad:** el HEAD de T1
+      paso de ac7a6e6 a f7ab3bd, y la sesion ociosa no habia hecho ese commit. **El puesto
+      estaba cubierto, y quien lo dijo no tuvo que ser creido.**
+      ⚠️ CASO REAL DEL DESAJUSTE, Y VA EN EL SENTIDO CONTRARIO AL QUE ESPERAS: t1-f7
+      ARRANCO en `_worktrees/T1` y su directorio primario **se mudo solo a la raiz** a las
+      04:42Z. Se sigue llamando T1 y ya no esta en T1. Un censo que busque "la sesion cuyo
+      transcript esta en T1" **no la encuentra, y sin embargo es una de las dos ventanas
+      T1 por nombre.** Ni el nombre ni el directorio son la identidad.
+      📌 Y LO MAS BARATO DE TODO, que se me olvido dos veces: **la respuesta estable ya
+      esta escrita en `_registro-agentes.txt`.** Leerla de ahi no depende de la memoria de
+      nadie —ni de la tuya, que en una sesion larga se compacta— y no gasta el turno de
+      cinco roles. **Preguntar es el respaldo, no el metodo.**
+
+      ⚠️ Y EL UMBRAL DE 40 MINUTOS ESTA CALIBRADO PARA DESARROLLADORES. En un rol REACTIVO
+      (Factory Architect, Integrador con la cola vacia, QA entre ciclos, una ventana sin
+      rol) **estar quieto es el estado normal y sano** — un Factory Architect produciendo
+      sin parar seria la senal preocupante, no al reves. Para esos, la pregunta correcta
+      no es "¿por que esta parado?" sino **"¿le ha llegado algo y no lo ha contestado?"**,
+      que si es medible: su ultima respuesta a un mensaje. (Del propio Factory Architect,
+      2026-09-10 09:57Z.)
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
       viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
       CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
