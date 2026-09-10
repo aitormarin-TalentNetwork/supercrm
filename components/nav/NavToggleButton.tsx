@@ -10,11 +10,17 @@ import { useNav } from "./NavContext";
 // a mano del mockup del PM — incoherente con el resto de iconografía de
 // la app (todo lucide-react) usar un icono custom aquí.
 export function NavToggleButton() {
-  const { open, toggle } = useNav();
+  const { open, toggle, cerrandoSesion } = useNav();
   return (
     <button
       type="button"
       onClick={toggle}
+      // AIT-127 (C2a): el panel es la vía a todos los enlaces de navegación,
+      // así que mientras un cierre está en vuelo este botón no puede abrirlo.
+      // El `disabled` es lo que ve el enumerador de C2a; la guarda de verdad
+      // está en `toggle` (NavContext), que sigue en pie aunque alguien monte
+      // otro botón que llame a `toggle` sin pasar por aquí.
+      disabled={cerrandoSesion !== null}
       aria-expanded={open}
       aria-controls="app-nav-panel"
       // Sugerencia de auditoría (AIT-51 loop1): "Abrir menú" dejaba de
@@ -22,7 +28,7 @@ export function NavToggleButton() {
       // cierra) — igual que aria-label ya distingue "Abrir"/"Cerrar" en
       // otros toggles del proyecto.
       aria-label={open ? "Cerrar menú" : "Abrir menú"}
-      className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100"
+      className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-md border border-border bg-surface text-text-secondary hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <Menu size={18} />
     </button>

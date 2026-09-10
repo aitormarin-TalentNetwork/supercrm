@@ -4,6 +4,7 @@ import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { NavProvider } from "@/components/nav/NavContext";
 import { AppNav } from "@/components/nav/AppNav";
+import { AreaBloqueable } from "@/components/nav/AreaBloqueable";
 import { PushSubscriptionSync } from "@/components/push/PushSubscriptionSync";
 import { NewVersionNotice } from "@/components/version/NewVersionNotice";
 import { getDeployedVersion } from "@/lib/version";
@@ -45,7 +46,11 @@ export default function RootLayout({
                 no dependen de qué pantalla está activa. Cada pantalla solo
                 coloca <NavToggleButton /> en su cabecera para abrirlo. */}
             <NavProvider>
-              {children}
+              {/* AIT-127 (C2a): la pantalla activa entera, para poder sacarla
+                  de alcance mientras un cierre de sesión está en vuelo. No
+                  genera caja (display:contents), así que el layout de las 10
+                  pantallas no cambia. Ver AreaBloqueable.tsx. */}
+              <AreaBloqueable>{children}</AreaBloqueable>
               <AppNav />
               {/* AIT-57 (hallazgo de auditoría NO-GO ronda 2): igual que
                   AppNav, montada una sola vez para toda la app — no puede

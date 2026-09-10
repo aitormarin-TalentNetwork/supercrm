@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { useNav } from "@/components/nav/NavContext";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
 import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
@@ -59,18 +60,34 @@ export default function AjustesPage() {
   const cerrarSesion = useSignOutAndUnlinkPush();
   // AIT-127: si el cierre FALLA no se navega, y el usuario tiene que enterarse.
   const [errorCierre, setErrorCierre] = useState(false);
+  // AIT-127 (C2a): el estado bloqueante es compartido, no local, porque lo que
+  // hay que apagar mientras el cierre está en vuelo vive fuera de esta pantalla
+  // — el botón ☰ y, tras él, todos los enlaces del panel.
+  const { cerrandoSesion, setCerrandoSesion } = useNav();
 
   // AIT-127: la navegación vive aquí y no en el hook — el hook no sabe desde
   // dónde se le llama, y el aviso tiene que estar en el árbol de este
   // componente para que exista un `role="alert"` que se pueda afirmar.
   async function alCerrarSesion() {
     setErrorCierre(false);
-    const resultado = await cerrarSesion();
-    if (!resultado.ok) {
-      setErrorCierre(true);
-      return; // NO se redirige: una redirección sin cierre es la señal falsa
+    setCerrandoSesion("pagina");
+    try {
+      const resultado = await cerrarSesion();
+      if (!resultado.ok) {
+        // Decisión del PM (2026-09-10) trasladada por la Directora: no se
+        // redirige con la sesión viva. Redirigir a /login sin haber cerrado
+        // es la señal falsa que prohíbe M8, y además rebota
+        // (app/login/page.tsx:104 devuelve a "/" a quien sigue autenticado
+        // en cliente, que es justo el estado que el fallo deja intacto).
+        // "Nunca atrapado" se cumple soltando el bloqueo: la app vuelve a
+        // estar entera y usable, con el aviso delante.
+        setErrorCierre(true);
+        return;
+      }
+      router.replace("/login");
+    } finally {
+      setCerrandoSesion(null);
     }
-    router.replace("/login");
   }
 
   const loading = role === undefined || userInfo === undefined;
@@ -132,15 +149,27 @@ export default function AjustesPage() {
               {canManageUsers && <UsersSection />}
 
               <div className="mx-auto w-full max-w-[480px]">
-                <Button variant="secondary" onClick={() => void alCerrarSesion()}>
-                  Cerrar sesión
+                <Button
+                  variant="secondary"
+                  disabled={cerrandoSesion !== null}
+                  onClick={() => void alCerrarSesion()}
+                >
+                  {cerrandoSesion === "pagina"
+                    ? "Cerrando sesión…"
+                    : "Cerrar sesión"}
                 </Button>
+                {/* AIT-127 · rama de fallo, opción (C) del PM (2026-09-10,
+                    bloque de las 08:55 de la ficha — la línea anterior de la
+                    descripción, «se redirige a /login IGUALMENTE», está
+                    muerta). Se suelta el bloqueo, el botón vuelve a estar
+                    vivo y el aviso dice que la sesión NO se ha cerrado. */}
                 {errorCierre && (
                   <p
                     role="alert"
                     className="mt-2 rounded-md bg-error-subtle p-2.5 text-sm text-error"
                   >
-                    No se ha podido cerrar la sesión. Inténtalo de nuevo.
+                    No se ha podido cerrar la sesión: sigue abierta. Vuelve a
+                    pulsar «Cerrar sesión» para intentarlo otra vez.
                   </p>
                 )}
               </div>
@@ -377,8 +406,8 @@ function NewUserForm({
         </Button>
       </div>
       <p className="text-xs text-text-muted">
-        Podrá entrar en cuanto inicie sesión con esa cuenta de Google — no
-        hace falta contraseña.
+        Podrá entrar en cuanto inicie sesión con esa cuenta de Google — no hace
+        falta contraseña.
       </p>
     </form>
   );

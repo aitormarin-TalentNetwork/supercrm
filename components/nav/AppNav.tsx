@@ -26,7 +26,7 @@ const FOCUSABLE_SELECTOR =
 // AppSidebar/BottomTabBar antes — porque su estado abierto/cerrado vive
 // en NavContext, compartido con el botón ☰ de cada pantalla.
 export function AppNav() {
-  const { open, close } = useNav();
+  const { open, close, cerrandoSesion, setCerrandoSesion } = useNav();
   const pathname = usePathname();
   const router = useRouter();
   const cerrarSesion = useSignOutAndUnlinkPush();
@@ -158,17 +158,37 @@ export function AppNav() {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
+            const clases = `flex min-h-[44px] items-center gap-[11px] rounded-md px-3 py-2 text-sm transition-colors ${
+              active
+                ? "bg-primary-subtle font-semibold text-primary"
+                : "font-medium text-text-secondary hover:bg-neutral-100"
+            }`;
+            // AIT-127 (C2a): mientras el cierre está en vuelo, el enlace deja
+            // de ser un enlace — no es un <a> apagado con aria-disabled, es un
+            // <span> sin href. Un <a href> "deshabilitado" sigue navegando por
+            // cualquier vía que no honre el atributo; sin href no hay nada que
+            // navegar. Y va DENTRO del map, así que cualquier item que se añada
+            // mañana pasa por aquí sin que nadie tenga que acordarse.
+            // El opacity-50 es el `disabled` de design.md:206.
+            if (cerrandoSesion !== null) {
+              return (
+                <span
+                  key={item.href}
+                  aria-disabled="true"
+                  className={`${clases} cursor-not-allowed opacity-50`}
+                >
+                  <Icon size={18} className="flex-none" />
+                  <span className="flex-1">{item.label}</span>
+                </span>
+              );
+            }
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 onClick={close}
-                className={`flex min-h-[44px] items-center gap-[11px] rounded-md px-3 py-2 text-sm transition-colors ${
-                  active
-                    ? "bg-primary-subtle font-semibold text-primary"
-                    : "font-medium text-text-secondary hover:bg-neutral-100"
-                }`}
+                className={clases}
               >
                 <Icon size={18} className="flex-none" />
                 <span className="flex-1">{item.label}</span>
@@ -188,30 +208,51 @@ export function AppNav() {
         <div className="mt-auto flex-none border-t border-border p-3">
           <button
             type="button"
+            // AIT-127: el panel NO se cierra al pulsar (antes sí). Es el
+            // control que corre el cierre: si se va de pantalla, "Cerrando
+            // sesión…" y el aviso de fallo no los lee nadie. Se queda abierto
+            // con sus enlaces ya apagados, y se cierra al terminar.
+            disabled={cerrandoSesion !== null}
             onClick={() => {
-              close();
-              // AIT-127: la navegación vive en el consumidor, no en el hook.
               void (async () => {
                 setErrorCierre(false);
-                const resultado = await cerrarSesion();
-                if (!resultado.ok) {
-                  setErrorCierre(true);
-                  return; // NO se redirige si no se cerró
+                setCerrandoSesion("panel");
+                try {
+                  const resultado = await cerrarSesion();
+                  if (!resultado.ok) {
+                    // Decisión del PM (2026-09-10) trasladada por la
+                    // Directora: no se redirige con la sesión viva —
+                    // redirigir a /login sin cerrar es la señal falsa que
+                    // M8 prohíbe, y además rebota (app/login/page.tsx:104
+                    // devuelve a "/" a quien sigue autenticado en cliente).
+                    // "Nunca atrapado" se cumple soltando el bloqueo: la app
+                    // queda entera y usable, con el aviso y el botón vivo.
+                    setErrorCierre(true);
+                    return;
+                  }
+                  close();
+                  router.replace("/login");
+                } finally {
+                  setCerrandoSesion(null);
                 }
-                router.replace("/login");
               })();
             }}
-            className="flex min-h-[44px] w-full items-center gap-[11px] rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-neutral-100"
+            className="flex min-h-[44px] w-full items-center gap-[11px] rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <LogOut size={18} className="flex-none" />
-            <span className="flex-1 text-left">Cerrar sesión</span>
+            <span className="flex-1 text-left">
+              {cerrandoSesion === "panel"
+                ? "Cerrando sesión…"
+                : "Cerrar sesión"}
+            </span>
           </button>
           {errorCierre && (
             <p
               role="alert"
               className="mx-3 mt-2 rounded-md bg-error-subtle p-2.5 text-sm text-error"
             >
-              No se ha podido cerrar la sesión. Inténtalo de nuevo.
+              No se ha podido cerrar la sesión: sigue abierta. Vuelve a pulsar
+              «Cerrar sesión» para intentarlo otra vez.
             </p>
           )}
         </div>
