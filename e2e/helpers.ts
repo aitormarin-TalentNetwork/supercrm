@@ -46,10 +46,21 @@ export async function loginAs(page: Page, role: Role) {
   const estado = readState(role);
   const contexto = page.context();
 
-  // Solo cookies. En este modo el localStorage guarda un marcador ("dummy") y
-  // una marca de tiempo, no la sesión; sembrarlo con `addInitScript` además la
-  // reescribiría en CADA navegación del test, pisando lo que el cliente hubiera
-  // actualizado. Medido: sembrar solo cookies autentica igual.
+  // Solo cookies, y basta: el servidor lee la COOKIE JWT y le entrega ese token
+  // al cliente, que lo escribe en localStorage al hidratarse. Sembrarlo a mano
+  // con `addInitScript` además lo reescribiría en CADA navegación del test,
+  // pisando lo que el cliente hubiera actualizado.
+  //
+  // 🔴 CORREGIDO 2026-09-10 (AIT-127). Aquí decía que "el localStorage guarda un
+  // marcador («dummy») y una marca de tiempo, no la sesión". ES FALSO: el
+  // "dummy" es solo el REFRESH token; el JWT que se guarda al lado es REAL
+  // (`@convex-dev/auth/dist/react/client.js:46`). Era una copia casi literal de
+  // la misma frase que había en `e2e/authState.ts`, y esa frase se citó esta
+  // noche como prueba para DESCARTAR mirar el localStorage — o sea que apagaba
+  // activamente la comprobación de quien investigaba justo esta zona.
+  // Se corrige aquí y no solo donde se descubrió: una afirmación falsa
+  // duplicada NO aparece en ningún diff, porque nadie toca la segunda copia.
+  // El detalle completo y cómo verificar la suficiencia, en `authState.ts`.
   await contexto.addCookies(estado.cookies);
 
   await page.goto(HOME_BY_ROLE[role]);

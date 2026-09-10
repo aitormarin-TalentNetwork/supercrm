@@ -164,19 +164,35 @@ export function writeStateAtomically(
 
 /** Las dos cookies en las que vive la sesión: una lleva el JWT y otra el
  *  refresh token. En este modo (Convex Auth con Next.js) son httpOnly y las
- *  gestiona el servidor, y el refresh REAL existe únicamente aquí — lo dice el
- *  propio paquete: "The server doesn't share the refresh token with the client".
+ *  gestiona el servidor. En el ALMACENAMIENTO DEL NAVEGADOR el refresh real
+ *  existe únicamente aquí — lo dice el propio paquete: "The server doesn't
+ *  share the refresh token with the client". (Del backend no se dice nada: allí
+ *  hay persistencia propia y esta nota no habla de ella.)
+ *
+ *  EL MECANISMO, verificado en el paquete y NO deducido: el servidor lee la
+ *  COOKIE JWT y entrega ese token al cliente
+ *  (`dist/nextjs/server/index.js:155-161`, `getRequestCookies()` →
+ *  `_state: { token, refreshToken: "dummy" }`), y el cliente lo escribe en
+ *  localStorage al hidratarse (`dist/react/client.js:219-230`).
  *
  *  ⚠️ AFIRMACIÓN HEREDADA Y NO RE-VERIFICADA EN ESTE CAMBIO (2026-09-10): que
  *  "sembrar SOLO las cookies autentica igual que sembrar cookies +
  *  localStorage". Venía marcada como "Medido:" y **no consta quién la midió,
- *  cuándo, ni contra qué versión del paquete**. No se borra porque
- *  probablemente sea cierta —el servidor puede rehidratar el JWT desde la
- *  cookie de refresh— y porque el arnés depende de ella. Pero se marca, porque
- *  decía LO MISMO que la frase falsa de abajo con otra redacción, y la razón
- *  por la que se creía puede ser la que acabamos de tumbar.
- *  Para comprobarla hace falta el turno de Convex y una corrida sembrando solo
- *  cookies, con control positivo (sin sembrar nada NO debe autenticar).
+ *  cuándo, ni contra qué versión del paquete**. No se borra porque el arnés
+ *  depende de ella; se marca porque decía LO MISMO que la frase falsa de abajo
+ *  con otra redacción.
+ *  🔴 Y OJO CON EL VERBO: lo que el arnés necesita es SUFICIENCIA —que sembrar
+ *  solo cookies BASTE para autenticar este flujo—, no equivalencia. "Autentica
+ *  igual" afirma más de lo que nadie ha comprobado.
+ *
+ *  CÓMO SE COMPRUEBA, si alguien la retoma: tres contextos limpios —(1) solo
+ *  cookies, (2) cookies + localStorage, (3) SIN estado como CONTROL NEGATIVO,
+ *  que NO debe autenticar— definiendo antes qué se mide: acceso concedido por
+ *  el servidor Y estado autenticado del cliente tras hidratar. Necesita el
+ *  turno de Convex.
+ *  ⚠️ La sonda se lee con la API de cookies de Playwright (`context.cookies()`),
+ *  por cabecera HTTP o desde el servidor. **NUNCA con `document.cookie`**, por
+ *  lo que se explica abajo.
  *
  *  ⚠️ CORREGIDO 2026-09-10 (AIT-127). Hasta hoy esta nota decía que "el
  *  localStorage solo guarda un marcador («dummy»)". ESO ERA FALSO, y no a
