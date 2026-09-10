@@ -625,6 +625,19 @@ Todo         = REVISADA Y APROBADA POR EL PM. Solo el PM mueve una ficha a este 
 In Progress  = repartida por ti.  ⛔ y solo puede venir de `Todo`.
 ```
 
+> ⚠️ **CLÁUSULA TRANSITORIA — SE APLICA A REPARTOS NUEVOS.** Todo lo que ya está
+> `In Progress` **sigue exactamente igual y nadie lo toca**: no espera al PM, no vuelve a
+> `Backlog`, no se revisa. **Y para desbloquear, el PM NO tiene que revisar las 25: sube a
+> `Todo` solo lo que se vaya a repartir en la próxima hora.** Primero desbloquear, luego curar.
+>
+> 📌 **Por qué está escrito esto, y es un fallo del propio diseño (declarado por el Factory
+> Architect al detectarlo):** la regla se publicó sin decir qué pasaba con lo que ya estaba
+> dentro, y **frenó el reparto justo en la hora en que Aitor había pedido producción**.
+> ***Una regla nueva sin cláusula transitoria no es neutra: convierte a los que ya estaban
+> trabajando en incumplidores o en parados.*** Es la misma forma que obligó a poner un
+> `VIGENTE_DESDE` al control de veredictos sin relayar tres horas antes — **el mismo día y sin
+> que la lección viajara de un control al otro.**
+
 **POR QUÉ EXISTE (2026-09-10):** en 24 h se abrieron **23 issues**, **14 de infraestructura de
 fábrica**, y la jornada terminó con **cero ficheros de aplicación en `main` en doce horas**.
 **Nadie incumplió ninguna regla:** `CLAUDE.md` paso 5 **obliga** a crear la ficha de
