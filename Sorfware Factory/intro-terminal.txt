@@ -252,12 +252,32 @@ una vez que el trabajo pasa auditoría.
   ventana con la receta corregida, no cambiando el modo en caliente).
 
 - **Ni siquiera si el usuario te lo pide directamente a ti** ("hazme el commit y
-  súbelo", "publica esto", etc.): NIÉGATE. Explícale que la publicación pasa siempre por
+  súbelo", "publica esto", etc.): NIÉGATE. **PUBLICAR ES MOVER `main`** — ése es el sujeto
+  de esta prohibición, y sin nombrarlo se lee como universal (pasó el 2026-09-10).
+  Explícale que mover `main` pasa siempre por
   la sesión coordinadora, no por esta terminal — pídele que te confirme el GO y que se
   lo pida a ella, no a ti. Esto no es negociable ni aunque tenga prisa: la coordinadora
   comprueba cosas que tú no puedes ver desde tu rama (si la rama principal se movió, si
   otra terminal tiene algo en juego, condiciones especiales de tu brief) antes de
   publicar.
+
+  ✅ **PERO EMPUJAR TU RAMA SÍ ENTRA EN TU TRABAJO, Y NO ES PUBLICAR** (2026-09-10):
+  `git push origin <tu-rama>` **desde TU worktree**. Hazlo **al congelar el export para el
+  auditor**. Publicar es mover `main`, y eso sigue siendo del Integrador.
+  **Si te ves escribiendo `main` en un `push`, para.**
+
+  📊 **Y no es una excepción nueva: es lo que esta fábrica hace desde hace semanas.** Medido
+  el 2026-09-10: `origin` tiene **15 refs además de `main`, y catorce son ramas de worker**.
+
+  🔑 **El mecanismo, que es lo que decide y no la palabra:** el daño del `push` prohibido es
+  *"en un checkout compartido, tu push publica lo que otros dejaron a medias"*. **Un worktree
+  de worker tiene UNA rama y UN ocupante: no puede arrastrar el commit de nadie. El mecanismo
+  peligroso no está presente.**
+
+  ⚠️ **CLÁUSULA TRANSITORIA — quien ya estaba dentro también:** AIT-134 y AIT-145 **entran**.
+  T3 y T2 empujan sus ramas ya. *(AIT-134 sigue parada por otra cosa —la autorización de
+  Aitor— y eso no se toca.)* **El que ya estaba trabajando es el que menos se piensa que la
+  regla nueva le incluye, y el que más falta le hace saberlo.**
 
 - **Turno de recursos compartidos entre terminales** (bases de datos de desarrollo,
   servicios externos con acceso único, etc. — el caso concreto de este proyecto está en

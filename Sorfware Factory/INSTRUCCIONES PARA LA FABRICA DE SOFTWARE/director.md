@@ -615,6 +615,23 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### ⛔ ANTES DE MEDIR MERGEABILIDAD: ¿LA PUNTA AUDITADA ESTÁ EN `origin`? (2026-09-10)
+
+> **Comprueba que la punta auditada existe en `origin` ANTES de calcular nada sobre ella.**
+
+**Por qué es obligatorio y no una precaución:** con los workers empujando su rama va a estar
+**casi siempre** — *y "casi siempre" es exactamente la condición que produce un verde
+tranquilizador el día que no.*
+
+**Caso pagado el mismo día:** se entregó un `merge-tree rc=0` **sobre un commit que solo
+existía en el almacén local**. Los worktrees comparten el object store, **así que el cálculo
+salió bien sobre algo que el receptor no podía fetchear.**
+
+🔴 **Y la dirección del fallo es la mala: no falla hacia el rojo.** Da **un resultado detallado
+y tranquilizador sobre algo impublicable.**
+
+    git ls-remote --exit-code origin <punta>   # 0 = esta · 2 = NO esta
+
 ### ⛔ TRES REGLAS DE TABLERO — misma forma, tres sitios (2026-09-10)
 
 **Las tres son ACTOR NOMBRABLE + PASO NOMBRABLE. No hay estados nuevos que aprender.**
