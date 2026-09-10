@@ -149,16 +149,65 @@ import {
 /** Envoltorio: pide la ruta protegida y delega la CLASIFICACIÓN en la función
  *  pura, que es la que tiene su propia prueba (`00-clasificar-acceso.spec.ts`).
  *  Aquí sólo vive el "cómo se pide"; el "qué significa" vive allí. */
-async function clasificarAcceso(pagina: Page): Promise<EstadoAcceso> {
-  const respuesta = await pagina.request.get(RUTA_PROTEGIDA, {
-    maxRedirects: 0,
-    failOnStatusCode: false,
-  });
-  return clasificarRespuesta(
-    respuesta.status(),
-    respuesta.headers()["location"] ?? "",
-    respuesta.url(),
+/** La evidencia de UNA clasificación concreta. Existe por M1. */
+type EvidenciaAcceso = {
+  estado: EstadoAcceso;
+  codigo: number;
+  location: string;
+  url: string;
+  marca: string;
+};
+
+/** 🔴 M1 — POR QUÉ ESTO DEVUELVE EVIDENCIA Y NO SÓLO EL ESTADO.
+ *
+ * El auditor pidió (plan loop8, M1) «una correlación exclusiva y comprobable
+ * entre la invocación del sujeto, la petición contada y la respuesta
+ * clasificada». Lo intenté con un contador `pagina.on("request")`, y estaba
+ * ROTO DE UNA FORMA QUE NO PODÍA VERSE EN VERDE:
+ *
+ *   · esta función pide por `pagina.request` -> APIRequestContext
+ *   · `pagina.on("request")` sólo emite para peticiones DE LA PÁGINA
+ *   · o sea que el contador NO PODÍA VER, por construcción, la petición que se
+ *     estaba clasificando.
+ *
+ * Y hay un número que lo demuestra, que llevaba publicándose todo el rato:
+ * `clasificarAcceso` se invoca DOS veces en la fase B y el contador publicaba
+ * **1**. Ese 1 era la petición DEL PRODUCTO (el fetch de confirmación por efecto
+ * que añadió AIT-134). El `expect(>= 1)` pasaba **gracias a un emisor ajeno al
+ * sujeto**, así que habría pasado igual con la prueba retornando antes de
+ * clasificar nada. Un UNO sin control positivo, que engaña más que un cero
+ * porque tranquiliza.
+ *
+ * 🔑 EL ARREGLO NO ES ATAR MEJOR EL CONTADOR: es cambiar de observable. Un
+ * listener correlaciona por PROXIMIDAD (llegó cerca, luego será la mía); una
+ * respuesta correlaciona por IDENTIDAD (esta respuesta ES el resultado de esta
+ * petición). Lo segundo no se puede falsear retornando antes.
+ *
+ * La `marca` cierra el último hueco: viaja en la URL pedida y vuelve en
+ * `respuesta.url()`, así que la evidencia acredita **esta invocación** y no una
+ * anterior. Es una diferencia declarada entre prueba y producto —el producto no
+ * manda ninguna marca— y no afecta al enrutado: `/pipeline(.*)` la captura igual.
+ */
+async function clasificarAccesoConEvidencia(
+  pagina: Page,
+): Promise<EvidenciaAcceso> {
+  const marca = `sonda-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const respuesta = await pagina.request.get(
+    `${RUTA_PROTEGIDA}?marca=${marca}`,
+    { maxRedirects: 0, failOnStatusCode: false },
   );
+  const location = respuesta.headers()["location"] ?? "";
+  return {
+    estado: clasificarRespuesta(respuesta.status(), location, respuesta.url()),
+    codigo: respuesta.status(),
+    location,
+    url: respuesta.url(),
+    marca,
+  };
+}
+
+async function clasificarAcceso(pagina: Page): Promise<EstadoAcceso> {
+  return (await clasificarAccesoConEvidencia(pagina)).estado;
 }
 
 /** 🔴 ESTE HELPER SE RETIRA, Y EL MOTIVO ES UN ABLANDAMIENTO QUE ME HICE YO.
@@ -1194,14 +1243,21 @@ test("AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR EN
   test.slow();
   const pagina = await abrirSesionPropia(browser, "sales");
 
-  // ── M1 · EL OBSERVABLE DE QUE ESTA PRUEBA ALCANZÓ SU SUJETO ──────────────
-  // Contador instalado POR EL TEST y FUERA del cuerpo que se quiere acreditar.
-  // Si el test retornara antes, el contador se queda en cero y el `expect` de
-  // abajo lo caza. Un verde sin este número no acredita nada.
-  let peticionesALaRutaProtegida = 0;
+  // ── EL CONTADOR, RENOMBRADO A LO QUE DE VERDAD MIDE ─────────────────────
+  // ⚠️ ANTES SE LLAMABA `peticionesALaRutaProtegida` Y SE PRESENTABA COMO EL
+  // OBSERVABLE DE M1 —"esta prueba alcanzó su sujeto"—, Y ERA FALSO: escucha
+  // `pagina.on("request")`, que NO emite para las peticiones de
+  // `pagina.request` (APIRequestContext), que es por donde va la clasificación.
+  // No es que pudiera contar de más: es que NO PODÍA CONTAR LA CLASIFICACIÓN.
+  //
+  // No se borra, porque el número es real y sirve: lo que ve son las peticiones
+  // DEL PRODUCTO a la ruta protegida, o sea el `fetch` de confirmación por
+  // efecto que añadió AIT-134. Eso acredita que el camino de RECUPERACIÓN llegó
+  // a ejecutarse. Lo falso era el rótulo, no la medida.
+  let peticionesDelProductoALaRutaProtegida = 0;
   pagina.on("request", (peticion) => {
     if (new URL(peticion.url()).pathname === RUTA_PROTEGIDA) {
-      peticionesALaRutaProtegida++;
+      peticionesDelProductoALaRutaProtegida++;
     }
   });
 
@@ -1229,20 +1285,39 @@ test("AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR EN
     timeout: PRESUPUESTO_C3_FALLO_MS + 2000,
   });
 
-  const estadoFinal = await clasificarAcceso(pagina);
+  // EL SUJETO DE ESTA PRUEBA, y su evidencia sale de la propia respuesta.
+  const evidencia = await clasificarAccesoConEvidencia(pagina);
+  const estadoFinal = evidencia.estado;
   console.log(
-    `[AIT-134 · FASE B] peticiones a ${RUTA_PROTEGIDA}: ${peticionesALaRutaProtegida} · ` +
-      `abortados: ${abortados} · estado final: ${estadoFinal}`,
+    `[AIT-134 · FASE B] peticiones DEL PRODUCTO a ${RUTA_PROTEGIDA}: ` +
+      `${peticionesDelProductoALaRutaProtegida} · abortados: ${abortados} · ` +
+      `estado final: ${estadoFinal} · evidencia: codigo=${evidencia.codigo} ` +
+      `location=${JSON.stringify(evidencia.location)} url=${evidencia.url}`,
   );
 
   expect(
     abortados,
     "no se abortó ningún cierre: esta prueba no midió el caso que dice medir",
   ).toBeGreaterThanOrEqual(1);
+  // M1 · LA CORRELACIÓN EXCLUSIVA. La respuesta clasificada tiene que ser la de
+  // ESTA invocación: su URL lleva la marca que se generó aquí mismo. Una prueba
+  // que retornara antes no puede fabricar esta línea, porque la evidencia no
+  // existe hasta que la petición ha ido y vuelto.
   expect(
-    peticionesALaRutaProtegida,
-    "el contador de peticiones a la ruta protegida está en cero: esta prueba " +
-      "no llegó a ejercitar su sujeto y su verde no acreditaría nada",
+    evidencia.url,
+    "la respuesta clasificada no lleva la marca de esta invocación: no se puede " +
+      "acreditar que sea la petición que hizo ESTA prueba, y sin eso el verde " +
+      "no distingue 'mi sujeto se ejecutó' de 'alguien pidió esa ruta'",
+  ).toContain(evidencia.marca);
+  expect(
+    new URL(evidencia.url).pathname,
+    "la evidencia no es de la ruta protegida que dice medir",
+  ).toBe(RUTA_PROTEGIDA);
+  // Y el contador del producto, ahora con su nombre: acredita la recuperación.
+  expect(
+    peticionesDelProductoALaRutaProtegida,
+    "el producto no pidió la ruta protegida ni una vez: el camino de " +
+      "recuperación de AIT-134 no llegó a confirmar por efecto",
   ).toBeGreaterThanOrEqual(1);
   expect(
     estadoFinal,
