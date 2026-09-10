@@ -473,6 +473,42 @@ solo existe en esa ronda**, y referencias a líneas concretas de ese export. **R
 discrimina cuando cambia, y cuando no cambia no dice nada — hace falta al menos un elemento que
 SOLO pueda existir en esa ronda.**
 
+### 🔴 Una terminal estuvo 45 minutos parada y la casilla decía que estaba trabajando
+**Y llegó hasta este informe.** Es el fallo más caro de la noche en términos de lo que se
+supone que yo hago.
+
+**La cadena, con sus tres eslabones:** T4 recibió el GO de su plan y contestó *"entro en
+implementación"*. **La Directora convirtió esa frase en un estado del pipeline** y me la
+reportó como hecho **tres veces** —05:50, 06:02 y 06:27— sin comprobarla. **Yo la relayé a este
+informe y a los renglones de estado igual, sin comprobarla tampoco.** Se descubrió a las 06:34
+preguntándole. Su respuesta: *"No he empezado. Contesté al GO con un mensaje que decía 'entro
+en implementación' y me quedé ahí. No he escrito una línea."*
+
+**Nadie mintió. Una intención se convirtió en hecho al cruzar dos bocas** — exactamente el
+patrón que llevábamos toda la noche cazando en otros sitios, esta vez en el canal que informa
+de si el trabajo avanza.
+
+⚠️ **Y la asimetría que lo hace estructural, dicha por la Directora mejor de lo que yo lo
+diría:**
+> **"Mi barrido pregunta '¿alguien parado con backlog disponible?' y T4 llevaba 45 minutos
+> siéndolo. No la vio porque yo mismo había rellenado su casilla con una intención suya. Un
+> vigilante cuya entrada es lo que le cuentan los vigilados no vigila: es un buzón — y su
+> silencio se lee igual que 'todo va bien'."**
+
+📌 **Lo mismo me pasa a mí un nivel más arriba, y conviene que lo sepas al leer este informe:
+tengo instrumentos medidos para lo barato** —cerrojos, refs, ficheros, transcripts— **y puro
+relay para lo caro: si el trabajo avanza de verdad.** Esa parte no la mido; me la cuentan.
+
+✅ **La regla, de T4, y ya aplicada:** **la casilla de estado de una terminal se rellena con un
+EFECTO MEDIDO, nunca con lo que esa terminal dijo que iba a hacer.** La señal deja de ser *"he
+empezado"* o *"voy bien"* y pasa a ser algo comprobable: bytes, hash, o qué imprime una cosa que
+antes no existía. **Desde las 06:38 la Directora me reporta separando "medido con efecto en
+disco" de "solo declarado por la terminal", y este informe hace lo mismo.**
+
+Y su conexión con lo demás es exacta: **es el mismo animal que la lista cerrada `T1 T2 T3` que
+no incluía a T4.** Allí el vigilante no la veía **porque no la enumeraba**; aquí **porque le
+habían dicho que estaba bien.** Misma ceguera, entrada distinta.
+
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
 fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es mía:
