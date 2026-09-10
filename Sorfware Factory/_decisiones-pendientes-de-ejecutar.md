@@ -651,3 +651,66 @@ control negativo** mato el script antes de imprimir nada. **Un arnes que no sobr
 justamente a la comprobacion que mas importa.** Y la forma en que se ve es lo peor: la salida
 se corto **justo despues del ultimo verde**, asi que **el ultimo dato visible era bueno**. Sin
 mirar el exit code del bloque entero, se lee como "probado ✅".
+
+## D35 — sobra certificacion: el contenido viene de un sitio y la autoridad de otro
+
+**Hallazgo de T4 (`t4-bb`), cazado por el QA, y es el mas profundo de la noche despues de la
+D34.** T4 lo enuncio de sus propios dos casos: *"es la segunda vez esta noche que fabrico
+certificacion de mas, y las dos veces con el mismo mecanismo"*.
+
+1. `00:58:10Z` — **el valor lo puso la herramienta, la `Z` la puso la plantilla.**
+2. *"tres reproducciones **independientes**"* — **las tres ejecuciones son reales; la palabra
+   "independientes" la puso el autor.** Un solo binario en una sola maquina: eso es
+   acumulacion, no independencia. Se lo cazo el QA y lo retiro.
+
+**La forma: el contenido viene de un sitio y la AUTORIDAD viene de otro, y se leen como una
+sola cosa.** No falta informacion — **sobra certificacion**. Y la certificacion es siempre la
+parte que pone el autor: la `Z`, el "independientes", el "verificado", el "medido". El dato
+sobrevive a la auditoria **montado en un adjetivo que nadie midio**.
+
+⚠️ **Esto nos aplica a TODOS los que escribimos aqui, y con mas motivo a quien mas mide**, que
+es quien mas adjetivos de certeza escribe. **Regla: el adjetivo de certeza se audita aparte del
+dato.** "Medido", "verificado", "independiente", "reproducido", "confirmado" **son afirmaciones
+adicionales**, cada una con su propia evidencia, y ninguna la hereda del numero al que se pega.
+
+**Alcance declarado, no estimado:** el QA aporta dos casos propios de la misma noche (un
+instrumento que no discriminaba, y un control positivo que dio cero por falta de sujeto).
+**Dos autores, cuatro casos, una noche.** No hay barrido del historico y no se insinua uno.
+
+## Fila — `stat -f %Sm` imprime hora LOCAL, y dos documentos de proceso la prescriben
+
+**Medido por T4 y REPRODUCIDO por mi en la misma tirada** (mtime real `04:13:29Z`, huso local
+UTC-3):
+```
+stat -f %Sm                  -> Sep 10 01:13:29 2026   LOCAL, sin huso
+stat -f '%Sm' -t '%H:%M:%S'  -> 01:13:29               LOCAL, SIN ETIQUETA NINGUNA
+stat -f '%m'                 -> 1789013609             epoch, SIN HUSO POSIBLE  ✅
+date -u                      -> 2026-09-10T04:13:29Z   control
+```
+Y una tercera forma, peor que las dos: `stat -f '%Sm' -t '%Y-%m-%dT%H:%M:%SZ'` **imprime hora
+local y le pega una `Z`** — el caso 1 de la D35, en estado puro.
+
+**Donde vive, verificado por mi con `sed -n`:**
+- **`ceo.md:760`** — *"la hora sale de `stat -f %Sm` o de `git log`, **nunca del recuerdo**"*.
+  La regla (medir, no recordar) es **correcta**; el instrumento que prescribe devuelve **hora
+  local** en una casa que escribe UTC en `_registro-agentes.txt` y en `_turno-convex.log`.
+- 🔴 **`README.md:2311`, la peor:** esta prescrita como **el remedio** de un `find -newermt`
+  que falla en silencio, con la instruccion de *"comparar las horas a mano"*. Devuelve
+  `01:13:29`: **sin huso, sin fecha, sin nada que delate cual es.** Comparar eso contra una
+  hora del registro es un error de tres horas que **no chirria por ningun lado**.
+
+🔑 **Y ESTA ES LA MITAD DEL HALLAZGO, no una nota al pie:** el `grep` de `stat -f` devuelve
+**cuatro coincidencias en la raiz y una de ellas es CORRECTA** (el epoch del vigilante).
+**Cuatro coincidencias no son cuatro defectos, y el instrumento que las encuentra no sabe
+distinguirlas.** Si esto se corrige por patron, se "arregla" el unico sano.
+
+**Regla, y escala mejor que "desconfia de los timestamps":** **toda hora sacada de una
+herramienta se imprime con un `date -u` al lado, en la misma ejecucion** — la resta queda hecha
+antes de que a nadie se le ocurra dudar. Para ficheros, la forma que no admite error: **`stat
+-f '%m'` y convertir**; el epoch no puede llevar el huso equivocado porque no lleva ninguno.
+
+⚠️ **CONJETURA CON DUENO, sin medir, declarada como tal:** el QA planteo que en GNU/Linux esta
+receta quiza **falle en vez de mentir**, lo que confinaria el riesgo a macOS y dejaria fuera lo
+que corre en Railway. T4 **no pudo medirlo** (no hay `gstat`, coreutils, docker ni podman en
+esta maquina) **y no lo afirma**. Es una comprobacion de diez segundos para quien tenga un
+Linux delante.
