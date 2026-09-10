@@ -327,3 +327,32 @@ de marca `/tmp/claude-crm-auditor-done-*`.
 **Y la senal que si discrimina:** el `tee` escribe desde el primer segundo. Un veredicto de
 **0 bytes a los cinco minutos significa que NUNCA ARRANCO**, no que aun no ha terminado. Yo
 lei ese vacio como el estado comodo de los dos que admitia.
+
+**CORRECCION DE T3 AL CONTROL, y tenia razon: `bash -n` NO discrimina la clase.** Valida
+SINTAXIS, no que el fichero sea un script. Una prosa sin parentesis ni comillas es bash
+valido — comandos que no existen — y **pasa**. Reproducido:
+
+    prosa CON parentesis .... bash -n exit 2   <- lo caza
+    prosa SIN parentesis .... bash -n exit 0   <- PASA. Fallaria igual al ejecutarse
+
+Yo lo habia validado **contra el ejemplar que me mordio** (el encargo de AIT-128, que tenia
+parentesis), asi que dio rojo y parecio bueno: **un senuelo disenado por quien escribe el
+detector confirma en vez de probar**.
+
+**CONTROL BUENO: por PRESENCIA de lo que hace que el fichero SEA un encargo**, no por
+ausencia de fallo. Y **no vale el shebang** —mis scripts empiezan por `cd '...' && codex
+exec`, asi que un control por shebang rechazaria los buenos—.
+
+⛔ **UNICA VIA DE ENCOLAR: `scratchpad/encolar.sh <script> <n-plaza>`.** Exige las cuatro:
+contiene `codex exec`, contiene `| tee`, empieza por `cd`, y `bash -n`. Y ademas **impone
+la regla de serie por mecanismo**: si `pgrep -f "^codex exec"` encuentra algo, rechaza. Eso
+deja de depender de que yo me acuerde.
+
+⚠️ **LA MITAD QUE ESTO NO ARREGLA** (T3): la plaza imprime el mismo "✔ libre otra vez" al
+terminar bien y cuando el encargo revienta. **Mientras el mensaje de exito este en el camino
+del fallo, el control de entrada es la unica defensa — y solo cubre lo que imagino.**
+
+**Y hay un detector EN EL REPO que yo llevo el dia reimplementando a mano:**
+`Sorfware Factory/_detector-exports-sin-veredicto.sh`. Usa la clave ANTIGUA
+(`VEREDICTO_<term>_<ait>_<loop>.txt`, sin la clase), que es justo la que hoy me dio 12
+huerfanos falsos. Antes de volver a escribir el detector a mano: arreglar ese.
