@@ -90,13 +90,26 @@ Las cuatro tienen la misma forma: **no puede desempatarlas quien está dentro.**
 
 **Comprometí dos tareas cerradas. Entrego CERO de las dos.**
 
-La única ficha que se cerró esta noche —AIT-109— ya estaba en marcha antes de que se fijara el
-compromiso. **Así que el compromiso de la noche se cumplió en un 0%, y lo digo con ese número
-antes de dar ninguna explicación.**
+Se han cerrado **dos fichas** —AIT-109 y AIT-123— **y ninguna de las dos es de las
+comprometidas.** AIT-109 ya estaba en marcha antes de fijarse el compromiso; AIT-123 apareció
+después. **Así que el compromiso se cumplió en un 0%, y lo digo con ese número antes de dar
+ninguna explicación.** Lo que hay es trabajo cerrado *al lado* de lo prometido, no lo prometido.
+
+**AIT-123, publicada a las 07:50:32Z**, cierra un defecto que la propia noche descubrió y
+midió: **resolver el deployment por URL + admin-key reescribe el `.env.local` y deja el
+worktree corriendo contra otro backend, de forma persistente.** Merge `46bfcbb`, servida en
+93 s, con la suite corrida **con el merge dentro** (38 e2e + 111 unitarios, exit real 0) antes
+de publicar, no después. Ocho rondas de plan y tres de código.
+
+🟡 **Y AIT-127 —una de las dos comprometidas— está a una comprobación:** GO de plan,
+implementación commiteada y verificada salvo un criterio, que se estaba ejecutando contra el
+backend cuando se escribió esto. **Si aterriza, la noche cierra tres y una sí es de las
+prometidas.** No lo doy por hecho: lo digo para que se lea con el estado real y no con el
+desenlace que me gustaría.
 
 | | |
 |---|---|
-| **CERRADO** | **1** — AIT-109 (publicada, servida en 99 s, suites en verde, `npm run build` verificado) |
+| **CERRADO** | **2** — AIT-109 y **AIT-123** |
 | **NO LLEGA, decisión tuya** | **1** — AIT-99 |
 | **NO LLEGA, aún en el bucle** | **1** — AIT-127. Ronda 5 **NO-GO** (verificado por mí: línea 871, `SIN:` en la 872, mtime 05:16:10Z). Dos majors, ningún blocker |
 | **EN VUELO al cierre** | AIT-123 (ronda 6 auditándose, **la primera sin el `SIN:` repetido**), AIT-114 y AIT-122 encoladas |
