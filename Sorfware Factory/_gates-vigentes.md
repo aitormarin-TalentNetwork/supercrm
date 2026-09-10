@@ -1,7 +1,35 @@
 # Gates vigentes de la fábrica
 
-**Este fichero es la fuente de verdad de qué gates están vivos.** Si un prompt, un cron o un
-mensaje contradice esto, **manda esto**.
+**Este fichero recoge los gates TRANSVERSALES, los que se pusieron sobre la marcha y no viven
+en ningún documento de rol.** Si un prompt, un cron o un mensaje contradice uno de estos,
+**manda este fichero**.
+
+> 🔴 **LO QUE ESTE FICHERO NO ES, Y HAY QUE LEERLO ANTES DE FIARSE: NO ES LA LISTA COMPLETA DE
+> LO QUE TE PUEDE FRENAR.** Nació diciendo *"la fuente de verdad de qué gates están vivos"*, y
+> **eso era falso por completitud**: omitía la **57.1** (`integrador.md`), que obliga al
+> Integrador a correr la suite antes de publicar un cambio que toque un fichero compartido.
+> **Lo cazó el Integrador negándose a publicar por una regla que este fichero no mencionaba**,
+> después de que el CEO le dijera —mirando solo este fichero— que no había nada que le frenara.
+> **CADA DOCUMENTO DE ROL LLEVA SUS PROPIAS OBLIGACIONES.** Este fichero no las sustituye: las
+> complementa. **Antes de concluir "no hay gate que aplique", lee también tu documento de rol.**
+> 📌 La forma, que es la de toda esta noche: **una lista que se presenta como completa no deja
+> el hueco donde estaba — lo tapa con una absolución.** Quien lea "aquí están todos los gates"
+> y no vea el suyo, concluye que no lo tiene.
+
+## Gate 0 — el que no estaba aquí: la suite antes de publicar (57.1, `integrador.md`)
+
+> **Antes de publicar un cambio que toque un fichero COMPARTIDO por varios specs, el Integrador
+> corre la suite con `--workers=1`.** Si no cabe en memoria o no se puede correr, **publica
+> diciéndolo — y va en la FICHA DE PUBLICACIÓN, no solo en un mensaje.**
+
+**Por qué el matiz de dónde se declara:** *una suite saltada que solo consta en un chat
+desaparece con el chat.* La ficha sobrevive; el mensaje no.
+
+**Y "compartido" no es una lista de ficheros, es una propiedad:** el caso que lo destapó tocaba
+`e2e/global-setup.ts`, que es el `globalSetup` de **toda** la suite — **más compartido que el
+ejemplo que la propia regla nombra**. Si rompe algo, lo rompe en los 38 specs a la vez.
+⚠️ Ojo a la dependencia cruzada: **la suite necesita el deployment de Convex**, así que este
+gate puede quedar en espera detrás del **cerrojo de Convex** (gate 3). Esperar es correcto.
 
 > ⚠️ **POR QUÉ EXISTE (2026-09-10, dos veces la misma noche).** Los gates vivían dentro del
 > prompt de un cron. Un gate se reescribió **cinco veces en tres horas** y el prompt siguió

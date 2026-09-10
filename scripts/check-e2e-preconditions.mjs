@@ -220,6 +220,156 @@ export function deploymentName(env = process.env, cwd = process.cwd()) {
 }
 
 // ============================================================================
+// AIT-123 — que el arnés no corra contra OTRO backend
+// ============================================================================
+// Resolver el deployment por URL+admin key (en vez de por nombre) hace que el
+// CLI de Convex reescriba el `.env.local` DEL DIRECTORIO EN QUE SE INVOCA: borra
+// `CONVEX_DEPLOYMENT` y REPUNTA `NEXT_PUBLIC_CONVEX_URL`/`_SITE_URL` al destino
+// del comando. Medido el 2026-09-10 contra el binario real (convex 1.42.1).
+//
+// *** POR QUÉ ESTO ES UNA PRECONDICIÓN Y NO UN AVISO MÁS. ***
+// El CLI SÍ avisa, en la primera línea de su salida. Lo que no avisa es la
+// CONSECUENCIA, que llega después y en manos de otro: Next lee
+// `NEXT_PUBLIC_CONVEX_URL`, así que el siguiente `npm run dev` de ese worktree
+// habla con el backend del comando anterior. No es un fallo silencioso: es un
+// aviso que nadie trata como gate. Esta función lo convierte en gate, en el
+// instante en que iba a producir resultados e2e falsos.
+//
+// *** POR QUÉ MIRA EL FICHERO Y NO `process.env`. ***
+// `deploymentName()` de arriba lee PRIMERO el entorno y solo cae al fichero si
+// no está — contesta a otra pregunta y es correcta para la suya. Aquí el sujeto
+// dañado es el FICHERO: con `CONVEX_DEPLOYMENT` exportado en la shell, un
+// `.env.local` repuntado daría verde. Por eso esta función no recibe `env`.
+//
+// *** POR QUÉ IGUALDAD EXACTA Y NO "el nombre aparece en la URL". ***
+// Un "contiene" acepta `https://evil.example/third-goldfinch-805`. La igualdad
+// se comprobó contra los seis `.env.local` de la fábrica (raíz, QA, T1-T4) el
+// 2026-09-10: los seis la cumplen para las DOS urls.
+
+/** Las dos URL públicas se derivan del nombre. Convex Cloud las escribe así. */
+export function urlsEsperadas(nombreSinPrefijo) {
+  return {
+    NEXT_PUBLIC_CONVEX_URL: `https://${nombreSinPrefijo}.convex.cloud`,
+    NEXT_PUBLIC_CONVEX_SITE_URL: `https://${nombreSinPrefijo}.convex.site`,
+  };
+}
+
+/** Valor de una clave en el contenido de un `.env.local`. `null` si no está.
+ *  Cadena vacía si la línea existe sin valor — que NO es lo mismo, y es uno de
+ *  los dos estados en que puede quedar el fichero tras el daño. */
+export function valorDeClave(contenido, clave) {
+  const re = new RegExp(`^\\s*${clave}\\s*=(.*)$`, "m");
+  const m = re.exec(contenido);
+  if (m === null) return null;
+  return m[1].split("#")[0].trim().replace(/^["']|["']$/g, "");
+}
+
+/**
+ * Problemas del `.env.local`, como lista. Vacía = sano.
+ *
+ * PURA a propósito: recibe el CONTENIDO, no una ruta. Así se puede probar el
+ * daño sin fabricarlo en disco, y —más importante— no hay forma de que consulte
+ * el entorno por accidente.
+ */
+export function problemasDelEnvLocal(contenido) {
+  // ── self-hosted: se reconoce por COHERENCIA, no por la presencia de una clave.
+  //
+  // ⚠️ La primera versión hacía `if (hay CONVEX_SELF_HOSTED_URL) return []`, y eso
+  // era un BYPASS del gate entero: un fichero con la clave self-hosted, con
+  // `CONVEX_DEPLOYMENT` puesto Y con las dos URLs repuntadas se aceptaba sin
+  // validar nada. **Que el CLI no genere normalmente esa combinación no convierte
+  // un fichero contradictorio en sano** — y un fichero contradictorio es
+  // exactamente lo que deja una herramienta a medio camino.
+  //
+  // Un self-hosted LEGÍTIMO tiene sus dos campos obligatorios y NO tiene la
+  // configuración Cloud: el propio CLI aborta si están las dos
+  // (`deploymentSelection.js`, "must not be set when ... are set").
+  const shUrl = valorDeClave(contenido, "CONVEX_SELF_HOSTED_URL");
+  const shKey = valorDeClave(contenido, "CONVEX_SELF_HOSTED_ADMIN_KEY");
+  const deploymentCloud = valorDeClave(contenido, "CONVEX_DEPLOYMENT");
+  if (shUrl || shKey) {
+    const problemas = [];
+    if (!shUrl) problemas.push("hay `CONVEX_SELF_HOSTED_ADMIN_KEY` pero falta `CONVEX_SELF_HOSTED_URL`");
+    if (!shKey) problemas.push("hay `CONVEX_SELF_HOSTED_URL` pero falta `CONVEX_SELF_HOSTED_ADMIN_KEY`");
+    if (deploymentCloud !== null) {
+      problemas.push(
+        "conviven la configuración self-hosted y `CONVEX_DEPLOYMENT`: el CLI las " +
+          "declara incompatibles, así que este fichero está en un estado que nadie " +
+          "configuró a propósito",
+      );
+    }
+    return problemas;
+  }
+
+  const crudo = deploymentCloud;
+  if (crudo === null) {
+    return ["falta la línea `CONVEX_DEPLOYMENT`"];
+  }
+  if (crudo === "") {
+    return ["`CONVEX_DEPLOYMENT` está presente pero SIN VALOR"];
+  }
+
+  const nombre = crudo.replace(/^[a-z]+:/, "");
+  const esperadas = urlsEsperadas(nombre);
+  const problemas = [];
+  for (const [clave, esperada] of Object.entries(esperadas)) {
+    const actual = valorDeClave(contenido, clave);
+    if (actual === null) {
+      problemas.push(`falta la línea \`${clave}\``);
+    } else if (actual !== esperada) {
+      // Se enseña la URL, no el fichero: `NEXT_PUBLIC_` es público por
+      // definición y el nombre del deployment ya circula por los documentos.
+      problemas.push(
+        `\`${clave}\` apunta a \`${actual}\` y el deployment configurado es ` +
+          `\`${crudo}\` (esperaba \`${esperada}\`)`,
+      );
+    }
+  }
+  return problemas;
+}
+
+export function formatEnvLocalMessage(problemas) {
+  return [
+    "",
+    "[e2e] PRECONDICIÓN AIT-123 — el `.env.local` de este worktree no es coherente.",
+    "",
+    ...problemas.map((p) => `  · ${p}`),
+    "",
+    "  Un comando de `convex` que resuelva el deployment por URL+admin key en vez",
+    "  de por nombre reescribe este fichero: borra `CONVEX_DEPLOYMENT` y repunta",
+    "  las dos `NEXT_PUBLIC_*` a su propio destino. El CLI lo avisa en su primera",
+    "  línea; la consecuencia llega después.",
+    "",
+    "  No se ejecuta ningún test: la suite mediría contra OTRO backend y los",
+    "  resultados no serían atribuibles a este worktree.",
+    "",
+    "  Recupéralo con `npx convex dev` desde ESTE worktree, con el deployment que",
+    "  le corresponda, y comprueba las tres líneas antes de volver a lanzar.",
+    "",
+  ].join("\n");
+}
+
+/** Lee el fichero. Separada de la lógica para poder inyectarla en las pruebas.
+ *
+ *  `null` SOLO si el fichero NO EXISTE (`ENOENT`): Railway y CI no tienen
+ *  `.env.local`, y esa ausencia no es el daño que esto detecta.
+ *
+ *  ⚠️ CUALQUIER OTRO ERROR SE PROPAGA, y esto es lo contrario de lo que hacía la
+ *  primera versión. Tragarse permisos, EIO o un directorio en vez de un fichero
+ *  y devolver `null` convertía "no pude leerlo" en "no hay nada que comprobar":
+ *  los dos consumidores continuaban y la suite medía contra un backend no
+ *  verificado. **Fallar abierto aquí reproduce el defecto que este módulo
+ *  existe para impedir.** */
+export function readEnvLocal(cwd = process.cwd()) {
+  try {
+    return readFileSync(path.join(cwd, ".env.local"), "utf8");
+  } catch (causa) {
+    if (causa && causa.code === "ENOENT") return null;
+    throw causa;
+  }
+}
+
+// ============================================================================
 // AIT-95 — que el arnés no corra contra un backend desfasado
 // ============================================================================
 // `git pull` trae el CÓDIGO de una función de Convex. NO la mete en tu
@@ -580,7 +730,34 @@ export async function run({
   version = installedAuthVersion,
   readSources = readConvexSources,
   readDeployed = readDeployedFunctions,
+  leerEnvLocal = readEnvLocal,
 } = {}) {
+  // ── AIT-123: contra QUÉ backend corremos, antes que si está al día ────────
+  // Va la PRIMERA, delante incluso de AIT-95, y el orden no es cosmético: la
+  // comprobación de AIT-95 pregunta "¿está desplegado lo que el código espera?"
+  // CONTRA UN DEPLOYMENT — si el `.env.local` apunta a otro, esa pregunta se
+  // responde sobre el sujeto equivocado y su verde no significa nada.
+  let contenidoEnv;
+  try {
+    contenidoEnv = leerEnvLocal();
+  } catch (causa) {
+    // FALLA CERRADA y con mensaje NUESTRO. Dejar que la excepción suba daría un
+    // rechazo sin manejar: el proceso muere igual —o sea que tampoco pasa la
+    // suite— pero con un volcado de Node en vez de con la causa.
+    err(`[e2e] PRECONDICIÓN AIT-123 NO COMPROBABLE — no se pudo leer .env.local (${causa.code ?? causa.message}).`);
+    err("[e2e] no se ejecuta ningún test: no se puede saber contra qué backend correría la suite.");
+    return 1;
+  }
+  if (contenidoEnv !== null) {
+    const problemas = problemasDelEnvLocal(contenidoEnv);
+    if (problemas.length > 0) {
+      out(formatEnvLocalMessage(problemas));
+      return 1;
+    }
+  }
+  // Sin fichero no se comprueba: Railway y CI no tienen `.env.local` y esa
+  // ausencia no es el daño que esto detecta.
+
   // ── AIT-95: el backend, antes que nada ────────────────────────────────────
   // Va PRIMERO porque es la precondición más barata de corregir y la que más
   // ruido ahorra: sin ella, la suite corre entera para dar rojos que no hablan

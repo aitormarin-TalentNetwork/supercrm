@@ -1,4 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   MAX_FAILED_ATTEMPTS_PER_HOUR,
   SUPPORTED_AUTH_VERSION,
@@ -9,7 +13,12 @@ import {
   readTable,
   readPasswordAccountsFromConvex,
   run,
+  problemasDelEnvLocal,
+  urlsEsperadas,
+  valorDeClave,
 } from "../scripts/check-e2e-preconditions.mjs";
+import { problemasDeLaProhibicion } from "../scripts/check-prohibicion-por-mecanismo.mjs";
+import { readEnvLocal } from "../scripts/check-e2e-preconditions.mjs";
 
 // AIT-103 — pruebas de la precondición del límite de intentos de login.
 // Sobre funciones puras y con lecturas inyectadas, mismo patrón que
@@ -251,5 +260,270 @@ test.describe("El secreto no sale por ninguna salida, ni cuando algo revienta", 
     expect(code).toBe(1);
     expect(c.stdout).toContain(CANARIO);
     expect(c.ambas).toContain(CANARIO);
+  });
+});
+
+// ============================================================================
+// AIT-123 — las CINCO ejecuciones de C5, y el control adversario de C6
+// ============================================================================
+// Estas pruebas son PURAS: `problemasDelEnvLocal` recibe el CONTENIDO del
+// fichero, no una ruta, así que el daño se fabrica como cadena y no en disco.
+// No es comodidad: es que una función que no recibe una ruta tampoco puede
+// leer `process.env` por accidente, y esa precedencia es justo la trampa.
+
+const D = "dev:X";
+const SANO = [
+  `CONVEX_DEPLOYMENT=${D}`,
+  `NEXT_PUBLIC_CONVEX_URL=${urlsEsperadas("X").NEXT_PUBLIC_CONVEX_URL}`,
+  `NEXT_PUBLIC_CONVEX_SITE_URL=${urlsEsperadas("X").NEXT_PUBLIC_CONVEX_SITE_URL}`,
+  "",
+].join("\n");
+
+/** El daño VIEJO: la línea desaparece. Es el que describía la ficha original. */
+const DANO_VIEJO = SANO.split("\n").filter((l) => !l.startsWith("CONVEX_DEPLOYMENT")).join("\n");
+
+/** El daño NUEVO, rama URL. La variable SIGUE PRESENTE — por eso un comprobador
+ *  de presencia lo aprueba, y por eso este caso existe. */
+const REPUNTADA_URL = SANO.replace(
+  "NEXT_PUBLIC_CONVEX_URL=https://X.convex.cloud",
+  "NEXT_PUBLIC_CONVEX_URL=http://otro-destino:39123",
+);
+
+/** El daño NUEVO, rama SITE. Se prueba aparte de la rama URL y no "de paso":
+ *  el CLI reescribe las DOS, y un caso que las junte puede dejar una sin
+ *  ejecutar sin que nadie lo note. */
+const REPUNTADA_SITE = SANO.replace(
+  "NEXT_PUBLIC_CONVEX_SITE_URL=https://X.convex.site",
+  "NEXT_PUBLIC_CONVEX_SITE_URL=http://otro-destino:39123",
+);
+
+test.describe("AIT-123 · C5 — el comprobador del .env.local, cinco ejecuciones", () => {
+  test("1. fichero sano: no grita", () => {
+    expect(problemasDelEnvLocal(SANO)).toHaveLength(0);
+  });
+
+  test("2. daño VIEJO (falta la línea): grita una vez", () => {
+    const problemas = problemasDelEnvLocal(DANO_VIEJO);
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]).toContain("CONVEX_DEPLOYMENT");
+  });
+
+  test("2bis. la línea presente pero SIN VALOR también grita", () => {
+    // Tercer estado del fichero, distinto de los otros dos: `CONVEX_DEPLOYMENT=`
+    // existe y no dice nada. No está medido cuál de los dos deja cada camino, así
+    // que el comprobador es ancho A PROPÓSITO — y la anchura no es una medición.
+    const vacia = SANO.replace(`CONVEX_DEPLOYMENT=${D}`, "CONVEX_DEPLOYMENT=");
+    expect(problemasDelEnvLocal(vacia)).toHaveLength(1);
+  });
+
+  test("3a. daño NUEVO, rama URL, CON EL ENTORNO POBLADO: grita igual", () => {
+    // El entorno se puebla a propósito: es el estado en el que `deploymentName()`
+    // —que lee `process.env` primero— daría VERDE sobre este mismo fichero.
+    const previo = process.env.CONVEX_DEPLOYMENT;
+    process.env.CONVEX_DEPLOYMENT = "dev:ENTORNO-QUE-NO-DEBE-CONTAR";
+    try {
+      const problemas = problemasDelEnvLocal(REPUNTADA_URL);
+      expect(problemas).toHaveLength(1);
+      expect(problemas[0]).toContain("NEXT_PUBLIC_CONVEX_URL");
+    } finally {
+      if (previo === undefined) delete process.env.CONVEX_DEPLOYMENT;
+      else process.env.CONVEX_DEPLOYMENT = previo;
+    }
+  });
+
+  test("3b. daño NUEVO, rama SITE, CON EL ENTORNO POBLADO: grita igual", () => {
+    const previo = process.env.CONVEX_DEPLOYMENT;
+    process.env.CONVEX_DEPLOYMENT = "dev:ENTORNO-QUE-NO-DEBE-CONTAR";
+    try {
+      const problemas = problemasDelEnvLocal(REPUNTADA_SITE);
+      expect(problemas).toHaveLength(1);
+      expect(problemas[0]).toContain("NEXT_PUBLIC_CONVEX_SITE_URL");
+    } finally {
+      if (previo === undefined) delete process.env.CONVEX_DEPLOYMENT;
+      else process.env.CONVEX_DEPLOYMENT = previo;
+    }
+  });
+
+  test("4. fichero sano CON EL ENTORNO POBLADO: sigue sin gritar", () => {
+    // La otra mitad, y sin ella el criterio no vale: un comprobador que gritara
+    // siempre pasaría los casos 2, 3a y 3b.
+    const previo = process.env.CONVEX_DEPLOYMENT;
+    process.env.CONVEX_DEPLOYMENT = "dev:ENTORNO-QUE-NO-DEBE-CONTAR";
+    try {
+      expect(problemasDelEnvLocal(SANO)).toHaveLength(0);
+    } finally {
+      if (previo === undefined) delete process.env.CONVEX_DEPLOYMENT;
+      else process.env.CONVEX_DEPLOYMENT = previo;
+    }
+  });
+
+  test("un self-hosted legítimo no se confunde con un fichero dañado", () => {
+    // Límite declarado en el plan (R2). El propio CLI prohíbe tener las dos
+    // configuraciones a la vez, así que la presencia de la self-hosted es la
+    // señal de que no hay nombre del que derivar URLs.
+    const selfHosted = [
+      "CONVEX_SELF_HOSTED_URL=https://convex.interno.example",
+      "CONVEX_SELF_HOSTED_ADMIN_KEY=loquesea",
+      "",
+    ].join("\n");
+    expect(problemasDelEnvLocal(selfHosted)).toHaveLength(0);
+  });
+
+  test("valorDeClave distingue AUSENTE de PRESENTE-SIN-VALOR", () => {
+    // Los dos se leen igual con un `grep -c` y son estados distintos del daño.
+    expect(valorDeClave("OTRA=1\n", "CONVEX_DEPLOYMENT")).toBeNull();
+    expect(valorDeClave("CONVEX_DEPLOYMENT=\n", "CONVEX_DEPLOYMENT")).toBe("");
+  });
+});
+
+test.describe("AIT-123 · C6 — la prohibición documental, con su control adversario", () => {
+  const REAL = readFileSync(path.join(process.cwd(), "docs", "03-setup.md"), "utf8");
+
+  /** Redacción que prohíbe SOLO el flag, identificando bien subcomando y
+   *  evidencia — o sea que SATISFACE C4. Es la que engañaría a un criterio que
+   *  solo mire si la afirmación está bien documentada. */
+  const ADVERSARIA = `
+### Prohibido: \`npx convex dev --env-file\` desde un worktree (AIT-123)
+
+**Está prohibido usar \`--env-file\` con \`npx convex dev\` desde un worktree.**
+Subcomando afectado: \`convex dev\`. Evidencia: medido el 2026-09-10 contra convex
+1.42.1 en un entorno desechable — borra \`CONVEX_DEPLOYMENT\` y repunta las dos
+\`NEXT_PUBLIC_*\`. Para \`convex deploy\` no está medido (AIT-130).
+`;
+
+  test("la redacción REAL cumple C6", () => {
+    expect(problemasDeLaProhibicion(REAL)).toHaveLength(0);
+  });
+
+  test("🔑 la redacción adversaria (solo el flag) SUSPENDE C6", () => {
+    // Ésta es la prueba que cierra M9. Sin ella, C6 no distingue una prohibición
+    // por mecanismo de una por flag — y una prohibición por flag SE PUEDE CUMPLIR
+    // CAUSANDO EL DAÑO: medido, `--url` + `--admin-key` sin `--env-file` borra
+    // y repunta exactamente igual.
+    const problemas = problemasDeLaProhibicion(ADVERSARIA);
+    expect(problemas.length).toBeGreaterThan(0);
+    expect(problemas.join(" ")).toContain("MECANISMO");
+  });
+
+  test("la receta anterior no sobrevive en el documento", () => {
+    expect(REAL).not.toContain("única forma de desplegar sin esa confirmación");
+    expect(REAL).not.toContain("aísla el comando de la");
+  });
+});
+
+// ============================================================================
+// AIT-123 · los cuatro caminos a falso verde que encontró la auditoría de código
+// ============================================================================
+// Los cuatro eran lo mismo con cuatro caras: dos estados distintos produciendo el
+// mismo valor, siempre hacia el lado tranquilizador. Cada uno tiene aquí el caso
+// que lo habría cazado.
+
+test.describe("AIT-123 · B1 — C6 comprueba el ÁMBITO, no la presencia", () => {
+  const MECA = "resuelva el deployment **POR URL + ADMIN KEY en vez de POR NOMBRE**";
+  const MARCA = "Formas conocidas — son **ejemplos, no la definición**:";
+
+  test("🔑 el adversario MIXTO suspende: conserva mecanismo y marca, y define por flag DESPUÉS", () => {
+    // Éste es B1. La primera versión de C6 comprobaba que la frase del mecanismo
+    // y la marca ESTUVIERAN, en cualquier sitio — así que un documento podía
+    // conservarlas y añadir después una norma por flag. El comprobador que cierra
+    // M9 tenía dentro el agujero de M9.
+    const mixto = [
+      "### Prohibido: resolver por URL+admin key",
+      `**Está prohibido cualquier invocación que ${MECA}.**`,
+      "",
+      MARCA,
+      "",
+      "- `--env-file` con vars self-hosted",
+      "- `--url` + `--admin-key`",
+      "",
+      "En la práctica: **está prohibido `--env-file`**; `--url` y `--admin-key` están permitidos.",
+    ].join("\n");
+    const problemas = problemasDeLaProhibicion(mixto);
+    expect(problemas.length).toBeGreaterThan(0);
+    expect(problemas.join(" ")).toContain("fuera del bloque de ejemplos");
+  });
+
+  test("el adversario PURO (solo el flag) sigue suspendiendo", () => {
+    const puro = "**Está prohibido usar `--env-file` con `convex dev`.** Evidencia: medido 2026-09-10.";
+    expect(problemasDeLaProhibicion(puro).length).toBeGreaterThan(0);
+  });
+
+  test("los flags DENTRO del bloque de ejemplos no suspenden (control en la otra dirección)", () => {
+    // Sin esta mitad, C6 podría estar rechazando cualquier documento que nombre
+    // un flag, y entonces su rojo no significaría nada.
+    const bueno = [
+      `**Está prohibido cualquier invocación que ${MECA}.**`,
+      "",
+      MARCA,
+      "",
+      "- `--env-file` con vars self-hosted",
+      "- `--url` + `--admin-key`, sin `--env-file` por ninguna parte",
+    ].join("\n");
+    expect(problemasDeLaProhibicion(bueno)).toHaveLength(0);
+  });
+});
+
+test.describe("AIT-123 · B4 — el self-hosted se reconoce por COHERENCIA", () => {
+  test("🔑 self-hosted + CONVEX_DEPLOYMENT + URLs repuntadas NO se acepta", () => {
+    // Éste es B4. La excepción que cerraba el límite R2 con dos líneas abría un
+    // bypass del gate entero: bastaba una clave self-hosted para saltarse toda la
+    // validación. Que el CLI no genere normalmente esa combinación no convierte un
+    // fichero contradictorio en sano — y contradictorio es justo lo que deja una
+    // herramienta a medio camino.
+    const bypass = [
+      "CONVEX_SELF_HOSTED_URL=https://interno.example",
+      "CONVEX_SELF_HOSTED_ADMIN_KEY=k",
+      "CONVEX_DEPLOYMENT=dev:X",
+      "NEXT_PUBLIC_CONVEX_URL=http://otro-destino",
+      "NEXT_PUBLIC_CONVEX_SITE_URL=http://otro-destino",
+    ].join("\n");
+    expect(problemasDelEnvLocal(bypass).length).toBeGreaterThan(0);
+  });
+
+  test("un self-hosted legítimo (sus dos campos, sin config Cloud) sigue sin gritar", () => {
+    const legit = "CONVEX_SELF_HOSTED_URL=https://interno.example\nCONVEX_SELF_HOSTED_ADMIN_KEY=k\n";
+    expect(problemasDelEnvLocal(legit)).toHaveLength(0);
+  });
+
+  test("un self-hosted a medias (falta un campo obligatorio) grita", () => {
+    expect(problemasDelEnvLocal("CONVEX_SELF_HOSTED_URL=https://interno.example\n").length).toBeGreaterThan(0);
+  });
+});
+
+test.describe("AIT-123 · B3 — la lectura falla CERRADA", () => {
+  test("un fichero ausente sigue devolviendo null (ENOENT no es el daño)", () => {
+    expect(readEnvLocal(path.join(os.tmpdir(), `ait123-no-existe-${Date.now()}`))).toBeNull();
+  });
+
+  test("🔑 cualquier OTRO error se propaga en vez de convertirse en «no hay nada que comprobar»", () => {
+    // Éste es B3. `catch { return null }` tragaba permisos, EIO y un directorio en
+    // lugar de un fichero, y los dos consumidores lo trataban igual que «CI sin
+    // fichero»: la suite seguía y medía contra un backend no verificado.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ait123-b3-"));
+    fs.mkdirSync(path.join(dir, ".env.local"));
+    try {
+      expect(() => readEnvLocal(dir)).toThrow(/EISDIR|EACCES|illegal/i);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("y el consumidor NO continúa: run() devuelve 1 con mensaje propio", async () => {
+    const errores: string[] = [];
+    const codigo = await run({
+      leerEnvLocal: () => {
+        const e: NodeJS.ErrnoException = new Error("EIO simulado");
+        e.code = "EIO";
+        throw e;
+      },
+      out: () => {},
+      err: (l: string) => errores.push(l),
+      readSources: () => [],
+      readDeployed: async () => new Set(),
+      readRateLimits: async () => [],
+      readPasswordAccounts: async () => new Map(),
+    });
+    expect(codigo).toBe(1);
+    expect(errores.join(" ")).toContain("NO COMPROBABLE");
   });
 });

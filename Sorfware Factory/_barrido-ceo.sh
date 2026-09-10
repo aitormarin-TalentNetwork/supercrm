@@ -63,12 +63,28 @@ echo "(hora medida con \`date -u\`, nunca deducida)"
 # durante un rato sobre un cerrojo que ya no estaba en disco.
 echo
 echo "--- CERROJOS ---"
-for L in _turno-convex.lock _turno-raiz.lock; do
+# 🔴 SE ENUMERA LO QUE HAY, NO SE BUSCA LO QUE SE ESPERA (2026-09-10 09:0xZ).
+# Esto comprobaba DOS RUTAS FIJAS por nombre. El 2026-09-10 una terminal tomo el
+# turno de Convex en `_turno-convex/` —sin sufijo, la forma correcta de ANTES,
+# que saco de veredictos archivados— y **este barrido informo "los dos cerrojos
+# libres" durante 12 minutos** mientras el deployment compartido estaba abierto.
+# No fallo: contesto la verdad sobre los dos objetos que miraba. El sujeto era
+# otro. **Un detector construido sobre la lista de nombres que uno espera es
+# ciego a todo lo que no esperaba, y su silencio se lee como calma.**
+# Demostrado fabricando el caso: con `_turno-inventado-x/` creado y su titular
+# dentro, la version vieja no lo mencionaba.
+# LA REGLA: la lista autorizada es la que devuelve el instrumento. Enumerar y
+# clasificar despues, nunca al reves.
+for L in $(cd "$RAIZ/Sorfware Factory" 2>/dev/null && ls -d _turno*/ 2>/dev/null | sed 's#/$##'); do
   if [ -d "Sorfware Factory/$L" ]; then
     echo "  $L: TOMADO -> $(head -4 "Sorfware Factory/$L/titular.txt" 2>/dev/null | tr '\n' ' ' | cut -c1-160)"
   else
     echo "  $L: libre (no existe el directorio)"
   fi
+done
+# Y los canonicos se nombran SIEMPRE, existan o no, para que su ausencia sea visible:
+for L in _turno-convex.lock _turno-raiz.lock; do
+  [ -d "$RAIZ/Sorfware Factory/$L" ] || echo "  $L: libre"
 done
 # CONTROL POSITIVO del test -d: si esto falla, los "libre" de arriba no valen nada.
 if [ -d "Sorfware Factory/_worktrees" ]; then
@@ -108,14 +124,46 @@ if [ -z "$SUCIO" ]; then echo "  limpio"; else echo "$SUCIO" | sed 's/^/  /'; fi
 # _turno-raiz.lock nacio sin su entrada y cualquier `git add -A` lo habria commiteado.
 echo
 echo "--- ficheros de estado local: ¿ignorados por git? ---"
-for p in "Sorfware Factory/_turno-convex.lock" "Sorfware Factory/_turno-raiz.lock" \
-         "Sorfware Factory/_registro-agentes.txt"; do
+# 🔴 MISMO ARREGLO QUE EN LA SECCION 1, Y POR LA MISMA RAZON: esto tambien tenia
+# TRES RUTAS FIJAS. Habria sido absurdo enumerar los cerrojos arriba y seguir
+# buscando por nombre esperado aqui — es literalmente "el hueco se muda al eje
+# de al lado". Se enumera lo que HAY en disco y se comprueba cada cosa.
+# ⚠️ Y EL BUCLE VA CON `while read`, NO CON `for ... $(ls)`: la ruta lleva un
+# ESPACIO ("Sorfware Factory") y el word-splitting la parte en dos. Cometido y
+# cazado en este mismo fichero: la version con `for` reportaba TODO como no
+# ignorado — un falso ROJO, la direccion contraria al bug que venia a arreglar.
+# Lo delato leer la salida, no el exit code, que seguia siendo 0.
+while IFS= read -r p; do
   if git check-ignore -q "$p" 2>/dev/null; then
     echo "  ok  ignorado: $p"
+  elif git ls-files --error-unmatch "$p" >/dev/null 2>&1; then
+    # NO ignorado pero SI trackeado = versionado A PROPOSITO. No es un olvido.
+    # Caso real: `_registro-qa.txt` lo versiono la decision 12 deliberadamente
+    # (51 commits lo tocan). La primera version de esta comprobacion lo marcaba
+    # en ROJO cada ciclo — un falso rojo PERMANENTE, que es exactamente como
+    # mueren las alarmas: gritando con el sistema sano hasta que nadie las lee.
+    echo "  ok  versionado a proposito (trackeado): $p"
   else
-    echo "  🔴 NO IGNORADO: $p  (un \`git add -A\` lo commitearia)"
+    echo "  🔴 NI IGNORADO NI TRACKEADO: $p  (un \`git add -A\` lo commitearia sin querer)"
   fi
-done
+done < <(
+  # LOS CANONICOS SIEMPRE, EXISTAN O NO + lo que haya en disco, deduplicado.
+  # ⚠️ HUECO QUE ESTO CIERRA, introducido por el arreglo ANTERIOR y cazado en el
+  # ciclo siguiente: al pasar a enumerar el disco, un artefacto que NO existe en
+  # ese momento deja de comprobarse — y es justo cuando importa, porque su
+  # estado de ignorado hay que saberlo ANTES de que aparezca. `_turno-raiz.lock`
+  # desaparecio de esta comprobacion en cuanto quedo libre.
+  # LA SINTESIS: enumerar lo PERMITIDO (siempre) y ademas lo que HAY (por si
+  # aparece algo no previsto). Ni solo lo esperado, ni solo lo existente.
+  { printf '%s\n' \
+      "Sorfware Factory/_turno-convex.lock" \
+      "Sorfware Factory/_turno-raiz.lock" \
+      "Sorfware Factory/_turno-convex.log" \
+      "Sorfware Factory/_turno-raiz.log" \
+      "Sorfware Factory/_registro-agentes.txt"
+    cd "$RAIZ" && ls -d "Sorfware Factory"/_turno* "Sorfware Factory"/_registro* 2>/dev/null
+  } | sort -u
+)
 
 # --- 5. Exports sin veredicto ------------------------------------------------
 echo

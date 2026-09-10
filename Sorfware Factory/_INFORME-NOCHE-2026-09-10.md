@@ -22,16 +22,27 @@ trabajo que sigue vivo.**
 sincronizador = corrupción de git". **El disco no está lleno: 484 GiB disponibles, 46% de
 uso, medido.** La premisa era falsa y era mía. **El riesgo es iCloud y solo iCloud.**
 
-### 🥉 AIT-99 — dos autorizaciones. Es lo más caro que tenemos parado.
-**No cierra, y no es cuestión de tiempo.** Ronda 2 de código NO-GO, y sus `SIN:` de las
-rondas 1 y 2 **coinciden en tres de cuatro**. Los tres huecos solo los quitas tú:
-- crear cuentas en el Convex compartido está **vetado** (ya hay una credencial expuesta),
-- retirar las cinco cuentas sembradas es **AIT-131**, y la siembra **no tiene inversa**,
-- falta un **deployment virgen**.
+### 🥉 AIT-99 — CUATRO PERMISOS CONCRETOS. Es lo más caro que tenemos parado.
+**No cierra, y no es cuestión de tiempo ni de trabajo.** Estado medido en la carpeta, no leído
+de un registro: **dos rondas de código auditadas, las dos NO-GO**; M1, M2 y M5 **cerrados**;
+rama respaldada en `origin`, árbol limpio, cero commits sin subir. **Está parada desde las
+01:56Z en el mismo punto.**
+
+**Lo que falta es literalmente el `SIN:` del auditor, y son cuatro cosas que solo puedes
+autorizar tú porque se ejecutan con tu identidad y sobre infraestructura que pagas:**
+1. **Operaciones sobre el deployment compartido de dev.**
+2. **Retirar las cinco cuentas `ait99-*` y comprobar que pierden acceso** — destructivo, y hoy
+   imposible de deshacer: la siembra **no tiene inversa** (AIT-131, congelada).
+3. **Control positivo de `authRateLimits`.**
+4. **Ejecución sobre un deployment virgen** — que no existe: hay que crearlo.
+
+**Te lo doy como cuatro permisos y no como "AIT-99 necesita atención" a propósito:** lo primero
+se decide en dos minutos; lo segundo obliga a reconstruir el contexto entero. **Y el permiso 2
+es el mismo que desbloquea la credencial expuesta del punto 6.**
 
 **Dos salidas, y no elegí ninguna a propósito:**
 - **(a)** autorizar lo mínimo para medir — descongelar AIT-131, o permitir N cuentas acotadas.
-- **(b)** cerrarla aceptando los tres huecos con nombre en la ficha.
+- **(b)** cerrarla aceptando los cuatro huecos con nombre en la ficha.
 
 **Por qué no la cerré yo:** cerrar **falla hacia el verde**, y sus criterios dicen *"un
 deployment nuevo puede entrar por contraseña"* — cerrarla sin haberlo verificado deja escrito
@@ -55,9 +66,30 @@ Hay **dos vías** y sólo una necesita tu permiso:
 frase que merece quedarse: *"eso no lo vuelve autorizado, sólo invisible"*. La fábrica se paró
 sola donde tenía que pararse.
 
-### 6. Cinco identidades `ait99-*` en el Convex compartido
-Declaradas, inertes (T1 borró su credencial) y **sin forma de retirarlas hasta AIT-131**. No
-urge: es para que las veas en el dashboard sin sorprenderte.
+### 6. 🔴 UNA CREDENCIAL VIVA CON LA CONTRASEÑA EXPUESTA — y no podemos rotarla sin ti
+**Esto cambió de categoría a las 08:15 y ya no es "cinco identidades sembradas".**
+
+De las cinco cuentas `ait99-*` que quedaron vivas en el Convex **compartido de desarrollo**,
+**una tiene su contraseña en claro**: `ait99-verify-bce772@supercrm.es`. Se escribió para hacer
+logins por UI durante la verificación, y quedó en el transcript de esa sesión. **Lo declaró T1
+por su cuenta**, sin que nadie se lo pidiera, y está anotado en `_turno-convex.log` con esa
+marca para que quien la borre sepa por cuál empezar.
+
+**ALCANCE EXACTO, medido, para que no se lea ni más grave ni más leve de lo que es:**
+- Está en **transcripts de sesión locales** y en los ficheros de auditoría de esta máquina.
+- **NO ha viajado al repositorio:** esos ficheros están **ignorados por git** (comprobado con
+  `git check-ignore`, con control positivo). **No está en GitHub ni en ningún commit.**
+- Es una cuenta del **deployment compartido de DEV**, no de producción.
+
+⚠️ **Y LO QUE TE TOCA SABER, PORQUE ES UNA REGLA TUYA QUE NO ESTAMOS CUMPLIENDO:** `CLAUDE.md`
+dice que **un secreto expuesto se rota de inmediato, no se deja "total, ya se vio"** — con el
+precedente del 2026-08-21. **No lo hemos rotado**, y no por descuido: **retirar o rotar esas
+cuentas es exactamente lo que no podemos hacer sin tu autorización**, porque la siembra **no
+tiene inversa** (AIT-131, congelada) y crear/tocar credenciales en el compartido está vetado.
+
+**O sea: sabemos cuál es la regla, sabemos que la estamos incumpliendo, y el desbloqueo es
+tuyo.** Prefiero decírtelo así que dejarlo en una línea que parezca informativa. **Va con la
+decisión de AIT-99 (punto 3): la misma autorización resuelve las dos.**
 
 ### 7. AIT-113 — las dos cuentas reales solo entran por Google
 Abierta desde antes de esta noche, y **bloquea implícitamente parte de AIT-99**.
@@ -90,13 +122,26 @@ Las cuatro tienen la misma forma: **no puede desempatarlas quien está dentro.**
 
 **Comprometí dos tareas cerradas. Entrego CERO de las dos.**
 
-La única ficha que se cerró esta noche —AIT-109— ya estaba en marcha antes de que se fijara el
-compromiso. **Así que el compromiso de la noche se cumplió en un 0%, y lo digo con ese número
-antes de dar ninguna explicación.**
+Se han cerrado **dos fichas** —AIT-109 y AIT-123— **y ninguna de las dos es de las
+comprometidas.** AIT-109 ya estaba en marcha antes de fijarse el compromiso; AIT-123 apareció
+después. **Así que el compromiso se cumplió en un 0%, y lo digo con ese número antes de dar
+ninguna explicación.** Lo que hay es trabajo cerrado *al lado* de lo prometido, no lo prometido.
+
+**AIT-123, publicada a las 07:50:32Z**, cierra un defecto que la propia noche descubrió y
+midió: **resolver el deployment por URL + admin-key reescribe el `.env.local` y deja el
+worktree corriendo contra otro backend, de forma persistente.** Merge `46bfcbb`, servida en
+93 s, con la suite corrida **con el merge dentro** (38 e2e + 111 unitarios, exit real 0) antes
+de publicar, no después. Ocho rondas de plan y tres de código.
+
+🟡 **Y AIT-127 —una de las dos comprometidas— está a una comprobación:** GO de plan,
+implementación commiteada y verificada salvo un criterio, que se estaba ejecutando contra el
+backend cuando se escribió esto. **Si aterriza, la noche cierra tres y una sí es de las
+prometidas.** No lo doy por hecho: lo digo para que se lea con el estado real y no con el
+desenlace que me gustaría.
 
 | | |
 |---|---|
-| **CERRADO** | **1** — AIT-109 (publicada, servida en 99 s, suites en verde, `npm run build` verificado) |
+| **CERRADO** | **2** — AIT-109 y **AIT-123** |
 | **NO LLEGA, decisión tuya** | **1** — AIT-99 |
 | **NO LLEGA, aún en el bucle** | **1** — AIT-127. Ronda 5 **NO-GO** (verificado por mí: línea 871, `SIN:` en la 872, mtime 05:16:10Z). Dos majors, ningún blocker |
 | **EN VUELO al cierre** | AIT-123 (ronda 6 auditándose, **la primera sin el `SIN:` repetido**), AIT-114 y AIT-122 encoladas |
@@ -117,6 +162,30 @@ Si vuelve en la ronda 6, escala en el momento.
 > **Su frase, que es el argumento entero de por qué no la cerré:**
 > *"Prefiero eso a un Done que no aguanta la primera pregunta, y en particular prefiero no
 > cerrar AIT-127 antes que cerrar un 'cerrar sesión' que no cierra la sesión."*
+
+### El volumen del ciclo, medido: 49 rondas de auditoría, 4 GO
+```
+veredictos de esta noche .......  49    (control: 46 mas son de noches anteriores)
+  GO ...........................   4    (8%)
+  NO-GO ........................  45
+fichas cerradas ................   2
+```
+**Los cuatro GO:** AIT-109 (03:42), el plan de AIT-123 (05:48), el plan de AIT-127 (06:22) y
+**el código de AIT-123 (07:27)** — el único GO de implementación de la noche.
+
+**Cómo leerlo, y las dos lecturas son ciertas a la vez:** ninguno de los 45 NO-GO fue una pega
+de forma — **todos trajeron hallazgos reales y ninguno repitió al anterior**, y varios evitaron
+que entrara código que daba verde con acoplamiento real. **Y aun así, 49 rondas para 2 fichas
+es el dato de coste de esta fábrica**, y prefiero que lo veas crudo antes de que nadie te lo
+interprete, yo incluido.
+
+⚠️ **Y una corrección mía sobre este mismo número, porque es la lección de la noche aplicada a
+mí:** hace veinte minutos te dije *"cerca de veinticinco veredictos"*. **Era el doble y con
+menos GO.** Lo dije **de memoria**, sin medir, después de pasarme la noche exigiendo a todos
+que midieran. Y cuando fui a medirlo, mi primer conteo dio **95** — porque conté **todos** los
+ficheros de veredicto del repo, incluidos los de noches anteriores. **El mismo error de
+universo que llevo corrigiendo a otros desde las cuatro de la mañana**, en el recuento con el
+que iba a juzgar el rendimiento de la noche.
 
 **Las dos líneas de arriba nunca se restan.** Lo intenté —presenté "10 creadas, 1 cerrada,
 balance −9"— y el PM me lo tumbó con el argumento que lo cierra: **con esa métrica, una noche
@@ -164,6 +233,39 @@ ya daba igual**. Ésa es la diferencia entre **un control que informa y uno que 
 ⚠️ **Con la honestidad que toca sobre la fuerza de esta conclusión:** son casos observados, no
 un experimento controlado. **La regla se adopta porque es barata y porque encaja con todos los
 casos, no porque su causa esté demostrada.**
+
+🔴 **Y AQUÍ VA EL LÍMITE DE ESTA MISMA CONCLUSIÓN, que lo encontró T2 y que la deja bastante
+más pequeña de lo que parece.** La formuló corrigiendo una instrucción que le habían dado:
+
+> *"Ejecutar el control no basta si el caso de prueba lo diseña quien escribió el instrumento,
+> porque sale del mismo modelo mental — y ese modelo es justo lo que está fallando."*
+
+**Le habían dicho "no leas el instrumento, ejecútalo contra un caso que debería hacerlo
+fallar". Lo ejecutó… y fabricó el caso a imagen del instrumento.** El control pasó, y no
+probaba nada.
+
+**Esto me aplica de lleno: TODOS los controles positivos que puse esta noche los diseñé yo,
+para instrumentos que había escrito yo.** El del `-newermt` funcionó por suerte —el caso que
+elegí resultó separar—; el de los transcripts no, y ya vimos que validaba el eje equivocado.
+**Poner el control delante evita una parte del problema; no evita que el control herede la
+ceguera del que lo escribió.**
+
+**Lo que sí funcionó de verdad esta noche, mirando los ocho casos:** de los seis que no se
+detectaron solos, **la mayoría los cazó otra persona con otro método** — una discrepancia entre
+dos filtros, un señuelo, una sesión que puso un número que no cuadraba. **Un control propio es
+barato y ayuda; una comprobación ajena construida por otra vía es lo que realmente separa.**
+
+**Y hay una SEGUNDA instancia, con otro mecanismo, que convierte esto en clase y no en
+anécdota.** T2 diseñó unos señuelos para escapar de su propio punto ciego… **y los escribió
+llamando a una función que exige usuario autenticado.** O sea: **sus señuelos nunca habrían
+escrito nada, y su comprobación habría salido verde porque no pasó nada — no porque no hubiera
+agujero.** La primera vez el control heredó la ceguera por **la forma sintáctica**; ésta, por
+**la invocabilidad**. Distinto mecanismo, mismo resultado.
+
+**Lo encontró el auditor, no ella.** Y su propia cita de cierre de esa ronda, escrita **antes**
+de saberlo:
+> *"Un caso de prueba escrito por quien escribió el instrumento hereda sus puntos ciegos: no
+> prueba el detector, lo confirma."*
 
 **Y la enumeración completa, que es lo que la convierte en hallazgo y no en impresión** — la
 hice porque el Factory Architect dijo que era *"fuente agotable, un rato de lectura"*, y tenía
@@ -427,6 +529,113 @@ concluir que no había problema.
 ✅ **Corregido y reprobado con 6 casos**, y el que decide hubo que **fabricarlo a propósito**
 —fichero tocado ahora, último evento hace 90 minutos— **porque era el único que separaba el
 método viejo del nuevo, y el disco no lo iba a dar espontáneamente.**
+
+### Dos defectos que se compensan, y el arreglo de uno solo empeora las cosas
+**T1 encontró tres parejas de defectos que se anulaban entre sí.** Una: un patrón roto que
+buscaba una sección **más** un índice incompleto que la tenía. **Verde por partida doble.**
+
+⚠️ **Y lo que lo convierte en trampa, no en curiosidad: arreglar UNO SOLO habría convertido 74
+verdes falsos en 74 ROJOS falsos.** Quien viera ese estropicio —con buen criterio— **habría
+revertido el arreglo, y habría dejado los dos defectos en su sitio CON UNA RAZÓN ESCRITA PARA
+NO TOCARLOS.** El intento correcto de arreglarlo produce la evidencia que blinda el defecto.
+
+📌 Y la tercera pareja aterrizaba en **la columna que nadie mira**: la de las referencias que
+*sí* resuelven. **Un defecto en el sitio donde solo se miran los fallos es invisible por
+diseño.**
+
+### Un `SIN:` idéntico entre dos rondas, y por qué eso rompe una comprobación nuestra
+Esta noche instituimos atar un veredicto a su ronda con dos piezas, y una era **su campo
+`SIN:` propio y distinto**. En el GO de AIT-127, **el `SIN:` es idéntico palabra por palabra al
+de la ronda anterior**: como discriminante valió **cero**, y quien se hubiera apoyado en él
+habría atado el GO a la ronda equivocada.
+
+**Lo que sí lo ató:** cita explícita de la ronda en el cierre, **18 menciones de una sección que
+solo existe en esa ronda**, y referencias a líneas concretas de ese export. **Regla: el `SIN:`
+discrimina cuando cambia, y cuando no cambia no dice nada — hace falta al menos un elemento que
+SOLO pueda existir en esa ronda.**
+
+### 🔴 Una terminal estuvo 45 minutos parada y la casilla decía que estaba trabajando
+**Y llegó hasta este informe.** Es el fallo más caro de la noche en términos de lo que se
+supone que yo hago.
+
+**La cadena, con sus tres eslabones:** T4 recibió el GO de su plan y contestó *"entro en
+implementación"*. **La Directora convirtió esa frase en un estado del pipeline** y me la
+reportó como hecho **tres veces** —05:50, 06:02 y 06:27— sin comprobarla. **Yo la relayé a este
+informe y a los renglones de estado igual, sin comprobarla tampoco.** Se descubrió a las 06:34
+preguntándole. Su respuesta: *"No he empezado. Contesté al GO con un mensaje que decía 'entro
+en implementación' y me quedé ahí. No he escrito una línea."*
+
+**Nadie mintió. Una intención se convirtió en hecho al cruzar dos bocas** — exactamente el
+patrón que llevábamos toda la noche cazando en otros sitios, esta vez en el canal que informa
+de si el trabajo avanza.
+
+⚠️ **Y la asimetría que lo hace estructural, dicha por la Directora mejor de lo que yo lo
+diría:**
+> **"Mi barrido pregunta '¿alguien parado con backlog disponible?' y T4 llevaba 45 minutos
+> siéndolo. No la vio porque yo mismo había rellenado su casilla con una intención suya. Un
+> vigilante cuya entrada es lo que le cuentan los vigilados no vigila: es un buzón — y su
+> silencio se lee igual que 'todo va bien'."**
+
+📌 **Lo mismo me pasa a mí un nivel más arriba, y conviene que lo sepas al leer este informe:
+tengo instrumentos medidos para lo barato** —cerrojos, refs, ficheros, transcripts— **y puro
+relay para lo caro: si el trabajo avanza de verdad.** Esa parte no la mido; me la cuentan.
+
+✅ **La regla, de T4, y ya aplicada:** **la casilla de estado de una terminal se rellena con un
+EFECTO MEDIDO, nunca con lo que esa terminal dijo que iba a hacer.** La señal deja de ser *"he
+empezado"* o *"voy bien"* y pasa a ser algo comprobable: bytes, hash, o qué imprime una cosa que
+antes no existía. **Desde las 06:38 la Directora me reporta separando "medido con efecto en
+disco" de "solo declarado por la terminal", y este informe hace lo mismo.**
+
+Y su conexión con lo demás es exacta: **es el mismo animal que la lista cerrada `T1 T2 T3` que
+no incluía a T4.** Allí el vigilante no la veía **porque no la enumeraba**; aquí **porque le
+habían dicho que estaba bien.** Misma ceguera, entrada distinta.
+
+### Dos falsos ROJOS, y la defensa que sirvió en uno no habría servido en el otro
+Casi todo lo de esta noche falla hacia el verde. **Estos dos fallan hacia el rojo, y por eso
+entran por otra puerta: nadie pide evidencia cuando le traen una mala noticia.**
+
+**El primero (QA):** en headless, Chromium devuelve `Notification.permission === "denied"`
+aunque se concedan los permisos explícitamente; en headed, el mismo código da `granted`. **La
+diferencia entre "el botón no existe" y "el botón está ahí" es el modo del navegador, no la
+app.** Quien pruebe notificaciones en headless lee un defecto de producto donde hay una
+limitación del entorno.
+
+**El segundo (Integrador):** vio que un spec declarado como desactivado aparecía en
+`playwright test --list`, e iba a reportar *"un spec que dice estar apagado está activo y
+produce un verde que no discrimina"* — un rojo urgente **sobre el trabajo de otro**. **No lo
+mandó: fabricó el control.**
+```
+con el fixme  -> 1 skipped, exit 0   <- desactiva de verdad
+sin el fixme  -> 1 failed,  exit 1   <- control negativo: sin el, si corre y si falla
+--list        -> LO LISTA IGUAL, desactivado o no
+```
+**`--list` lista también los tests desactivados**, así que *"Total: 1 test"* no significa *"1
+test que va a correr"*. La alarma era del instrumento.
+
+🔑 **Y LA COMPARACIÓN ENTRE LOS DOS ES LO QUE VALE, y la hizo él:** al QA lo salvó que **su
+número era demasiado gordo para creerlo**. **Aquí eso no habría servido: su hallazgo era
+pequeño, plausible y encajaba.** Lo salvó **fabricar el caso**, no dudar.
+> **La implausibilidad es una defensa que solo funciona contra los errores llamativos. Contra
+> los creíbles, la única defensa es construir el control.**
+
+⚠️ **Y el daño evitado no era el ruido:** ese falso rojo aterrizaba **sobre la única ficha que
+puede mover el 0% del compromiso**, a un major del GO. **Habría hecho dudar de un trabajo que
+está bien** — y desmontar esa duda cuesta más que haberla creado.
+
+### Una decisión de publicación que evita fabricar código sin auditar
+La implementación de una ficha vive en una rama **con el nombre de otra tarea que también
+existe**. Lo natural sería partirla en dos publicaciones. **Medido: los ficheros de los dos
+grupos no se solapan, pero los commits están entrelazados en el tiempo**, así que separarlas
+exige `cherry-pick`.
+
+**Y ahí está la razón para no hacerlo: un `cherry-pick` fabrica commits nuevos que ningún
+veredicto cubre** — es la ronda que corrige, la más peligrosa del ciclo, aplicada **por
+comodidad de rótulo**. Lo que cierra la decisión es que **el veredicto en curso YA cubre las
+dos cosas**: su huella declarada las incluye. **El riesgo real no era el nombre de la rama:
+era si el alcance del veredicto llegaba a las dos. Y llega.**
+
+Se publica en un solo merge, **con el mensaje y la ficha diciendo explícitamente que cierra dos
+asuntos** — porque el nombre de la rama dirá otra cosa para siempre en el histórico.
 
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé

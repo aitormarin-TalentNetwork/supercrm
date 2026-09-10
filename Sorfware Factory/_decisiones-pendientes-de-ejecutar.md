@@ -1865,3 +1865,492 @@ comprobador sobre un commit publicado conocido. **El dato era cierto tres horas 
 mensaje.** Un hallazgo verificado **presta autoridad a lo que viaja a su lado**, y esta noche ya
 vimos la versión larga de eso — cuatro comprobaciones encadenadas sobre media frase. **Al relayar,
 cada afirmación lleva su propia procedencia y su propia hora, aunque compartan mensaje y autor.**
+
+## D54 — los controles tienen SIGNO, y hay un comando que dice si el tuyo es decorado
+
+**Tres piezas del Integrador y de T4, traidas por la Directora. Van juntas porque contestan tres
+preguntas distintas: QUE control necesitas, si tu control EJERCITA algo, y si dos controles son
+DOS.**
+
+### 1. Un control tiene DIRECCION: la regla que teniamos era la mitad
+
+Teniamos escrito *"un cero sin control positivo es «no supe mirar»"*. **Correcto, e incompleto.**
+Formulacion del Integrador, exacta:
+- **El control POSITIVO refuta *"este instrumento dice 0 a todo"*** — la unica hipotesis que hay que
+  matar **para creerse un 0**.
+- **El control NEGATIVO refuta *"dice conflicto a todo"*** — la que hay que matar **para creerse un
+  1**.
+
+🔑 **No es "faltan controles": es que el control tiene que CORRESPONDER AL SIGNO de lo que afirmas.**
+La Directora midio un merge sin conflictos, corrio un control **negativo** y concluyo que su cero no
+valia. **Su cero valia; lo que no valia era su control** — media la direccion que no sostenia su
+afirmacion.
+
+⚠️ **Y la simetrica es la que nos falta a todos: *un UNO sin control negativo es un instrumento que
+grita a todo*.** Esta noche hemos exigido control positivo una y otra vez ante ceros, y **hemos
+dudado de rojos sin pedir nada**. La Directora declara dos casos propios. **Un rojo cuesta caro
+—escala, despierta, reencola— y lo hemos estado creyendo gratis.**
+
+### 2. Un control DEGENERADO se detecta con un comando, no con criterio
+
+`merge-tree main x main` devuelve **rc=0** y **parece** un control negativo perfecto. **No lo es:
+devuelve el arbol de `main`, o sea que no fusiono nada.** Un control que no ejercita el mecanismo
+**no es un control debil: es decorado.**
+
+**Regla, y es la mitad valiosa porque es mecanica:** **un control es DEGENERADO si el resultado
+coincide con una de sus entradas** — en git, `git rev-parse <ref>^{tree}` y comparar. Eso convierte
+*"¿mi control discrimina?"* —**una pregunta de criterio, que uno se contesta con optimismo**— en un
+comando que se contesta solo. Su control bueno (dos ramas con trabajo propio que producen un arbol
+distinto de las dos) **tarda lo mismo en correr.**
+
+**Generalizada fuera de git: si tu control produce exactamente el estado de partida, no has probado
+el instrumento — has probado que no hizo nada.**
+
+### 3. Dos mediciones con el mismo punto ciego son UNA medicion repetida
+
+**De T4.** Y lo que la convirtio en hallazgo no fue el dato: **no se conformo con "me sale lo mismo
+que a ti" y fue a buscar POR QUE salia lo mismo.** Coincidir es lo que hace que dos medidas dejen de
+mirarse. **La coincidencia entre instrumentos que comparten sesgo no es corroboracion: es el sesgo,
+dos veces.**
+
+### 📌 Dato de contexto que la Directora aporta y que no se debe leer de mas
+
+*"Esta noche llevamos ocho instrumentos rotos y casi todos los cazo una DISCREPANCIA entre dos
+medidas, no un control. Los controles que si teniamos puestos fallaron por una de estas tres
+razones."*
+
+**Es una observacion contada, no un experimento**, y la anoto asi a proposito — hace dos horas
+publique una afirmacion causal sobre seis casos y me la tumbaron con razon. **Lo que sugiere, sin
+demostrarlo: buscar discrepancias entre dos medidas puede estar rindiendo mas que poner controles**,
+y los controles fallan por motivos catalogables (signo equivocado, degenerado, no independiente).
+**Convertirlo en dato costaria enumerar los ocho con su causa. Hasta entonces es una hipotesis
+util.**
+
+## D55 — un criterio con verbo de observacion declara QUIEN observa, CON QUE, y QUE LO HARIA FALLAR
+
+**Propuesto por T2 como condicion transversal, medido por la Directora: TRES criterios de aceptacion
+de esta noche pedian observar algo que el producto no expone, y los tres pasaron rondas de
+auditoria.** Pasaron **porque juzgabamos si el criterio era COHERENTE, no si era EJECUTABLE.**
+
+**ACEPTADA, y con una casilla mas que la propuesta**, porque la propuesta cubre una de sus dos caras
+y no la otra:
+- **Cara A — el criterio pide observar lo inobservable:** nunca se ejecuta, **y su no-ejecucion no
+  deja rastro**. La lo tapan las dos casillas de T2: **quien observa** y **con que instrumento**.
+- **Cara B — el criterio se ejecuta y su verde se produce igual si el control no llego a correr.**
+  Caso cerrado por T3 en AIT-127: un verde que **no distingue *"se abandono bien"* de *"nunca hubo
+  segunda peticion que colgar"*.** **Nombrar al observador y el instrumento NO arregla esto** — es
+  el control degenerado de la D54 §2 dentro de un criterio.
+  **Tercera casilla: QUE RESULTADO HARIA FALLAR ESTE CRITERIO.** Un `PASA si` sin mundo en el que
+  falle **se cumple con la cosa rota**.
+
+**Las tres casillas son de FORMA: las verifica quien audita sin entender el dominio.** Eso es lo que
+la hace barata y lo que la salva de convertirse en criterio.
+
+**Sobre su contrapeso, que agradezco y contesto en vez de esquivar** —*"esto anade friccion a todos
+los planes para cazar una clase que aparecio tres veces en una noche"*—: **la acepto igual, y por la
+frecuencia, no por la gravedad.** Se paga **una vez por criterio, al escribirlo, por su autor**; no
+es un detector que grita en cada corrida ni una espera. **El coste es plano y acotado, y lo paga
+quien tiene el contexto para pagarlo barato.** Si fuera un control periodico la habria rechazado.
+
+## D56 — una coordenada de linea es un PUNTERO: se re-deriva, no se copia
+
+**Medido por T2 sobre su propia AIT-114, contra `origin/main`:**
+```
+su plan dice   authState.ts:164  ->  COOKIE_JWT = "__convexAuthJWT"
+en su base 629440f   linea 164  ✔
+en origin/main       linea 170  ⚠️
+```
+**El valor no cambio. La linea si.** Y su analisis sigue siendo valido palabra por palabra.
+
+🔑 **Lo que lo hace peligroso: la coordenada es JUSTO la parte que otro ejecuta.** Quien va a la 164
+**no encuentra un error, encuentra otra linea** — y si hay algo plausible ahi, **se lo cree**. Un
+diagnostico correcto colando sus coordenadas sin verificar. Causa: **un plan se escribe contra una
+base y se implementa contra otra**, y T2 paso de 22 a **113 commits por detras en cuatro horas y
+media**.
+
+**REGLA:** *cada cita por linea se re-deriva contra la base sobre la que se construye; nunca se copia
+del plan.* **Un hallazgo es un hecho; una coordenada es un puntero, y los punteros se resuelven en el
+momento de usarlos.**
+
+**Con la distincion de T2, que es la parte fina y evita el exceso:** **los veredictos cerrados son
+documentos historicos y sus coordenadas son validas EN SU FECHA** — lo que no puede es **heredarlas
+el export de codigo**.
+
+## D57 — todo runner declara un MINIMO ESPERADO y falla por debajo
+
+**La Directora trae el dato sin propuesta y con dos candidatas. Elijo la segunda: la que mata la
+clase, no el caso.**
+
+**El dato:** un `Total: 0 tests in 0 files` de Playwright **es un cero que dice "no supe mirar" y se
+lee como "no hay nada roto"**. En AIT-109 la causa estaba a dos saltos: `authState.ts` importaba
+`playwright.config` de forma *eager* **solo por una constante**, y con `E2E_PORT` invalido **moria la
+suite pura entera por una constante que ninguna prueba pura usa** — **invisible mirando
+`playwright.unit.config.ts`, que es donde uno la busca.**
+
+**Por que la regla sobre imports NO, y la del minimo SI:** una regla sobre imports arregla **este
+camino**; el proximo cero vendra por otro. **El minimo esperado es una expectativa POSITIVA sobre un
+conteo**, y esa es la unica forma de verificar un enunciado negativo: *"no deberia estar roto"* no se
+comprueba — **se cuenta y se exige un suelo.**
+
+**Y no hace falta artefacto nuevo: el suelo ya existe.** `_cobertura-comandos.txt` guarda la foto
+commiteada (`test:e2e` 38/9, `test:unit` 91/8) y `_cobertura-de-los-comandos.sh` ya trata
+`Total: 0 tests` como **INDETERMINADO y nunca como dato**. **Lo que falta es que el RUNNER falle**,
+no solo que el detector lo note: **si un comando de test devuelve menos tests de los que su foto
+dice, sale distinto de cero.** El coste de mantenimiento es el que ya pagamos — actualizar la foto
+en el mismo commit que cambia la cobertura, con su motivo, que es la D30.
+
+## D58 — una prescripcion del auditor es una AFIRMACION sobre la herramienta, y se verifica antes de obedecerla
+
+**Medido por T2 antes de escribir nada, que es lo que lo convierte en hallazgo:**
+```
+git grep · sin coincidencias    exit 1 · stderr 0 B
+git grep · ruta inexistente     exit 1 · stderr 0 B   <- INDISTINGUIBLES
+grep -r  · ruta inexistente     exit 2 · stderr 61 B
+```
+El auditor pidio *"que el escaneo falle ante errores de ruta o lectura"*. **Con `git grep` eso es
+incumplible.**
+
+🔴 **Y falla de la peor manera: quien la implemente CREERA HABERLA CUMPLIDO**, porque el criterio se
+lee satisfecho y **el cero sigue saliendo**. No hay ningun momento en que alguien descubra que no se
+cumplio.
+
+**ACEPTADA COMO DECISION, y contesto su contrapeso** —*"solo muerde cuando la prescripcion cita una
+herramienta concreta, quiza sea estrecho"*—: **no es estrecho, y la razon es la asimetria de arriba.**
+Una prescripcion imposible que **produce sensacion de cumplimiento** es peor que una prescripcion
+dificil, y **llega con la autoridad del veredicto, que es justo lo que impide que nadie la
+compruebe**. El `SIN:` nos dice donde el auditor no miro; **esto es otra cosa: donde el auditor
+afirmo algo sobre una herramienta sin ejecutarla.**
+
+**Regla:** *toda correccion minima que nombre un comportamiento de una herramienta se VERIFICA contra
+esa herramienta antes de aceptarse.* **Y la mitad que mas importa: si no es ejecutable, el
+desarrollador lo DECLARA y propone el sustituto** — porque el camino por defecto es **fingir
+cumplimiento sin saber que se finge.**
+**La solucion de T2 tiene la forma correcta:** la validacion **sale del escaner** (`git cat-file -e`
+sobre los objetivos + escaneo con estado), *porque el paso que falta es justo el que el escaner no
+puede dar.*
+
+📌 Es *una prescripcion se ejecuta antes de mandarla* — la fila que escribimos contra nosotros —
+**aplicada al auditor**. Vale en las dos direcciones.
+
+## D59 — un desarrollador SI puede reabrir un hallazgo que el auditor cerro, DECLARANDOLO
+
+**El caso, medido por la Directora en el veredicto del loop15 de T2:** el auditor cerro **M7.1**
+aceptando que *"el cambio de hash de `env.otra` acredita que actuo"* — **el observable de la COSTURA,
+no del COMPARADOR**, que es lo que T2 habia refutado media hora antes. Y **en el mismo fichero abrio
+M7.2 y M7.3 diciendo esa misma cosa con otras palabras**: *"el sujeto del control puede estar ausente
+mientras solo queda acreditado el andamiaje"*.
+
+**O sea: nombra la clase cuando la ve y no la ve cuando la tiene delante con sello de resuelto.**
+
+**DECISION — SI puede, y respaldo lo que hicisteis, con una condicion de forma:**
+1. **El desarrollador NO puede cerrar por su cuenta lo que el auditor abrio.** Eso no cambia.
+2. **SI puede mantener ABIERTO lo que el auditor cerro, declarandolo explicitamente como
+   DESACUERDO**, con el argumento citado y refutado — no en silencio, no como si el auditor no
+   hubiera dicho nada. **Asi el auditor lo ve en la ronda siguiente y concede o refuta.**
+3. **La razon es de direccion, y es de T2:** *un hallazgo con sello de "resuelto" no lo vuelve a
+   mirar nadie.* Sin esta via, **un cierre erroneo es IRREVERSIBLE**, y el error queda protegido por
+   el sello. **Mantener abierto cuesta una ronda; cerrar en falso cuesta el defecto.**
+4. **No debilita al auditor:** un desacuerdo declarado **le devuelve la decision a el**, no se la
+   quita. Lo que se prohibe sigue siendo lo mismo: que el desarrollador se autoabsuelva.
+
+**Y la contramedida directa ya esta escrita: la D55 exige el observable AL SUJETO DEL CONTROL, no a
+cualquier actor que participe.** Ese es exactamente el hueco por el que se colo M7.1.
+
+## Fila — un detector que puede fallar en las DOS direcciones necesita DOS controles
+
+**De T4, con falso positivo medido.** Su filtro de muerte por capacidad, corrido sobre un veredicto
+de **1,1 MB**, caso con `re.code==="rate_limited"` **dentro de un volcado de HTML minificado que el
+auditor estaba grepeando**. Su patron `rate.limit` llevaba un `.` que es comodin. **Estuvo a punto de
+declarar muerta una auditoria sana que despues produjo 1.476 lineas mas, con veredicto y cita de
+cierre.**
+
+**Dos defensas, y cubren riesgos DISTINTOS:** patron **literal** (inmune al comodin, este donde este)
+**y** acotado a la **cola** del fichero (el error de capacidad aparece donde el proceso muere; el
+contenido leido aparece en medio). **El limite, nombrado por T4: si un auditor muriera justo despues
+de volcar un fichero, el `tail` no salvaria — por eso hacen falta las dos.**
+
+🔑 **La forma general: el filtro se diseño contra TRAGARSE UNA MUERTE; el falso positivo va al reves
+y TIRA UNA AUDITORIA BUENA.** Un detector que puede fallar en las dos direcciones **necesita un
+control por direccion** — que es la D54 §1 aplicada a un instrumento en vez de a una afirmacion. **Y
+el negativo lo encontraron por accidente**, como casi todo esta noche.
+
+⚠️ **Y hay un agravante estructural que conviene nombrar: el log de un proceso que BUSCA X contiene
+X.** Un detector que lee el transcript de una auditoria esta leyendo un fichero **lleno de las cosas
+que el auditor fue a buscar**. Es la fila de *"un patron no distingue cometer un error de
+describirlo"*, en su version mas dificil: aqui **ni siquiera hay descripcion, hay materia prima
+citada.**
+
+## Forma recomendada del export — el bloque fechado (de T2)
+
+**Adoptada como forma, sin necesidad de decision nueva:** el dato volatil va en un bloque titulado
+**"Estado del arbol al escribir esto"**, **fechado y separado del analisis**. Asi quien lo lea manana
+**sabe que parte remedir sin dudar del resto** — hoy la duda contamina el documento entero.
+
+**Justificacion medida, y es la que convence:** `origin/main` ha ido **`b419492` -> `a7c4f48` ->
+`55a9d3d` en menos de una hora**. **Un export escrito hace veinte minutos ya cita una punta que no
+existe.** Es la D56 llevada a la estructura del documento: **si la coordenada es un puntero, el
+documento tiene que decir cuales de sus datos lo son.**
+
+## 🔴 D57.1 — CORRIJO EL VERBO DE MI PROPIA D57: "declara" se lee como "escribe"
+
+**Dos terminales, la misma ronda, el mismo malentendido — o sea que el defecto es de mi redaccion,
+no de ellas:**
+```
+T4:  ">= 111 tests"      escrito en el criterio, nada lo evalua
+T2:  "FALLA si N < 38"   escrito en el criterio, nada lo extrae ni lo compara
+```
+**Los dos anadieron el numero que la D57 pedia y ninguno anadio algo que ABORTARA.**
+
+**El diagnostico es de T2 y es exacto:** *"la decision dice «declara un minimo» y «declarar» se lee
+como «escribir». Lo que me habria parado es «**ejecuta un control que aborte** por debajo del
+minimo». **El verbo es el que engana, no la cifra.**"*
+
+**D57 corregida:** *todo runner **EJECUTA UN CONTROL QUE ABORTA** por debajo de su minimo esperado.*
+No "declara". No "documenta". **Aborta.**
+
+📌 **Fila general, y es de las que sirven fuera de aqui: el VERBO de una regla decide si cumplirla
+produce un ARTEFACTO o un EFECTO.** *Declarar, documentar, indicar, especificar* → **se cumplen
+escribiendo**, y **se sienten cumplidos**. *Ejecutar, abortar, fallar, rechazar* → **se cumplen
+haciendo**. **La lectura facil de un verbo debil produce un criterio inerte que pasa auditoria**, y
+el autor no esta incumpliendo nada: **esta obedeciendo lo que puse.**
+
+## D60 — un control de NO-REGRESION es inmune a "el estado anterior" como mundo de fallo
+
+**Medido por T4.** Monto un runner con tres gates y lo declaro no-vacio ejecutandolo contra la base:
+```
+gate C2 contra la base -> FALLA
+gate C4 contra la base -> FALLA
+gate C5 contra la base -> 🔴 PASA
+```
+**La causa no es un descuido: C5 mide el vigilante, y el arreglo no lo toca** — el fichero es byte a
+byte identico en las dos puntas, **y el criterio existe precisamente para que siga siendolo**.
+
+> **Ejecutar un control contra un estado anterior solo lo hace no-vacio si su SUJETO DIFIERE entre
+> los dos estados.**
+
+⚠️ **Y lo peligroso es que la ejecucion conjunta sale ROJA igual**, asi que **el gate mudo queda
+tapado por los que si fallan**. La afirmacion *"una sola ejecucion hace no-vacios los tres"* era
+falsa **y nadie la habria comprobado**.
+
+📌 **Afecta a una CLASE entera: los controles de NO-REGRESION.** Todo criterio cuyo proposito sea
+*"esto debe seguir igual"* **es inmune por definicion a un mundo de fallo construido como «el estado
+anterior»**. Necesitan un **adversario FABRICADO** — T4 usara un vigilante deliberadamente roto que
+devuelva 0 para todo, y exigira que el gate lo suspenda. *(Es lo mismo que tuve que hacer yo con el
+vigilante de la D53: el caso que discrimina hubo que construirlo, el disco no lo daba.)*
+
+**Y la segunda mitad, tambien suya: el runner NO PUEDE CORTOCIRCUITAR.** Contra la base el resultado
+esperado **no es "no-cero": es `C2=FALLA · C4=FALLA · C5=PASA`, los tres nombrados** — asi **un runner
+que evalua mal no se esconde tras un exit agregado.**
+
+## D61 — sobre exports y veredictos, filtrar por longitud de linea ANTES de contar
+
+**Regla operativa. La pide el PM y me la traslada la Directora porque es proceso de fabrica.**
+> **Sobre exports y veredictos de este proyecto: `length < 300` ANTES de contar nada.**
+
+**Dos instrumentos independientes, el mismo fallo, la misma carpeta, cinco minutos de diferencia:**
+el `grep` del PM devolvio **507 KB de base64**; el enumerador de la Directora **conto dos etiquetas
+que nadie escribio** (`C6` y `C8`), sacadas de tres lineas de **24.607, 387.281 y 78.977
+caracteres** — JS minificado y fuentes incrustadas **dentro de un veredicto**. **Es una propiedad de
+esos ficheros, no mala suerte.**
+
+🔴 **Y EL HALLAZGO DE VERDAD ES OTRO: `C6` resultaba EXISTIR. O sea que el instrumento roto ACERTO.**
+Si el PM no llega a ir a la fuente, **ese acierto habria sido la prueba de que el metodo funcionaba**
+y `C8` se habria leido como un despiste suelto.
+
+> ***Un instrumento roto que acierta se valida solo. El acierto por accidente es mas peligroso que el
+> error, porque APAGA LA PREGUNTA.***
+
+✅ **Contramedida concreta, y refina la D54: el control positivo tiene que comprobar que lo devuelto
+es DEL TIPO BUSCADO, no solo que devuelve algo.** Contar etiquetas **y comprobar que sean etiquetas**.
+Un control de presencia dice *"el instrumento encuentra"*; **hace falta uno de tipo, que diga
+"encuentra LO QUE BUSCA"**.
+
+## D62 — una reescritura de ficha exige un diff contra la fuente, y la pregunta es QUE FALTA
+
+**Caso:** el PM reescribio AIT-127 entera de memoria y **se cayeron cuatro criterios de aceptacion,
+dos de ellos del alcance auditado.** Se restauraron desde el veredicto del auditor.
+
+**SI, hace falta el paso, y lo que lo hace replicable es COMO lo pidio el, no que lo pidiera:** pidio
+que alguien mirara **QUE HABIA DESAPARECIDO**, no que estaba mal. Su razon: ***mirar lo que escribio
+es mirar donde el fallo no puede estar.***
+
+**Regla:** *toda reescritura de una ficha o documento hecha de memoria se compara contra la fuente
+antes de publicarse, y la pregunta del comparador es **"¿que falta?"**, nunca "¿que esta mal?".*
+**Una omision no se ve leyendo lo escrito: solo se ve enumerando la fuente.**
+
+## Fila — el rigor se concentra donde ya dolio y el hueco se muda al eje de al lado
+
+**Tres roles, cuatro horas, mismo mecanismo. La Directora no trae propuesta y pide que, si se nombra,
+se nombre con las instancias. Van las tres:**
+- **T4** persigue *"verde sin mirar"* en un comprobador **y su plan trae cinco criterios que dan verde
+  sin ejecutar**.
+- **T2** descubre que un positivo por otro recorrido no vale, rehace el positivo **y lo rehace por el
+  recorrido viejo**.
+- **La Directora** le pone el filtro de longitud a su vigilante de auditorias por el aviso de T4 **y
+  no se lo pone al enumerador que corria sobre los mismos ficheros media hora despues**.
+
+**Lo unico accionable que le veo, y es barato — no es "mas cuidado":** **cuando arregles un
+instrumento por un defecto D, ENUMERA en ese mismo acto los otros instrumentos que comparten su
+ENTRADA, y aplicaselo.** No los que se parecen: **los que leen lo mismo.** El caso de la Directora es
+exactamente eso — dos instrumentos suyos sobre los mismos ficheros, arreglado uno. **La enumeracion
+es corta y se hace mientras tienes el defecto en la cabeza**, que es el unico momento en que es
+gratis.
+
+## D63 — convenio de codigos de salida de la fabrica (adoptado, no inventado aqui)
+
+**Lo piden T2 y T4 a la vez, con el mapeo ya probado por los dos en dos fichas distintas.** T2 los
+invento, T4 se los pidio y los adopto **declarando en su export**: *"mapeo tomado de T2 (AIT-114).
+**NO es un convenio de la fabrica**"*.
+
+🔑 **El hallazgo no es que se los inventara: es que DOS TERMINALES ACABARON USANDO LOS MISMOS NUMEROS
+POR UNA CONVERSACION PRIVADA.** Un convenio se estaba formando **sin que nadie lo decidiera**, y
+hasta que T4 pregunto **nadie mas los habia visto**. Si cada terminal inventa la suya, **quien lea un
+`exit 5` manana tendra que adivinar de quien es** — y **un codigo de salida no es una etiqueta: es
+una instruccion sobre donde mirar.**
+
+**ADOPTADO tal cual, y va donde se lea sin buscarlo (`intro-terminal.txt`):**
+```
+exit 4  SIN CONTENEDOR   la salida del runner no existe o no se lee   <- "no pude mirar"
+exit 5  AUSENTE          ninguna linea con el sujeto buscado          <- "mire y no habia"
+exit 6  MALFORMADA       la hay y su valor no vale (incluye NaN)
+exit 7  BAJO MINIMO      N < minimo
+```
+📌 **Y no es arbitrario, que es lo que lo hace defendible: la distincion 4/5 es exactamente la que
+esta fabrica lleva toda la noche exigiendo** — *un cero sin control positivo no distingue "no hay" de
+"no supe mirar"*. **Este convenio la vuelve legible por una maquina**, que es mas de lo que teniamos.
+
+**Y el `exit 4` salio de un accidente que merece constar:** a T2 se le rompio el arnes mientras
+contestaba a T4, y su gate respondio **AUSENTE sobre un fichero inexistente** — *"no pude mirar"
+colapsado dentro de "mire y no habia"*. **Un error que falla hacia el lado seguro y nombra la causa
+equivocada manda a cavar al sitio que no es, y es peor que uno vago.**
+
+## D64 — la COMPARACION no puede ser la guarda: `NaN < minimo` es FALSO y el gate aprueba
+
+**Medida en dos fichas a la vez (M4b de T4, M1 de T2).** Si un total malformado se convierte en
+`NaN`, **`NaN < minimo` es `false` y el gate PASA**. La guarda que existe para exigir un suelo
+**aprueba precisamente cuando no hay numero**.
+
+> **Hay que AFIRMAR EN POSITIVO que existe un entero ANTES de comparar.**
+
+**Entra en la misma pasada que la D57.1**, y es su forma numerica: *"no deberia estar por debajo" no
+se comprueba — se cuenta, se valida el tipo, y se exige un suelo.* **Afecta a cualquier gate de la
+D57 que compare sin validar primero**, o sea a todos los que se escribieron esta noche.
+
+## D65 — SELECCION, EXISTENCIA y VALIDEZ son TRES pasos, y el primero se olvida
+
+**De T2, y es la mas fina de la tanda.** El ya separaba **existencia** (pregunta laxa) de **validez**
+(pregunta estricta). Lo que faltaba:
+
+> **Si la SELECCION se hace con el patron estricto, lo invalido desaparece del universo antes de que
+> nadie lo juzgue.**
+
+**Su caso:** dos lineas `Total:`, **la ultima malformada**. Un selector por patron numerico **coge la
+penultima —valida—, ignora la mala y APRUEBA**. **La seleccion tiene que ser POSICIONAL, no por
+patron.**
+
+**Su formulacion general, adoptada tal cual:** *la pregunta de EXISTENCIA tiene que ser mas LAXA que
+la de VALIDEZ; con el mismo patron para las dos, **lo invalido es indistinguible de lo inexistente
+por construccion**.*
+
+📌 **Y es la misma clase que el autodiagnostico del propio T2 de hace tres horas** —*"acoto el
+universo antes de mirarlo"*— **pero un nivel mas abajo: aqui el universo lo acota el PATRON, no el
+autor.** Generalizada: **todo filtro aplicado ANTES de una comprobacion retira del universo
+exactamente los casos que la comprobacion existia para cazar.**
+
+## D66 — la huella de ronda se degrada POR SU PROPIO EXITO
+
+**Medido por T4: la cita de cierre del loop16 de T2 aparecio en el veredicto de OTRA tarea**, porque
+el auditor **la habia recogido por util**.
+
+> **Una cita de cierre deja de discriminar exactamente cuando la leccion funciona.**
+
+**La solucion de T2, adoptada, y lo valioso es que separa dos cosas que estaban pegadas: LA HUELLA NO
+PUEDE SER LO QUE QUIERES QUE SE PROPAGUE.**
+```
+RONDA 18 · base 629440f · «38 -> abc» = exit 6 · «abc -> 38» = exit 0
+```
+**Un par asimetrico de RESULTADOS MEDIDOS no lo cita nadie en otro veredicto.** Y **la leccion se
+escribe aparte**, para que pueda viajar **sin llevarse la huella con ella**.
+
+**Regla general: un identificador se elige entre lo que nadie querria copiar.** Si es memorable,
+citable o util, **su exito lo destruye como identificador** — y el fallo es silencioso, porque
+aparece igual de legitimo en los dos sitios.
+
+## Nota operativa — el vigilante es el EJECUTOR, el criterio va escrito FUERA
+
+**De la Directora, tras matarle el sistema otro vigilante** (swap al 83%, ~2,4 GB reclamables).
+**No costo nada, y la razon no es la memoria:** *"el criterio de verificacion estaba escrito, no en
+mi cabeza"* —linea del veredicto, posicion respecto al prompt, cita de cierre, `at capacity`,
+marker— **y lo midio a mano en dos comandos.**
+
+> **Lo que se automatiza es la EJECUCION; el criterio va escrito FUERA del ejecutor.**
+
+**Si el criterio hubiera vivido dentro del script, su muerte se habria llevado la ronda.** Es la misma
+leccion que la D78 con mi vigilante y la que aplique al adelgazar el cron — **pero un paso mas alla:
+no basta con que el criterio este en disco, tiene que poder ejecutarlo un humano a mano.**
+
+## 🔴 CORRECCION — mi prueba de que el tercer cerrojo fantasma estaba cerrado no discriminaba
+
+**Me corrige la Directora y tiene razon.** Escribi *"el working tree ya esta limpio: alguien ha
+ignorado `_turno-convex/`"*. **La conclusion era correcta; la evidencia no la sostenia.**
+```
+git status --porcelain           -> vacio
+HIPOTESIS A (esta ignorado)      -> .gitignore:87  ✅ cierta
+HIPOTESIS B (ya no existe)       -> T3 lo retiro   ✅ tambien cierta
+```
+**Las dos son ciertas a la vez, asi que el arbol habria estado limpio IGUAL sin el `.gitignore`.**
+
+⚠️ **Y la direccion es la mala: si la proteccion NO estuviera, mi comprobacion habria dado el mismo
+verde.** Declare cerrada una clase de fallo con una prueba que no distingue *"protegido"* de
+*"desaparecido"*.
+
+📌 **Forma nueva, y es la unica que se me ha colado hoy sin que nadie mas la nombrara antes: un
+sintoma que desaparece por DOS causas, y una conclusion que nombra UNA.** El sintoma se fue de
+verdad; **lo que no se puede deducir es por que.** Es primo del control degenerado (D54) — alli el
+control no ejercitaba nada, aqui **el observable es compartido por dos mundos** y elegi el que me
+convenia narrar. *Cuando un sintoma tiene dos causas suficientes, verificar la causa exige mirar la
+causa, no el sintoma.*
+
+## D63.1 — el convenio de exits reserva una BANDA, y el `exit 3` de T1 entra en el
+
+**Colision detectada por la Directora antes de publicar el convenio:** T1 ya tiene contrato de salida
+implementado en AIT-122 y **usa los mismos numeros para otra cosa**.
+```
+CONVENIO (T2/T4)                 T1 · AIT-122 (ya implementado)
+exit 4  SIN CONTENEDOR           exit 4  el GATE de exports ajenos
+exit 5  AUSENTE                  exit 3  CRASH del comprobador
+exit 6  MALFORMADA
+exit 7  BAJO MINIMO
+```
+
+**Descarto la opcion barata —"que el convenio cubra solo los gates de conteo y T1 quede fuera"— y
+digo por que: un convenio NO UNIVERSAL es peor que ninguno.** Si `exit 4` significa dos cosas segun
+el programa, **el lector sigue teniendo que saber de que programa viene**, que es exactamente lo que
+el convenio venia a evitar — **pero ahora con la apariencia de que existe un significado compartido.**
+Es la "sensacion de un control" aplicada a una convencion.
+
+**DECISION — el convenio reserva una BANDA para el estado del INSTRUMENTO, y deja otra para los
+resultados de DOMINIO:**
+```
+BANDA DEL INSTRUMENTO (universal, cualquier programa de la fabrica)
+  exit 3  CRASH DEL PROPIO INSTRUMENTO   <- de T1, adoptado tal cual
+  exit 4  SIN CONTENEDOR   la salida del runner no existe o no se lee
+  exit 5  AUSENTE          ninguna linea con el sujeto buscado
+  exit 6  MALFORMADA       la hay y su valor no vale (incluye NaN)
+  exit 7  BAJO MINIMO      N < minimo
+BANDA DE DOMINIO (>= 10)  resultados propios de cada comprobador
+  ej. el gate de exports ajenos de T1 pasa de `exit 4` a la banda >= 10
+```
+**Coste real: cambia UN codigo en UN programa.** No renumero a T2 ni a T4 (dos terminales, dos
+fichas) ni dejo a T1 fuera.
+
+✅ **Y el `exit 3` de T1 entra en el convenio POR MERITO, no por antiguedad: lo separo porque *"un
+crash y un resultado legitimo daban el mismo observable"*.** Es la misma familia que el 4/5 y **mas
+fundamental que ella** — un crash es el caso extremo de *"no pude mirar"*. **Que se hubiera quedado
+fuera por llegar tarde a una conversacion privada es justamente el defecto que la D63 denuncia**, en
+su segunda vuelta.
+
+⚠️ **Y la peticion de la Directora es la correcta y va con la decision: T1 no puede enterarse del
+convenio por un veredicto.** Es **el unico de los cuatro que ya tenia codigos escritos y no estuvo en
+la conversacion donde se formaron.** Se le traslada directamente, **con su `exit 3` acreditado como
+suyo.**
