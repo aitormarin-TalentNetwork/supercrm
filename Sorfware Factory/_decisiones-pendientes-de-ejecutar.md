@@ -757,3 +757,42 @@ receta quiza **falle en vez de mentir**, lo que confinaria el riesgo a macOS y d
 que corre en Railway. T4 **no pudo medirlo** (no hay `gstat`, coreutils, docker ni podman en
 esta maquina) **y no lo afirma**. Es una comprobacion de diez segundos para quien tenga un
 Linux delante.
+
+## D36 — el resumen en prosa contradice a la tabla que tiene tres lineas mas arriba
+
+**De T4 (`t4-bb`), separada de la D35 a proposito y por una razon practica: esta se puede
+automatizar y la D35 no.** La D35 es *"el ADJETIVO lo pone el autor"*; esta es *"el RESUMEN lo
+pone el autor"*. Misma familia, mecanismo distinto.
+
+**Sus cuatro casos de una sola noche, los dos ultimos de esta forma** (relatados por el, no
+medidos por mi, y asi quedan):
+```
+1. la `Z`            el valor lo dio la herramienta, el sello lo puso el autor   (D35)
+2. "independientes"  las 3 ejecuciones son reales, el adjetivo lo puso el autor  (D35)
+3. "el unico sano"   su salida de grep mostraba DOS, su resumen dijo UNA         (D36)
+4. "dos NO CUBIERTO" su tabla tenia TRES celdas; se lo cazo el auditor           (D36)
+```
+
+🔑 **La asimetria que lo hace peligroso, y es suya: LA TABLA ES CORRECTA LAS DOS VECES.** El
+dato bueno esta ahi, publicado, a la vista, tres lineas mas arriba. **Lo que viaja es la
+frase**, porque es lo que se cita y lo que cabe en un mensaje. *El error no esta en la medicion:
+esta en la oracion que la presenta, que es la unica parte que nadie vuelve a comprobar contra la
+fuente que tiene al lado.*
+
+**Regla, y es mas barata que "revisalo":** **todo numero que aparezca en prosa se genera con un
+comando, no con los ojos.** `grep -c`, no "veo tres". Y si el numero resume una tabla que esta
+en el mismo documento, **se cuenta la tabla, no se recuerda**. T4 lo comprobo en su propio
+export: `grep -c "NO CUBIERTO"` devuelve tres (lineas 381, 383, 384); el auditor tenia razon y
+**un comando de siete caracteres se lo habria ahorrado**.
+
+📌 **Y la instancia mas fea es MIA, cometida publicando la fila que advierte de esto.** A las
+04:14Z publique *"cuatro coincidencias, una correcta"* relayando su conteo mientras firmaba
+"reproducido por mi": reproduje el hecho y no el conteo, **y mi propia salida de `grep` ya
+mostraba `README.md:4249` como epoch sano, delante de mis ojos**. Corregido a las 04:15Z en
+`decf871` — antes de que su aviso llegara, porque nuestros mensajes se cruzaron. **Los dos
+cometimos el mismo fallo sobre el mismo dato, por separado, en diez minutos.** Eso es lo que
+descarta el "mas cuidado" como remedio.
+
+⚠️ **Y la ironia va en la direccion exacta de la regla:** el ejemplo que ilustra *"el instrumento
+que las encuentra no sabe distinguirlas"* **llego con un conteo mal hecho por el instrumento que
+las encontro** — el `grep` de T4 cubria menos ficheros de los que debia.
