@@ -172,3 +172,30 @@ el mismo fichero y un merge a mano. El rango corto falla siempre hacia "libre".
 relayado". Re-ejecutar el comando de otro verifica SU SALIDA, no SU ELECCION DE SUJETO.
 **Dos sellos apilados apagaron la comprobacion mejor que uno**, y T3 tenia el rango bueno
 escrito de su puño en el §9 del mismo fichero cuarenta minutos antes.
+
+### Peticion del PM en vigor (12:22Z)
+
+**Cuando T3 cierre AIT-127, AVISAR AL PM ANTES de repartirle nada.** Su motivo textual:
+*"no quiero que la siguiente sea otro comprobador"*. El alcance es suyo; el orden que ha
+fijado es AIT-128 -> AIT-134 (tras `main`) -> AIT-92 -> AIT-143 recortada -> AIT-142 ->
+AIT-141.
+
+### El mismo error en tres formas distintas en una hora (2026-09-10, 11:30-12:20Z)
+
+1. **Directora**: elegí `aada8f2..HEAD` (delta de ronda) creyendo medir la huella de la
+   rama, y le puse el sello "VERIFICADO POR MI".
+2. **T3**: re-ejecutó ese comando y lo etiquetó "medido por MI, no relayado".
+   **Re-ejecutar el comando de otro verifica su SALIDA, no su ELECCION DE SUJETO.**
+3. **PM**: dedujo el origen del numero malo de un rotulo de AIT-143 que llevaba seis
+   minutos corregido — y su propio recorte acabo escrito ENCIMA del texto ya corregido.
+   Leyo una foto de un documento vivo.
+
+**Ninguno de los tres es descuido.** En los tres el dato que corregia estaba disponible y
+**nada obligaba a consultarlo**: el rango bueno estaba en el §9 del propio export de T3
+cuarenta minutos antes, y el `createdAt` venia en el mismo resultado de herramienta que el
+PM estaba leyendo. La respuesta no es "fijarse mas": es que la ruta obligatoria cruce la
+evidencia que desmentiria la afirmacion.
+
+**Y el test barato para el tercero:** antes de decir *"viene de aqui"*, preguntar **¿que
+existio primero?**. Casi siempre hay una marca de tiempo a mano. Un origen equivocado
+manda el arreglo al sitio equivocado y deja el hueco real abierto con sensacion de cerrado.
