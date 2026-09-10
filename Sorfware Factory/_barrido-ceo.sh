@@ -177,6 +177,33 @@ else
   echo "  INDETERMINADO: no encuentro '$DET'. Los exports NO se han comprobado."
 fi
 
+# --- 5bis. ACTIVIDAD POR TERMINAL: commits Y EXPORTS ------------------------
+# 🔴 POR QUE LOS DOS (2026-09-10 09:5xZ, hallazgo de la Directora): medir la
+# actividad de un desarrollador solo por `git log` NO DISCRIMINA en fase de plan.
+# Una terminal planificando bien y una atascada dan **el mismo numero**, porque
+# en fase de plan no se toca codigo POR DISENO — el commit llega despues del GO.
+# Caso real: T4 llevaba 141 min sin tocar codigo y en ese rato habia producido
+# CUATRO rondas de plan con su NO-GO cada una. **El efecto medible de un plan es
+# el EXPORT, no el commit.** Con la metrica vieja, la terminal mas productiva de
+# la fase se reporta como la mas parada.
+echo
+echo "--- actividad por terminal (commit Y export: en fase de plan solo hay export) ---"
+AHORA_S=$(date +%s)
+for W in T1 T2 T3 T4; do
+  D="$RAIZ/Sorfware Factory/_worktrees/$W"
+  [ -d "$D" ] || continue
+  H=$(git -C "$D" rev-parse --short HEAD 2>/dev/null)
+  UC=$(find "$D" -type f \( -name "*.ts" -o -name "*.mjs" -o -name "*.tsx" \) \
+        -not -path "*/node_modules/*" -not -path "*/.git/*" 2>/dev/null \
+        | while read -r f; do stat -f "%m" "$f"; done | sort -rn | head -1)
+  UE=$(ls -t "$RAIZ/Sorfware Factory/codigo para auditar/${W}_"*para-auditor.txt 2>/dev/null \
+        | head -1 | while read -r f; do stat -f "%m" "$f"; done)
+  MC=$([ -n "$UC" ] && echo $(( (AHORA_S - UC) / 60 )) || echo "-")
+  ME=$([ -n "$UE" ] && echo $(( (AHORA_S - UE) / 60 )) || echo "-")
+  printf "  %-3s %s  codigo hace %-6s min  ·  export hace %-6s min\n" "$W" "$H" "$MC" "$ME"
+done
+echo "  (una terminal en fase de plan tiene 'codigo' viejo y 'export' reciente: eso es SANO)"
+
 # --- 6. Lo que este script NO puede hacer -----------------------------------
 cat <<'PEND'
 
