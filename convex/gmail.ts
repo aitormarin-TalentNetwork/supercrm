@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import {
   action,
+  internalAction,
   internalMutation,
   internalQuery,
   mutation,
@@ -12,6 +13,8 @@ import {
   GMAIL_CLIENT_ID,
   GMAIL_CLIENT_SECRET,
   GMAIL_TOKEN_ENCRYPTION_KEY,
+  cifrarToken,
+  descifrarToken,
 } from "./model/gmailCrypto";
 import { resolverUpsert, validarState } from "./model/gmailFlow";
 
@@ -238,6 +241,48 @@ export const guardarConexion = internalMutation({
 // ───────────────────────────────────────────────────────────────────────────
 // DESCONECTAR
 // ───────────────────────────────────────────────────────────────────────────
+
+/** Cifra el token y lo guarda. La llama el callback (`convex/http.ts`) y es el
+ *  ÚNICO camino por el que entra un token en la base — así que ejercitar esta
+ *  acción es ejercitar el camino real, no una copia.
+ *
+ *  Hace una COMPROBACIÓN DE INTEGRIDAD antes de escribir: descifra lo que acaba
+ *  de cifrar y comprueba que vuelve el mismo valor. No es ceremonia: si la clave
+ *  del deployment no sirve, el fallo aparece AQUÍ —ruidoso y antes de escribir—
+ *  y no el día que alguien intente usar el token, con una fila que parecía
+ *  buena. Cuesta un descifrado por conexión, que ocurre una vez por usuario.
+ *  ⛔ Y no devuelve el token ni lo registra: compara y tira el resultado. */
+export const guardarConexionCifrando = internalAction({
+  args: {
+    userId: v.id("users"),
+    emailAddress: v.string(),
+    refreshToken: v.string(),
+  },
+  handler: async (
+    ctx,
+    { userId, emailAddress, refreshToken },
+  ): Promise<{ desenlace: "creada" | "reutilizada"; writeCount: number }> => {
+    const clave = process.env[GMAIL_TOKEN_ENCRYPTION_KEY];
+    if (!clave) {
+      throw new Error(
+        `Falta ${GMAIL_TOKEN_ENCRYPTION_KEY} en el deployment ` +
+          `${nombreDelDeployment()}: no se puede guardar la conexión cifrada.`,
+      );
+    }
+    const refreshTokenCipher = await cifrarToken(refreshToken, clave);
+    if ((await descifrarToken(refreshTokenCipher, clave)) !== refreshToken) {
+      throw new Error(
+        `El cifrado con ${GMAIL_TOKEN_ENCRYPTION_KEY} no es reversible en el ` +
+          `deployment ${nombreDelDeployment()}. No se ha guardado nada.`,
+      );
+    }
+    return await ctx.runMutation(internal.gmail.guardarConexion, {
+      userId,
+      emailAddress,
+      refreshTokenCipher,
+    });
+  },
+});
 
 export const disconnect = mutation({
   args: { accountId: v.id("gmailAccounts") },

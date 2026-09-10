@@ -7,7 +7,6 @@ import {
   GMAIL_CLIENT_ID,
   GMAIL_CLIENT_SECRET,
   GMAIL_TOKEN_ENCRYPTION_KEY,
-  cifrarToken,
 } from "./model/gmailCrypto";
 
 const http = httpRouter();
@@ -146,14 +145,12 @@ http.route({
       );
     }
 
-    const refreshTokenCipher = await cifrarToken(
-      decision.refreshToken,
-      claveDeCifrado,
-    );
-    await ctx.runMutation(internal.gmail.guardarConexion, {
+    // Cifrar + comprobar integridad + escribir, en la acción que también se
+    // puede ejercitar sola. Este handler no toca el cifrado directamente.
+    await ctx.runAction(internal.gmail.guardarConexionCifrando, {
       userId: consumo.userId,
       emailAddress,
-      refreshTokenCipher,
+      refreshToken: decision.refreshToken,
     });
 
     return pagina(
