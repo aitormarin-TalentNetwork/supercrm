@@ -474,6 +474,27 @@ tu ficha qué commits ajenos arrastras.
   defecto no se manifiesta. *Un control positivo prueba el instrumento dentro de tu
   pregunta, no que hayas elegido bien el caso.*
 
+  Barrido completo, para que no quede como anécdota de un caso:
+
+  ```
+  e379117 (AIT-141)  ~1=5   ~2=5    COINCIDEN
+  b1cdbf2 (AIT-128)  ~1=4   ~2=4    COINCIDEN
+  c579d48 (AIT-127)  ~1=16  ~2=16   COINCIDEN
+  ec34cda (main -> rama)  ~1=2   ~2=3    DIVERGEN
+  ```
+
+  ⛔ **Y POR QUÉ SE ELIGIÓ MAL ESA POBLACIÓN, QUE NO FUE AZAR:** se cogieron los merges
+  de publicación **porque son para lo que existe el gate**. El caso más pertinente, el
+  más citable, el que cualquiera habría elegido.
+
+  > **La relevancia y la capacidad de discriminar son cosas distintas, y aquí apuntaban
+  > en direcciones opuestas.** Un control corrido sobre la población donde el fallo es
+  > imposible **da verde siempre — y se siente más riguroso que no haber puesto ninguno.**
+
+  **La pregunta que las separa, y es barata:** *¿en qué caso este instrumento daría una
+  respuesta distinta si estuviera roto?* Y correr el control **ahí**, aunque sea el caso
+  raro. **Lo caro es que el caso raro nunca parece el importante.**
+
   ✅ **LA PREGUNTA ESTABA MAL PLANTEADA.** Lo que decide si paras no es *"¿este COMMIT
   trae código?"* sino **"¿ha entrado código en `main` desde el último punto que
   verifiqué?"** — y eso es un **rango**, que no elige padre, ve el contenido de todos
