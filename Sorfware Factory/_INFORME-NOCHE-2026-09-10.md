@@ -270,6 +270,19 @@ nombrado, pero tú aprobaste esa tarea entera y ahora es parcial.**
 *"Cerrando sesión…"* y, si falla, **la app no redirige y avisa**. Es UI nueva en su
 comportamiento, aunque no en sus componentes.
 
+**(e) 🔴 SE REFORMULÓ UN CRITERIO DE ACEPTACIÓN DESPUÉS DE VERLO EN ROJO — y el PM pide
+expresamente que lo veas.** C2a se cambió tras fallar. **El gesto de 500 ms no se tocó**; lo que
+cambió fue **el conjunto de caminos** que cubre, y se creó **C2c** para el camino que se sale.
+
+**Por qué te lo ponemos delante en vez de dejarlo en la ficha:** *acotar un criterio después de
+un rojo se parece mucho a relajarlo*, y desde fuera son indistinguibles. En la ficha está la
+prueba de que no lo es. **Y el agravante lo declara el propio PM: el rojo que motivó el cambio
+resultó estar MAL MEDIDO** — lo cual **no hace la pregunta menos legítima, sino más**, porque
+el cambio sobrevivió a la desaparición de su motivo.
+
+> **Palabras suyas:** *"si Aitor va a deshacer una cosa mía, que sea ésta, con los ojos
+> abiertos."*
+
 ### Y tres fichas nuevas creadas esta noche — no necesitan tu permiso, es solo que existen
 **AIT-134** (un cierre de sesión que falla deja las cookies vivas), **AIT-135** (la suite no
 puede ejecutar el recorrido de push: solo un worktree tiene la clave VAPID) y **AIT-136**
