@@ -5,6 +5,7 @@ import {
   comprobarEtiquetas,
   construirComparativa,
   METRICAS,
+  rotulosDesconectados,
   totalesDeCabecera,
   type OportunidadAbierta,
   type Vendedor,
@@ -211,5 +212,57 @@ test.describe("AIT-128 · el comprobador de rótulos se pone rojo de verdad", ()
         valor: { etiqueta: "Valor en juego", unidad: "dinero" },
       }),
     ).toEqual([]);
+  });
+});
+
+// Controles del detector de conexión. Ejercitan `rotulosDesconectados`, EL MISMO
+// que usa la prueba real — el auditor lo pidió así, y con razón: un verificador
+// distinto del verificado es una segunda opinión peor informada, y puede pasar
+// mientras el de verdad falla.
+test.describe("AIT-128 · el detector de rótulos desconectados se pone rojo", () => {
+  const PAGINA_SANA = `
+    <KpiCard label={METRICAS.comerciales.etiqueta} />
+    <KpiCard label={METRICAS.abiertas.etiqueta} />
+    <KpiCard label={METRICAS.valor.etiqueta} />
+    <KpiCard label={METRICAS.atrasados.etiqueta} />
+    <span title={METRICAS.abiertas.etiqueta} />
+    <span title={METRICAS.interacciones.etiqueta} />
+    <span title={METRICAS.atrasados.etiqueta} />`;
+
+  test("no grita con una página bien conectada", () => {
+    expect(rotulosDesconectados(PAGINA_SANA)).toEqual([]);
+  });
+
+  // EL MUNDO EN EL QUE FALLA, que es lo que convierte esto en criterio: se borra
+  // el rótulo. No queda ningún literal prohibido — la versión anterior de la
+  // prueba pasaba en verde con esta misma edición.
+  test("caza el rótulo BORRADO (el verde falso de la ronda 2)", () => {
+    const sinRotulo = PAGINA_SANA.replace(
+      "<KpiCard label={METRICAS.atrasados.etiqueta} />",
+      "<KpiCard />",
+    );
+    const problemas = rotulosDesconectados(sinRotulo);
+    expect(problemas).toEqual([
+      "atrasados: falta label={METRICAS.atrasados.etiqueta} en la página",
+    ]);
+  });
+
+  test("caza el rótulo SUSTITUIDO por otra constante", () => {
+    const sustituido = PAGINA_SANA.replace(
+      "title={METRICAS.atrasados.etiqueta}",
+      "title={OTRA_COSA.texto}",
+    );
+    expect(rotulosDesconectados(sustituido)).toEqual([
+      "atrasados: falta title={METRICAS.atrasados.etiqueta} en la página",
+    ]);
+  });
+
+  // Y la mitad negativa sigue haciendo falta: se puede conectar la constante Y
+  // pintar el texto a mano al lado, y entonces divergen igual.
+  test("caza el literal escrito a mano aunque la constante esté conectada", () => {
+    const conLiteral = `${PAGINA_SANA}\n    <KpiCard label="${METRICAS.atrasados.etiqueta}" />`;
+    expect(rotulosDesconectados(conLiteral)).toEqual([
+      `atrasados: rótulo escrito a mano (label="${METRICAS.atrasados.etiqueta}")`,
+    ]);
   });
 });

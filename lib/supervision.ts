@@ -125,18 +125,73 @@ export function construirComparativa<TId extends string>(
  *  falso pasaba en verde. `comprobarEtiquetas()` cierra eso: una etiqueta que
  *  no nombra su propia unidad pone la suite en rojo.
  */
+// `atributos` declara DÓNDE tiene que estar renderizada cada etiqueta. Sin este
+// campo el control sólo podía afirmar una ausencia ("que no haya literales"), y
+// una expectativa negativa se cumple con la página entera borrada: bastaba con
+// quitar el rótulo para que todo siguiera en verde con el texto ya desaparecido.
 export const METRICAS = {
-  comerciales: { etiqueta: "Comerciales", unidad: "personas" },
-  abiertas: { etiqueta: "Oportunidades abiertas", unidad: "oportunidades" },
-  valor: { etiqueta: "Valor en juego", unidad: "dinero" },
+  comerciales: {
+    etiqueta: "Comerciales",
+    unidad: "personas",
+    atributos: ["label"],
+  },
+  abiertas: {
+    etiqueta: "Oportunidades abiertas",
+    unidad: "oportunidades",
+    atributos: ["label", "title"],
+  },
+  valor: { etiqueta: "Valor en juego", unidad: "dinero", atributos: ["label"] },
   // El número cuenta OPORTUNIDADES abiertas con seguimiento vencido, no
   // seguimientos: decía "Seguimientos atrasados" sobre una unidad que no es ésa.
-  atrasados: { etiqueta: "Oportunidades atrasadas", unidad: "oportunidades" },
+  atrasados: {
+    etiqueta: "Oportunidades atrasadas",
+    unidad: "oportunidades",
+    atributos: ["label", "title"],
+  },
   interacciones: {
     etiqueta: "Interacciones (30 días)",
     unidad: "interacciones",
+    atributos: ["title"],
   },
 } as const;
+
+type Metrica = { etiqueta: string; unidad: string; atributos: readonly string[] };
+
+/** Desconexiones entre `METRICAS` y lo que la página RENDERIZA de verdad.
+ *  Vacío = cada etiqueta se pinta donde dice que se pinta.
+ *
+ *  Afirma en POSITIVO —`label={METRICAS.x.etiqueta}` tiene que ESTAR— además de
+ *  comprobar que no queda el literal a mano. Las dos mitades hacen falta: sin la
+ *  positiva, borrar el rótulo deja el control en verde; sin la negativa, se puede
+ *  pintar el texto a mano al lado y divergir igual.
+ *
+ *  Lo usan la prueba real y su control positivo: un verificador distinto del
+ *  verificado sería una segunda opinión peor informada. */
+export function rotulosDesconectados(
+  fuente: string,
+  metricas: Record<string, Metrica> = METRICAS,
+): string[] {
+  const problemas: string[] = [];
+  for (const [clave, m] of Object.entries(metricas)) {
+    for (const atributo of m.atributos) {
+      if (!fuente.includes(`${atributo}={METRICAS.${clave}.etiqueta}`)) {
+        problemas.push(
+          `${clave}: falta ${atributo}={METRICAS.${clave}.etiqueta} en la página`,
+        );
+      }
+    }
+    for (const patron of [
+      `label="${m.etiqueta}"`,
+      `title="${m.etiqueta}"`,
+      `>${m.etiqueta}<`,
+    ]) {
+      if (fuente.includes(patron)) {
+        problemas.push(`${clave}: rótulo escrito a mano (${patron})`);
+      }
+    }
+  }
+  return problemas;
+}
 
 /** Con qué palabras se nombra cada unidad. Deliberadamente por VOCABULARIO y no
  *  por una lista de textos prohibidos: un rótulo nuevo que se desincronice tiene
