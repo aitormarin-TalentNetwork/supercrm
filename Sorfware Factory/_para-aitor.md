@@ -154,14 +154,63 @@ imaginar. **Se pide igualmente porque equivocarse aquí es barato: las URIs se a
 
 ---
 
-## El dato que quiero darle cuando aparezca
+## Los dos datos que quiero darle cuando aparezca
+
+### 1 · En qué se ha escrito hoy — y los DOS números, porque uno solo miente
 
 ```
-hoy: 138 ranuras de auditoria repartidas entre 21 fichas
-     5 fichas han llegado alguna vez a CODIGO
+POR COMMITS (origin/main, desde 2026-09-10 00:00 UTC)
+    total ................................................ 283
+    tocan SOLO "Sorfware Factory/" ....................... 226   (80%)
+    tocan solo app/components/convex/lib/e2e/scripts .....  33   (12%)
+    mixtos ...............................................   3
+    otros (docs sueltos, PRD de la ola 2) ................  21
+
+POR LINEAS ANADIDAS (mismo rango, sin merges)
+    fabrica .............................................. 8.138 (52%)
+    codigo ............................................... 5.313 (34%)
+    docs/ .................................................  404  (3%)
+    otros ................................................ 1.688 (11%)
+    TOTAL ............................................... 15.543
 ```
 
-⚠️ **Con su límite pegado, que es lo que impide citarlo como el universo:** 21 veredictos son
-de la convención antigua y no sabemos de qué tipo son. Si fueran todos de código, el reparto
-sería 104/36 en vez de 104/15. **El sesgo va hacia abajo: el reparto real es ése o menos
-favorable al plan, nunca más.**
+⚠️ **LOS DOS ESTÁN SESGADOS, Y EN DIRECCIONES OPUESTAS. Ninguno solo es honesto.**
+  · Los **commits** no miden esfuerzo: uno de fábrica puede ser una línea y uno de
+    código medio día.
+  · Las **líneas** favorecen a la prosa: un documento de proceso son párrafos, y un
+    arreglo de código puede ser tres líneas y media jornada.
+
+**El reparto real está entre el 34% y el 80%.**
+
+📌 **Procedencia:** los commits, medidos por el PM clasificando por rutas tocadas, con
+control positivo y negativo del filtro. Las líneas, por el Factory Architect — y su
+primera corrida daba *"0% fábrica / 72% código"*, la conclusión **contraria**, porque el
+separador partía por espacios y la carpeta se llama `Sorfware Factory` **con espacio**.
+Lo caza el control positivo, no la revisión.
+
+⚖️ **Un recuento independiente del Integrador** da 221/39/5/18 sobre el **mismo total de
+283**. La diferencia es de **criterio de clasificación, no de datos** —candidato suyo sin
+medir: en los merges compara contra el primer padre—. **No mueve el titular.**
+Y sobre las líneas, un recuento suyo a las 22:36Z da **53% / 33% / 3% / 11%** sobre un
+total de 16.012: **los mismos porcentajes**, con 469 líneas más que el del FA, coherente
+con que se midieron en momentos distintos de una jornada que seguía escribiendo.
+
+### 2 · En qué se ha gastado el gate
+
+```
+138 ranuras de auditoria repartidas entre 21 fichas
+  5 fichas llegaron alguna vez a CODIGO
+```
+
+⚠️ **Con su agujero:** 21 veredictos son de la convención antigua y no sabemos de qué tipo
+son. Si fueran todos de código, el reparto sería 104/36 en vez de 104/15. **El sesgo va
+hacia abajo: el reparto real es ése o menos favorable al plan.**
+
+### ⛔ Y quién NO puede leer estos números por ti
+
+Ni el Factory Architect ni el PM. **Él escribió la mayor parte de esa fábrica (42 commits
+de proceso hoy) y se recusó él mismo con la razón correcta:** *un juicio suyo sobre si el
+catálogo que escribió merece existir no es un juicio, es una defensa o una penitencia.*
+**Y yo tampoco soy neutral: he abierto siete fichas hoy y he escrito en otras tantas.**
+
+**Los números van; la lectura la pones tú.**
