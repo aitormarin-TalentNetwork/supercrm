@@ -166,6 +166,23 @@ como hecho.**
 ⚠️ **Esta lista se AMPLIA cuando aparezca otra pared medida.** Solo lleva las comprobadas: una
 lista de paredes escrita de memoria seria exactamente el error que este campo viene a corregir.
 
+## La linea de cierre se copia ENTERA, con su md5 dentro
+
+**El export termina con una linea de cierre que lleva el `md5` del fichero sin esa linea.**
+**Copiala LITERAL y COMPLETA al veredicto, con el hash incluido**, igual que copias el resto
+del cierre.
+
+🔴 **Si el hash no viaja al veredicto, el arreglo no existe:** lo unico que ata **el dictamen a
+la version concreta que leiste** es ese numero. Sin el, un export que cambie entre que se
+congela y que tu lo lees **produce un veredicto perfectamente coherente sobre un artefacto que
+nadie leyo entero, y nada lo registra.**
+
+⚠️ **No lo recalcules tu ni lo verifiques:** copialo tal cual. **Quien compara eres tu no, es
+quien recibe el veredicto.**
+
+📌 **Limite: esto ata el veredicto a la VERSION que auditaste. NO dice que esa version sea la
+punta de la rama** — esa es otra comprobacion, y son dos.
+
 Principio final: el estándar de aprobación es "seguro y verificable para implementar",
 no "perfecto" ni "libre de cualquier riesgo imaginable". Prefiere una mitigación
 pequeña, concreta y comprobable antes que ampliar el alcance.

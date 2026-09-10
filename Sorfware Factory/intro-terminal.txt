@@ -1028,6 +1028,46 @@ comprueba que el auditor leyera el export **ENTERO** y no truncado. **Arreglo: q
 cite algo que solo aparece al FINAL del export** — *un truncado silencioso no puede producir esa
 cita.*
 
+🔴 **OCTAVA, Y ES LA QUE A LA SÉPTIMA LE FALTA: la cita del final acredita que se leyó ENTERO,
+no QUÉ VERSIÓN se leyó.** La línea de cierre identifica **la RONDA, no la VERSIÓN**
+(formulación de T3). **Si el export cambia entre que lo congelas y que el auditor lo lee, el
+dictamen sale perfectamente coherente sobre un artefacto que nadie leyó entero, y nada lo
+registra.**
+
+**Positivo real del 2026-09-10:** T3 declaró `md5 19cb57fd… · 637 líneas` y al ir a disparar
+se midió `b8980d3b… · 665`. **Fue benigno** —había añadido una decisión del PM y los avisos se
+cruzaron— **pero la única defensa fue que la Directora comparase a mano. Eso no es un control:
+es una persona.**
+
+> ✅ **LA LÍNEA DE CIERRE LLEVA EL md5 DEL FICHERO SIN ESA LÍNEA.** Se calcula **ANTES** de
+> escribirla, para que no se muerda la cola:
+>
+>     sed '$d' FICHERO | md5
+
+⚠️ **CON ESE COMANDO Y NO OTRO.** `head -n -1` **NO CORRE AQUÍ** —`head: illegal line count`—
+porque es una extensión de GNU y este `head` es BSD. *Se propuso, se midió, y por poco se
+reparte a cuatro terminales una receta que nadie había ejecutado.*
+
+**Acreditado en los DOS sentidos, que es lo que le faltaba:**
+
+    cambio de CONTENIDO ......  fb499fd1 -> 5397ae1c   DETECTA
+    cambio SOLO del cierre ...  fb499fd1 -> fb499fd1   NO se dispara (correcto)
+
+⛔ **Y por qué md5 y NO "líneas y bytes", que parecía más legible:** *líneas y bytes son
+CIEGOS a la sustitución.* Medido:
+
+    'Veredicto: GO' -> 'Veredicto: NO'
+      lineas/bytes   1 14  vs  1 14      <- CONTROL EN VERDE
+      md5            627285fa vs a4c6f25d <- DETECTA
+
+**Un detector cuyo punto ciego coincide con su peor caso.** Y la dirección del fallo remata:
+un hash mal copiado **produce un desajuste, o sea una parada**; un recuento mal copiado
+**puede coincidir por casualidad y falla hacia el verde.**
+
+📌 **LÍMITE DECLARADO, y no se cita sin él:** esto ata **el veredicto a la versión que se
+auditó**. **NO dice que esa versión sea la punta de la rama** — eso es la otra comprobación,
+la de `origin`, y **son dos.** *Este verde no se lee como aquél.*
+
 - **QUIEN LEVANTA UN NAVEGADOR ES EL UNICO QUE PUEDE CERRARLO, Y LO CIERRA AL
   TERMINAR SU TAREA** (decision 82, 2026-09-09). Es una regla de DUENO, no una siega:
   nadie barre los procesos de otro.
