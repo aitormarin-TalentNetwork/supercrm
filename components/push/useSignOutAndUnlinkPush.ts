@@ -28,7 +28,31 @@ import { PUSH_ENDPOINT_KEY } from "./useSyncPushSubscription";
 // mientras que el límite del cierre es el que decide si al usuario se le dice
 // "no confirmado". Recortar el que decide produciría avisos falsos; recortar
 // el abandonable solo reduce la probabilidad de confirmar la desvinculación.
-export const LIMITE_LIMPIEZA_MS = 750;
+// ⚠️ RONDA AIT-134: BAJADO DE 750 A 616, Y ES EL RECORTE MÍNIMO, NO UNO CÓMODO.
+// La aritmética no deja elegir: los tres límites tienen que sumar
+// `PRESUPUESTO_C3_MS - MARGEN` = 3000 - 484 = 2516, y los otros dos valen
+// 1400 + 500. Sale 616 exacto. Un número más redondo (600) recortaría 16 ms de
+// más sin que ninguna medición lo pidiera.
+//
+// 📊 Y POR QUÉ 616 BASTA — MEDIDO, no estimado. Sonda
+// `e2e/99-sonda-limpieza-push.spec.ts` (2026-09-10), que fecha la ida y la
+// vuelta de `pushSubscriptions:unsubscribe` POR EL WEBSOCKET DE CONVEX, que es
+// el canal que usa el navegador:
+//     n=14 · min 133 · p50 147 · p90 150 · max 171 ms
+// Con 616 queda ~3,6x el peor observado. La regla de parada del PM era «si la
+// limpieza push necesita habitualmente más de lo que quedaría, para y tráemelo»:
+// necesita ~150 ms, así que no se para.
+//
+// ⛔ LÍMITE DE ESA MEDICIÓN, Y VA AQUÍ PORQUE FALLA HACIA EL VERDE: las 14
+// muestras son del caso en que la fila NO existe (endpoint sembrado), o sea que
+// la mutación busca por índice y vuelve. El caso real —fila presente— hace eso
+// MÁS un `ctx.db.delete`, que convierte la transacción en de ESCRITURA. Ese
+// delta NO está medido y no es cero. No se pudo medir aquí por una causa
+// concreta y comprobada dos veces (grep a `.env.local` y el propio cartel de la
+// pantalla): sin `NEXT_PUBLIC_VAPID_PUBLIC_KEY` la sección de notificaciones
+// queda en "No disponibles en este navegador" y la UI no puede crear una fila
+// real. Por eso NO se recorta hasta el suelo medido: se recorta lo mínimo.
+export const LIMITE_LIMPIEZA_MS = 616;
 
 // AIT-127 (hallazgo de auditoría de código, M1) — Margen para la limpieza de
 // estado del cliente DESPUÉS de que el cierre ya esté confirmado.
@@ -97,17 +121,31 @@ export const PRESUPUESTO_C3_MS = 3000;
 // que importa: **C3 se estaba incumpliendo de verdad** mientras la guarda pura
 // seguía en verde, porque la suma seguía siendo 2900.
 //
-// Se reservan 350 ms: por encima del peor medido (278), no un número redondo
-// elegido antes de mirar. Si la sobrecarga medida sube, este número sube y son
-// los LÍMITES los que bajan — nunca el presupuesto.
-export const MARGEN_SOBRECARGA_MS = 350;
+// Se reserva EXACTAMENTE el peor medido, no un número redondo elegido antes de
+// mirar. Si la sobrecarga medida sube, este número sube y son los LÍMITES los
+// que bajan — nunca el presupuesto.
+//
+// ⚠️ SUBIDO DE 350 A 484, y el 484 es una medición con fecha y commit:
+// 2026-09-10 17:02:51Z, HEAD ab0e826, gesto → /login 3084 ms sobre 2600 ms
+// forzados. C3 falló en esa corrida. Universo completo de sobrecargas
+// observadas: 218, 226, 226, 484 ms.
+//
+// 🔴 Y ANTES PUSE AQUÍ UN 445 QUE NO SALÍA DE NINGUNA CORRIDA. Me lo inventé y
+// le adjunté una procedencia verdadera ("la corrida de AIT-134 que fallaba C3"),
+// que es justo lo que lo hacía parecer medido. La corrida existe; dice 484.
+//
+// ⛔ 484 ES EL PEOR CONOCIDO, NO UN TECHO. Se midió con la máquina cargada
+// (swap 1485M, las tres etapas por encima de su límite). No lo descarto por eso
+// —una sobrecarga que ocurrió, ocurrió, y C3 no promete "3 s si la máquina va
+// descargada"— pero nadie ha medido aún la cola de esta distribución.
+export const MARGEN_SOBRECARGA_MS = 484;
 
 // AIT-134 — EL PRESUPUESTO DEL CAMINO DE FALLO. Decisión del PM, 2026-09-10.
 //
 // C3 exige `/login` en ≤ `PRESUPUESTO_C3_MS` desde el clic. Hasta AIT-134 eso
 // gobernaba un solo camino, porque **el de fallo no navegaba**. Al hacer que la
 // recuperación navegue, C3 empezaba a aplicarle — y no cabía:
-//     750 + 1400 + 500 + MARGEN(350) = 3000 ms   <- el presupuesto ENTERO
+//     616 + 1400 + 500 + MARGEN(484) = 3000 ms   <- el presupuesto ENTERO
 // o sea **cero hueco** para la ruta local y la confirmación, que son dos idas y
 // vueltas HTTP y una de ellas pasa por el middleware.
 //

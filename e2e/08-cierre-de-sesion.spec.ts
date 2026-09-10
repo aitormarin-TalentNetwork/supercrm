@@ -914,6 +914,92 @@ for (const role of ["owner", "sales"] as Role[]) {
   }
 }
 
+// ══ C7'' · EL 5xx, QUE ES LA OTRA MITAD DE LA PARTICIÓN ═════════════════════
+//
+// 🔴 POR QUÉ EXISTE, Y ES UN HUECO MÍO, NO UNA VARIANTE MÁS. `cierreConfirmado`
+// puede ser falso por DOS vías, y son una partición, no una lista de casos:
+//     (a) NO HAY RESPUESTA  -> aborto, red caída, vencimiento del plazo
+//     (b) HAY RESPUESTA Y DICE QUE NO -> 5xx del servidor o del proxy de delante
+// Los cuatro C7' de arriba, M2' y el reverso fuerzan TODOS la vía (a), con
+// `route.abort("failed")` o colgando la petición. **La vía (b) no la medía
+// nadie.** Lo levantó el PM desde un 502 real que el QA vio en producción.
+//
+// ⚠️ Y LA DIRECCIÓN ES LA MALA, que es lo que lo hace urgente y no cosmético:
+// si el código tratase un 502 como cierre confirmado —`status !== 0`, un
+// `try/catch` que sólo mira excepciones, cualquier cosa que confunda "respondió"
+// con "cerró"— entonces **nada se pondría rojo**. La app navegaría a /login con
+// las cookies vivas, el usuario se iría creyendo que ha salido, y la suite
+// entera seguiría verde porque todos sus mundos de fallo son de la vía (a). Ése
+// es literalmente el daño que AIT-127 vino a matar, entrando por la otra puerta.
+//
+// Este test se pone rojo en ese mundo: con un 502, si se navegase a /login
+// fallaría (2), y si se reportase éxito no habría alerta y fallaría (1).
+//
+// ⛔ NO SE CRUZA CON rol × botón a propósito. Los cuatro de arriba cruzan esos
+// dos ejes porque el veredicto de plan los exigía y porque la ALERTA se pinta en
+// sitios distintos según el botón. El modo de fallo es ortogonal a los dos: vive
+// en el hook, antes de que nada sepa qué botón lo invocó. Cruzarlo daría ocho
+// corridas de ~8 s para volver a medir el mismo `respuesta.ok` cuatro veces, y
+// un control que grita de más se deja de leer.
+//
+// 📌 La recuperación se fuerza a fallar por lo mismo que en los C7' de arriba:
+// sin eso AIT-134 cerraría la sesión de verdad y el test mediría otra cosa.
+test("C7'' · el cierre RESPONDE 502 (no se cae): con la recuperación también caída, alerta visible, NO se navega, y la sesión sigue viva", async ({
+  browser,
+}) => {
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // La diferencia con C7' cabe en una línea, y es toda la prueba: aquí el
+  // servidor CONTESTA. `route.fulfill` en vez de `route.abort`.
+  let respondio502 = false;
+  await pagina.route("**/api/auth", async (route) => {
+    const cuerpo = route.request().postData() ?? "";
+    if (cuerpo.includes("signOut")) {
+      respondio502 = true;
+      return route.fulfill({
+        status: 502,
+        contentType: "text/html",
+        body: "<html><body>502 Bad Gateway</body></html>",
+      });
+    }
+    return route.fallback();
+  });
+
+  await pagina.route(`**${RUTA_CIERRE_LOCAL}`, (ruta) =>
+    ruta.fulfill({ status: 500, body: "" }),
+  );
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+
+  // (0) CONTROL AL INSTRUMENTO, y no sobra: si el patrón de ruta o el filtro por
+  // cuerpo dejaran de casar, la petición saldría real, el cierre funcionaría, y
+  // este test mediría el camino sano creyendo medir el 502. Sin esta línea eso
+  // se vería como un rojo confuso en (1); con ella se ve como lo que es.
+  expect(
+    respondio502,
+    "el 502 no llegó a fabricarse: este test no ha medido la vía (b)",
+  ).toBe(true);
+
+  // (1) avisa — o sea: un 5xx SÍ dispara la alerta, no sólo nuestro timeout
+  await expect(
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido confirmar el cierre de sesión" }),
+  ).toBeVisible();
+
+  // (2) no navega
+  expect(pagina.url()).not.toContain("/login");
+
+  // (3) y la sesión sigue viva, con el observable positivo
+  expect(
+    await clasificarAcceso(pagina),
+    "C7'': con un 502 nadie ha cerrado nada, así que la sesión tiene que seguir " +
+      "viva — y se acredita con ACCESO_CONFIRMADO, no negando la denegación",
+  ).toBe("ACCESO_CONFIRMADO");
+
+  await pagina.context().close();
+});
+
 test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /login en ≤3 s", async ({
   browser,
 }) => {

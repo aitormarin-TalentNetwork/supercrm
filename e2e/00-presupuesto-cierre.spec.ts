@@ -54,10 +54,26 @@ test("C3 · el margen de sobrecarga no puede quedarse por debajo de lo medido", 
   // CONTROL del margen: sin esto, un rojo de la prueba de arriba se "arregla"
   // recortando el margen en vez de los límites, y la sobrecarga real —que no
   // depende de nosotros— se queda fuera del presupuesto otra vez.
-  // 278 ms es el PEOR de los tres valores medidos, no un redondeo.
-  // ⚠️ ACTUALIZADO 278 -> 445, Y ES EL APAÑO, NO EL ARREGLO. El 445 se midió el
-  // 2026-09-10 en la corrida de AIT-134 que fallaba C3. Este literal **nunca
-  // baja**: sólo sube cuando se mide algo peor.
+  // ⚠️ ACTUALIZADO 278 -> 484, Y ES EL APAÑO, NO EL ARREGLO. Este literal
+  // **nunca baja**: sólo sube cuando se mide algo peor.
+  //
+  // 🔴 Y DE PASO CORRIJO UN NÚMERO MÍO SIN FUENTE: escribí primero 445 y le
+  // puse la procedencia "medido el 2026-09-10 en la corrida de AIT-134 que
+  // fallaba C3". Esa corrida existe y es real — pero dice **484**, no 445. El
+  // 445 no aparece en NINGUNA salida de NINGUNA corrida: me lo inventé y le
+  // adjunté un porqué verdadero, que es lo que lo hacía parecer medido.
+  //
+  // Universo COMPLETO de sobrecargas observadas hasta hoy (grep sobre los logs
+  // de corrida y el registro de QA, no de memoria): 218, 226, 226, 484 ms.
+  //   484 ms → 2026-09-10 17:02:51Z, HEAD ab0e826, total 3084 ms sobre 2600 ms
+  //            forzados. C3 FALLÓ en esa corrida.
+  //
+  // ⚠️ CONDICIÓN DE ESA MEDICIÓN, declarada porque cambia cómo se lee: la
+  // máquina iba cargada (swap 1485M, y las tres etapas por encima de su propio
+  // límite — cliente 945 ms contra 500). No la descarto por eso: una sobrecarga
+  // que ocurrió, ocurrió, y el presupuesto de C3 no le promete al usuario
+  // "3 s si la máquina va descargada". Pero sí significa que 484 es el peor
+  // conocido, NO un techo: nadie ha medido aún la cola de esta distribución.
   //
   // ⛔ PERO SUBIR EL NÚMERO Y DEJAR LA GUARDA IGUAL SERÍA REPETIR EL MECANISMO
   // CON OTRO NÚMERO (palabras del PM). Esta prueba pura sigue midiendo **si
@@ -67,7 +83,7 @@ test("C3 · el margen de sobrecarga no puede quedarse por debajo de lo medido", 
   // `08-cierre-de-sesion.spec.ts`: la corrida falla si la sobrecarga observada
   // EN ELLA supera el margen. Esta se queda como cinturón contra el recorte
   // silencioso del margen, que es lo único que sí puede medir.
-  const PEOR_SOBRECARGA_MEDIDA_MS = 445;
+  const PEOR_SOBRECARGA_MEDIDA_MS = 484;
   expect(
     MARGEN_SOBRECARGA_MS,
     `el margen (${MARGEN_SOBRECARGA_MS} ms) es menor que la peor sobrecarga ` +
@@ -91,7 +107,7 @@ test("C3-fallo · el camino de recuperación cabe en su presupuesto", () => {
   // 🔴 POR QUÉ EXISTE ESTE SEGUNDO PRESUPUESTO. Al hacer que la recuperación
   // navegue (M3), C3 empezó a aplicarle un criterio escrito para otro camino. Y
   // no cabía: las etapas que ya existían suman el presupuesto ENTERO —
-  //     750 + 1400 + 500 + 350 = 3000
+  //     616 + 1400 + 500 + 484 = 3000
   // — o sea CERO hueco para la ruta local y la confirmación.
   //
   // ⚠️ Y el número que hay que usar en esa cuenta es el MARGEN DECLARADO (350),

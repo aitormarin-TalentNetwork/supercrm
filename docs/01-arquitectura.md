@@ -685,7 +685,25 @@ navega, se avisa. La regla se aplica sola, sin excepciones que escribir.
 **Decisión 3 — el camino de fallo tiene su propio presupuesto: 5 s.**
 C3 exige `/login` en ≤3 s. Al hacer que la recuperación **navegue**, C3 empezaba a
 aplicarle, y no cabía: las etapas que ya existían suman el presupuesto entero
-(`750 + 1400 + 500 + 350 = 3000`), o sea **cero hueco**.
+(`616 + 1400 + 500 + 484 = 3000`), o sea **cero hueco**.
+
+> ⚠️ **Esos dos números cambiaron el 2026-09-10 y conviene saber por qué**, porque
+> el reparto entre ellos no es libre: la suma está clavada en 3000. El margen de
+> sobrecarga subió de 350 a **484 ms** —el peor valor observado de verdad, en la
+> corrida de las 17:02:51Z (HEAD `ab0e826`), donde C3 falló— y ese aumento salió
+> **entero** del límite de la limpieza push, que bajó de 750 a **616 ms**.
+> El 616 no es un número elegido: es `3000 − 484 − 1400 − 500`, o sea el recorte
+> **mínimo** que cierra la cuenta. Se recorta esa etapa y no otra porque es la
+> única **abandonable**: su fallo no detiene el cierre, y lo peor que produce es
+> que a quien cerró sesión le sigan llegando avisos — molesto, acotado, y **la
+> persona afectada lo ve**. Recortar el límite del cierre, en cambio, fabricaría
+> avisos falsos de "no se ha podido cerrar".
+> Que 616 basta está **medido**, no estimado: la sonda
+> `e2e/99-sonda-limpieza-push.spec.ts` cronometra la mutación por el websocket de
+> Convex y da `n=14 · p50 147 · max 171 ms`. **Con una salvedad que falla hacia el
+> verde:** esas muestras son del caso en que la fila no existe; el caso real añade
+> un borrado, y ese delta no está medido (en este entorno falta
+> `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, así que la UI no puede crear una fila real).
 
 > 🔑 **Por qué no es ajustar el criterio al resultado:** C3 se escribió para el
 > camino normal, y **el de recuperación no navegaba cuando se escribió**. Ese
