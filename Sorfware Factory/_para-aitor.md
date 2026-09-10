@@ -97,6 +97,32 @@ Decisión suya o del Factory Architect. Hoy hay **tres hallazgos que aparecieron
 IMPLEMENTANDO y ninguno en ocho rondas de plan** (AIT-145, el XSS de `convex/http.ts`, y la
 premisa falsa de AIT-134).
 
+## 10 · AIT-134 — autorizar que un `major` se reclasifique de PLAN a CÓDIGO · `pedido: NO`
+
+**Qué hay que autorizar:** el auditor marcó M1 en el **plan** como *cerrable con texto*, lo que
+bloqueaba la ficha. El Factory Architect argumentó que **la discriminación de un instrumento
+se demuestra corriéndolo contra un caso que debería fallar, y eso no se puede hacer en un
+plan**, así que el hallazgo viajó al export de **código**. La decisión de moverlo **la firmó
+la Directora**.
+
+**Por qué es sustancial y no un trámite:** `intro-terminal.txt` (incidente AIT-76) dice que
+**saltarse una fase se le pide a Aitor a través del Factory Architect y nadie más puede
+concederlo**. El FA lo clasificó como **sustancial**, o sea suyo.
+
+⚠️ **Y va con la salvedad que declara la propia Directora:** *"mi lectura de que ese párrafo
+gobierna «saltarse la fase» y no «mover un hallazgo dentro de ella» es MÍA"*.
+
+**Estado real:** el hallazgo está **cerrado y verificado en código** — GO del auditor a las
+20:13:50Z, con la reclasificación confirmada por segunda vez. **Lo único que falta es el
+visto bueno al PROCEDIMIENTO.**
+
+**Qué bloquea:** el **merge** de AIT-134. No la auditoría, que ya está hecha.
+
+🔴 **Y cómo apareció, porque es la lección del día:** esto llevaba horas contado como
+*"ya está en su lista"* **y no estaba en ninguna lista suya** — vivía en el fichero de
+reparto de la Directora. *Una parada que nadie le ha pedido no es una parada: es trabajo
+detenido sin dueño.* Lo cazamos cruzando las dos listas.
+
 ---
 
 ## El dato que quiero darle cuando aparezca
