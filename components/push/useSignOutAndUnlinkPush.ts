@@ -4,76 +4,85 @@ import { useCallback } from "react";
 import { useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@/convex/_generated/api";
+import { readDeviceValue, removeDeviceValue } from "@/lib/deviceStorage";
+import { PUSH_ENDPOINT_KEY } from "./useSyncPushSubscription";
 
-// AIT-57 (hallazgo de auditoría NO-GO ronda 4, "Mayor" #2): sin límite de
-// tiempo, un service worker que nunca llega a activarse (VAPID ausente,
-// fallo previo, estado raro del navegador) deja `navigator.
-// serviceWorker.ready` sin resolver nunca — `signOut()` (lo que de verdad
-// importa) no se alcanzaría jamás, y quien pulsara "Cerrar sesión" se
-// quedaría logueado sin ningún error visible. Este margen acota el
-// intento de desvincular: pase lo que pase, `signOut()` se llama siempre
-// antes de que pasen estos 3s.
-const UNLINK_TIMEOUT_MS = 3000;
-
-async function unlinkLocalSubscription(
-  unsubscribe: (args: { endpoint: string }) => Promise<unknown>,
-) {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-  const registration = await navigator.serviceWorker.ready;
-  const subscription = await registration.pushManager.getSubscription();
-  if (!subscription) return;
-  try {
-    await unsubscribe({ endpoint: subscription.endpoint });
-  } catch {
-    // Sin red, por ejemplo — se intenta igual desuscribir a nivel de
-    // navegador justo debajo; el servicio push invalida el endpoint y el
-    // cron limpia la fila él solo en la siguiente pasada
-    // (convex/webPush.ts:sendToUser), aunque no sea al instante.
-  }
-  // AIT-57 (hallazgo de auditoría NO-GO ronda 4, "Mayor" #1):
-  // `subscription.unsubscribe()` devuelve `Promise<boolean>` — `false`
-  // significa que NO se desuscribió, sin lanzar ninguna excepción. Tratar
-  // "no lanzó" como "tuvo éxito" habría sido el mismo hueco que ya se
-  // corrigió para la mutation de arriba: se comprueba el booleano
-  // explícitamente y, si es `false`, se trata igual que un fallo (entra
-  // por el mismo camino que una excepción, ver el catch del llamador).
-  const unsubscribed = await subscription.unsubscribe();
-  if (!unsubscribed) {
-    throw new Error(
-      "La Push API no confirmó la desuscripción del navegador.",
-    );
-  }
-}
-
-// AIT-57 (hallazgo de auditoría NO-GO ronda 3, mismo "Mayor" #1): la
-// mutation `pushSubscriptions.unsubscribe` exige un usuario autenticado
-// (`requireUser`) — no se puede llamar DESPUÉS de `signOut()`, el token
-// ya no es válido ("No autenticado.", comprobado en real: es justo el
-// error que devolvía Convex al intentarlo reactivamente desde
-// PushSubscriptionSync tras detectar `role === null`). La desvinculación
-// de la suscripción de este dispositivo tiene que pasar ANTES de cerrar
-// sesión de verdad, mientras todavía hay una sesión válida para borrar la
-// fila que le pertenece.
+// AIT-127 — Cuánto se espera a la limpieza push antes de ABANDONARLA.
 //
-// Sustituye a `signOut()` a secas en los dos sitios donde se cierra
-// sesión (app/ajustes/page.tsx y components/nav/AppNav.tsx) — mismo
-// resultado desde fuera (cierra la sesión), pero antes intenta
-// desvincular la suscripción push del dispositivo si la hay.
+// ⚠️ NO ES EL `setTimeout` QUE ESTA FICHA PROHÍBE, y la diferencia es la
+// semántica, no el constructo: el temporizador anterior RETENÍA el cierre 3 s
+// (enmascaraba que `unsubscribe` no es fiable y dejaba la sesión viva mientras
+// tanto). Éste ABANDONA la limpieza y CONTINÚA el cierre.
+//
+// El valor se fijó ANTES de medir ningún resultado: una ida y vuelta comparable
+// a este deployment tiene mediana 162 ms y peor caso observado 485 ms (arranque
+// en frío), así que 1000 ms es ~6x la mediana y ~2x la peor observada — holgado
+// para una llamada sana, corto para que abandonarla siga dejando el cierre
+// dentro del criterio de 3 s.
+//
+// 🔴 Si algún criterio fallara por este número, la respuesta NO es bajarlo: eso
+// sería ajustar el criterio al resultado. Se vuelve al PM.
+const LIMITE_LIMPIEZA_MS = 1000;
+
+/** AIT-127: lo único que detiene el cierre es que el cierre falle. */
+export type ResultadoCierre = { ok: true } | { ok: false; motivo: "cierre" };
+
+// AIT-57 (hallazgo de auditoría NO-GO ronda 3): la mutation
+// `pushSubscriptions.unsubscribe` exige usuario autenticado (`requireUser`), así
+// que NO se puede llamar después de `signOut()`. Por eso va antes.
+//
+// AIT-127 la reordena sin romper eso: el endpoint ya no se OBTIENE aquí —se
+// guardó al sincronizar y se lee de forma síncrona—, así que lo único que queda
+// en el camino crítico es la mutación, acotada y abandonable.
 export function useSignOutAndUnlinkPush() {
   const { signOut } = useAuthActions();
   const unsubscribe = useMutation(api.pushSubscriptions.unsubscribe);
 
-  return useCallback(async () => {
-    try {
-      await Promise.race([
-        unlinkLocalSubscription(unsubscribe),
-        new Promise<void>((resolve) => setTimeout(resolve, UNLINK_TIMEOUT_MS)),
-      ]);
-    } catch {
-      // Silencioso a propósito: un fallo aquí (API de push no soportada,
-      // `unsubscribe()` del navegador devolvió `false`, etc.) nunca debe
-      // impedir el cierre de sesión real, que es lo importante.
+  return useCallback(async (): Promise<ResultadoCierre> => {
+    // 1. SÍNCRONO: no hay promesa que pueda quedarse pendiente.
+    const endpoint = readDeviceValue(PUSH_ENDPOINT_KEY);
+
+    // 2. Limpieza push, acotada. Su fallo NO detiene nada.
+    let limpiezaConfirmada = false;
+    if (endpoint) {
+      try {
+        await Promise.race([
+          unsubscribe({ endpoint }).then(() => {
+            limpiezaConfirmada = true;
+          }),
+          new Promise<never>((_, rechazar) =>
+            setTimeout(
+              () => rechazar(new Error("limite de limpieza push")),
+              LIMITE_LIMPIEZA_MS,
+            ),
+          ),
+        ]);
+      } catch {
+        // Se abandona la limpieza. El cierre sigue.
+      }
     }
-    await signOut();
+
+    // 3. La declaración. ⚠️ Dice "sin confirmar", NO "no se borró": `Promise.race`
+    //    abandona la ESPERA, no cancela la mutación, que puede estar en vuelo y
+    //    llegar a borrar la fila después. Afirmar que la fila sigue ahí sería
+    //    falso — y en la dirección que suena prudente.
+    if (!limpiezaConfirmada) {
+      console.warn(
+        "[AIT-127] cierre de sesión sin confirmar la desvinculación push",
+      );
+    }
+
+    // 4. El cierre. Lo único cuyo fallo importa.
+    try {
+      await signOut();
+    } catch {
+      // NO se borra el endpoint: si el usuario reintenta, hará falta para
+      // limpiar la fila. Y NO se navega — de eso se encarga quien llama.
+      return { ok: false, motivo: "cierre" };
+    }
+
+    // 5. Cerrado de verdad: el endpoint ya no sirve para nada.
+    removeDeviceValue(PUSH_ENDPOINT_KEY);
+    return { ok: true };
   }, [signOut, unsubscribe]);
 }

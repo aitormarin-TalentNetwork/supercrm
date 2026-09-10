@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { LogOut, X } from "lucide-react";
 import { api } from "@/convex/_generated/api";
@@ -28,7 +28,10 @@ const FOCUSABLE_SELECTOR =
 export function AppNav() {
   const { open, close } = useNav();
   const pathname = usePathname();
-  const signOut = useSignOutAndUnlinkPush();
+  const router = useRouter();
+  const cerrarSesion = useSignOutAndUnlinkPush();
+  // AIT-127: si el cierre FALLA no se navega, y hay que avisar.
+  const [errorCierre, setErrorCierre] = useState(false);
   const role = useQuery(api.users.getCurrentUserRole);
   // getCurrentUserInfo (a diferencia de getCurrentUserRole) usa
   // requireUser y lanza si no hay sesión — al estar este componente
@@ -187,13 +190,30 @@ export function AppNav() {
             type="button"
             onClick={() => {
               close();
-              void signOut();
+              // AIT-127: la navegación vive en el consumidor, no en el hook.
+              void (async () => {
+                setErrorCierre(false);
+                const resultado = await cerrarSesion();
+                if (!resultado.ok) {
+                  setErrorCierre(true);
+                  return; // NO se redirige si no se cerró
+                }
+                router.replace("/login");
+              })();
             }}
             className="flex min-h-[44px] w-full items-center gap-[11px] rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:bg-neutral-100"
           >
             <LogOut size={18} className="flex-none" />
             <span className="flex-1 text-left">Cerrar sesión</span>
           </button>
+          {errorCierre && (
+            <p
+              role="alert"
+              className="mx-3 mt-2 rounded-md bg-error-subtle p-2.5 text-sm text-error"
+            >
+              No se ha podido cerrar la sesión. Inténtalo de nuevo.
+            </p>
+          )}
         </div>
       </aside>
     </>

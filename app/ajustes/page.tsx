@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   Mail,
@@ -52,9 +53,25 @@ type ManagedUser = {
 // de usuarios necesita más ancho que la tarjeta de perfil; para
 // sales/storeManager la pantalla queda exactamente igual que antes.
 export default function AjustesPage() {
+  const router = useRouter();
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(api.users.getCurrentUserInfo);
-  const signOut = useSignOutAndUnlinkPush();
+  const cerrarSesion = useSignOutAndUnlinkPush();
+  // AIT-127: si el cierre FALLA no se navega, y el usuario tiene que enterarse.
+  const [errorCierre, setErrorCierre] = useState(false);
+
+  // AIT-127: la navegación vive aquí y no en el hook — el hook no sabe desde
+  // dónde se le llama, y el aviso tiene que estar en el árbol de este
+  // componente para que exista un `role="alert"` que se pueda afirmar.
+  async function alCerrarSesion() {
+    setErrorCierre(false);
+    const resultado = await cerrarSesion();
+    if (!resultado.ok) {
+      setErrorCierre(true);
+      return; // NO se redirige: una redirección sin cierre es la señal falsa
+    }
+    router.replace("/login");
+  }
 
   const loading = role === undefined || userInfo === undefined;
   const canManageUsers = role === "owner";
@@ -115,9 +132,17 @@ export default function AjustesPage() {
               {canManageUsers && <UsersSection />}
 
               <div className="mx-auto w-full max-w-[480px]">
-                <Button variant="secondary" onClick={() => signOut()}>
+                <Button variant="secondary" onClick={() => void alCerrarSesion()}>
                   Cerrar sesión
                 </Button>
+                {errorCierre && (
+                  <p
+                    role="alert"
+                    className="mt-2 rounded-md bg-error-subtle p-2.5 text-sm text-error"
+                  >
+                    No se ha podido cerrar la sesión. Inténtalo de nuevo.
+                  </p>
+                )}
               </div>
 
               {/* AIT-79: qué commit está sirviendo la app. Al final y en
