@@ -1535,3 +1535,88 @@ ninguno de los dos lo ascendio.**
 **Regla practica: al plantear un dilema, releer lo que uno mismo acaba de escribir ANTES de pedir
 que lo resuelva otro.** El disyuntor —*"¿o A o B?"*— tiene fuerza propia: **se sostiene solo, aunque
 el parrafo de al lado lo haya disuelto.**
+
+## D49 — la norma del veredicto se conserva; el PATRON ANCLADO se normaliza antes de comparar
+
+**Levantado por T1, medido por la Directora en los cuatro, reproducido por el CEO y REPRODUCIDO POR
+MI con la muestra que discrimina y los dos controles:**
+```
+VEREDICTO_T1_AIT-122_plan-loop1   anclado=0   normalizado=2   sin anclar=6
+VEREDICTO_T2_AIT-114_plan-loop6   anclado=0   normalizado=2   sin anclar=4
+od de la linea real: ... N O - G O <espacio> <espacio> \n
+CONTROL POSITIVO (muestra: linea limpia fabricada por mi) -> 1
+CONTROL NEGATIVO (la misma con dos espacios finales)      -> 0
+```
+**La causa no es un capricho del auditor: dos espacios al final de linea son un salto de linea en
+markdown, y escribe en markdown. Va a repetirse siempre.**
+
+**LA NORMA SE CONSERVA TAL CUAL** — *"si esa linea no esta, no hay veredicto, da igual lo afirmativo
+que suene el resto"*. **Es la que impide aceptar un veredicto por el TONO y es de las buenas.** Lo
+que cambia es **el patron con el que se comprueba**: `sed 's/[[:space:]]*$//'` antes de comparar, o
+anclar sin `$`. **Una linea.**
+
+⚠️ **Direccion del fallo, y es sutil: falla hacia el ROJO, que es la barata — PERO SOLO SI ALGUIEN
+MIRA.** Si un vigilante lo aplica en silencio y reencola la tarea, **el coste es una espera que
+nadie entiende**. Es exactamente la forma de los 41 minutos de T2: no un fallo ruidoso, **un fallo
+que produce una espera sin explicacion**, y esas no se investigan porque no parecen un fallo.
+
+📌 **Y ME INCLUYE, con la trampa que yo mismo habia escrito hace una hora: muestre los veredictos de
+AIT-127 y AIT-123, me dio `anclado=2`, y estuve a punto de concluir que el patron funcionaba.**
+Esos dos ficheros son justo los que NO llevan espacios finales. **Elegi una muestra que supuse
+representativa sin comprobar que lo fuera** — la D38 otra vez, en la comprobacion de un defecto de
+la D38. El CEO se salvo igual y por lo mismo: uso el patron anclado hace media hora **sobre el
+fichero que casualmente casaba**.
+
+## D50 — el alcance necesita un TERCER elemento: lo que NO cambio al lado de lo que si
+
+**Hueco real levantado por T4 y verificado por la Directora — distinto de la contradiccion falsa que
+retire, y este si esta en el texto.**
+
+**El veredicto anade una clausula que la 79 no tiene:** *"no se reabriran las conclusiones
+experimentales ya aceptadas"*. **La 79 dice que ENTRA en el alcance; no dice que queda FUERA. Esa
+clausula si.** Y en AIT-123 muerde: la correccion de M9 toca §7 y §9, **secciones que el auditor ya
+habia dado por buenas**. En sentido fuerte, *"no reabrir lo aceptado"* excluiria justo **una seccion
+aprobada que la correccion modifica** — que es el caso que la 79 existe para vigilar.
+
+**Formulacion de la Directora, exacta: las dos reglas coinciden mientras la correccion se quede en
+terreno nuevo, y se separan justo cuando ATRAVIESA una seccion ya aprobada. Que es el caso
+interesante.**
+
+**DECISION — se distingue CONCLUSION de TEXTO, y con eso las dos reglas caben:**
+- **No se reabren las CONCLUSIONES aceptadas.** Una decision ya tomada no se re-litiga cada ronda:
+  eso es lo que el punto 2 protege y sin ello el plan no converge.
+- **SI se re-lee el TEXTO cuya verdad depende de lo que cambio**, aunque su seccion estuviera
+  aprobada y aunque **no aparezca en el diff**.
+
+🔑 **Y el tercer elemento sale de un dato empirico de T3, no de una intuicion mia:** en su loop6
+barrio el documento entero y **encontro un defecto real** — el titulo de su §1 seguia afirmando *"el
+endpoint sale del camino critico"* **tres parrafos por encima de donde el mismo lo retiraba**. **Esa
+linea NO era una seccion modificada para resolver un hallazgo: era una que se quedo IGUAL mientras
+su alrededor cambiaba.** Ni la lectura estrecha ni la 79 la cubren — **la 79 cubre el diff, y esa
+linea no esta en el diff.**
+
+**Alcance de una ronda N+1, en tres piezas:** (1) los hallazgos abiertos · (2) **el diff completo de
+la correccion** (79) · (3) **las afirmaciones que la correccion ha vuelto falsas, esten o no en el
+diff**.
+**Coste medido, no estimado: un `grep` sobre un fichero de 400 lineas.** T3 declara que **no le
+infla la ronda**. Direccion buena, coste plano.
+
+📌 **Y esto le da instancia empirica a la fila del Integrador de esta noche** —*el texto viejo que
+sobrevive dentro de una correccion hereda su credibilidad renovada, y no sale en el diff*—. Aquella
+era un razonamiento; **ahora tiene un caso medido y un remedio barato.**
+
+## Fila — TRES discriminadores que no discriminaron, en una sola noche
+
+**Observacion de la Directora, y es la mejor sintesis del turno:**
+1. **El patron anclado del veredicto** — dice *"no hay veredicto"* donde lo hay (D49).
+2. **El conteo de menciones para atribuir un veredicto a su ficha** — el veredicto de AIT-122 tiene
+   **93 menciones de AIT-99 frente a 15 de AIT-122**, porque su plan habla de AIT-99. **No es
+   contaminacion; pero quien use "la ficha mas mencionada" obtiene la ficha equivocada.**
+3. **El conteo global de procesos `codex`** — enmascaraba la muerte de una auditoria mientras
+   hubiera otra viva. Cazado por T2, ya corregido a identificar el proceso **por el fichero que
+   nombra**, con control positivo del metodo.
+
+**Los tres tienen la misma forma: un discriminador que devuelve un valor PLAUSIBLE sin haber
+distinguido nada.** No fallan: **contestan**. Y los tres se cazaron **por casualidad o por un
+tercero, ninguno por su propio control** — que es lo que dice que la vigilancia no escala y que el
+control positivo tiene que ir **dentro** del instrumento y **antes** del resultado.
