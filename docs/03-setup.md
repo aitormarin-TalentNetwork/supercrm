@@ -425,6 +425,34 @@ las de §6bis **no** son tuyas.
 | `GMAIL_CLIENT_SECRET` | Deployment de Convex | idem |
 | `GMAIL_TOKEN_ENCRYPTION_KEY` | Deployment de Convex | Cifra el token de refresco guardado en `gmailAccounts` |
 
+> ⛔ **ENCLAVAMIENTO — NO PONGAS ESTAS TRES VARIABLES EN PRODUCCIÓN HASTA QUE
+> AIT-145 ESTÉ CERRADA.** (Integrador, 2026-09-10, al publicar AIT-92.)
+>
+> **AIT-145** — *«el consentimiento de Gmail se puede vincular al usuario
+> equivocado: la víctima acepta y su buzón queda en la cuenta del atacante»* —
+> **no la cierra esta ficha**. Comprueba su estado en Linear antes de actuar:
+> este párrafo enuncia la **condición**, no el estado, para no quedarse falso el
+> día que se cierre.
+>
+> **Mientras no haya credenciales no es explotable, y la razón es esta misma
+> sección:** sin el **eje 2**, `convex/gmail.ts` no manda a nadie a Google; sin
+> el **eje 3**, el guardado lanza antes de escribir nada. **El código falla
+> cerrado.**
+>
+> **Por eso el peligro no está en ningún merge, está aquí.** El día que alguien
+> rellene el eje 2 en `stoic-impala-857`, el ataque pasa a ser alcanzable **sin
+> que se tome ninguna decisión de publicación** — porque poner una variable de
+> entorno no se siente como activar una vulnerabilidad conocida. **La decisión
+> se toma en este párrafo, no en un merge.**
+>
+> **Qué hacer, que hay dos salidas:** cerrar AIT-145 antes, **o** aceptar el
+> riesgo por escrito en AIT-144 diciendo **quién lo acepta y con qué alcance**
+> (¿buzones reales?, ¿cuántos usuarios?). Lo que no vale es rellenar las
+> variables sin nombrar la decisión.
+>
+> *Alcance: en dev no aplica igual —los buzones son de prueba—, y la clave de
+> cifrado es distinta por deployment justamente para que eso siga siendo verdad.*
+
 ⚠️ **`GMAIL_OAUTH_CLIENT_ID` y `GMAIL_OAUTH_CLIENT_SECRET` no existen.** Aparecían
 en una rama previa de esta tarea y **estaban equivocados**, no desincronizados:
 medido con `npx convex env list --names-only` contra el deployment compartido, los
