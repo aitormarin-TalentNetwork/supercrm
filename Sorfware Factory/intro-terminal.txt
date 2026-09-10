@@ -632,6 +632,34 @@ una vez que el trabajo pasa auditoría.
       comparacion acredita que volviste a donde estabas, **no que ahi se estuviera bien.**
 
 
+🔴 CONVENIO DE CODIGOS DE SALIDA DE LA FABRICA — VIGENTE, y es este y no otro
+
+   ⚠️ **SI UNA FICHA TE DICE OTRA COSA (p.ej. "4 sin contenedor, 5 ausente, 6 malformada" a
+   secas), MANDA ESTE.** Las fichas escritas antes del 2026-09-10 citan la version anterior.
+
+       BANDA DEL INSTRUMENTO  (universal, cualquier programa de la fabrica)
+         exit 3   CRASH DEL PROPIO INSTRUMENTO
+         exit 4   SIN CONTENEDOR   la salida del runner no existe o no se lee
+         exit 5   AUSENTE          ninguna linea con el sujeto buscado
+         exit 6   MALFORMADA       la hay y su valor no vale (incluye NaN y no finitos)
+         exit 7   BAJO MINIMO      N < minimo
+       BANDA DE DOMINIO  (>= 10)   resultados propios de cada comprobador
+
+   🔑 **POR QUE HAY DOS BANDAS Y NO UNA LISTA:** *"el estado del INSTRUMENTO"* y *"el
+   resultado del DOMINIO"* son preguntas distintas, y mezclarlas hace que **un mismo numero
+   signifique dos cosas segun el programa** — o sea que el lector siga teniendo que saber de
+   donde viene, **pero ahora con la apariencia de que existe un significado compartido.**
+   ⛔ **Un convenio NO UNIVERSAL es peor que ninguno.** Es la "sensacion de un control"
+   aplicada a una convencion.
+
+   📌 **Y el `exit 3` entro POR MERITO, no por antiguedad:** separa el crash porque *un crash
+   y un resultado legitimo daban el mismo observable*. Es el caso extremo de "no pude mirar".
+
+   ⚠️ **CONSECUENCIA PENDIENTE, declarada y no ejecutada:** el gate de exports ajenos de
+   AIT-122 usa hoy `exit 4` para un resultado de DOMINIO y **tiene que moverse a >= 10**.
+   **Es otro programa y otra ficha: no lo toques desde la tuya.**
+
+
 🔴 AL ESCRIBIR UN CRITERIO DE ACEPTACION: TIENE QUE PODER SALIR MAL (D55)
 
    Todo criterio con verbo de observacion declara TRES cosas:
