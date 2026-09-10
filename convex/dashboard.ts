@@ -107,6 +107,14 @@ export const getAtRiskCount = query({
 // agrupado por ownerId. Ordenado por importe descendente (el comercial con
 // más valor en juego primero, el orden que más le interesa a Marta al
 // abrir Supervisión).
+// ⚠️ AIT-128 la dejó SIN CONSUMIDOR: la carga por persona de /supervision se
+// calcula ahora en `lib/supervision.ts` desde la misma lista que suma la
+// cabecera. No se retira aquí a propósito, y el motivo no es pereza: nueve
+// comentarios de cinco ficheros y `docs/02-modelo-de-datos.md` la citan como
+// EL ejemplo del chequeo cruzado de `storeId`. Borrarla dejaría nueve
+// referencias apuntando a una función que no existe — que es exactamente el
+// defecto de rótulo que AIT-128 vino a cerrar, cometido al cerrarlo.
+// Qué hacer con ella se decide en AIT-141, no aquí.
 export const getWorkloadByOwner = query({
   args: storeAccessArgs,
   handler: async (ctx, args) => {
@@ -290,47 +298,6 @@ export const getInteractionCountsByOwner = query({
   },
 });
 
-// Seguimientos atrasados por comercial: mismo criterio que "isOverdue" en
-// nextSteps.ts:listForToday (pending + postponed con dueDate ya pasado),
-// pero recorriendo a TODOS los comerciales de la tienda en vez de solo al
-// usuario que hace la consulta — es la adaptación que pedía el brief.
-export const getOverdueCountsByOwner = query({
-  args: storeAccessArgs,
-  handler: async (ctx, args) => {
-    const { storeId } = await requireStoreAccess(ctx, args.storeId);
-    const salesUsers = await getSalesUsersForStore(ctx, storeId);
-
-    const startOfToday = startOfBusinessDay(Date.now());
-
-    return Promise.all(
-      salesUsers.map(async (salesUser) => {
-        const [pending, postponed] = await Promise.all([
-          ctx.db
-            .query("nextSteps")
-            .withIndex("by_assignee_status", (q) =>
-              q.eq("assigneeId", salesUser._id).eq("status", "pending"),
-            )
-            .collect(),
-          ctx.db
-            .query("nextSteps")
-            .withIndex("by_assignee_status", (q) =>
-              q.eq("assigneeId", salesUser._id).eq("status", "postponed"),
-            )
-            .collect(),
-        ]);
-        const overdueCount = [...pending, ...postponed].filter(
-          (step) => step.dueDate < startOfToday,
-        ).length;
-        return {
-          ownerId: salesUser._id,
-          ownerName: salesUser.name ?? null,
-          count: overdueCount,
-        };
-      }),
-    );
-  },
-});
-
 // Oportunidades abiertas con el nombre del comercial, para el drill-down y
 // el filtro por comercial de Supervisión. Variante de
 // opportunities.listOpen (AIT-12) hecha aparte a propósito: aquí NO hay
@@ -340,15 +307,14 @@ export const getOverdueCountsByOwner = query({
 // convex/opportunities.ts, que otra terminal (T3, AIT-19) está editando
 // en paralelo ahora mismo — declarado explícitamente al auditor, tal como
 // pedía el brief.
-// Incluye "isOverdue" por oportunidad (no solo por comercial): a
-// diferencia de getOverdueCountsByOwner (que solo cuenta comerciales
-// "sales", para la tabla "por comercial" que pedía el brief), esto cubre
-// TODAS las oportunidades abiertas de la tienda, incluidas las que
-// pudiera tener la propia Marta — verificado en real que existen (2
-// oportunidades y 2 seguimientos atrasados suyos en este deployment de
-// desarrollo). Los KPIs de cabecera de Supervisión usan este total
-// completo en vez de sumar solo la tabla de comerciales, para que no haya
-// dos cifras distintas de "abiertas"/"atrasadas" en la misma pantalla.
+// Incluye "isOverdue" por oportunidad, y desde AIT-128 esta consulta es la
+// ÚNICA fuente de la pantalla de Supervisión: la cabecera y las filas de la
+// comparativa se calculan las dos de esta lista (`lib/supervision.ts`), así
+// que no pueden discrepar. Antes había una consulta aparte por comercial
+// (`getOverdueCountsByOwner`) y la tabla salía de un universo distinto —
+// sólo usuarios con rol "sales"—, de modo que una oportunidad de la dueña
+// se contaba arriba y no abajo. Se retiró en AIT-128: dos fuentes para el
+// mismo número es lo que permitía que dijeran cosas incompatibles.
 export const listOpenOpportunitiesForSupervision = query({
   args: storeAccessArgs,
   handler: async (ctx, args) => {

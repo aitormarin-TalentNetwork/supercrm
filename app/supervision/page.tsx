@@ -20,6 +20,7 @@ import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { formatCurrency } from "@/lib/format";
+import { construirComparativa, totalesDeCabecera } from "@/lib/supervision";
 
 // Guard de rol de UX (evita que un "sales" vea el shell de supervisión) —
 // no es el control de acceso real, que vive en proxy.ts + requireStoreAccess
@@ -31,12 +32,16 @@ export default function SupervisionPage() {
   const store = useQuery(api.stores.getStoreInfo, {});
   const router = useRouter();
 
-  const workload = useQuery(api.dashboard.getWorkloadByOwner, {});
+  // AIT-128: la carga, el valor y los atrasados de CADA fila salen de esta
+  // misma lista, no de consultas aparte — ver `lib/supervision.ts`. Antes
+  // venían de `getWorkloadByOwner` y `getOverdueCountsByOwner`, y que la
+  // cabecera y la tabla tuvieran fuentes distintas es lo que permitía que
+  // dijeran cosas incompatibles. `getInteractionCountsByOwner` sí se queda:
+  // las interacciones son otra medida (30 días) y no suman a ninguna cabecera.
   const interactionCounts = useQuery(
     api.dashboard.getInteractionCountsByOwner,
     {},
   );
-  const overdueCounts = useQuery(api.dashboard.getOverdueCountsByOwner, {});
   const openOpportunities = useQuery(
     api.dashboard.listOpenOpportunitiesForSupervision,
     {},
@@ -48,30 +53,14 @@ export default function SupervisionPage() {
     if (role === "sales") router.replace("/hoy");
   }, [role, router]);
 
-  const comerciales = useMemo(() => {
-    if (!interactionCounts || !overdueCounts || !workload) return null;
-    const workloadByOwner = new Map(workload.map((w) => [w.ownerId, w]));
-    const overdueByOwner = new Map(
-      overdueCounts.map((o) => [o.ownerId, o.count]),
-    );
-    return interactionCounts
-      .map((ic) => {
-        const w = workloadByOwner.get(ic.ownerId);
-        return {
-          ownerId: ic.ownerId,
-          ownerName: ic.ownerName ?? "Sin nombre",
-          openCount: w?.count ?? 0,
-          openAmount: w?.totalAmount ?? 0,
-          interactionCount: ic.count,
-          overdueCount: overdueByOwner.get(ic.ownerId) ?? 0,
-        };
-      })
-      .sort((a, b) => b.openAmount - a.openAmount);
-  }, [interactionCounts, overdueCounts, workload]);
+  const equipo = useMemo(() => {
+    if (!interactionCounts || !openOpportunities) return null;
+    return construirComparativa(openOpportunities, interactionCounts);
+  }, [interactionCounts, openOpportunities]);
 
   const maxOpenAmount = useMemo(
-    () => Math.max(1, ...(comerciales ?? []).map((c) => c.openAmount)),
-    [comerciales],
+    () => Math.max(1, ...(equipo ?? []).map((c) => c.openAmount)),
+    [equipo],
   );
 
   const filteredOpportunities = useMemo(() => {
@@ -84,7 +73,8 @@ export default function SupervisionPage() {
 
   if (
     role === undefined ||
-    comerciales === null ||
+    equipo === null ||
+    interactionCounts === undefined ||
     openOpportunities === undefined
   ) {
     return (
@@ -94,20 +84,15 @@ export default function SupervisionPage() {
     );
   }
 
-  // Totales de cabecera calculados sobre TODAS las oportunidades abiertas
-  // de la tienda (openOpportunities), no sumando solo la tabla "por
-  // comercial" (que es sales-only) — si no, "Oportunidades abiertas" y
-  // "Seguimientos atrasados" no coincidirían con lo que se ve en el
-  // listado de abajo cuando la propia Marta tiene oportunidades propias
-  // (pasa de verdad en este deployment: verificado en real).
+  // AIT-128: cabecera y tabla salen de `openOpportunities`, así que
+  // `suma(columna) === cabecera` se cumple por construcción y no porque dos
+  // consultas coincidan. El KPI "Comerciales" es la excepción a propósito:
+  // cuenta sólo usuarios con rol `sales` (`interactionCounts`), que es lo que
+  // su rótulo promete — la tabla lista al equipo entero, incluida la dueña,
+  // pero "cuántos comerciales tengo" sigue siendo una pregunta distinta.
   const team = {
-    comerciales: comerciales.length,
-    abiertas: openOpportunities.length,
-    valor: openOpportunities.reduce(
-      (sum, o) => sum + (o.estimatedAmount ?? 0),
-      0,
-    ),
-    atrasados: openOpportunities.filter((o) => o.isOverdue).length,
+    ...totalesDeCabecera(openOpportunities),
+    comerciales: interactionCounts.length,
   };
 
   return (
@@ -121,7 +106,7 @@ export default function SupervisionPage() {
                 Supervisión del equipo
               </h1>
               <p className="text-[12.5px] text-text-muted">
-                Rendimiento de tus comerciales — últimos 30 días
+                Rendimiento del equipo
               </p>
             </div>
             <div className="ml-auto flex items-center gap-2.5">
@@ -164,7 +149,7 @@ export default function SupervisionPage() {
           <section className="rounded-lg border border-border bg-surface shadow-[var(--shadow-e1)]">
             <div className="flex flex-wrap items-center justify-between gap-3 p-4">
               <h2 className="m-0 text-[15px] font-bold">
-                Comparativa por comercial
+                Comparativa del equipo
               </h2>
               <div className="w-full sm:w-[190px]">
                 {/* AIT-71: sin `size="sm"` (36px) — cae al `md` por defecto
@@ -176,8 +161,8 @@ export default function SupervisionPage() {
                     setFiltro(e.target.value as Id<"users"> | "todos")
                   }
                 >
-                  <option value="todos">Todos los comerciales</option>
-                  {comerciales.map((c) => (
+                  <option value="todos">Todo el equipo</option>
+                  {equipo.map((c) => (
                     <option key={c.ownerId} value={c.ownerId}>
                       {c.ownerName}
                     </option>
@@ -186,13 +171,13 @@ export default function SupervisionPage() {
               </div>
             </div>
 
-            {comerciales.length === 0 ? (
+            {equipo.length === 0 ? (
               <p className="px-4 pb-4 text-sm text-text-secondary">
-                Todavía no hay comerciales en esta tienda.
+                Todavía no hay nadie con actividad en esta tienda.
               </p>
             ) : (
               <div className="flex flex-col">
-                {comerciales.map((c) => (
+                {equipo.map((c) => (
                   <button
                     key={c.ownerId}
                     type="button"
@@ -261,7 +246,7 @@ export default function SupervisionPage() {
                 Oportunidades ·{" "}
                 {filtro === "todos"
                   ? "Todo el equipo"
-                  : comerciales.find((c) => c.ownerId === filtro)?.ownerName}
+                  : equipo.find((c) => c.ownerId === filtro)?.ownerName}
               </h2>
               <span className="text-xs text-text-muted">
                 {filteredOpportunities.length} abiertas

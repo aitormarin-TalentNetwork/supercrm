@@ -11,22 +11,31 @@
  *  fuentes que puedan discrepar.
  */
 
-export type OportunidadAbierta = {
-  ownerId: string;
-  ownerName: string | null;
+// Genérico en el id a propósito: la página trabaja con `Id<"users">` de
+// Convex, que es un `string` con marca. Si este módulo lo aplanara a
+// `string`, el `setFiltro` de la página dejaría de comprobar tipos y un id
+// de otra tabla pasaría desapercibido.
+export type OportunidadAbierta<TId extends string = string> = {
+  ownerId: TId;
+  // `null | undefined` porque el backend distingue dos ausencias: `null` es
+  // "el usuario existe pero no es de esta tienda" (el chequeo cruzado de
+  // storeId) y `undefined` es "no tiene nombre puesto". Aquí las dos caen en
+  // el mismo sitio, pero el tipo no las aplana: si mañana hay que
+  // distinguirlas, el dato sigue llegando.
+  ownerName: string | null | undefined;
   estimatedAmount: number | null;
   isOverdue: boolean;
 };
 
 /** Un usuario con rol `sales`, venga o no con oportunidades. */
-export type Vendedor = {
-  ownerId: string;
-  ownerName: string | null;
+export type Vendedor<TId extends string = string> = {
+  ownerId: TId;
+  ownerName: string | null | undefined;
   count: number;
 };
 
-export type FilaComparativa = {
-  ownerId: string;
+export type FilaComparativa<TId extends string = string> = {
+  ownerId: TId;
   ownerName: string;
   openCount: number;
   openAmount: number;
@@ -43,7 +52,7 @@ export type TotalesCabecera = {
 const SIN_NOMBRE = "Sin nombre";
 
 export function totalesDeCabecera(
-  abiertas: readonly OportunidadAbierta[],
+  abiertas: readonly OportunidadAbierta<string>[],
 ): TotalesCabecera {
   return {
     abiertas: abiertas.length,
@@ -52,22 +61,43 @@ export function totalesDeCabecera(
   };
 }
 
-export function construirComparativa(
-  abiertas: readonly OportunidadAbierta[],
-  vendedores: readonly Vendedor[],
-): FilaComparativa[] {
+export function construirComparativa<TId extends string>(
+  abiertas: readonly OportunidadAbierta<TId>[],
+  vendedores: readonly Vendedor<TId>[],
+): FilaComparativa<TId>[] {
   const interaccionesPorUsuario = new Map(
     vendedores.map((v) => [v.ownerId, v.count]),
   );
 
-  // El universo de la tabla. Hoy son SOLO los vendedores, y por eso la dueña
-  // —que es quien tiene la única oportunidad abierta— no aparece y la tabla
-  // suma 0 mientras la cabecera dice 1.
-  const universo = new Map<string, string>(
-    vendedores.map((v) => [v.ownerId, v.ownerName ?? SIN_NOMBRE]),
-  );
+  // EL UNIVERSO DE LA TABLA, y es todo el arreglo de AIT-128.
+  //
+  // Se siembra con los dueños de las oportunidades ABIERTAS —la misma lista que
+  // suma la cabecera— y se completa con los vendedores. Ese orden importa:
+  //
+  //   · sembrar con `abiertas` es lo que hace que `suma(columna) === cabecera`
+  //     se cumpla POR CONSTRUCCIÓN. Ninguna oportunidad puede quedarse sin fila,
+  //     porque las filas salen de las propias oportunidades.
+  //   · añadir los vendedores es lo que impide la regresión contraria: un
+  //     comercial con cero oportunidades tiene que seguir apareciendo, que para
+  //     eso la sección es una COMPARATIVA.
+  //
+  // Antes el universo eran sólo los vendedores (`getSalesUsersForStore` filtra
+  // `role === "sales"`), así que la dueña no tenía fila y su carga —que sí se
+  // calculaba— se descartaba al no encontrarla en esa lista. El dato no faltaba:
+  // se producía y se tiraba.
+  const universo = new Map<TId, string>();
+  for (const o of abiertas) {
+    if (!universo.has(o.ownerId)) {
+      universo.set(o.ownerId, o.ownerName ?? SIN_NOMBRE);
+    }
+  }
+  for (const v of vendedores) {
+    if (!universo.has(v.ownerId)) {
+      universo.set(v.ownerId, v.ownerName ?? SIN_NOMBRE);
+    }
+  }
 
-  const filas: FilaComparativa[] = [];
+  const filas: FilaComparativa<TId>[] = [];
   for (const [ownerId, ownerName] of universo) {
     const suyas = abiertas.filter((o) => o.ownerId === ownerId);
     filas.push({
