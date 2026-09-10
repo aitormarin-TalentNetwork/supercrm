@@ -164,8 +164,19 @@ export function writeStateAtomically(
 
 /** Las dos cookies en las que vive la sesión: una lleva el JWT y otra el
  *  refresh token. En este modo (Convex Auth con Next.js) son httpOnly y las
- *  gestiona el servidor, y el refresh REAL existe únicamente aquí. Medido:
- *  sembrar SOLO las cookies autentica igual que sembrar cookies + localStorage.
+ *  gestiona el servidor, y el refresh REAL existe únicamente aquí — lo dice el
+ *  propio paquete: "The server doesn't share the refresh token with the client".
+ *
+ *  ⚠️ AFIRMACIÓN HEREDADA Y NO RE-VERIFICADA EN ESTE CAMBIO (2026-09-10): que
+ *  "sembrar SOLO las cookies autentica igual que sembrar cookies +
+ *  localStorage". Venía marcada como "Medido:" y **no consta quién la midió,
+ *  cuándo, ni contra qué versión del paquete**. No se borra porque
+ *  probablemente sea cierta —el servidor puede rehidratar el JWT desde la
+ *  cookie de refresh— y porque el arnés depende de ella. Pero se marca, porque
+ *  decía LO MISMO que la frase falsa de abajo con otra redacción, y la razón
+ *  por la que se creía puede ser la que acabamos de tumbar.
+ *  Para comprobarla hace falta el turno de Convex y una corrida sembrando solo
+ *  cookies, con control positivo (sin sembrar nada NO debe autenticar).
  *
  *  ⚠️ CORREGIDO 2026-09-10 (AIT-127). Hasta hoy esta nota decía que "el
  *  localStorage solo guarda un marcador («dummy»)". ESO ERA FALSO, y no a
