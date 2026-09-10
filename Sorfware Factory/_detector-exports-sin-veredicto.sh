@@ -130,6 +130,49 @@ if [ ${#VEREDICTOS[@]} -eq 0 ]; then
   exit 2
 fi
 
+# --- LA PREGUNTA SIMETRICA: ¿hay veredicto PRODUCIDO pero NO ENTREGADO? -------
+# Diseno del Factory Architect (2026-09-10 12:0xZ), tras un veredicto que estuvo
+# 3h12m en disco sin relayar y provoco que se aparcara una ficha que estaba A UN
+# HALLAZGO DEL GO.
+#
+# 🔑 POR QUE ESTO CIERRA UN FALSO VERDE Y NO ES UN CONTROL MAS: hasta hoy lo que se
+# medía era la EXISTENCIA del fichero — y existir es exactamente lo que hace un
+# veredicto sin relayar. Los dos instrumentos (este detector y el barrido de la
+# Directora) lo daban por resuelto PORQUE EL FICHERO ESTABA AHI. Con la marca,
+# **"producido" y "entregado" dejan de tener el mismo observable.**
+#
+# LA MARCA: quien relaya anexa al veredicto una linea `RELAYADO <hora UTC> a <quien>`.
+#
+# ⚠️ VENTANA DE ARRANQUE, y es mia no del diseno: los 63 veredictos anteriores a esta
+# regla NO tienen marca y NO son incumplimientos. Sin este corte, el control gritaria
+# 63 rojos en su primera corrida — que es la definicion de un control que se aprende
+# a ignorar (la regla del propio Factory Architect: uno que grita con el sistema sano
+# no protege, gasta). Solo se juzgan los veredictos POSTERIORES a VIGENTE_DESDE.
+VIGENTE_DESDE="2026-09-10T12:10:11Z"
+VD=$(date -u -j -f "%Y-%m-%dT%H:%M:%SZ" "$VIGENTE_DESDE" +%s 2>/dev/null || echo 0)
+echo "---"
+echo "veredictos PRODUCIDOS pero NO RELAYADOS (regla vigente desde $VIGENTE_DESDE):"
+SIN_MARCA=0; JUZGADOS=0
+for V in VEREDICTO_*.txt; do
+  [ -e "$V" ] || continue
+  M=$(stat -f %m "$V" 2>/dev/null) || continue
+  [ "$M" -le "$VD" ] && continue          # anterior a la regla: no se juzga
+  JUZGADOS=$((JUZGADOS+1))
+  MIN=$(( ($(date -u +%s) - M) / 60 ))
+  [ "$MIN" -lt "$UMBRAL" ] && continue
+  if ! /usr/bin/grep -q "^RELAYADO " "$V"; then
+    SIN_MARCA=$((SIN_MARCA+1))
+    echo "  🔴 SIN RELAYAR ($MIN min) · $V"
+  fi
+done
+if [ "$JUZGADOS" = "0" ]; then
+  echo "  (ninguno posterior a la regla todavia — el control aun no puede discriminar)"
+elif [ "$SIN_MARCA" = "0" ]; then
+  echo "  ok: los $JUZGADOS veredictos posteriores a la regla estan relayados o dentro del umbral"
+fi
+echo "  🔴 UN VEREDICTO SIN RELAYAR ES INDISTINGUIBLE DE UNO QUE AUN NO HA SALIDO."
+echo "     Por eso se marca en el propio fichero: el mensaje se pierde, el disco no."
+
 if [ "$PENDIENTES" -gt 0 ]; then
   echo "RESULTADO: $PENDIENTES export(s) SIN FICHERO DE VEREDICTO por encima de ${UMBRAL} min."
   echo "🔴 NO SIGNIFICA que esas tareas esten paradas. Este detector mide FICHEROS, no TAREAS."
@@ -158,6 +201,7 @@ fi
 # ⚠️ NO dice "nadie lo relayo": dice "nadie ha reaccionado todavia". Puede ser
 # que se relayara y la terminal aun no haya exportado. Es una senal, no un hecho.
 echo "---"
+
 echo "veredictos NO-GO sin reaccion (la huerfana en la otra direccion):"
 NOREACC=0
 ls VEREDICTO_*.txt 2>/dev/null | grep -oE '(T[0-9]+_)?(AIT-[0-9]+|[a-z-]+-falso)' | sort -u | while read key; do

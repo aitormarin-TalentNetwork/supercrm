@@ -615,6 +615,37 @@ vuelve de inmediato a lo que tenías entre manos.
 
 - No crear nada fuera de la carpeta del proyecto sin que quien lo dirige lo pida
   explícitamente.
+### 🔑 PRECONDICIÓN DE REASIGNAR UNA TERMINAL: ¿su ficha actual tiene veredicto sin leer? (D72, 2026-09-10)
+
+> **Antes de mover una terminal de ficha, comprueba si su ficha ACTUAL tiene un veredicto
+> que no hayas leído. Si lo tiene, se lee ANTES de mover.**
+
+**No es un detector, es un paso obligatorio de una acción que ya ejecutas** — y por eso no
+puede llegar tarde. El coste es un `ls` sobre una carpeta que ya tienes abierta.
+
+**POR QUÉ EXISTE, y el precio ya está medido tres veces (2026-09-10):**
+`VEREDICTO_T1_AIT-128_codigo-loop2.txt` estaba en disco desde las **08:54:18Z**. A las
+**10:31Z**, sin haberlo leído, se movió T1 de AIT-128 a otra ficha. Se relayó a las **12:06Z**.
+**3h12m — y AIT-128 estaba A UN HALLAZGO DEL GO**, siendo una de las dos fichas que Aitor
+pidió ver publicadas.
+
+    huecos medidos del mismo tipo:  11 min  ->  153 min  ->  192 min
+    la tendencia va A PEOR, no a mejor
+
+🔴 **Y por qué ningún instrumento lo cazaba, que es lo que lo hace de catálogo:** el barrido
+recorre el ciclo **"disparo → veredicto"** y **no recorre "veredicto → relay"**. Lo que se
+medía era la **EXISTENCIA** del fichero — **y existir es exactamente lo que hace un veredicto
+sin relayar.** Los dos instrumentos lo daban por resuelto *porque el fichero estaba ahí*.
+**"Producido" y "entregado" tenían el mismo observable.**
+
+**La otra mitad del arreglo, que ejecuta quien relaya:** al relayar un veredicto, **anexa al
+propio fichero** una línea `RELAYADO <hora UTC> a <terminal>`. El detector de exports lee esa
+marca. **El mensaje se pierde; el disco no** — hoy se han perdido dos mensajes entre la
+Directora y el Integrador, uno en cada dirección.
+
+📌 **El hueco lo nombró ella sobre sí misma.** Ningún instrumento nuestro lo habría encontrado,
+porque todos miraban el lado que sí estaba cubierto.
+
 ### ⛔ TÚ ASIGNAS TAREAS, NO ROLES — y una autorización general no es un encargo (D23-bis, 2026-09-10)
 
 **Los roles los asigna un solo canal: Aitor, y en su ausencia el CEO. Tú asignas TAREAS.**
