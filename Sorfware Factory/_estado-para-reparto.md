@@ -2923,3 +2923,82 @@ redaccion.
   > UN SINTOMA HUERFANO AL QUE LA CABEZA LE BUSCA CAUSA.**
   Hermana de *"un `npm test | tail` devuelve el exit code de tail"*: **el mismo comando, el
   mismo dano, y esta vez sobre el motivo en vez de sobre el codigo de salida.**
+
+---
+
+## 2026-09-10, ~23:55Z — CIERRE DE LA NOCHE
+
+### EL PM CIERRA LO DE `authState.ts`, Y MI PREGUNTA ERA LA EQUIVOCADA
+
+Yo pregunte *"¿donde tiene que correr el test que lo vigile para que pueda ponerse rojo?"*.
+**Eso presupone que el problema es la UBICACION, y no lo es.**
+> ⛔ **"Un `toContain("SUITE ENTERA")` pasa en cualquier runner: el texto esta o no esta.
+> El problema es el SUJETO — afirma sobre la PRESENCIA DE UN TEXTO, y lo que caduco fue un
+> HECHO DEL MUNDO. Ningun cambio de sitio cruza esa distancia."**
+> **MUDAR UNA ASERCION INFALSABLE LA DEJA INFALSABLE EN OTRO SITIO.**
+
+⚠️ **Y como me paso:** acababa de medir que el spec corria en el runner equivocado, y **con el
+dato caliente di por hecho que el arreglo era el sitio.** *El hallazgo era de ubicacion, asi
+que la solucion me parecio de ubicacion* — **el catalogo como atajo, con mi propia medicion de
+hace cinco minutos haciendo de catalogo.**
+
+**Las tres salidas, decididas por el PM:**
+1. **La prohibicion se queda** —barata, direccion segura— **pero DEJA DE CONTARSE COMO
+   COBERTURA.** *Llevaba meses cobrando credito por vigilar el mensaje.*
+2. **Las aserciones sobre el mundo se RETIRAN, no se mudan.**
+3. **La nueva vigila el EFECTO** (*"se ha guardado una copia en ‹ruta›"*), **que si tiene mundo
+   de fallo**: se fabrica una recuperacion y se comprueba que la copia existe.
+
+✅ **Y no hizo falta cupo para el eslabon que faltaba: quito la dependencia.** *En los dos
+mundos —regenere o no `globalSetup`— el `rm` destruye la evidencia y la prohibicion hace falta.*
+**Segunda vez hoy que "quitar la dependencia" ahorra una medicion cara.**
+
+> 🔑 **UNA ASERCION QUE NO PUEDE FALLAR NO ES COBERTURA: ES DECORACION. Y COBRA CREDITO
+> PRECISAMENTE PORQUE NUNCA SE PONE ROJA — un test callado parece un test sano.**
+
+### EL DATO DEL DIA, Y NO ES DE NINGUNA FICHA
+
+**El PM cierra con cinco correcciones suyas en una noche** —el `445` inventado, su regla del
+100%, su limite 2 que abria la puerta que PKCE cierra, la huella que no era 24 ni 11, y esto—
+**todas cazadas por alguien de enfrente y ninguna por el solo.**
+> ⛔ **Eso no es un dato sobre el PM: es el dato de que el diseno de destinatario funciona, y
+> no hay forma de obtenerlo sin que alguien se equivoque en voz alta.** *La alternativa —cinco
+> errores no cazados— produce una noche mas limpia y un producto peor.*
+
+⚠️ **CON SU CONTRAPESO, que hubo que poner esta misma noche:** T3 escribio *"un error propio
+contado a tiempo vale mas que una medicion bien hecha"*. **La primera mitad es falsa.** *La
+medicion produce el conocimiento; la confesion lo distribuye. No compiten.* ⛔ **Si contar un
+error valiera MAS que medir bien, acabariamos coleccionando errores ruidosos y callando los
+aburridos — que son los que llevan meses quietos y los que hacen dano.** La version que
+aguanta: **contarlo lo pone en circulacion; no lo paga.**
+
+### DOS COSAS MIAS
+
+- ⛔ **SEPTIMO `echo` colgado del comando y no del resultado** — y esta vez **dentro del mismo
+  comando donde iba a catalogar la leccion de "no abandones la forma segura"**: escribi
+  *"(vacio arriba = no existe entrada de esa clase)"* debajo de una lista de 29 ficheros.
+  *No es que no sepa el arreglo (`test -z "$OUT" && echo`): es que la forma comoda vuelve sola
+  en cuanto dejo de mirarla.* **Que es exactamente la leccion de al lado.**
+- 🔴 **MI INDICE DE MEMORIA LLEVABA NO SE CUANTO TIEMPO CARGANDOSE TRUNCADO, sin sintoma.**
+
+      antes:  28.743 bytes = 28,1 KB   (limite 24.986)  -> se cargaba SOLO UNA PARTE
+      ahora:  23.678 bytes = 23,1 KB   ·  holgura 1.308 bytes
+      CONTROLES: 189 entradas antes y despues · 0 perdidas · 0 titulos cambiados
+                 0 enlaces rotos de 189, comprobados uno a uno
+                 0 cortes a mitad de palabra (verificado comparando cada gancho
+                   con el original como PREFIJO, no a ojo)
+
+  ⛔ **Un indice truncado no da error: da lecciones que no existen.** *"El filtro te ensena el
+  complemento y te esconde el conjunto", aplicado a mi propia memoria — y lo escondido no
+  parecia ausente: parecia que no existia.* ⚠️ **Y la holgura es de 1.308 bytes: unas diez
+  entradas mas y vuelve a truncarse en silencio. Quien retome esto que lo mida antes de anadir.**
+
+### ESTADO AL CIERRE
+
+**Gate caido** (`pgrep -f "^codex exec"` -> 0, `/tmp/auditores/` vacio, sin cerrojos `_turno*`).
+**Cero veredictos nuevos.** Arbol limpio, `main` al dia. **Los cuatro roles y los tres workers
+han cerrado con todo a salvo y sus pendientes escritos en las cabeceras de sus propios ficheros,
+no en ninguna conversacion.**
+⛔ **Lo unico que queda y no lo levanta nadie de aqui: que Aitor compre cupo (o el 15 de
+septiembre), y la accion 12 —si el panel de Railway ejecuta la suite E2E—, que es la premisa de
+la que cuelga AIT-139 entera y ni el PM ni yo podemos verla.**
