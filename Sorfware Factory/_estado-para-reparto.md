@@ -817,3 +817,57 @@ Reparto medido antes: **ninguna rama tiene `e2e/00-initials.spec.ts` en su huell
     T2   AIT-92: cuatro majors, empezando por el XSS
     T1   AIT-142 r3: la frase del cuarto estado + recuento positivo por copia
     AIT-141 publicada y desplegada · SIN Done: el `PASA si` es de Aitor
+
+---
+
+## 2026-09-10 17:07Z — MIS LIMITES DECLARADOS, SACADOS DEL CHAT (cada uno con su etiqueta)
+
+Un desarrollador me hizo aplicarme su propio test y salio esto: **en este fichero apenas tengo
+limites declarados; estan casi todos en MENSAJES.** Y eso no es tranquilizador, es peor:
+
+> **Un limite declarado en un mensaje cumple su funcion tranquilizadora con quien lo lee hoy y
+> DESAPARECE antes de que nadie pueda ir a medirlo. Tiene el coste de la declaracion y ninguno de
+> sus beneficios.**
+
+Asi que los traigo aqui. Etiqueta obligatoria, como el `auditor_prompt` separa *pared medida* de
+*sospechada y no medida*. **Una declaracion sin su estado de medicion se lee siempre en la
+direccion tranquilizadora.**
+
+    [MEDIDO]      lo he comprobado, y asi
+    [NO MEDIDO]   lo declaro y NADIE lo ha comprobado  <- estos son los que hay que ir a mirar
+
+### Sobre mis propios instrumentos
+
+- **[MEDIDO]** El reparto plan/codigo (104/15) tiene **21 veredictos de la convencion antigua sin
+  clasificar**. Si fueran todos de codigo, seria 104/36. **El sesgo va hacia abajo.** No los he
+  abierto: el PM decidio que no cambia ninguna accion.
+- **[MEDIDO]** Mi detector de huerfanos exigia `plan|codigo` y **el proceso publicado no pide
+  `codigo-`**: `T1_AIT-99_..._loop2` es invisible ahora mismo. Acepta las dos formas desde hoy.
+- **[MEDIDO]** Mi control de identidad pedia "la ultima linea con contenido" y en algunos exports
+  esa linea es una fila de `=` **identica en todos**. Pide la del `FIN DEL EXPORT`.
+- **[NO MEDIDO]** El umbral de swap de `encolar.sh` **no esta calibrado**: avisa, no bloquea, y no
+  se de que numero para abajo muere una corrida. Solo se que a 861M murieron 2 de 4.
+- **[NO MEDIDO]** No se si mis anclas de `grep` cubren lo que creo en NINGUN barrido que haya hecho
+  hoy salvo donde puse control positivo o ensanche el filtro. Tres veces me han fallado.
+
+### Sobre lo que entrego
+
+- **[MEDIDO, Y CADUCA]** Las tres comprobaciones de publicacion (`ls-remote`,
+  `merge-base --is-ancestor`, `merge-tree` con control de degeneracion) valen **el instante en que
+  se hacen**. Protocolo acordado con el Integrador: **no le mando el resultado, le mando la HORA**,
+  y las remide el pegado al merge.
+- **[NO MEDIDO]** Mis estimaciones de ranuras son **tasa base con intervalo, no prediccion**. La
+  de AIT-142 (3-4) cuelga de un mecanismo —universo cerrado desde la r1— que **puede refutarse**:
+  si llega a la quinta ronda, la teoria es falsa y hay que decirlo.
+
+### Sobre el estado de la fabrica
+
+- **[MEDIDO]** `origin/main` y `origin/main..main` **caducan entre dos comandos**. Confirmado dos
+  veces hoy: el Integrador me dio `0492aa2` y un minuto despues era `939d391`.
+- **[NO MEDIDO]** No se cuantos limites declarados vivos hay en los ficheros de la fabrica sin su
+  etiqueta. El de T3 —*"este regex no se verifica leyendolo"*— paso ocho rondas y era falso.
+
+**REGLA QUE SALE DE AQUI, y aplica a todos:** un limite se escribe **donde sobreviva a la
+conversacion** y **con su etiqueta**. Y al LEER el limite de otro, tratarlo como **un puntero a
+donde mirar, no como una casilla ya marcada** — que es exactamente lo contrario de lo que hace el
+lector por defecto.
