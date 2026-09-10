@@ -3,8 +3,14 @@
 import type { ReactNode } from "react";
 import { useNav } from "./NavContext";
 
-// AIT-127 (C2a): envuelve el contenido de la pantalla activa para poder
-// sacarlo entero de alcance mientras un cierre de sesión está en vuelo.
+// AIT-127 (C2a): saca de alcance un subárbol entero mientras un cierre de
+// sesión está en vuelo.
+//
+// ⚠️ SE USA DOS VECES EN EL LAYOUT, y no es casualidad: una alrededor de la
+// pantalla activa y otra alrededor del resto de componentes de nivel de layout
+// (<PushSubscriptionSync>, <NewVersionNotice>). Lo ÚNICO que queda fuera es
+// <AvisoCierreSesion>, que es quien tiene que poder hablar. Ver el comentario
+// de app/layout.tsx: la regla es lista de PERMITIDOS, no de prohibidos.
 //
 // POR QUÉ UN ANCESTRO Y NO UNA LISTA DE SELECTORES: el criterio C2a exige
 // cero elementos alcanzables capaces de navegar durante la ventana del

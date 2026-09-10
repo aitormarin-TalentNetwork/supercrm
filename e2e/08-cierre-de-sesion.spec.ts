@@ -230,9 +230,14 @@ test("C2a · control positivo: un control que NO sea un enlace y NO pase por el 
   // versión anterior del enumerador NO habría visto.
   //
   // Y se inyecta en `document.body`, fuera de <AreaBloqueable> y del panel,
-  // porque ahí es donde el mecanismo NO llega: cualquier cosa montada a nivel
-  // de layout con un control dentro quedaría alcanzable durante la ventana.
-  // El control positivo documenta ese hueco además de validar el instrumento.
+  // porque ahí es donde el mecanismo NO llegaba.
+  //
+  // ⚠️ ESTE ADVERSARIO SIGUE SIENDO MÍO, Y ESO ES SU LÍMITE. Valida el
+  // instrumento (el enumerador ve un control que no es un enlace) y nada más.
+  // El hueco que este comentario describía —«cualquier cosa montada a nivel de
+  // layout con un control dentro quedaría alcanzable»— NO era hipotético:
+  // <NewVersionNotice> era exactamente eso. Nombrar la clase no cerró el
+  // ejemplar. Lo cierra el test de abajo, que usa un componente REAL.
   const pagina = await abrirSesionPropia(browser, "sales");
   const control = await prepararCierre(pagina, "ajustes");
 
@@ -259,6 +264,94 @@ test("C2a · control positivo: un control que NO sea un enlace y NO pase por el 
     "el enumerador NO vio un control puesto delante de sus narices durante el " +
       "cierre: su cero en los otros cuatro tests no distingue nada",
   ).toContain("control adversario");
+});
+
+test("C2a · control positivo con un componente REAL del layout: el aviso de versión nueva no deja controles alcanzables durante el cierre", async ({
+  browser,
+}) => {
+  // 🔴 DEFECTO REAL ENCONTRADO EN LA RONDA 4, revisando mi propio diff como
+  // código nuevo (decisión 79). No lo señaló el auditor.
+  //
+  // <NewVersionNotice> (AIT-83) era HERMANO de <AreaBloqueable> en el layout,
+  // así que el `inert` del cierre no lo alcanzaba. Cuando se activa pinta dos
+  // controles: «Recargar», que llama a `window.location.reload()`, y el
+  // «Cerrar» del Toast. Durante la ventana de cierre quedaban los dos
+  // alcanzables — y un recargar ES navegación que la app ofrece, que es
+  // literalmente lo que C2a cuenta.
+  //
+  // ⚠️ Y NO ERA SÓLO DE PRODUCCIÓN: el arnés inyecta `RAILWAY_GIT_COMMIT_SHA`
+  // (playwright.config.ts, AIT-93), así que el aviso está vivo también aquí. La
+  // suite daba verde porque ningún test hacía coincidir las dos condiciones
+  // —aviso visible Y cierre en vuelo—, no porque el hueco no existiera.
+  //
+  // 🔑 POR QUÉ ESTE TEST Y NO EL DE ARRIBA: aquel inyecta un adversario que
+  // escribí yo, con la forma que mi enumerador ya sabía ver. Éste usa un
+  // componente REAL de la app, que llegó por otra ficha y cuyo autor no sabía
+  // nada de C2a. Es la diferencia entre confirmar y probar.
+  test.slow();
+  const pagina = await abrirSesionPropia(browser, "sales");
+  const control = await prepararCierre(pagina, "ajustes");
+
+  // PRECONDICIÓN DEL ARNÉS, comprobada y no supuesta: si /version no publicara
+  // un commit, el layout pasaría `loadedCommit={null}`, el aviso quedaría
+  // inerte por diseño y este test daría verde SIN HABER EJERCITADO NADA — un
+  // cero sin control positivo.
+  const respuesta = await pagina.request.get("/version");
+  const cuerpo: unknown = await respuesta.json();
+  const commitServido = (cuerpo as { commit?: unknown }).commit;
+  expect(
+    typeof commitServido,
+    "precondición incumplida: /version no publica un commit, así que el aviso " +
+      "de versión no puede activarse y este test no probaría nada",
+  ).toBe("string");
+
+  // Se suplanta /version con OTRO commit: es lo que hace creer a la pestaña que
+  // hay un despliegue nuevo. Mismo camino que 06-aviso-version-nueva.spec.ts.
+  await pagina.route("**/version", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ commit: "0".repeat(40) }),
+    }),
+  );
+  await pagina.evaluate(() =>
+    document.dispatchEvent(new Event("visibilitychange")),
+  );
+
+  // EL ADVERSARIO ESTÁ VIVO ANTES DE BLOQUEAR NADA. Sin esta aserción, un
+  // aviso que no llegara a pintarse daría el mismo cero que el bloqueo
+  // funcionando.
+  const recargar = pagina.getByRole("button", { name: "Recargar" });
+  await expect(
+    recargar,
+    "el aviso de versión nueva no llegó a aparecer: sin él, el cero de abajo " +
+      "no distingue 'bloqueado' de 'no había nada que bloquear'",
+  ).toBeVisible();
+
+  const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, () =>
+    control.click(),
+  );
+  await enVuelo;
+
+  const durante: string[] = await pagina.evaluate(
+    ENUMERAR_CONTROLES_ALCANZABLES,
+  );
+  soltar();
+
+  expect(
+    durante,
+    "C2a exige CERO controles alcanzables durante el cierre y quedaron " +
+      `estos: ${durante.join(" · ")}`,
+  ).toEqual([]);
+  // Redundante con el `toEqual([])` de arriba a propósito: si alguien relaja
+  // ese cero algún día, este mensaje dice cuál era el control concreto y por
+  // qué importaba.
+  expect(
+    durante.join(" · "),
+    "«Recargar» del aviso de versión seguía alcanzable durante el cierre, y " +
+      "llama a window.location.reload(): es navegación ofrecida por la app " +
+      "dentro de la ventana que C2a cierra",
+  ).not.toContain("Recargar");
 });
 
 test("C2c · la ventana residual del servidor: se mide y se publica, no se declara cerrada", async ({
