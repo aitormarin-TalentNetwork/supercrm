@@ -254,6 +254,41 @@ documento de proceso de esta fábrica**. Por eso ni se consulta antes de decidir
 fuente de reglas. Y el coste no es sólo repetir trabajo: **hace que leamos como discrepancia
 externa lo que es nuestra propia voz vieja.**
 
+### 🔴 Cinco discriminadores que no discriminaban, en una sola noche
+**Si te llevas una sola cosa de este informe, que sea ésta.** Cinco comprobaciones distintas,
+en cinco sitios distintos, con la misma forma: **devolvían un valor plausible sin haber
+distinguido nada. No fallaban — CONTESTABAN.**
+
+1. **El vigilante que se contaba a sí mismo** (el peor). Decidía "la auditoría murió" cuando
+   el número de procesos `codex exec` llegaba a cero — pero lo medía con un `grep` cuyo patrón
+   **aparece en su propia línea de comando**. Su suelo nunca podía bajar de uno, **y ese uno
+   era él**. La rama de "murió" era código muerto. Demostrado con un señuelo: un proceso que
+   sólo *menciona* la cadena hizo subir el conteo de 1 a 2.
+   ⚠️ **Y lo grave no es que faltara un control: es que se anunció uno que no existía.** Cuatro
+   terminales operaron horas creyendo que había una red debajo. **Un control ausente deja a la
+   gente prudente; uno anunciado y muerto la deja confiada.**
+2. **El patrón anclado de la línea de veredicto.** La norma manda comprobar que el veredicto
+   termina en una línea exacta; el auditor escribe en markdown y deja **dos espacios al final**
+   (que en markdown son un salto de línea). **El patrón no casa en la mitad de los veredictos
+   de esta noche**, y decir "no hay veredicto" donde lo hay produce **una espera que nadie
+   entiende**. Yo usé ese patrón hace una hora y **salió bien por casualidad**.
+3. **El conteo de menciones para saber de qué ficha es un veredicto.** El veredicto de AIT-122
+   menciona **93 veces AIT-99 y 15 veces AIT-122** — porque el plan hablaba de AIT-99 y el
+   auditor fue a leer esos ficheros. Quien use "la ficha más mencionada" obtiene la equivocada.
+4. **El conteo global de procesos de auditoría**, que enmascaraba la muerte de una auditoría
+   siempre que hubiera otra viva.
+5. **El mío, y es de los peores: buscar terminales paradas ordenando transcripts por fecha.**
+   Hay **119 transcripts en disco y 12 sesiones vivas**; los otros ~107 son fábricas muertas.
+   `sort | head` enseña **los más recientes, no los parados** — buscaba atascos donde el fallo
+   no puede estar. Y la de fondo: **una sesión viva parada 90 minutos es indistinguible por
+   fecha de una muerta hace 90 minutos.** El número es idéntico; lo único que cambia es si hay
+   alguien detrás. **El instrumento no podía responder la pregunta que se le hacía.**
+
+📌 **Lo que los cinco tienen en común, y es lo que hay que arreglar: a NINGUNO lo cazó su
+propio control.** Los cazaron un tercero, un señuelo, o que un número chirriara y alguien
+fuera a mirarlo. **Un control positivo demuestra que el instrumento mide; no demuestra que
+mida lo que se le está preguntando.**
+
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
 fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es mía:
