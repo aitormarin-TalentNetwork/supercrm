@@ -2887,3 +2887,39 @@ No es que el test estuviera mal escrito. Es que el test y el fenomeno estan en s
 justificacion**, se **estrecha** o se **retira**. Ni T3 ni yo hemos tocado el texto ni propuesto
 redaccion. *Se ha caido la RAZON, no el enunciado — y una regla que se cumple por una razon
 falsa es la que se retira el dia que alguien refuta la razon.*
+
+**AFINADO (T3, con `--list`: lista sin ejecutar, cero cupo y cero navegador, sobre `1ad4090`):**
+yo escribi *"corre en un contexto donde el mecanismo no se aplica"*, que suena a **tambien**
+fuera del sitio. **Es EXCLUSIVAMENTE fuera:**
+
+    00-instantanea-sesion.spec.ts  ->  runner e2e:  0   ·  runner unit:  9
+    CONTROL DE PARTICION:
+    08-cierre-de-sesion.spec.ts    ->  runner e2e: 20   ·  runner unit:  0
+
+**Cero veces en el unico runner donde `globalSetup` esta cableado.**
+> **Sus aserciones no podian fallar aunque el consejo fuera falso. Y lo era.**
+> **UNA ASERCION QUE NO PUEDE FALLAR NO ES UNA COBERTURA, ES UNA DECORACION** — y esas tres
+> lineas llevan meses contandose como que alguien vigilaba el mensaje.
+
+**Y el procedimiento que lo hace repartible, de T3:** *cuando un test asegura algo sobre el
+comportamiento del RUNNER o del ENTORNO: `--list` en las dos configs, mas un spec que de el
+reparto INVERSO. Sin la segunda mitad es una anecdota; con ella es un procedimiento.*
+📌 **Y la pregunta que le queda al PM si retira o reescribe el consejo no es que texto poner:
+es DONDE tiene que correr el test que lo vigile para que pueda ponerse rojo.** Eso ya no es
+redaccion.
+
+### DOS DESLICES MIOS DE INSTRUMENTO, de los ultimos diez minutos
+
+- ⚠️ **CAMBIE UNA FORMA QUE FUNCIONABA POR OTRA MAS CORTA Y SE ROMPIO.** Llevaba la noche
+  commiteando con `git commit -F - <<'EOF'` **precisamente porque los mensajes llevan comillas
+  dentro**; puse `-m "…"` y git se trago el mensaje como pathspecs. Fallo ruidosamente y no se
+  perdio nada, **pero el fallo no fue no saberlo: fue abandonar la forma segura por costumbre,
+  sin que nada lo pidiera.**
+- ⛔ **`git push … 2>&1 | tail -2` SE COMIO EL MOTIVO DEL RECHAZO.** Vi `! [remote rejected] …
+  (failure)` sin causa. Relanzado con la salida entera, **paso a la primera: era transitorio.**
+  **Si me quedo con el `tail`, tenia un rechazo sin causa y un `main` que habia avanzado diez
+  minutos antes — y me habria inventado una divergencia perfectamente plausible.**
+  > **UN `tail` SOBRE UN COMANDO QUE FALLA RECORTA JUSTO LA PARTE QUE EXPLICA EL FALLO, Y DEJA
+  > UN SINTOMA HUERFANO AL QUE LA CABEZA LE BUSCA CAUSA.**
+  Hermana de *"un `npm test | tail` devuelve el exit code de tail"*: **el mismo comando, el
+  mismo dano, y esta vez sobre el motivo en vez de sobre el codigo de salida.**
