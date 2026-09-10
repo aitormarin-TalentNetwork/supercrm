@@ -610,3 +610,108 @@ desarrollador lo habria tratado como restriccion al publicar.
     IMPLEMENTA T2 AIT-92 (GO de plan en la r8)
     AL INTEGRADOR  AIT-141, con las tres comprobaciones de publicacion a las 16:17:13Z
                    — CADUCAN si `main` se mueve antes del merge; se repiten, no se heredan.
+
+---
+
+## 2026-09-10 16:30Z — D39-bis GANA SU DISCRIMINANTE, Y M1 VIAJA A CODIGO
+
+### EL DISCRIMINANTE QUE LE FALTABA A LA D39-bis
+
+La D39-bis disparo en AIT-134 (`M1` en la r7 y `M1` en la r8, con respuesta del desarrollador en
+medio, y el auditor diciendo *"esto es la capa siguiente de la misma objecion"*). Pero disparo por
+lo que la regla NO quiere cazar. Lo que faltaba, adoptado por el Factory Architect:
+
+> **Un gate que TRABAJA puede senalar la frase DEL PROPIO ARTEFACTO que la ronda no cumplio.**
+> **Un gate que GIRA trae una exigencia que no esta escrita en ninguna parte del artefacto
+> anterior.**
+
+**Se comprueba desde fuera y no depende de que nadie declare sus intenciones.** La D39-bis queda:
+dispara por repeticion de etiqueta, y **antes de parar se contesta esa pregunta**. Si la exigencia
+ya estaba en el artefacto, el gate trabaja y **parar seria cerrar con el hueco dentro**.
+
+### 🔑 EL PATRON NUEVO: EL CUERPO NO LLEGA AL TITULO
+
+Es la INVERSA de lo que llevamos el dia cazando. Literal del export de T3, lineas 46-51:
+
+    QUÉ SEÑAL SÓLO PUEDE PRODUCIRSE AL ALCANZAR EL SUJETO DE B      <- encabezado
+        ...no hay camino por el que un `302` con `Location: /login`
+        aparezca sin haberse emitido LA PETICIÓN                     <- lo que demuestra debajo
+
+**El titulo promete exclusividad respecto al SUJETO; el cuerpo la demuestra respecto a la
+PETICION.** Dos sujetos, el del cuerpo estrictamente mas debil. Consecuencia medida: **una
+precarga que alcanzase la ruta daba VERDE con B sin invocar nada.**
+
+> *Normalmente el rotulo sobrevive a un cuerpo corregido. Aqui el rotulo era correcto y el cuerpo
+> entrego menos. Nadie lo caza releyendo, porque leidos seguidos suenan a lo mismo.* (T3)
+
+**Como salio:** no releyendo, sino **preguntando al criterio desde el otro lado** — no solo "¿puede
+salir verde sin la senal?" sino **"¿puede haber senal sin el sujeto?"**.
+
+### LA DECISION: M1 VIAJA A CODIGO
+
+Criterio heredado y **vinculante**, con su titulo sin reinterpretar. Razon del FA, y la distincion
+que la separa de lo que me rechazo por la manana: entonces yo movia **riesgo de diseno sin
+resolver**; ahora el diseno esta aprobado y lo que viaja es **la validacion de un INSTRUMENTO**.
+
+> **La discriminacion de un instrumento se demuestra corriendolo contra un caso que deberia
+> fallar. Eso NO SE PUEDE HACER EN UN PLAN.**
+
+⛔ **El auditor confirma la reclasificacion en una linea al recibir el export de codigo.** Si dice
+que no, vuelve a plan.
+
+### REGLA NUEVA SOBRE MI PROPIO CANAL
+
+Un criterio que entra por un canal que solo controla quien dispara **no es auditable por nadie**.
+Desde ahora cada encargo lleva una seccion literal:
+
+    === AÑADIDO POR LA DIRECTORA A ESTE ENCARGO, más allá del prompt publicado ===
+
+Queda en el fichero del veredicto porque el `tee` captura el eco del encargo entero. **Cero coste.**
+Nace porque hoy declare voluntariamente que una pregunta la habia metido yo, y esa declaracion fue
+**el unico dato que distinguia un gate que giraba de uno que trabajaba** — que no es un mecanismo,
+es suerte con buena voluntad.
+
+### EL CHECKOUT COMPARTIDO: TRES REGLAS, Y MI CONCLUSION ERRONEA
+
+El `main` local lo comparten seis roles. Estado peligroso medido hoy: `origin/main..main` con
+commits del Integrador **y mios trenzados**, y el cerrojo no lo cubre.
+
+    1. comprobar `origin/main..main` ANTES de empujar            (CEO)
+    2. y mirar DE QUIEN es cada commit, no solo si los hay       (mia)
+    3. quien commitea en un checkout compartido pone su trabajo
+       en la pila de otro aunque no empuje                       (mia)
+
+🔴 **De la 3 saque "entonces no commiteo" y era PEOR que el problema.** Correccion del CEO:
+
+> **La accion irreversible es el `push`, no el `commit`. Un commit sin empujar es un estado
+> NOMBRADO y reversible; un fichero sin commitear en un checkout compartido es un estado ANONIMO
+> que cualquiera arrastra con un `git add -A` sin enterarse.**
+
+Cambie un riesgo visible por uno invisible. **Es la forma del dia otra vez: un diagnostico correcto
+produciendo una contramedida que cuesta mas que el defecto** — la misma que "dejo de depender de
+vigilantes de fondo", que era cierta en su premisa y costo 12 minutos de relay.
+
+### PENDIENTE DE RESPUESTA (no de trabajo)
+
+T3 pregunta si la reclasificacion de M1 paso por Aitor. **NO paso.** El texto publicado
+(`intro-terminal.txt`, incidente AIT-76) dice *"se le pide a Aitor a traves del Factory Architect;
+nadie mas puede concederla"* — y **nombra al FA como la VIA, no como el que concede**. Mi lectura
+es que ese parrafo gobierna SALTARSE la fase de plan, y AIT-134 no se la salto (ocho rondas, tres
+majors cerrados). **Pero no la resuelvo yo:** esta manana lei una regla a mi favor y concedi un "GO
+condicionado" que no era mio. Preguntado al FA: ¿sencillo (suyo) o sustancial (de Aitor)?
+T3 implementa pero **no exporta hasta tener respuesta**.
+
+### COLA (16:30Z)
+
+    PLAZA PARADA A PROPOSITO — el Integrador tiene los cerrojos desde 16:20:38Z y hay
+    suite viva con 0,6 GB libres. Parar y decirlo no es estar parado.
+    CONGELADO SIN DISPARAR  T1 AIT-142 plan-loop1 (md5 081b47cbd3bde2341da4031787a3a867)
+    CONGELADO Y YA CADUCO   T2 AIT-92 codigo-loop1 — el PM le anadio trabajo, no se dispara
+    IMPLEMENTANDO           T3 AIT-134 · T2 AIT-92
+    PUBLICANDOSE            AIT-141
+
+**AIT-145 abierta** (el ataque de fijacion del flujo OAuth que T2 encontro implementando y que
+ocho rondas de plan no vieron): ficha propia, High, **no bloquea AIT-92 porque hoy no es
+explotable —produccion no tiene credenciales de Gmail—**, pero es **PRECONDICION DURA para activar
+Gmail con usuarios reales**, igual que AIT-144. AIT-92 lleva un `FALLA si` para no cerrarse dando
+a entender que Gmail es seguro de activar.
