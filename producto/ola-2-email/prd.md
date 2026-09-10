@@ -461,6 +461,28 @@ seccion 23). Quien implemente una fase parte de su maqueta, no de la descripcion
   cuantos documentos de `customers` tienen el campo `email` relleno. Hoy es opcional
   (seccion 28) y la base de produccion esta practicamente vacia. Si la mayoria no
   tiene email, no hay con que emparejar y el valor de la ola cae.
+  · **MEDIDO EL 2026-09-10 01:22 UTC CONTRA PRODUCCION (`stoic-impala-857`, via la app
+  de Railway; build `dcb1a77`), Y NO DECIDE.** Solo lectura, por el QA, sin escribir
+  nada. **El deployment va en el sello a proposito, no solo la hora:** esa misma noche
+  T1 sembraba cuentas en el deployment COMPARTIDO (`third-goldfinch-805`) desde las
+  01:47. Este numero no sale de ahi ni de esa hora, y lo lleva escrito encima para no
+  depender de que nadie lo recuerde. Resultado: **2 clientes en total, 2 con email, 0 sin email.**
+  🔴 **Ese 100% no dice que los contactos traigan email: dice que hay dos clientes y que
+  los dos los creamos nosotros** (`[QA] Prueba Tester 03-09` y `[QA] Tester — no
+  borrar`). **El universo entero de la medicion son datos de prueba propios**, asi que
+  priorizar la ola con este numero seria priorizarla sobre nuestra propia siembra —
+  medicion correcta, sujeto equivocado.
+  **Alcance del numero, pegado al numero:** es el total de **la tienda de la owner**
+  (`customers.list` filtra por `by_store`), no de la tabla `customers`; no se comprobo
+  cuantas tiendas hay. Y es de las 01:22, no de la hora en que se lea.
+  ⛔ **Estado: NO SE PUEDE DECIDIR HOY, y no por falta de medicion — por falta de mundo
+  que medir.** No queda VERIFICADA ni FALSADA: queda **abierta como riesgo vivo dentro de
+  la ola**. Se cierra el dia que existan clientes reales, no antes, y el disparador es
+  ese — no una nueva medicion sobre los mismos dos.
+  📌 **Consecuencia de producto, que es lo que hay que recordar al leer esto:** la salida
+  que este PRD tenia escrita para el caso malo (*"la fase siguiente no es sincronizar
+  mas, es conseguir que los contactos tengan email"*) **sigue disponible y sigue sin
+  descartarse.** Nadie ha demostrado que no haga falta.
 - **Premisa**: se puede abrir Gmail directamente en un hilo concreto desde una URL,
   usando el identificador de hilo que da la sincronizacion. · **Como se verifica**:
   probarlo a mano en la fase 1 con un hilo real, antes de diseñar la fase 4. **NO
