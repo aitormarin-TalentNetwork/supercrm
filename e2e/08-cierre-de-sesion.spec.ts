@@ -1264,8 +1264,9 @@ test("AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR EN
   // CONTROL POSITIVO PROPIO DE ESTA FASE: antes de cerrar, el servidor deja
   // entrar. Sin él, un "deniega" al final no distingue "cerró" de "el
   // instrumento dice que no a todo".
+  const evidenciaAntes = await clasificarAccesoConEvidencia(pagina);
   expect(
-    await clasificarAcceso(pagina),
+    evidenciaAntes.estado,
     "control positivo de la fase B: la sesión no servía ANTES de cerrar",
   ).toBe("ACCESO_CONFIRMADO");
 
@@ -1313,6 +1314,23 @@ test("AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR EN
     new URL(evidencia.url).pathname,
     "la evidencia no es de la ruta protegida que dice medir",
   ).toBe(RUTA_PROTEGIDA);
+  // 🔑 Y ESTA ES LA QUE SÍ PUEDE FALLAR EN EJECUCIÓN, que era la crítica justa a
+  // la de arriba: la aserción de que la URL lleva la marca no puede fallar hoy
+  // —la construimos nosotros—, así que su mundo de fallo era un refactor.
+  //
+  // Ésta compara las DOS clasificaciones de esta prueba y exige que sean
+  // respuestas DISTINTAS. Falla de verdad si algo devuelve la primera respuesta
+  // otra vez: una capa de caché sobre `pagina.request`, una memoización, o un
+  // `?marca=` que alguien normalice y quite por el camino. Y esa es justo la
+  // confusión que hundiría la fase B: el control positivo dice ACCESO_CONFIRMADO
+  // y, si la segunda llamada devolviera ESA respuesta, el estado final también
+  // — pero al revés (leyendo la vieja como nueva) el verde sería el peligroso.
+  expect(
+    evidencia.marca,
+    "las dos clasificaciones de esta prueba comparten respuesta: la del control " +
+      "positivo y la final no pueden ser la misma, o el 'estado final' no es " +
+      "final, es la foto de antes de cerrar",
+  ).not.toBe(evidenciaAntes.marca);
   // Y el contador del producto, ahora con su nombre: acredita la recuperación.
   expect(
     peticionesDelProductoALaRutaProtegida,
