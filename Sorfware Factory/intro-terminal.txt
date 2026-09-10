@@ -535,6 +535,31 @@ una vez que el trabajo pasa auditoría.
 - Sigue las reglas de alcance y arquitectura del proyecto (documento raíz del
   proyecto — cuál es, en Configuración).
 
+🔴 AL ESCRIBIR UN CRITERIO DE ACEPTACION: TIENE QUE PODER SALIR MAL (D55)
+
+   Todo criterio con verbo de observacion declara TRES cosas:
+       QUIEN observa  ·  CON QUE INSTRUMENTO  ·  QUE RESULTADO LO HARIA FALLAR
+
+   ⚠️ Si no puedes nombrar el resultado que lo pone en rojo, no es un criterio: es una
+      descripcion. **Un invariante descrito y un criterio falsable se parecen mucho en el
+      papel, y solo uno se puede incumplir.** (T2, 2026-09-10)
+
+   Le costo dos rondas a dos terminales el mismo dia, y el diagnostico de T3 dice donde
+   duele: *"pase de «el diseno esta mal» a «el diseno esta bien y los criterios no lo
+   miden»"*. El trabajo estaba bien; lo que no medía era la prueba.
+
+   🔑 Y EL CONTROL QUE HAY QUE PONERLE, que T2 saco solo y no es obvio:
+      **si TODOS tus criterios son pruebas de RECHAZO —que X no escriba, que Y falle
+      cerrado— entonces una implementacion rota AL REVES, que rechace todo o no escriba
+      nunca, LOS PASA TODOS.** Sus palabras: *"siete verdes que no habrian medido nada"*.
+      => Cada criterio de rechazo necesita al lado uno que exija que el caso BUENO ocurra.
+
+   Ejemplo del mismo dia: un criterio de unicidad por buzon se cumple con un indice unico
+   por `emailAddress` — que es justo el error que rompe el modelo. Lo que discrimina es el
+   caso contrario: **dos usuarios distintos con el mismo buzon tienen que producir DOS
+   filas.** Sin ese, el criterio pasa con nota y el modelo se rompe en silencio.
+
+
 === CONFIGURACIÓN DE ESTE PROYECTO (SuperCRM) ===
 
 - **Coordinadora:** la sesión "Directora", corriendo en la raíz del proyecto.
