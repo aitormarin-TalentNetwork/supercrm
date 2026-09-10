@@ -22,7 +22,7 @@ import { PUSH_ENDPOINT_KEY } from "./useSyncPushSubscription";
 //
 // 🔴 Si algún criterio fallara por este número, la respuesta NO es bajarlo: eso
 // sería ajustar el criterio al resultado. Se vuelve al PM.
-const LIMITE_LIMPIEZA_MS = 1000;
+export const LIMITE_LIMPIEZA_MS = 1000;
 
 // AIT-127 (hallazgo de auditoría de código, M1) — Margen para la limpieza de
 // estado del cliente DESPUÉS de que el cierre ya esté confirmado.
@@ -34,27 +34,47 @@ const LIMITE_LIMPIEZA_MS = 1000;
 // con lo importante por lo accesorio.
 //
 // Y el criterio C3 lo acota por arriba: `/login` en ≤3 s — pero C3 solo aplica
-// al camino en que el cierre SE CONFIRMA, que es el único en que se navega. En
-// ese camino el peor caso es 1000 ms de limpieza push + la ida y vuelta real del
-// cierre + estos 500 ms.
+// al camino en que el cierre SE CONFIRMA, que es el único en que se navega.
+// ⚠️ ESTE NÚMERO NO SE TOCA SOLO: entra en la suma de los tres
+// (`PRESUPUESTO_C3_MS`), así que subirlo puede romper C3 aunque por sí mismo
+// parezca inocente. La suma está comprobada por una prueba pura.
 // ⚠️ NO se afirma un máximo end-to-end para los demás caminos: con el cierre
 // acotado a `LIMITE_CIERRE_MS` el peor caso está acotado, pero ahí NO se navega,
 // así que C3 no es el criterio que aplica.
-const LIMITE_LIMPIEZA_CLIENTE_MS = 500;
+export const LIMITE_LIMPIEZA_CLIENTE_MS = 500;
 
 // AIT-127 (hallazgo de auditoría de código, M2) — Límite de la petición que SÍ
 // cierra la sesión. Es la importante, así que es el más generoso de los tres.
 //
 // De dónde sale, y no de una corazonada: una ida y vuelta comparable medida
 // contra este deployment da mediana 162 ms y peor caso observado 485 ms
-// (arranque en frío). 2000 ms es ~12x la mediana y ~4x la peor observada, así
+// (arranque en frío). 1400 ms es ~8,6x la mediana y ~2,9x la peor observada, así
 // que una llamada sana no lo alcanza nunca.
+//
+// 🔴 Y EL NÚMERO SALE ADEMÁS DE QUE LOS TRES LÍMITES TIENEN QUE COMPONER DENTRO
+// DE C3, cosa que con 2000 NO pasaba y lo encontré sumándolos:
+//     limpieza push 1000 + cierre 1400 + limpieza cliente 500 = 2900 ms <= 3000
+// Con 2000 daban 3500 ms, o sea que existía un camino —lento pero no
+// patológico— en el que el cierre SE CONFIRMA, se navega, y C3 se incumple.
+// Acotar cada espera por separado no basta: **hay que sumarlas**, porque el
+// criterio mide el total y no cada tramo.
 //
 // ⚠️ Y al vencer NO se asume nada: se clasifica como NO CONFIRMADO. Abortar una
 // petición no dice si el servidor llegó a cerrar; decir "cerrado" ahí sería la
 // mentira que esta ficha persigue, y decir "no cerrado" también sería afirmar de
 // más. Se dice lo único que se sabe: no se pudo confirmar.
-const LIMITE_CIERRE_MS = 2000;
+export const LIMITE_CIERRE_MS = 1400;
+
+// AIT-127 — EL PRESUPUESTO DE C3, y por qué es una constante y no un comentario.
+//
+// 🔴 La suma de los tres límites es un INVARIANTE, y hasta ahora vivía escrito en
+// UN solo sitio mientras dependía de TRES números. Cambiar cualquiera de los
+// otros dos —subir la limpieza push a 1500, por ejemplo— rompería C3 **en
+// silencio**, porque su comentario no dice nada de la suma.
+// Lo comprueba `e2e/00-presupuesto-cierre.spec.ts`, que es una prueba PURA: no
+// levanta servidor, no toca Convex, y falla en 700 ms si alguien mueve un número
+// sin mirar los otros dos.
+export const PRESUPUESTO_C3_MS = 3000;
 
 /** AIT-127: lo único que detiene la NAVEGACIÓN es que el cierre no se confirme.
  *  ⚠️ "No confirmado" incluye tres cosas distintas y a propósito: que responda
