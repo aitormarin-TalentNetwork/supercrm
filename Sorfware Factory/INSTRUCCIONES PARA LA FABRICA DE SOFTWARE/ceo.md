@@ -1590,6 +1590,53 @@ si es un segundo paso, se olvidará — once números lo demostraron. Y mientras
 índice siga abierto, **ese número no se cita**: una referencia que el lector no puede abrir es
 peor que ninguna.
 
+### ⛔ LAS CUATRO CASILLAS DEL ENCABEZADO DE UNA DECISIÓN (D75, 2026-09-10)
+
+**Al redactar una decisión que vas a ejecutar, su encabezado lleva estas cuatro. Sin ellas no
+se escribe.**
+
+```
+1. A QUE APLICA .................. que fichas, que fase, que roles
+2. DESDE CUANDO .................. su VIGENTE_DESDE
+3. QUE PASA CON LO QUE YA ESTABA DENTRO .... la clausula transitoria
+4. EN QUE DOCUMENTO VIVE ......... el que LEE el rol afectado, NUNCA el fichero de decisiones
+```
+
+🔴 **POR QUÉ LAS TRES PRIMERAS, con cuatro instancias medidas EL MISMO DÍA:**
+
+    el VIGENTE_DESDE de un control  -> sin el, gritaba 63 rojos historicos en su 1a corrida
+    la D73 (Backlog/Todo)           -> sin clausula transitoria, freno el reparto 8 minutos
+    worktree.useRelativePaths=true  -> correcta, y solo protege a los FUTUROS: 4 de 5
+                                       worktrees seguian con ruta absoluta
+    "una ronda de plan maximo"      -> era para DOS fichas concretas; la Directora paso
+                                       MEDIA TARDE creyendo que la incumplia
+
+**Y las cuatro fallan en la MISMA dirección (hallazgo de la Directora): quien las recibe las
+aplica de MÁS.** Porque **una regla sobredimensionada NO PRODUCE QUEJAS** — en los cuatro
+casos **nadie la discutió, la obedecieron**. Produce **silencio y trabajo parado**, que es
+justo lo que no se nota; al revés que una regla laxa, que produce un incidente visible.
+**Falla hacia el lado que parece prudente, y por eso nadie la corrige.**
+
+📌 **Y no siempre es un alcance OLVIDADO: puede ser uno CORRECTO que nadie declaró.**
+`useRelativePaths` no estaba mal puesta — estaba bien puesta, y su alcance eran los futuros.
+**Ahí el riesgo no era el paso que faltaba: era que el paso siguiente PARECÍA ya hecho.**
+
+🔑 **POR QUÉ LA CUARTA, que es la que hace que las otras tres sirvan:** de **44 decisiones
+numeradas de una noche, 3 llegaron a un documento de rol.** **Una regla con el alcance
+perfectamente declarado y sin documento de destino sigue sin existir para quien tiene que
+aplicarla** — le pasó a T2 y a T3 el mismo día con la D55, que llevaba seis horas escrita y
+era invisible desde donde ellos trabajan.
+
+> **La casilla 4 no es burocracia: es la diferencia entre una decisión y un acta.**
+
+⛔ **Y su regla dura: el documento de destino es el que LEE el rol afectado, nunca
+`_decisiones-pendientes-de-ejecutar.md`. Si una decisión no tiene destino, NO SE ESCRIBE: se
+para y se pregunta a quién va dirigida.**
+
+**La mitad barata, de la Directora:** *preguntar el alcance cuesta un mensaje; obedecer de más
+cuesta una tarde y no deja rastro.* **Si recibes una regla que te frena, pregunta su alcance
+antes de reorganizarte alrededor de ella.**
+
 ### Comprobación fija de tu barrido: el índice de decisiones
 
 Añadido 2026-09-08 (**decisión 56**). Una línea:
