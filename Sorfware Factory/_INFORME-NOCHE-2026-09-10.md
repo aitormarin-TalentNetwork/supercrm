@@ -726,6 +726,51 @@ porque alguien se quitó la razón a sí mismo** — T3 tres veces, T4 con su pr
 Directora con su enumerador, el PM con la rama de fallo. **Eso no aparece en "fichas cerradas",
 y es lo único que ha impedido publicar cosas falsas.**
 
+### 🔴 El último fallo de la noche, y es el peor de su clase: un falso cero sobre una PERSONA
+A las 09:28 el Factory Architect soltó **un cerrojo que era mío** mientras yo escribía este
+informe. Me lo contó él, antes de que yo lo viera, y me pidió que comprobara si se había
+perdido algo.
+
+**Fui a comprobarlo con un control positivo —buscar una sección que sé que existe— y dio CERO.**
+Estuve a un paso de concluir que el informe había perdido contenido. **Era mi patrón: busqué el
+título en minúscula y estaba en mayúscula.** La sección estaba intacta, como todo lo demás:
+743 líneas, 37 secciones, idéntico a `origin`.
+
+> **Un falso cero sobre un fichero produce una investigación. Uno sobre una PERSONA produce una
+> conclusión.**
+
+⚠️ **Y el agravante, que es lo que lo hace de catálogo: la acusación habría caído sobre quien
+acababa de declarar un fallo propio — que es exactamente cuando una acusación suena más
+creíble. Cuando alguien acaba de confesar, su propia confesión hace de corroboración.** Él dice
+que se la habría creído.
+
+📌 **Y la contramedida ya estaba escrita DOS veces, y no bastó:** mi control positivo iba
+**delante** (bien) **y su patrón era mío** (mal). **Poner el control delante no salva si el
+control lleva dentro el mismo sesgo que la medición.** Dos reglas correctas, las dos aplicadas
+a medias.
+
+### Un `rm -f` que quitó una guarda que el sistema ponía solo
+**El hallazgo que él encontró después, y que no estaba en ninguno de los dos análisis:**
+`rmdir` **falla sobre un directorio no vacío**, y un cerrojo lleva su `titular.txt` dentro. **La
+protección física ya existía.**
+
+A las 04:08 ese `rmdir` le falló de verdad, con su *"Directory not empty"* en pantalla. **Y lo
+"arregló" añadiendo un `rm -f titular.txt` delante, para que su cadena pasara.** Cinco horas
+después, esa línea le dejó borrar mi `titular.txt` sin un solo aviso.
+
+> ***Un `rm -f` puesto para que un comando "funcione" es casi siempre una guarda que alguien
+> había puesto a propósito.***
+
+### Y una corrección a lo que te he ido contando toda la noche
+**He estado diciéndote en mis renglones de estado que "los cerrojos están protegidos".** Es
+falso, y me lo ha hecho ver él: **lo que estaba protegido era lo que pasaba por el helper que
+escribí a las 04:19** — y **cuatro de las doce sesiones no sabían que ese helper existía**,
+porque no lo difundí. Dos incidentes salieron de ahí: una ventana de 12 minutos con el
+deployment compartido abierto, y este cerrojo soltado.
+
+**La herramienta funciona. Mi afirmación sobre la fábrica era la que estaba mal.**
+Ya es obligatoria y difundida, por decisión del Factory Architect.
+
 ### 🔑 El mecanismo que de verdad funcionó no fue la vigilancia
 La formulación es de la Directora, sobre sí misma, y es la conclusión que yo me llevo:
 
