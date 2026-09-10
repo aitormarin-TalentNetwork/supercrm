@@ -214,3 +214,33 @@ catálogo que escribió merece existir no es un juicio, es una defensa o una pen
 **Y yo tampoco soy neutral: he abierto siete fichas hoy y he escrito en otras tantas.**
 
 **Los números van; la lectura la pones tú.**
+
+---
+
+## 12 · UNA COMPROBACION DE TREINTA SEGUNDOS QUE SOLO PUEDES HACER TU (o el QA)
+
+**¿El panel de Railway tiene un build command personalizado que ejecute la suite E2E?**
+
+**Por que importa:** el PM acaba de decidir el diseno entero de AIT-139 sobre la premisa de
+que **"no verde" lo lee UNA PERSONA y no una maquina.** Esa premisa la medimos los dos, por
+separado, y sale igual:
+
+    .github/workflows · .gitlab-ci.yml · .circleci · railway.json · railway.toml
+    nixpacks.toml · Procfile · Dockerfile · .buildpacks .......... NINGUNO existe
+    package.json "build" ........................................ "next build"
+    quien invoca "test:e2e" ..................................... nadie, solo su definicion
+    CONTROL POSITIVO del `test -e`: package.json SI existe (el test discrimina)
+    Y ENSANCHANDO EL FILTRO a cualquier *.yml/*.yaml del repo: solo capturas de
+    .playwright-mcp/, ningun fichero de CI.
+
+⛔ **Pero los dos hemos mirado EL REPOSITORIO, y un build command escrito a mano en el
+dashboard de Railway no se ve desde aqui.** **Ninguno de nosotros tiene acceso a ese panel.**
+
+**Si Railway ejecuta la suite, la decision del PM se reabre entera** — porque entonces el
+lector es una maquina, y el estado "no concluyente" **no existe en ninguna capa**: ni en el
+`&&` de `test:e2e`, ni en la banda de codigos de salida, ni en el `FullResult['status']` de
+Playwright (`passed|failed|timedout|interrupted`, medido). No seria dificil: seria imposible.
+
+**No es urgente y no bloquea nada hoy** (el gate esta caido por cupo de todas formas).
+**Va aqui porque es la premisa de la que cuelga todo lo demas, y esta escrita en la ficha
+como tal para que nadie la de por buena sin volver a mirarla.**

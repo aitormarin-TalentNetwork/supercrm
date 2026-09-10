@@ -2553,3 +2553,172 @@ El `echo` colgaba del comando y no del resultado. **Quinta vez esta noche en la 
 mia** — y esta vez el texto afirmaba lo contrario de lo que el comando acababa de imprimir.
 > **La regla que llevo doce horas repartiendo no me alcanza a mi porque vive en mi cabeza y no
 > dentro del gesto.** Es lo que el FA dijo de su resta: *un texto bien colocado no es un cruce.*
+
+---
+
+## 2026-09-10, ~23:30Z — GATE CAIDO: lo que se ha medido con el cupo agotado
+
+**Estado del gate:** cupo de Codex agotado a las 23:08Z. `pgrep -f "^codex exec"` -> 0.
+`/tmp/auditores/` vacio. Ningun cerrojo `_turno*` puesto. **Nada disparable.**
+Lo levanta **una decision de Aitor** (comprar creditos), no el reloj. El mensaje dice
+"try again at Sep 15th, 2026 6:52 AM" Y "purchase more credits": **no se cual de las dos
+gobierna y no lo invento.**
+
+### CERO CODIGO EN LAS CUATRO FICHAS VIVAS (medido por mi y confirmado por el FA)
+
+    git diff --name-only origin/main...<punta>     commits por delante
+      ait-139  ->  0 ficheros                        0
+      ait-143  ->  0 ficheros                        0
+      ait-145  ->  0 ficheros                        0
+      ait-149  ->  0 ficheros                        0
+    CONTROL POSITIVO, misma tirada (un 0 en todas partes = comando roto):
+      ait-92-ola-2 -> 2 ficheros / 2 commits   ait-134 -> 9 / 15   ait-99 -> 4 / 7
+
+**Las cuatro ramas estan EXACTAMENTE en `origin/main`.** No es "sin commitear": es que no
+hay nada, ni a medias.
+**LIMITE DECLARADO, que va pegado o el dato miente:** tres de las cuatro son fichas de arnes
+y diagnostico, donde el plan es legitimamente la mayor parte del trabajo. **No se cuanto del
+cero es patologia.** (Matiz del FA que si discrimina algo: una ficha de arnes que estuviera
+construyendo tendria commits igualmente.)
+
+### TRES FICHEROS `VEREDICTO_` SIN NINGUN DICTAMEN DENTRO — el tercer estado en el libro de cuentas
+
+    find "codigo para auditar" -name 'VEREDICTO_*' -type f            -> 189
+      de esos, con 0 lineas "^Veredicto del auditor: (GO|NO-GO)"      ->   3
+    CONTROL POSITIVO del patron anclado: loop11 -> 2
+
+Los tres, ya renombrados con **la causa EN EL NOMBRE** (convencion que ya existia y solo se
+habia usado una vez, en el de T4):
+
+    VEREDICTO_T2_AIT-145_plan-loop12_ABORTADA-POR-CUPO-DE-CODEX.txt
+    VEREDICTO_T3_AIT-127_codigo-loop1_ABORTADA-POR-MODELO-AT-CAPACITY.txt
+    Subido a GitHub/VEREDICTO_T4_AIT-123_plan-loop5_ABORTADA-POR-DECISION-DEL-FACTORY-ARCHITECT.txt
+
+**Renombrar si, tocar dentro no**: el cuerpo del veredicto es del auditor y es el libro de
+cuentas de la fabrica; el nombre es nuestro.
+
+**QUE MURIO EN LA ULTIMA RONDA DEL DIA** (`plan-loop12`, mtime 2026-09-10T23:08:17Z):
+
+    Codex ejecuto SU comprobacion de integridad y salio bien:
+        956 -> 955 lineas (baja en EXACTAMENTE UNA)  ·  md5 4d6529d8...  recalculado por el
+    y escribio, EN FUTURO:  "despues leere las 956 lineas completas"
+    y despues:  ERROR: You've hit your usage limit...     tokens used: 7,838
+
+> **La ultima ronda del dia verifico el sello del sobre y murio antes de abrirlo.**
+
+Y las dos lecturas que salieron de ahi, las dos incomodas y las dos de sus autores:
+- **T2:** *"lo que apago mi comprobacion no fue un fallo: fue una marca de calidad real de
+  OTRO alcance"* — el recuento y el md5 acreditan **el sobre, no la carta**. Y **la frase del
+  auditor estaba en FUTURO y se leyo como hecha**: *un anuncio dentro de un fichero de
+  resultados se lee en pasado.*
+- **El FA:** *"esa comprobacion de integridad la decidi yo hace tres horas. Funciono, y lo
+  que no habia detras era la auditoria."* — **Un control puede estar perfectamente sano y ser
+  lo unico que quede en pie.**
+
+### EL TECHO DE 5 RONDAS DE PLAN (decidido por el FA, PROVISIONAL mientras dure la escasez)
+
+Al pasar de 5, la ficha **no se cierra ni se aprueba: cambia de foro** y va al PM. Su dato:
+**el 64% de las fichas consume el 28% del gate; el 36% consume el 72%. No hay ficha "media".**
+Y **17 de 25 fichas nunca han tenido una ronda de codigo.**
+
+**El contador NO lo llevo yo** (el contador y el disparador no pueden ser el mismo): se
+**deriva** de los propios veredictos en disco. Tres decisiones suyas, tras medir yo el margen:
+1. **cuenta DICTAMENES, no ficheros** (los 3 de arriba no cuentan);
+2. **la excepcion va en el nombre**, y asi el conteo se puede derivar por nombre **y** por
+   contenido: **si divergen, eso ya es un hallazgo**;
+3. **una ronda escrita y no disparada no consume techo** (la r19 de T3) — *el techo raciona al
+   auditor, y una ronda que no llego a el no gasto nada.*
+
+**Y el FA retiro su propia frase** *"cuenta de menos, nunca de mas"*: el error va en **las dos
+direcciones y se suman** — de menos por el nombre (28 sin `plan`/`codigo`), de mas por el
+contenido (3 sin dictamen).
+
+### DOS DISPARADORES QUE YO HABIA LEIDO DE MAS, Y ESTAN CORREGIDOS
+
+⛔ **AIT-145 / la ficha del defecto de `main`.** Yo le dije a T2 que si el cupo duraba abriria
+la ficha. **El PM afino el suyo y me desmonta:** *"Aplazada NO significa que el gate este
+parado. Significa que AIT-145 deje de ser la pieza que reescribe esos tres sitios: que se
+parta, que se recorte, o que su plan deje de borrar `convex/http.ts`. Un cupo caido la
+retrasa; no la desposee."* **El disparador es de PROPIEDAD, no de tiempo.** Y su dato desactiva
+la urgencia entera: **el campo de diagnostico no tiene consumidor y Gmail no esta en
+produccion, asi que esperar cuesta CERO.** *Yo trataba la espera como si acumulara riesgo.*
+**RETIRADO mi disparador temporal. Vale el suyo y solo el suyo.**
+
+### AIT-139: EL TERCER ESTADO NO CABE EN NINGUNA CAPA (medido por T1)
+
+    corrida que PASA  -> exit 0        FullResult['status'] = passed|failed|timedout|interrupted
+    corrida que FALLA -> exit 1          <- CUATRO valores, ninguno es "no concluyente"
+
+**Tres canales independientes y los tres binarios:** el `&&` de `test:e2e`, la banda de exits
+del convenio, y el estado de corrida de Playwright. Si el reporter pone `failed`, el runner
+sale con exit 1 y el CI lo ve rojo: **eso es tumbar la suite, que es lo que el criterio del PM
+prohibe.** El tercer estado **solo puede vivir en el CONTENIDO del informe.**
+⛔ **Pregunta abierta, en la mesa del PM: ¿quien lee "no verde", una persona o el CI?** Si una
+persona, basta un marcador en el resumen; **si el CI, el valor no existe en ninguna capa y el
+criterio tal como esta escrito es imposible, no dificil.**
+📌 **Tercera vez en la MISMA ficha con la misma forma:** un criterio que exige un observable
+que el sistema no produce.
+
+**Y el PM retiro su propia regla** ("stderr no vacio => NO CONCLUYENTE": con ella, 10 de 10
+corridas no concluyentes; con la forma corregida, 0 de 10). La forma que entra separa lo que
+T1 habia metido en un solo saco:
+
+    ExperimentalWarning + su linea acompanante -> RUIDO. No dice nada del sujeto.
+    "There are no documents in this table."    -> SENAL. Unica prueba POSITIVA de que el CLI leyo.
+
+> **Con `stdout` vacio, "lei y no hay filas" EXIGE esa linea. Si no esta, es NO CONCLUYENTE.**
+
+Eso convierte el caso vacio **de una AUSENCIA en una PRESENCIA**. Condiciones: casar el ruido
+**por linea entera**, y declarar el inventario **con version de Node y maquina**.
+⚠️ **Y sobre `authRateLimits`, con las palabras del PM y no con otras:** *hoy la tabla esta de
+verdad vacia, asi que "no hay limites de tasa" es la respuesta CORRECTA. El gate no miente
+hoy.* **Lo peligroso es que la respuesta VERDADERA de hoy es indistinguible de la falsa de
+manana.** Y eso refuerza la ficha: **el estado de colapso es alcanzable HOY, en la rama
+peligrosa, sin que nadie se equivoque.**
+
+### COLISION PENDIENTE DE ARBITRAR: `e2e/rate-limit-reporter.ts`
+
+AIT-139 (T1) lo declara **seguro** en su lista; es tambien de AIT-143 (T3). **`git` no puede
+arbitrarlo: las cuatro huellas son cero.** Es un choque de **huella FUTURA**, y eso lo dice la
+ficha, no el repo. **Pedida a los dos la lista declarada de ficheros que van a MODIFICAR.**
+Razon de T1, medida: `execSinFugas` **no lee el stderr del hijo en absoluto**
+(`grep -c stderr` -> 0, `stdout` -> 3), asi que **son dos EXEC distintos, no dos llamadores**,
+y arreglar `readTable` no cambia nada por la via del reporter. **Y ningun spec ejercita
+`execSinFugas`: la mitad silenciosa no tiene hoy prueba que la vigile.**
+
+### LECCIONES NUEVAS DE ESTA VUELTA
+
+- ⛔⛔ **UN ESPACIO EN LA RUTA TIRA UN SUBCONJUNTO ENTERO EN SILENCIO.** El FA perdio la
+  subcarpeta `Subido a GitHub` completa con `for f in $(find …)` sin comillas — y **el unico
+  fichero que faltaba era justo el que iba a usar para corregirme**. Segunda vez esta noche
+  (la primera, un `awk`). **No es un despiste repetido: en esta fabrica el separador de campos
+  y el separador de ruta son el mismo caracter** (`Sorfware Factory`, `codigo para auditar`,
+  `Subido a GitHub`), **asi que todo lo que se escriba aqui lo pisa.** Forma correcta:
+  `find … -print0 | while IFS= read -r -d '' f`, o `find … -exec sh -c '…' _ {} \;`.
+  **Y las dos veces el resultado salio limpio y plausible.**
+- 🔑 **UNA PROPUESTA ES EL SITIO DONDE ENTRA LO NO MEDIDO CON PERMISO** (T1). Todo el metodo
+  vigila **afirmaciones**; una propuesta se escapa entera **porque gramaticalmente no afirma
+  nada** — hasta que alguien decide encima y ya es premisa. **Arreglo del FA, que no encarece
+  el proponer:** *"una propuesta deja de ser propuesta en el instante en que alguien decide
+  encima; ahi hereda la carga entera, y la pregunta la hace QUIEN DECIDE, no quien propuso."*
+  En la mesa del PM, **dentro de su gesto de decidir, no en un documento al lado.**
+- ⚠️ **CONTAR LA PALABRA EN VEZ DEL ACTO** (T2, dos veces en cinco minutos). `grep` de
+  `Veredicto del auditor:` da 1 en la ronda abortada — **y esa aparicion es la linea del
+  ENCARGO que manda terminar asi.** El marcador es **la linea suelta anclada**
+  (`^Veredicto del auditor: (GO|NO-GO)`), no la mencion. **Lo salvo correr el control a la vez
+  que el sujeto, no desconfiar mas.**
+- ⚠️ **LO QUE NO SE TRANSMITE NO ESTA ADOPTADO, ESTA OCURRIDO** (T2). La convencion de nombrar
+  una ronda muerta existia, funciono una vez, y las otras dos no la recibieron.
+- ⚠️ **EL SELLO NO ACREDITA LA CARTA.** Una senal de rigor autentica puede tener **otro
+  alcance** que el que apaga tu comprobacion.
+- ⚠️ **UN ANUNCIO DENTRO DE UN FICHERO DE RESULTADOS SE LEE EN PASADO.**
+- ⚠️ **UN CONTROL POSITIVO QUE SALE IGUAL QUE EL SUJETO NO TE DICE QUE EL SUJETO ESTE BIEN: TE
+  DICE QUE EL INSTRUMENTO NO DISCRIMINA** (T1, dos falsos rojos seguidos midiendo exits — y
+  **el primero habria publicado el resultado correcto por casualidad**).
+- ⚠️ **"EN EL REPO" Y "EN DISCO DENTRO DE LA CARPETA DEL REPO" NO SON LO MISMO** (CEO). Yo lo
+  dije como una sola cosa a los tres. **`_borradores/` esta en `.git/info/exclude`: protege del
+  `git add -A` ajeno, NO de un borrado.** Si tiene que sobrevivir a mas que al cierre de una
+  ventana, **se commitea**.
+- ⚠️ **Y UN COMMIT SIN EMPUJAR EN `main` CUELGA DEL SIGUIENTE QUE PUBLIQUE.** Este diario
+  estuvo 195 lineas sin commitear; lo commitee **y lo empuje** (`8c155ea`), porque era el unico
+  commit por delante de `origin/main` y se lo habria llevado dentro cualquier otro push.
