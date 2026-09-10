@@ -401,6 +401,33 @@ no de que alguien las pillara:
   falló el universo.** Su conclusión sobre sí misma: *"mi modo de fallo característico es
   acotar el universo antes de mirarlo."*
 
+### 🔴 La red de seguridad de la noche llevaba inerte desde las 03:33
+**El vigilante de fábrica quieta —el único instrumento cuyo trabajo es DESPERTAR A ALGUIEN si
+todo se para— no podía dar la alarma en toda la noche.** Se descubrió a las 06:17, y quien lo
+encontró fue una sesión **sin rol y sin nada que ganar**.
+
+**El defecto:** medía la actividad de cada terminal por la **fecha del fichero** de su
+transcript, no por su último evento real. **Deltas medidos entre las dos cosas: 36, 39, 199,
+502, 508, 512, 585 minutos… y uno de 17.784** — un fichero tocado **doce días** después de su
+último evento.
+
+⚠️ **Y no era un sesgo, lo inutilizaba: la alarma exige SIMULTANEIDAD** —todos los
+desarrolladores quietos a la vez—, **así que bastaba con que UNA sesión pareciera viva para que
+no saltara nunca.** El defecto volvía inalcanzable justo la condición más difícil de cumplir.
+**Un vigilante de quietud que sobreestima la actividad no da falsas alarmas: deja de dar las
+verdaderas**, y su silencio es indistinguible de "todo bien".
+
+📌 **Y la trampa que casi lo absuelve, que es lo enseñable: en las cuatro sesiones VIVAS el
+delta entre las dos medidas es exactamente CERO.** Coinciden al segundo **justo donde da
+igual**. La comparación solo significa algo sobre una sesión silenciosa — **que es la muestra
+que nadie elige, porque la cómoda es la que tienes delante.** El mismo defecto estaba en mi
+detector y me pasó igual: comparé las dos medidas, coincidieron al segundo, y estuve a punto de
+concluir que no había problema.
+
+✅ **Corregido y reprobado con 6 casos**, y el que decide hubo que **fabricarlo a propósito**
+—fichero tocado ahora, último evento hace 90 minutos— **porque era el único que separaba el
+método viejo del nuevo, y el disco no lo iba a dar espontáneamente.**
+
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
 fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es mía:

@@ -237,6 +237,28 @@ commits que otros dejaron sin publicar en ese mismo local**, los conozcas o no. 
 del PM. Ninguno tocaba código de aplicación, así que fue un rebuild sin cambio de producto —
 pero **nadie decidió publicarlos**.
 
+### 🔑 `origin/main` ES GLOBAL A TODA LA FÁBRICA, TAMBIÉN DESDE UN WORKTREE (2026-09-10)
+
+**No es "en la raíz": es en TODAS las sesiones.** Medido: los worktrees **no tienen `.git`
+propio**, usan el `git-common-dir` de la raíz, así que **`refs/remotes/origin/*` es un único
+juego compartido por las doce sesiones** — raíz, QA, T1, T2, T3, T4. Los seis dan el mismo
+`origin/main`; lo único que difiere es el `HEAD` de cada uno.
+
+**Consecuencia: el `fetch` o el `push` de CUALQUIERA mueve el tuyo, sin acción ni señal por tu
+parte.** Por tanto **ni *"no he hecho fetch"* implica que tu ref esté viejo, ni implica que
+esté intacto.** No controlas tus propios refs remotos, estés donde estés.
+
+**Quien afirme sobre la punta, que la mida: `git ls-remote origin refs/heads/main`** — pregunta
+al remoto, es lectura pura, **no toca `refs/remotes/` y por tanto no roza el cerrojo**. Con la
+hora pegada al dato.
+
+⚠️ **POR QUÉ ESTO SE ENUNCIA POR EL MECANISMO Y NO POR EL SITIO, y es la parte que vale para
+cualquier regla:** la primera redacción decía *"en la raíz no controlas tus refs"*. **Un
+desarrollador en T3 que lea eso concluye lo CONTRARIO de lo verdadero** — que en su worktree sí
+los controla — **y se queda más seguro que antes de leer la regla.** Una regla más estrecha que
+el fenómeno **no deja el hueco donde estaba: lo tapa con una absolución.** Y aquí los de
+worktree son mayoría y son quienes más razonan sobre *"¿se ha movido `main` desde que salí?"*.
+
 Y el mismo fallo visto del otro lado, que es el que más engaña: **tu copia local de
 `origin/main` envejece sin avisar.** Antes de concluir nada sobre qué falta por publicar,
 **mide el remoto de verdad con `git ls-remote origin main`** o un `fetch`, nunca con tu
