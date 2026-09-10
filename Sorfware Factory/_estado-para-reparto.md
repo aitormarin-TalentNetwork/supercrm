@@ -912,8 +912,13 @@ Los siete, con su paso nombrado (el test: ¿PASO + QUIEN?):
        🔴 ENCLAVAMIENTO, y es lo mas importante de los siete: **el dia que se metan
        `GMAIL_CLIENT_ID` y las credenciales en produccion, AIT-145 se vuelve
        EXPLOTABLE sin que nadie tome una decision de publicacion.** Un atacante
-       vincula el buzon de la victima a su propio usuario CRM. Hoy no es explotable
-       SOLO porque produccion no tiene esas credenciales.
+       vincula el buzon de la victima a su propio usuario CRM.
+       ⛔ **CONDICION, no estado: NO se ponen credenciales de Gmail en produccion
+       MIENTRAS AIT-145 no este cerrada.** Comprueba su estado en Linear antes de
+       actuar — este parrafo enuncia la condicion, no el estado.
+       (Lo que hoy lo hace inexplotable es que produccion no tenga esas credenciales;
+       escribirlo como "hoy no es explotable" seria una afirmacion que **caduca
+       exactamente el dia que importa**.)
        ⛔ **Meter una variable de entorno no se siente como publicar una
        vulnerabilidad conocida**, y ahi esta el peligro: el estado peligroso lo crea
        una accion POSTERIOR que nadie conecta con el merge de AIT-92.
