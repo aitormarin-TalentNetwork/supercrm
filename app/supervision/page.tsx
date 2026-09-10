@@ -38,7 +38,8 @@ export default function SupervisionPage() {
 
   // AIT-128: la carga, el valor y los atrasados de CADA fila salen de esta
   // misma lista, no de consultas aparte — ver `lib/supervision.ts`. Antes
-  // venían de `getWorkloadByOwner` y `getOverdueCountsByOwner`, y que la
+  // venían de dos consultas aparte, `getWorkloadByOwner` y
+  // `getOverdueCountsByOwner`, RETIRADAS en AIT-128 y AIT-141; que la
   // cabecera y la tabla tuvieran fuentes distintas es lo que permitía que
   // dijeran cosas incompatibles. `getInteractionCountsByOwner` sí se queda:
   // las interacciones son otra medida (30 días) y no suman a ninguna cabecera.

@@ -655,8 +655,12 @@ Cuatro hallazgos de esa ronda, los cuatro corregidos:
 3. **`listOpenOpportunitiesForSupervision`** resolvía
    `customer.name`/`owner.name` sin comprobar que fueran de la misma
    tienda — único sitio del archivo con ese hueco, cuando el resto
-   (`getAtRiskList`, `getWorkloadByOwner`, `listPendingBilling`) ya lo
-   hacía. Corregido con el mismo patrón.
+   (`getAtRiskList`, `listPendingBilling`) ya lo hacía. Corregido con el
+   mismo patrón. *(Eran tres: `getWorkloadByOwner` se retiró en AIT-141 al
+   quedarse sin consumidor. No se sustituye por un tercero porque las que
+   quedan en el archivo con ese chequeo son sólo esas dos —
+   `listOpenOpportunitiesForSupervision` es precisamente la que NO lo
+   tenía—, y meter un relleno para cuadrar el número diría algo falso.)*
 4. **Caminos sin probar** (declarados como hueco en el loop 1, ahora
    cerrados): se creó una tienda y cuenta `storeManager` reales en el
    deployment compartido y se verificó en vivo — ver evidencias del

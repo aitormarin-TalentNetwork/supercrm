@@ -107,60 +107,6 @@ export const getAtRiskCount = query({
 // agrupado por ownerId. Ordenado por importe descendente (el comercial con
 // más valor en juego primero, el orden que más le interesa a Marta al
 // abrir Supervisión).
-// ⚠️ AIT-128 la dejó SIN CONSUMIDOR: la carga por persona de /supervision se
-// calcula ahora en `lib/supervision.ts` desde la misma lista que suma la
-// cabecera. No se retira aquí a propósito, y el motivo no es pereza: nueve
-// comentarios de cinco ficheros y `docs/02-modelo-de-datos.md` la citan como
-// EL ejemplo del chequeo cruzado de `storeId`. Borrarla dejaría nueve
-// referencias apuntando a una función que no existe — que es exactamente el
-// defecto de rótulo que AIT-128 vino a cerrar, cometido al cerrarlo.
-// Qué hacer con ella se decide en AIT-141, no aquí.
-export const getWorkloadByOwner = query({
-  args: storeAccessArgs,
-  handler: async (ctx, args) => {
-    const { storeId } = await requireStoreAccess(ctx, args.storeId);
-    const open = await getOpenOpportunitiesForStore(ctx, storeId);
-
-    const statsByOwner = new Map<
-      Id<"users">,
-      { count: number; totalAmount: number }
-    >();
-    for (const opportunity of open) {
-      const entry = statsByOwner.get(opportunity.ownerId) ?? {
-        count: 0,
-        totalAmount: 0,
-      };
-      entry.count += 1;
-      entry.totalAmount += opportunity.estimatedAmount ?? 0;
-      statsByOwner.set(opportunity.ownerId, entry);
-    }
-
-    const workload = await Promise.all(
-      Array.from(statsByOwner.entries()).map(async ([ownerId, stats]) => {
-        const owner = await ctx.db.get(ownerId);
-        // Mismo chequeo que getSummary/listOpen con el cliente: el
-        // agregado (count/totalAmount) ya es correcto porque viene de
-        // oportunidades filtradas por storeId, pero el nombre del usuario
-        // se resuelve por separado — si ownerId apuntara (por una relación
-        // cruzada o corrupta) a un usuario de otra tienda, no se filtra su
-        // nombre. En uso normal nunca ocurre.
-        const ownerName =
-          owner !== null && owner.storeId === storeId
-            ? (owner.name ?? null)
-            : null;
-        return {
-          ownerId,
-          ownerName,
-          count: stats.count,
-          totalAmount: stats.totalAmount,
-        };
-      }),
-    );
-
-    return workload.sort((a, b) => b.totalAmount - a.totalAmount);
-  },
-});
-
 // AIT-22 (Panel): embudo por etapa — nº y suma de importes de las
 // oportunidades abiertas, agrupado por stage. Las 3 etapas reales del MVP
 // (docs/02-modelo-de-datos.md §2) — no las 6 de la paleta del prototipo de
@@ -210,11 +156,12 @@ export const getAtRiskList = query({
           ctx.db.get(opportunity.customerId),
           ctx.db.get(opportunity.ownerId),
         ]);
-        // Mismo chequeo de storeId cruzado que listOpen/getWorkloadByOwner:
-        // sin cliente de la misma tienda no hay fila (se omite, no se
+        // Mismo chequeo de storeId cruzado que listOpen/
+        // listOpenOpportunitiesForSupervision: sin cliente de la misma tienda
+        // no hay fila (se omite, no se
         // inventa un nombre); sin comercial de la misma tienda, el nombre
         // queda null pero la fila se mantiene (mismo criterio que
-        // getWorkloadByOwner).
+        // listOpenOpportunitiesForSupervision).
         if (customer === null || customer.storeId !== storeId) {
           return null;
         }
@@ -341,8 +288,8 @@ export const listOpenOpportunitiesForSupervision = query({
             .first(),
         ]);
         // AIT-31 (hallazgo de auditoría, NO-GO ronda 1): faltaba el mismo
-        // chequeo cruzado de storeId que ya hacen getAtRiskList/
-        // getWorkloadByOwner/listPendingBilling más arriba en este archivo
+        // chequeo cruzado de storeId que ya hace getAtRiskList más arriba en
+        // este archivo (y listPendingBilling más abajo)
         // — sin él, si customer/owner apuntaran a otra tienda (relación
         // cruzada o corrupta), su nombre se filtraba igualmente.
         const customerName =
@@ -403,7 +350,8 @@ export const listPendingBilling = query({
         if (customer === null || customer.storeId !== storeId) {
           return null;
         }
-        // Mismo chequeo cruzado que getWorkloadByOwner/getAtRiskList más
+        // Mismo chequeo cruzado que getAtRiskList/
+        // listOpenOpportunitiesForSupervision más
         // arriba en este archivo (sugerencia de auditoría, ronda 3): el
         // nombre del comercial se resuelve por separado del filtro de
         // storeId de la oportunidad — si ownerId apuntara a un usuario de

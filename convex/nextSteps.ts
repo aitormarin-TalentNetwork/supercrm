@@ -182,7 +182,7 @@ export const getNotifications = query({
           // filtro por assigneeId ya acota el paso al usuario, pero no
           // garantiza que la oportunidad (ni su cliente) sean de su misma
           // tienda — el schema no lo fuerza. Mismo chequeo cruzado que ya
-          // se exige en listOpen/getWorkloadByOwner/getAtRiskList
+          // se exige en listOpen/getAtRiskList
           // (hallazgo de auditoría): se descarta si cualquiera de las dos
           // relaciones apunta a otra tienda.
           if (
