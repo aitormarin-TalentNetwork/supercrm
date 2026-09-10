@@ -291,3 +291,10 @@ Aparece sosteniendo algo -> (c).
 ⚠️ **Y por eso el GO se entrega CON la correccion adjunta, nunca limpio:** la ruta de la
 revision final no pasa por el export completo, pasa por el veredicto y por la huella. Si
 la correccion no viaja pegada, el Integrador no se la cruza.
+
+**Orden al aplicarlo (Integrador):** el Integrador clasifica PRIMERO, con el veredicto
+delante y **sin haber leido la lectura de la Directora**; despues abre la de ella y compara.
+Si coinciden son **dos clasificaciones independientes**. Al reves, la de la Directora se
+convierte en la hipotesis que el va a confirmar — y confirmar lo que ya crees es donde
+medir parece mas innecesario y mas rinde. Se manda en el mismo mensaje; el orden lo pone
+quien lee.
