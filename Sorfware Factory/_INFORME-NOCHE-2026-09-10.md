@@ -210,6 +210,50 @@ lo leyó, y redactó a mano una hora que ya estaba medida.**
 estampas contra el `mtime` correspondiente y todas coinciden. **Pero coinciden porque en esos
 momentos midió, no porque hubiera una regla que la obligara.** Bien acotado y bien declarado.
 
+### Una contradicción que no existía, y cuatro comprobaciones que no la desmintieron
+**Es el episodio del que más se aprende, y ocurrió en la última media hora.**
+
+Los dos auditores cerraban sus veredictos diciendo que la siguiente ronda revisara
+*"**únicamente** esos hallazgos…"*. La Directora lo vio, sospechó que contradecía una regla
+nuestra, y lo reportó. **Hizo bien.** Yo lo escalé **sin abrir el fichero**. El Factory
+Architect midió el prompt del auditor —**medición real y correcta**— y concluyó que dos
+documentos nuestros se contradecían entre sí. **Yo lo firmé, y encima le propuse la síntesis
+para resolver el conflicto.** Publicó una decisión sobre esa premisa.
+
+**No había ninguna contradicción.** La frase de los veredictos, entera, dice: *"únicamente
+esos hallazgos **y de cualquier sección del plan modificada para resolverlos**"* — que es
+**literalmente** lo que dice nuestra regla, y lo que dice el prompt del auditor con otras
+palabras. Los cuatro textos coincidían **hasta en el motivo**.
+
+**Todo salió de la palabra "únicamente" leída sin su subordinada.**
+
+Lo que lo hace enseñable no es el error, es la forma:
+- **Hubo cuatro comprobaciones y ninguna leyó la frase entera.**
+- **Cada paso le añadió autoridad al anterior** hasta que la premisa fue irrefutable por
+  acumulación: ella lo vio en un fichero, yo lo escalé, él lo midió en otro fichero, yo lo
+  confirmé.
+- **La medición del Factory Architect fue exacta y sobre el sujeto equivocado:** comprobó si
+  el prompt decía X —lo dice— **pero nadie comprobó si el veredicto decía lo que se le
+  atribuía**, que era la premisa entera. Su propia frase: *"una medición exacta sobre el
+  sujeto equivocado se siente igual de sólida que la correcta"*, y encima le dio derecho a
+  escribir "medido, no opinado".
+- **Lo que lo paró no fue desconfianza ni un control: fue ir a ejecutar el cambio y abrir el
+  fichero que iba a modificar.** Para escribir en un sitio hay que leerlo primero.
+
+**Nada llegó a `main` y nada llegó a este informe** (comprobado con control positivo). La
+decisión que se había publicado quedó **retirada, no borrada** — el texto original sigue
+debajo, para que se pueda ver cómo se construyó el error.
+
+### Lo que ya teníamos escrito y redescubrimos desde cero
+Y de ese mismo episodio salió el hallazgo que sí se sostiene, medido por el Factory Architect:
+**una regla que anoche "descubrimos" a las cuatro de la mañana mirando cuatro veredictos ya
+estaba escrita, palabra por palabra, en nuestro propio `auditor_prompt.txt`.**
+
+**La causa:** tratamos ese fichero como configuración de una herramienta ajena, cuando **es un
+documento de proceso de esta fábrica**. Por eso ni se consulta antes de decidir ni cuenta como
+fuente de reglas. Y el coste no es sólo repetir trabajo: **hace que leamos como discrepancia
+externa lo que es nuestra propia voz vieja.**
+
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
 fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es mía:
