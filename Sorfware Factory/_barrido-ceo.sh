@@ -116,9 +116,28 @@ cat <<'PEND'
   (b) Terminales paradas: medir el ultimo evento `assistant` del TRANSCRIPT, con control
       positivo. NUNCA por ausencia en ListAgents.
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
-      viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, o (3) DE UNA TAREA
-      YA CERRADA. Las tres se ven identicas en disco. Incidente real: AIT-83 se escalo como
-      "26 h parada" estando DONE desde el 2026-09-09T00:42:40Z.
+      viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
+      CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
+      trabajo no es codigo. Las cuatro se ven identicas en disco.
+      **"AL MENOS cuatro" es literal: el CEO enumero tres y el Factory Architect encontro la
+      cuarta en diez minutos.** No hay razon para creer que sean cuatro.
+      INCIDENTE REAL (2026-09-10), con DOS fallos superpuestos:
+        (a) ESTADO — se escalo "AIT-83, 26 h parada, o la disparas o la declaras abandonada".
+            Las dos salidas eran falsas: estaba DONE desde 2026-09-09T00:42:40Z.
+        (b) SUJETO — y ademas AIT-83 en Linear NO es lo que decia el nombre del fichero. El
+            export se llama `T2_AIT-83_fix-arnes-e2e_...` pero la ficha AIT-83 es otra cosa
+            ("Una pestaña abierta durante un despliegue queda rota", Low, Post-MVP). El
+            propio export lo dice en su cabecera: es la correccion del arnes DE AIT-83, con
+            "ficha de Linear propia, pedida al PM". **Lleva en el nombre el numero de OTRA
+            ficha.**
+      🔴 CONSULTAR LINEAR ARREGLA (a) PERO NO (b): si el identificador del fichero no es el
+      de su tarea, la consulta devuelve el estado **de otra cosa** — y devuelve algo, no un
+      error. La comprobacion cruzada falla hacia el lado tranquilizador. Antes de fiarte del
+      numero del fichero, LEE SU CABECERA.
+  (d) 🔴 Y NADA DE ESTO SE COMPRUEBA EJECUTANDO ESTE SCRIPT: hay que LEER su salida.
+      Ejecutar un instrumento no es leerlo. Esta misma lista se contradijo con la cabecera
+      del detector (tres historias aqui, cuatro alli) y **sobrevivio a una corrida real** sin
+      que nadie lo notara, a veinte lineas de distancia y en el mismo directorio.
 PEND
 echo
 echo "===== fin del barrido ====="
