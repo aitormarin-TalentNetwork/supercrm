@@ -216,8 +216,12 @@ de este proyecto).
   preguntarme, publica sin preguntar" / "vuelve a preguntarme antes de publicar") — quien
   lo reciba **anexa una línea nueva**, nunca reescribe el fichero.
   - **Versionado en git desde 2026-09-08** (decisión 12): ya no está en `.gitignore`. El
-    commit aporta autor, fecha e historial **independientes de lo que la línea afirme de sí
-    misma** — el segundo testigo externo que le faltaba a una procedencia autodeclarada.
+    commit aporta **fecha e historial** independientes de lo que la línea afirme de sí
+    misma — el segundo testigo externo que le faltaba a una procedencia autodeclarada.
+    ⚠️ **NO el autor** (corregido 2026-09-10): en este repo los seis roles firman con la
+    identidad de git de la máquina — `%an` da 50/50 el mismo nombre en los últimos 50 commits.
+    Lo que identifica al rol es el trailer `Co-Authored-By`, y **eso es autodeclarado**, no un
+    testigo externo. La procedencia descansa en dos patas, no en tres.
     Consecuencia práctica: **léelo siempre en la ruta absoluta de la raíz**, nunca en la
     copia de un worktree (estaría congelada), y si anexas una línea, commit y push en el
     mismo acto.

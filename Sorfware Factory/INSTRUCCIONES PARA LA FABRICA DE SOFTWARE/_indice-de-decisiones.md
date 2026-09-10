@@ -136,6 +136,21 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 70 | Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export — va además a la coordinadora por mensaje directo, y ella no la archiva con la tarea | R §2sexies-bis · IT · D |
 | 71 | **Una medición se enuncia con su MÉTODO, no solo con su resultado** — una línea: el comando, el patrón, el filtro. *(Nació como "el crudo viaja con la conclusión" y se retiró entera: generalizaba mal desde evidencia buena.)* | R §2sexies-bis |
 | 72 | **La procedencia se comprueba contra el registro antes de escribirla** — y con más motivo si te deja mal: *la autocrítica es el envoltorio al que nadie le pide la fuente* | R §2sexies-bis |
+| 73 | *(sin cita localizada en el barrido del 2026-09-10 — no se declara muerta: no se buscó con el método agotador de la cabecera)* | — |
+| 74 | **La huella de la tarea NO se escribe a mano** — se pega la salida de los dos comandos, los dos | IT |
+| 75–76 | *(sin cita localizada en el barrido del 2026-09-10 — no se declaran muertas: no se buscaron con el método agotador de la cabecera)* | — |
+| 77 | ⛔ **INVARIANTE: la fábrica solo está legítimamente parada si hay un motivo técnico escrito y CON DUEÑO. «Ocioso» no es un estado: con backlog disponible es una incidencia.** Los siete roles apuntan a esto; el CEO cuenta *N con tarea · M sin tarea · backlog K* en cada barrido y con `M>0 y K>0` actúa en ESE barrido | R (cabecera) · C · D · IT |
+| 78 | Lo que solo funciona porque dos roles están vivos a la vez **se escribe en los dos**, y lo que se escribe no es el acuerdo: es **qué se pierde si falta uno** | R (cabecera) · C |
+| 79 | Al disparar una ronda N+1, el alcance es el hallazgo corregido **MÁS el diff completo de la corrección** — va en el alcance, no en una coletilla del prompt | D · IT |
+| 80 | ⛔ **BASE: todo recurso que una terminal toca es SUYO, o está declarado COMPARTIDO con su turno. No hay tercera categoría.** El test: *¿puedes NOMBRAR la instancia que es tuya?* Si solo puedes nombrarla con el artículo determinado, es compartida | R (cabecera) |
+| 81 | **Antes de crear a nadie: ¿dónde vive el repositorio?** Un repo es el peor candidato para un sincronizador (iCloud/Dropbox/Drive), y sincronizar **no es** copia de seguridad. Destino sano `~/Proyectos/<nombre>`; worktrees con rutas relativas. **Y la respuesta se registra, sea cual sea** | R §4bis |
+| 82 | **Recuperar un MCP muerto es tuyo y no hace falta molestar a Aitor** · y su otra mitad: dejar a alguien terminar su tarea es una regla de DUEÑO, no una siega | D · IT |
+| 83 | ⛔ **Qué garantiza un fichero de veredicto** — y qué no | D · IT |
+| 84 | **El cerrojo cubre ahora DOS recursos**: el deployment compartido **y** las escrituras sobre el checkout raíz (`merge`, `push`, `commit`, cambiar de rama). Lectura no. *(Límite conocido, enrutado y esperando: un solo procedimiento de liberación para dos sujetos — ver `ceo.md`)* | C · D · IT |
+| 85 | ⛔ **Lo que el veredicto NO cubre va EN el veredicto** | D |
+| 86 | ⛔ **El rótulo se corrige primero, no al final** — el sitio de más tráfico y menos contexto. **Su punto ciego es el PROMPT RECURRENTE de cada rol**: máximo tráfico, mínimo contexto, cero auditabilidad — así que ese rol **declara** que lo ha actualizado | R (cabecera) · C |
+| 87 | ⛔ **El proceso se lee de `origin/main`, no de la copia congelada de tu rama** — al asignar una tarea se le recuerda que su copia está congelada en la fecha de su rama | D · IT |
+| 88 | ⛔ **El turno protege la escritura, no la validez de lo ya medido** — antes de juzgar una medición contra un compartido, mira el registro del turno (`_turno-convex.log`); y al liberar, deja traza ANTES del `rmdir` | D · IT |
 
 ---
 
@@ -152,3 +167,32 @@ el lector no puede abrir es peor que ninguna.
 
 **Barrido que lo detectó:** CEO, 01:12 UTC del 2026-09-09 (= 22:12 local del 2026-09-08),
 sobre los 18 documentos de proceso del repo, excluyendo worktrees y exports.
+
+---
+
+## ⚠️ TRECE FILAS AÑADIDAS DE GOLPE EL 2026-09-10 — y eso ES el hallazgo
+
+**El índice se había parado en la 72.** El detector (A) reportó **74 y 77–88 citadas y sin fila**;
+la (B) decía *"secuencia 1..72 completa y sin huecos declarados"*, o sea que **el índice ni
+siquiera sabía que existía nada por encima de 72**. Detectado por el CEO en su primer barrido.
+
+🔴 **Lo grave no es que faltaran trece: es CUÁLES.** La **77** es la invariante que abre el
+README. La **80** es lo que ese documento llama "base de la fábrica". La **86** va dentro del
+prompt del barrido del CEO, que la citaba cada ciclo. Aplicar la 55.4 al pie de la letra —*un
+número con hueco abierto no se cita*— habría significado **dejar de citar la invariante de la
+fábrica**, que es absurdo: la 55.4 se escribió para referencias sueltas, no para las decisiones
+estructurales. **Se cierra el hueco; no se deja de citarlas.**
+
+📌 **Y el diagnóstico, que es lo único que evita la decimocuarta: la 55.2 —"escribir una decisión
+incluye escribir su fila, en el mismo acto"— falló trece veces seguidas.** Eso no es olvido: es la
+decisión 29 en estado puro —**se quedó en principio, y los principios se incumplen**— y la 37: *un
+control que nadie ha probado es un principio con disfraz*. **El detector de la 56 sí funcionó**:
+cazó las trece. Lo que no existe es nada que impida escribir una decisión sin su fila.
+
+**Un detector para eso queda ENRUTADO y ESPERANDO, dueño el Factory Architect**, a hablar con
+Aitor despierto — inventarse un criterio de madrugada es exactamente lo que este documento existe
+para evitar.
+
+⚠️ **Las trece entran como PUNTEROS, no como enunciados (56.3), y SIN ✅**: se redactaron desde el
+contexto de sus citas, **no leyendo cada decisión entera**. Sirven para encontrar el texto, nunca
+para citar la decisión. **No se ha renumerado nada** (55.1).

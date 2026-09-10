@@ -175,8 +175,8 @@ sin que nadie heredara la menor señal de que faltaba algo.**
 | **Convex** | Deployment compartido `third-goldfinch-805` para desarrollo/test de las 3 terminales (dashboard en `README.md` de la raíz) + `stoic-impala-857` como deployment de producción (AIT-59 — ver §2 paso 4 más abajo y ADR-004 en `docs/01-arquitectura.md`; **activo desde 2026-08-24, Railway construye contra `stoic-impala-857` en cada push a `main`**) + un deployment de dev propio por terminal (objetivo de §3bis, migración distinta y todavía pendiente) | Hoy: `third-goldfinch-805` compartido por TODAS las terminales para dev/test, ver riesgo en §3. `stoic-impala-857` es el de producción, activado por AIT-59 (Tanda 1 y Tanda 2 completas). Objetivo de §3bis (aparte, no confundir): cada terminal desarrolla contra su propio deployment de dev aislado; `third-goldfinch-805` ya no tiene rol de publicación — el punto de publicación es el build de Railway contra `stoic-impala-857`, no un merge a `third-goldfinch-805`. |
 | **Cerrojo de turno de Convex** | `Sorfware Factory/_turno-convex.lock/` (directorio, reclamado con `mkdir` — atómico, sin ventana de carrera —, con `titular.txt` dentro; en `.gitignore`) | Rediseñado 2026-08-14, afinado 2026-08-15: mientras el deployment siga compartido, las terminales lo reclaman solas con `mkdir` y lo liberan con `rmdir`, en vez de pedírselo a la Directora — arbitrar cada petición no escalaba según crecía el número de terminales/células. El barrido periódico también comprueba si un cerrojo lleva demasiado tiempo abandonado. La Directora (o el Líder de célula) solo entra ante disputa genuina o cerrojo abandonado sin poder confirmarlo. Desaparece del todo en cuanto la migración de §3bis esté completa. |
 | **Registro de check-in de agentes** | `Sorfware Factory/_registro-agentes.txt` (fichero, una línea por check-in con `>>`; en `.gitignore`) | Añadido 2026-08-25/26 (pedido explícito de Aitor): `ListAgents` por sí solo no es fiable para saber quién existe de verdad, algunas terminales no se ven ni entre ellas. Cada rol (central o T<n>) escribe una línea aquí (`timestamp \| sesión \| rol \| terminal \| motivo`) al arrancar, reiniciarse o recrearse, ADEMÁS de presentarse por `SendMessage` al CEO (nunca en vez de) — segundo canal redundante contra el fallo de `ListAgents`. El CEO lo cruza con `ListAgents` en su barrido periódico (ver `ceo.md`) y trata cualquier discrepancia como hallazgo a investigar. |
-| **Registro de rondas de QA** | `Sorfware Factory/_registro-qa.txt` (fichero de solo-anexar; en `.gitignore`) | Añadido 2026-09-08 (decisión del Factory Architect, ejecutada por el CEO). Una línea por ronda: `timestamp \| sesión \| build/commit probado \| alcance \| hallazgos (ids) \| qué NO se pudo verificar`. **El último campo es obligatorio** — es §2ter(b) aplicado al rol donde nació. Cierra un hueco real: `qa.md` no decía dónde anotar una ronda, así que el histórico entero del QA anterior murió con su sesión y no quedó nada en disco. Ver `qa.md` y §2quinquies (c). |
-| **Modo de publicación** | `Sorfware Factory/_modo-publicacion.txt` (fichero de solo-anexar; en `.gitignore`) | Formato solo-anexar con procedencia desde 2026-09-08 (antes era una palabra suelta sin autor ni fecha, ver §2quinquies (b)). La vigente es la última línea que no empieza por `#`. **Este documento no dice cuánto vale el modo ahora** — se consulta ahí. Detalle en §4ter "Modo de publicación del Integrador" y en `integrador.md`. |
+| **Registro de rondas de QA** | `Sorfware Factory/_registro-qa.txt` (fichero de solo-anexar; **su estado en git se consulta con `git check-ignore -v <ruta>` y `git ls-files --error-unmatch <ruta>`, no se declara aquí** — la decisión 12 lo versionó y este documento decía lo contrario hasta el 2026-09-10) | Añadido 2026-09-08 (decisión del Factory Architect, ejecutada por el CEO). Una línea por ronda: `timestamp \| sesión \| build/commit probado \| alcance \| hallazgos (ids) \| qué NO se pudo verificar`. **El último campo es obligatorio** — es §2ter(b) aplicado al rol donde nació. Cierra un hueco real: `qa.md` no decía dónde anotar una ronda, así que el histórico entero del QA anterior murió con su sesión y no quedó nada en disco. Ver `qa.md` y §2quinquies (c). |
+| **Modo de publicación** | `Sorfware Factory/_modo-publicacion.txt` (fichero de solo-anexar; **su estado en git se consulta con `git check-ignore -v <ruta>`, no se declara aquí** — la decisión 12 lo versionó y este documento decía lo contrario hasta el 2026-09-10) | Formato solo-anexar con procedencia desde 2026-09-08 (antes era una palabra suelta sin autor ni fecha, ver §2quinquies (b)). La vigente es la última línea que no empieza por `#`. **Este documento no dice cuánto vale el modo ahora** — se consulta ahí. Detalle en §4ter "Modo de publicación del Integrador" y en `integrador.md`. |
 | **GitHub** | `github.com/aitormarin-TalentNetwork/supercrm` (remoto `origin`) | Repo real. La sesión directora mergea a `main` y hace `git push` aquí. |
 | **Railway** | Cuenta personal `aitormarin@gmail.com` (cuenta de Railway nueva desde 2026-08-13 — la anterior agotó el trial), proyecto `fulfilling-vision`, servicio `supercrm` → `https://supercrm-production-bf48.up.railway.app` | Auto-despliega en cada push a `main`. Ver ADR-002 en `docs/01-arquitectura.md`. **Puede volver a estar en trial limitado — revisar que no haya caducado.** El proyecto viejo (`reasonable-creativity`, trial agotado) queda abandonado, no se usa. |
 
@@ -785,9 +785,20 @@ reglas de proceso significan algo.**
 **(f) El estado cuyo valor es HISTÓRICO se versiona en git; el que solo vale en el momento
 se queda local** (decisión 12, 2026-09-08). Escribir la procedencia no basta si la
 procedencia vive en un solo disco y es autodeclarada — quien escribe la línea es también
-quien afirma quién habló con Aitor. **El commit aporta autor, fecha e historial
+quien afirma quién habló con Aitor. **El commit aporta fecha e historial
 independientes de lo que la línea diga de sí misma: un segundo testigo, externo y gratis.**
 No hay que inventar ningún mecanismo nuevo.
+
+⚠️ **CORREGIDO el 2026-09-10, y se cae un tercio de la justificación: este texto decía "autor,
+fecha e historial", y EL AUTOR NO ES UN TESTIGO INDEPENDIENTE AQUÍ.** En este repo los seis roles
+firman con la identidad de git de la máquina: `git log -50 --pretty=%an` da **50/50 AITOR MARIN**
+y `%ae` el mismo correo. Lo que identifica al rol es el trailer `Co-Authored-By` y el cuerpo del
+mensaje, **y los dos viven DENTRO del commit, autodeclarados** — justo aquello de lo que esta
+decisión decía protegernos. **Fecha e historial sí se sostienen; el autor no.**
+🔴 **La decisión no se cae; se cae una de sus tres patas, y eso importa porque sobredeclarar un
+segundo testigo es peor que no tenerlo: hace confiar el doble en la única pata que queda** — el
+campo *"quién lo oyó de Aitor de primera mano"*. Lo cazó el Integrador mirando el instrumento del
+Factory Architect. Ver su fila en §2sexies.
 - **Se versionan:** `_modo-publicacion.txt` (dos líneas en cuatro días, y equivocarse
   publica sin permiso: churn mínimo, coste máximo) y `_registro-qa.txt` (su valor
   declarado es reconstruir dentro de dos semanas contra qué se probó — en un solo disco
@@ -1680,7 +1691,7 @@ instrumento escrito contra eso mismo.
 | **(A) citas vs índice** (56) | ✅ **Sí, probado a propósito**: se retiró la fila 57 del índice, la comprobación la reportó, y se restauró — fichero verificado idéntico al de antes |
 | **Refs de `ListAgents` vs registro** (45.3) | ✅ **Sí, probado a propósito**: con un ref inexistente reporta `⚠️ FALTA`. Antes de esta prueba **solo había corrido limpio tres ciclos**, que no es lo mismo |
 | **`core.hooksPath`** (33) | ⚠️ **Inversión curiosa: solo ha visto el positivo.** Lleva ocho ciclos reportando AUSENTE y **nunca ha visto el caso negativo** — no sabemos si sabría callarse |
-| **Hook de secretos** (33) | ❌ **No existe todavía.** Cuando exista, se estrena contra un secreto de prueba **antes** de darlo por armado |
+| **Hook de secretos** (33) | ✅ **EXISTE desde el commit `04f5db1` (2026-09-09).** `.githooks/pre-commit`, trackeado. **Pero está INERTE**: `core.hooksPath` sin configurar y `.git/hooks/pre-commit` tampoco existe, o sea que hoy no corre por ninguna de las dos rutas (medido por el CEO, el PM y el Factory Architect por vías distintas, 2026-09-10). Estrenado contra 7 casos que discriminan en las dos direcciones — ver su fila en §7 |
 
 📌 **Y la lección de la fila de refs:** *"ha corrido limpio tres ciclos"* se lee como verificado
 y **no lo es**. **Un control que solo ha visto verde no está verificado: está sin estrenar.**
@@ -1807,7 +1818,7 @@ cerrado, y el control **se queda sin estrenar en su dirección negativa** — ex
 
 | Bloqueo | De Aitor | **Y qué queda de nuestra parte al desbloquearse** |
 |---|---|---|
-| **`core.hooksPath` + `.githooks/`** | ejecutar un comando y crear el hook | ⚠️ **Bastante, y atado al evento:** (1) el ciclo siguiente confirma que el control **dejó de reportarlo** — si sigue avisando, lleva nueve ciclos roto (60.1); (2) el hook se **estrena contra un secreto de prueba** antes de darlo por armado (58.1); (3) se estrena **con el estado ya limpio**, no confiando en que el primer ciclo salga tranquilo (46) |
+| **`core.hooksPath` + `.githooks/`** | **solo ejecutar un comando** — crear el hook YA ESTÁ HECHO (`04f5db1`, 2026-09-09); esta fila decía "y crear el hook" y sobredeclaraba lo pendiente | ⚠️ **Bastante, y atado al evento:** (1) el ciclo siguiente confirma que el control **dejó de reportarlo** — si sigue avisando, lleva nueve ciclos roto (60.1); (2) el hook se **estrena contra un secreto de prueba** antes de darlo por armado (58.1); (3) se estrena **con el estado ya limpio**, no confiando en que el primer ciclo salga tranquilo (46) |
 | **Aislar el perfil del navegador** (47) | cambiar la configuración del MCP | (1) **el perfil aislado se estrena vacío y VERIFICADO vacío**, no reutilizando uno que "parece limpio" (47.4); (2) retirar la contención vigente —solo la app, no tocar el perfil— y **decirlo explícitamente**, o quedará viva sin motivo; (3) comprobar que **desaparece la serialización**: dos sesiones con navegador a la vez |
 | **La prueba de Gmail de T3** | hacerla él; nadie más puede | (1) T3 retoma en cuanto llegue el resultado; (2) **anotar qué queda descubierto** si la prueba solo cubre parte del caso (57.3) |
 | **Las tres ediciones de `CLAUDE.md`** | aprobarlas y editarlas | **nada más**, salvo avisar a las sesiones vivas de que el documento cambió — un documento de arranque no llega solo a quien ya arrancó (§2quinquies (m)) |
@@ -2134,13 +2145,27 @@ comprobable en vez de en una intención registrada.**
 
 **Primera ejecución, 2026-09-08 (consulta a Linear, no relevo):**
 
-| Arreglo enrutado | Issue | Estado |
+⚠️ **ESTA TABLA YA NO DECLARA ESTADOS. Reescrita el 2026-09-10** — decía `Backlog`/`In Progress`
+de cinco issues, y esos estados **caducaron sin que nadie lo notara**: al medirlos ese día,
+AIT-96, AIT-93 y AIT-95 estaban ya **Done**, y AIT-97 **sí tenía issue** donde la tabla decía
+"SIN ISSUE". Es el corolario de §2quinquies —*ningún documento declara el valor actual de un
+estado mutable*— mordiendo justo en una tabla de seguimiento, que es la que más invita a leerse
+como estado de hoy.
+🔴 **Y no fue inofensivo:** el CEO leyó esta tabla como presente y le pasó al QA *"AIT-96 sigue en
+Backlog"*, que era falso. Lo corrigió él mismo al medirlo, pero **un dato mal propagado no se
+detiene donde lo corriges**: para entonces el QA ya tenía la premisa.
+
+**La tabla dice QUÉ PREGUNTAR, no cuánto vale.** El estado se consulta en Linear, siempre, y se
+clasifica con los cuatro estados de la 66.1: **arreglado · enrutado y PROGRAMADO · enrutado y
+ESPERANDO · sin dueño**. Los dos del medio no son lo mismo y confundirlos inutiliza el registro.
+
+| Arreglo enrutado | Issue | Cómo se comprueba |
 |---|---|---|
-| El puerto 3000 se saca a variable de entorno | **AIT-96** | ✅ **existe** · Backlog · High |
-| El arnés declara sus precondiciones (65) | **AIT-93** | ✅ existe · **In Progress** · High |
-| La suite comprueba que el backend esté desplegado | **AIT-95** | ✅ existe · Backlog · High |
-| Exponer qué versión está desplegada | **AIT-79** | ✅ **Done** |
-| **Aislar el perfil del navegador del MCP (47)** | — | ⚠️ **SIN ISSUE.** Es cambio de configuración, no producto, así que puede que no le corresponda una — **pero hoy su único rastro son un párrafo del README y un mensaje a Aitor** |
+| El puerto 3000 se saca a variable de entorno | **AIT-96** | consultar en Linear · y **verificar por efecto**, que es lo que hizo el QA: `reuseExistingServer` y de dónde sale el puerto en `playwright.config.ts` |
+| El arnés declara sus precondiciones (65) | **AIT-93** | consultar en Linear |
+| La suite comprueba que el backend esté desplegado | **AIT-95** | consultar en Linear |
+| Exponer qué versión está desplegada | **AIT-79** | consultar en Linear · y por efecto en `/version` |
+| **Aislar el perfil del navegador del MCP (47)** | **AIT-97** | consultar en Linear. ⚠️ **Esta fila decía "SIN ISSUE" hasta el 2026-09-10 y era falso**: la issue existe. Texto original, para que se vea qué cambió: ⚠️ **SIN ISSUE.** Es cambio de configuración, no producto, así que puede que no le corresponda una — **pero hoy su único rastro son un párrafo del README y un mensaje a Aitor** |
 
 📌 **Lo que enseña la primera ejecución no es que faltara ninguna —cuatro de cinco existían— sino
 el matiz: existir no es estar programado.** AIT-96 está en **Backlog**, o sea que el arreglo del
@@ -2231,6 +2256,12 @@ que habría que construir.** Cada una debería poder decir si su arreglo está *
 
 | Comprobación | Cómo miente | Sustituto correcto |
 |---|---|---|
+| 🔴 **El `.jsonl` más reciente del directorio de proyecto de un worktree, como transcript de la SESIÓN ACTUAL** | **El directorio ACUMULA transcripts de días anteriores**, así que devuelve la antigüedad de un **cadáver** con una cifra perfectamente plausible. La 45.1 resuelve **QUIÉN** es un desarrollador por su directorio; **no dice que el transcript de ahí sea el suyo**, y se leyó como si lo dijera. ⚠️ **Miente en las DOS direcciones y las dos se vieron el 2026-09-10 en veinte minutos:** (a) *hacia el rojo* — el vigilante del Factory Architect dio **T1 713 · T2 716 · T3 713 min** en su primer ciclo real con `t1-e3` y `t3-f9` **recién creadas hace 1 min**, o sea un falso positivo al estrenarse, que es la 46 exacta: un control que grita en falso al nacer se desactiva mentalmente en el segundo ciclo; (b) *sobre un sujeto que no existe* — el barrido del CEO enumeraba `T[123]` **del disco** y reportó **T2: 719 min** cuando la Directora solo había abierto **dos** terminales y **no hay ninguna sesión T2**: un worker inventado por el glob | **El roster sale de `ListAgents`, no del disco.** El disco no dice quién existe: dice cuánto lleva quieto. Y **CUATRO estados, no tres**: una cifra · `SIN FICHERO` · `SIN DATO` · **`SUJETO SIN DATO`** (hay desarrollador vivo pero su transcript aún no tiene eventos `assistant`) — **este último NUNCA es alarma, y es el estado normal del arranque de una fábrica**, o sea el momento de máxima actividad. ⚠️ **Guarda antes de escribir ALARMA:** si el número es de horas y `ListAgents` da esa sesión recién arrancada, **estás mirando un cadáver** |
+| 🔴 **`git log --pretty=format:'...'` canalizado a `wc -l` o a `while read`** | **Pierde el ÚLTIMO registro sin avisar.** `--pretty=format:` no emite salto de línea final, así que `wc -l` no cuenta la última línea y `read` no la entrega. Medido el 2026-09-10 por dos roles por separado: el mismo rango da **49** por las dos vías y **50** con `--format`. ⚠️ **El agravante es que `wc -l` y `while read` fallan IGUAL**, así que comprobar una con la otra devuelve la misma cifra equivocada **y se siente como corroboración** — *dos señales que se refuerzan en vez de corroborarse*, pero por primera vez **sin que el sujeto sea el problema: el sujeto era correcto y el TRANSPORTE perdía un registro.** 📌 Coste real: el Factory Architect midió 43 con esto, se lo pasó al Integrador a las 01:30, y él construyó encima en cinco minutos —*"hay siete commits en los que ni el autor ni el trailer dicen quién fue"*— y lo escribió en su ficha. **Solo se cayó porque alguien fue a mirar QUIÉNES eran los seis, no porque nadie revisara el número.** | **`--format`**, que sí termina en salto de línea. Y al corregir un número relayado, **cuenta las dos consecuencias, no solo la primera**: dónde se midió mal y dónde se construyó encima |
+| 🔴 **`date -j -f '%Y-%m-%dT%H:%M:%S' <ts> +%s` sobre el timestamp de un transcript** | **Parsea como LOCAL algo que viene en UTC**, así que desvía cada medida exactamente el huso — y **una hora desviada sigue pareciendo una hora**. Caso del 2026-09-10, del Factory Architect construyendo el vigilante de fábrica parada: sus tres desarrolladores daban **523, 526 y 523 min**; los reales eran **703, 706 y 704**. 📌 **Lo que lo destapó fue el CONTROL POSITIVO, no revisar el comando**: midió su propia sesión viva y le dio **−179 minutos**, un número imposible. *"523 es perfectamente plausible. Si mi control hubiera sido otro cadáver en vez de una sesión viva, habría armado el vigilante con el huso metido dentro y nadie lo habría vuelto a mirar."* | **`date -u -j -f '%Y-%m-%dT%H:%M:%S' "${ts%.*}" +%s`** — la `-u` es el arreglo entero. Y el control positivo **contra un sujeto cuyo valor esperado conozcas y sea DISTINTO del hallazgo**: una sesión viva da un número pequeño, un cadáver da uno grande; con dos cadáveres no discriminas. Hermana de la fila de `ScheduleWakeup` y de "una marca de tiempo sin huso", **con un sujeto nuevo: el transcript**, que es lo que miramos todos para decidir si alguien está parado |
+| 🔴 **`%an` / `%ae` de un commit como señal de QUIÉN lo hizo** | **Es la identidad de git de la MÁQUINA, no de quien commiteó.** Medido el 2026-09-10: `git log -50 --pretty=%an` → **50/50 AITOR MARIN**, `%ae` → 50/50 el mismo, y **44 de esos 50 llevan trailer `Co-Authored-By`; los 6 restantes son MERGES** (`padres=2`, asunto `Merge AIT-NNN`) — `git merge` no invoca el trailer, así que su ausencia ahí **no significa "no se sabe quién fue", significa "esto es un merge"**, y un merge lleva su issue en el asunto y su rama en el segundo padre. *(El primer número que circuló fue 43 y era del comando roto de la fila siguiente; medido de nuevo por dos roles por separado da 44.)*. Los seis roles centrales firman igual. El Factory Architect clasificó un commit como *"autor: Aitor, luego pregúntale si la espera es deliberada"* — medición exacta, **sujeto equivocado**, y fallaba **hacia HACER**: mandaba a despertar a Aitor de madrugada por una espera que no existía. 📌 Lo cazó el **Integrador mirando el instrumento del FA**, que media hora antes había escrito que los fallos de instrumento salen de mirar el ajeno y nunca del propio | el **trailer `Co-Authored-By` y el cuerpo del mensaje** — y **declarados como AUTODECLARADOS**, nunca como prueba externa: viven dentro del commit. ⚠️ **Y el trailer distingue *commit de agente* de *merge*, pero NO distingue QUÉ ROL**: todos los agentes firman igual. La pata externa da **fecha, historial y "esto fue un merge"**; el resto es autodeclarado, sin excepción. ⚠️ **Esto obliga a corregir la decisión 12(f)**, que citaba el *autor* como uno de los tres testigos independientes que aporta un commit: **son dos, fecha e historial.** Sobredeclarar un segundo testigo es peor que no tenerlo — hace confiar el doble en la única pata que queda |
+| **Verificar un arreglo mirando la pantalla donde vive, cuando lo que cambió solo corre si algo FALLA** | **La prueba es la obvia y la correcta para esa pantalla, y aun así da verde con el código viejo y con el nuevo.** No es la 19 —allí la prueba está mal elegida—: aquí **el defecto es que el cambio vive en una rama del código que la ruta feliz no toca**. Caso del 2026-09-10, del QA: AIT-111 cambió dos diálogos para no devolver `err.message` al usuario, y la línea que cambió **solo se ejecuta si la mutation falla en vuelo** | > **Antes de verificar un arreglo, pregunta bajo qué condición se EJECUTA lo que cambió. Si la condición es un fallo, la ruta feliz no lo prueba por mucho que la mires.** El sustituto **no** es elegir mejor la prueba: es provocar la condición, o declararlo no verificado — que es lo que hizo él |
+| **Un bucle de fondo escrito como `( while ...; done & ) disown`** | **No miente por lógica: miente por SINTAXIS.** No es bash válido (`syntax error near unexpected token 'disown'`, exit 2), así que **no llega a correr nunca** — y quien lo copia cree tener un mecanismo armado. Estuvo semanas en §4ter de este documento, y encima **sostenía una afirmación de §2bis**: que el nivel 2 de staleness estaba muerto porque ese bucle sobrescribía el spinner "en toda la fábrica". El bucle no corría en ninguna parte | `nohup bash <script> >/dev/null 2>&1 &` con **`disown` en su propia línea**, y **verificar el EFECTO** (¿existe el proceso?), no que el comando no diera error. ⚠️ **Y al corregirlo, revisar qué afirmaciones se apoyaban en que aquello funcionara** — aquí había una, y llevaba semanas en pie |
 | **Un criterio de aceptación que dice que algo "sigue funcionando"** | ⚠️ **Suele ser verdadero por omisión.** Se cumple si nadie tocó nada, se cumple si el arreglo no hizo falta, y se cumple si el arreglo está mal pero el efecto no se ve. Caso del 2026-09-09 (AIT-115): *"comprobar que la exclusión ignora el fichero roto"* **no basta** — el fichero podría estar sano por otro motivo; hace falta **la otra mitad: comprobar que SIN la exclusión SÍ rompe** | > **Cada `PASA si` necesita un mundo en el que falle.** (PM, 2026-09-09.) **Ninguna de las dos mitades sola vale**, y por eso el resultado es fiable: una prueba que solo puede salir bien no es una prueba (enmienda 9) |
 | **Reconciliar dos medidas que no cuadran cuando la discrepancia NO cambia ninguna decisión** | ⚠️ **El impulso de reconciliar es MÁS FUERTE cuanto MENOS importa el dato**, y produce explicaciones ordenadas y falsas. Caso del 2026-09-09: 40 duplicados contra 13, con **las dos conclusiones que sostenían la ficha coincidiendo en ambas medidas**. La Directora intentó cerrarla y **produjo tres explicaciones distintas y las tres falsas** antes de que la pararan | > **Una discrepancia que no cambia la decisión se declara, no se resuelve.** Y se anota que **nadie cite ninguno de los dos números como si fuera el único** *(es "los números bailan y la estructura no", aplicado al gasto de tiempo en vez de a la regla)* |
 | 🔴 **Actuar sobre estado compartido sin avisar, aunque la acción sea inocua** | ⚠️ **El coste no es tu acción: es que OTRO mide dentro de tu ventana y se inventa una causa para tu efecto.** Caso del 2026-09-09: el CEO movió tres ficheros y, **en ese mismo minuto**, la Directora midió **18 errores donde antes había 5** y escribió un diagnóstico falso —*"una lectura sobre un `.next/` inconsistente"*—. **Eran los ficheros del CEO en su nueva ubicación.** Y hubo una segunda señal que ella vio y no entendió: su listado *"antes"* mostraba **solo los de T3 y ninguno de la raíz**, aunque los había contado un minuto antes. **Ya se los habían llevado.** 📌 **No pasó nada porque los ficheros eran inocuos — si hubieran sido recuperables solo desde uno de los dos sitios, se pierden** | **cualquier borrado o movimiento fuera de una tarea se avisa ANTES, aunque parezca trivial** (regla de reparto de la Directora, 2026-09-09). **No es pedir permiso: es que el otro lo sepa antes y no después.** Y al medir algo raro, **preguntar si alguien está tocando eso ahora mismo** antes de explicarlo |
@@ -3124,6 +3155,27 @@ intentar nombrar la vía descubres que no existe. Por eso es un criterio y no un
   mismo método de verificación, señálalo — un cerrojo abandonado que nadie más necesita
   todavía puede quedarse invisible hasta que alguien lo pida, y para entonces ya es un
   bloqueo sin explicación aparente.
+
+  🔴 **CERROJO SIN `titular.txt` DENTRO ≠ CERROJO ABANDONADO (decisión del Factory Architect,
+  2026-09-10).** El directorio puede existir **vacío**, sin `titular.txt` — medido en vivo esa
+  noche: a las 01:22 UTC existía y estaba vacío, a las 01:23 ya no existía.
+
+  > **El procedimiento de "cerrojo abandonado" consiste en LEER `titular.txt`. Con el fichero
+  > ausente no tiene entrada: no da una duda, da un VACÍO — y la lectura natural de un vacío es
+  > "no lo tiene nadie".**
+
+  **La causa es estructural, no un descuido de quien lo reclamó:** `mkdir` es atómico y protege
+  la **reclamación**; escribir `titular.txt` es un **segundo comando**. **La atomicidad protege el
+  turno y no protege la IDENTIFICACIÓN.** La decisión 34.4 se ocupó de que el identificador no
+  caducara; nadie escribió qué pasa cuando **todavía no existe**. Es un tercer modo de fallo,
+  distinto del nombre podrido.
+
+  ✅ **REGLA: `titular.txt` ausente significa "reclamación EN VUELO o rota", nunca "abandonado".
+  La acción es ESPERAR Y VOLVER A MEDIR — jamás reclamar.** Solo se declara abandonado con un
+  `titular.txt` legible **cuyo titular se haya comprobado que no produce**. Al final de ese otro
+  camino está el incidente del 2026-08-09: reclamar un turno ajeno, desplegar con rama vieja y
+  borrar funciones de otra terminal.
+
 - **Ojo con que el propio barrido (o cualquier interrupción — un mensaje de Aitor
   también cuenta) te haga abandonar sin más lo que tenías entre manos.** Ya ha pasado:
   Aitor te interrumpe con algo, lo atiendes, y luego se te olvida retomar lo que estabas
@@ -3797,8 +3849,27 @@ de después, se cancelan solos, y el único id nuevo sigue siendo el correcto.
 
 **Ventanas fantasma — residuo conocido, NO se intentan limpiar.** Cada fallo de `make new
 window` dejó una ventana sin tab, invisible en pantalla pero contada por `get id of every
-window`. Hay cinco a fecha de 2026-09-08 (ids 2385, 2387, 2500, 2518 y 2658 — esta última
+window`. Eran cinco a fecha de 2026-09-08 (ids 2385, 2387, 2500, 2518 y 2658 — esta última
 de la Directora, al crear las ventanas de T3) y **sobreviven entre sesiones y entre días**
+
+🔴 **MEDIDO EL 2026-09-10: son ONCE, y la cifra MEZCLA DOS POBLACIONES DISTINTAS.** Los once
+—2385, 2387, 2388, 2500, 2504, 2518, 2519, 2522, 2524, 2526 y 2658— dan `Invalid index (-1719)`
+al pedir `tab 1`. Medición independiente del CEO y del Factory Architect, con control positivo:
+las siete ventanas vivas de esa noche **sí** devuelven tty y título, así que el instrumento
+discrimina y el error en `tab 1` no es un fallo del comando.
+
+⚠️ **Pero seis de esos once —2388, 2504, 2519, 2522, 2524 y 2526— eran las ventanas VIVAS de
+PM, CEO, Factory Architect, Integrador, QA y Directora de la fábrica del 2026-09-08**, según
+`_registro-agentes.txt`. **O sea que "número de fantasmas" NO mide fallos de `make new window`:
+suma residuo de `make new window` y ventanas de sesiones que murieron.** Son dos causas
+distintas contadas como una — es la decisión 43 (*medición exacta, sujeto equivocado*) **dentro
+de nuestro propio documento**, y por eso la cifra no debe citarse como indicador de nada.
+
+🔻 **NO VERIFICADO, y va dicho porque un porqué inventado bajo un número medido le sobrevive:**
+nadie ha comprobado **el mecanismo** por el que una ventana pierde su tab al morir su sesión. Lo
+medido es la correlación con el registro; la causa es inferencia. Lo que NO cambia: la guarda de
+`count of tabs != 1` sigue siendo obligatoria y los conjuntos de ids siguen siendo el método —
+eso funciona y no depende de esto.
 — la 2385 es anterior a la jornada en que se diagnosticaron, así que no las limpia nadie
 al cerrar. `close` sobre ellas devuelve exit 0 sin error y la
 ventana sigue en la lista (verificado dos veces: el CEO y el Factory Architect, sobre
@@ -3842,11 +3913,30 @@ Captura el `id` de ventana que devuelve ese bloque (no vale volver a buscar por 
 después: es justo lo que se vuelve intermitente) y lanza a continuación, desatendido en
 segundo plano, un bucle que reafirma el título cada ~2s apuntando por ese `id`:
 ```bash
-( while true; do
-    osascript -e "tell application \"Terminal\" to set custom title of tab 1 of (first window whose id is $WINID) to \"<Título>\"" >/dev/null 2>&1 || break
-    sleep 2
-  done & ) disown
+# El bucle va a un fichero y se lanza con nohup. `disown` VA EN SU PROPIA LÍNEA.
+cat > "/tmp/titulo-$WINID.sh" <<EOF
+#!/bin/bash
+while true; do
+  osascript -e 'tell application "Terminal" to set custom title of tab 1 of (first window whose id is $WINID) to "<Título>"' >/dev/null 2>&1 || break
+  sleep 2
+done
+EOF
+nohup bash "/tmp/titulo-$WINID.sh" >/dev/null 2>&1 &
+disown
 ```
+⚠️ **La forma anterior de este bloque —`( while ...; done & ) disown`— NO ES BASH VÁLIDO** y
+fallaba el 100% de las veces: `syntax error near unexpected token 'disown'`, exit 2. Estuvo
+escrita aquí semanas. Medido y sustituido el 2026-09-10 (hallazgo del CEO, confirmado por el
+Factory Architect con `bash -n` sobre el literal, y con control positivo: la forma nueva parsea
+con exit 0). La receta de arriba es la que creó 4/4 ventanas sin un fallo esa noche.
+
+🔴 **Y la consecuencia que hay que leer con esto:** como ese bucle **nunca llegó a correr en
+ninguna ventana**, el "intercambio deliberado" que §2bis describe para el nivel 2 de staleness
+—*"el bucle que reafirma el título sobrescribe el spinner, y ese bucle corre en toda la
+fábrica"*— **nunca ocurrió**. Eso **NO resucita el nivel 2**: el spinner ya daba falsos
+positivos por su cuenta y esa razón sigue en pie. Lo que era falso es el MOTIVO declarado, no
+el veredicto. *(No verificado: nadie ha comprobado qué procesos de titulado corren hoy para
+cada ventana; lo medido son títulos, no procesos.)*
 Esto no elimina el parpadeo al glifo de estado, pero gana la carrera por frecuencia: el
 título muestra el rol casi todo el tiempo. Cualquier receta posterior que necesite
 localizar esa ventana (p. ej. la de `bounds` de abajo) debe hacerlo por este mismo `id`
@@ -4274,7 +4364,11 @@ desarrollo solo porque el fichero esté en `main`.**
 
 ### Modo de publicación del Integrador
 
-**Dónde vive:** `Sorfware Factory/_modo-publicacion.txt` (en `.gitignore`). **Este
+**Dónde vive:** `Sorfware Factory/_modo-publicacion.txt`. **Su estado en git se consulta**
+(`git check-ignore -v <ruta>`), no se declara aquí: la decisión 12 lo versionó **precisamente
+para que el commit aporte fecha e historial independientes**, y hasta el 2026-09-10 estas líneas
+decían que estaba en `.gitignore`. Quien leyera eso concluiría que la procedencia es solo
+autodeclarada y **no commitearía su línea**, matando ese testigo en silencio. **Este
 documento no dice cuánto vale el modo ahora mismo** — se consulta siempre en ese fichero
 (§2quinquies, corolario).
 

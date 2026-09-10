@@ -319,6 +319,27 @@ cerrojo bien hecho sí. Y añade su comprobación a tu barrido periódico (más 
 cerrojo abandonado que nadie más necesita todavía puede quedarse invisible durante
 mucho tiempo si nadie lo mira proactivamente.
 
+🔴 **CERROJO SIN `titular.txt` DENTRO ≠ CERROJO ABANDONADO (decisión del Factory Architect,
+2026-09-10).** El directorio puede existir **vacío**, sin `titular.txt` — medido en vivo esa
+noche: a las 01:22 UTC existía y estaba vacío, a las 01:23 ya no existía.
+
+> **El procedimiento de "cerrojo abandonado" consiste en LEER `titular.txt`. Con el fichero
+> ausente no tiene entrada: no da una duda, da un VACÍO — y la lectura natural de un vacío es
+> "no lo tiene nadie".**
+
+**La causa es estructural, no un descuido de quien lo reclamó:** `mkdir` es atómico y protege
+la **reclamación**; escribir `titular.txt` es un **segundo comando**. **La atomicidad protege el
+turno y no protege la IDENTIFICACIÓN.** La decisión 34.4 se ocupó de que el identificador no
+caducara; nadie escribió qué pasa cuando **todavía no existe**. Es un tercer modo de fallo,
+distinto del nombre podrido.
+
+✅ **REGLA: `titular.txt` ausente significa "reclamación EN VUELO o rota", nunca "abandonado".
+La acción es ESPERAR Y VOLVER A MEDIR — jamás reclamar.** Solo se declara abandonado con un
+`titular.txt` legible **cuyo titular se haya comprobado que no produce**. Al final de ese otro
+camino está el incidente del 2026-08-09: reclamar un turno ajeno, desplegar con rama vieja y
+borrar funciones de otra terminal.
+
+
 ### Escalar a varias células (opcional, cuando una sola capa no basta)
 
 Si el proyecto crece lo bastante como para sostener varias terminales trabajando en
