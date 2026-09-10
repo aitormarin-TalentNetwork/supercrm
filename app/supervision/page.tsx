@@ -20,7 +20,11 @@ import { NavToggleButton } from "@/components/nav/NavToggleButton";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { OpportunityStageBadge } from "@/components/crm/OpportunityStageBadge";
 import { formatCurrency } from "@/lib/format";
-import { construirComparativa, totalesDeCabecera } from "@/lib/supervision";
+import {
+  construirComparativa,
+  METRICAS,
+  totalesDeCabecera,
+} from "@/lib/supervision";
 
 // Guard de rol de UX (evita que un "sales" vea el shell de supervisión) —
 // no es el control de acceso real, que vive en proxy.ts + requireStoreAccess
@@ -125,22 +129,22 @@ export default function SupervisionPage() {
           <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
             <KpiCard
               icon={<Users size={16} />}
-              label="Comerciales"
+              label={METRICAS.comerciales.etiqueta}
               value={String(team.comerciales)}
             />
             <KpiCard
               icon={<TrendingUp size={16} />}
-              label="Oportunidades abiertas"
+              label={METRICAS.abiertas.etiqueta}
               value={String(team.abiertas)}
             />
             <KpiCard
-              label="Valor en juego"
+              label={METRICAS.valor.etiqueta}
               value={formatCurrency(team.valor)}
               mono
             />
             <KpiCard
               icon={<AlertTriangle size={16} />}
-              label="Seguimientos atrasados"
+              label={METRICAS.atrasados.etiqueta}
               value={String(team.atrasados)}
               accent={team.atrasados > 0 ? "error" : undefined}
             />
@@ -212,19 +216,19 @@ export default function SupervisionPage() {
                     <span className="flex items-center justify-between gap-4 text-sm text-text-secondary sm:flex-none sm:justify-end">
                       <span
                         className="font-semibold text-text"
-                        title="Oportunidades abiertas"
+                        title={METRICAS.abiertas.etiqueta}
                       >
                         {c.openCount} abiertas
                       </span>
                       <span
                         className="inline-flex items-center gap-1"
-                        title="Interacciones (30 días)"
+                        title={METRICAS.interacciones.etiqueta}
                       >
                         <MessageSquare size={13} className="text-neutral-400" />
                         {c.interactionCount}
                       </span>
                       <span
-                        title="Seguimientos atrasados"
+                        title={METRICAS.atrasados.etiqueta}
                         className={`inline-flex min-w-[26px] justify-center rounded-pill px-2 py-0.5 text-xs font-bold ${
                           c.overdueCount > 0
                             ? "bg-error-subtle text-error"

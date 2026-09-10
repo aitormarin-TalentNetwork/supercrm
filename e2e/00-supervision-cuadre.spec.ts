@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
+  comprobarEtiquetas,
   construirComparativa,
+  METRICAS,
   totalesDeCabecera,
   type OportunidadAbierta,
   type Vendedor,
@@ -126,5 +130,86 @@ test.describe("AIT-128 · el desglose cuadra con la cabecera", () => {
     const filtradas = abiertas.filter((o) => o.ownerId === DUENA.ownerId);
     expect(filtradas).toHaveLength(1);
     expect(filtradas[0].estimatedAmount).toBe(2500);
+  });
+});
+
+// AIT-128 ronda 2 · M1 del auditor. Las pruebas de arriba comparan NÚMEROS, y por
+// eso pasaron en verde con "Seguimientos atrasados" escrito encima de un número
+// que cuenta oportunidades. Nadie medía el texto.
+//
+// El control es por VOCABULARIO, no contra dos literales concretos: si sólo
+// prohibiera "Seguimientos atrasados", el siguiente rótulo que se desincronice
+// pasaría igual. Lo que afirma es que **cada texto visible nombra la unidad que
+// esa cifra calcula de verdad**.
+test.describe("AIT-128 · los rótulos nombran lo que la pantalla mide", () => {
+  test("cada etiqueta nombra su propia unidad", () => {
+    expect(comprobarEtiquetas()).toEqual([]);
+  });
+
+  // Sin esto, `METRICAS` podría ser una constante coherente que la pantalla no
+  // usa: un control sin observable propio. Se comprueba que los textos no están
+  // escritos a mano donde se PINTAN, para que no puedan divergir de su unidad.
+  //
+  // Se busca el patrón del atributo JSX (`label="…"`, `title="…"`) y no el texto
+  // suelto: la primera versión de esta prueba buscaba la cadena entrecomillada en
+  // cualquier parte del fichero y saltaba con un COMENTARIO que mencionaba
+  // «Comerciales» en prosa. Medía el fichero cuando la pregunta era sobre lo
+  // renderizado — y un control que grita por prosa se acaba desactivando.
+  test("la página usa METRICAS y no copias literales en los rótulos", () => {
+    const pagina = readFileSync(
+      join(__dirname, "..", "app", "supervision", "page.tsx"),
+      "utf8",
+    );
+    const literales = Object.entries(METRICAS)
+      .filter(([, m]) =>
+        [`label="${m.etiqueta}"`, `title="${m.etiqueta}"`, `>${m.etiqueta}<`].some(
+          (patron) => pagina.includes(patron),
+        ),
+      )
+      .map(([clave, m]) => `${clave}: "${m.etiqueta}" escrito a mano en page.tsx`);
+    expect(literales).toEqual([]);
+  });
+
+  // Control positivo del control anterior: el patrón TIENE que reconocer un
+  // rótulo escrito a mano. Sin esto, una prueba que no sabe encontrar nada
+  // pasaría siempre en verde y nadie lo notaría.
+  test("control positivo · el patrón sabe reconocer un rótulo a mano", () => {
+    const fuenteFalsa = `<KpiCard label="${METRICAS.atrasados.etiqueta}" />`;
+    expect(fuenteFalsa.includes(`label="${METRICAS.atrasados.etiqueta}"`)).toBe(
+      true,
+    );
+  });
+});
+
+// Control positivo del comprobador de rótulos, y va aquí y no en una salida
+// pegada a mano por un motivo concreto: el auditor de la ronda 1 declaró en su
+// `SIN:` que no podía verificar la ejecución de la suite en un commit anterior.
+// Un rojo que sólo existe en el pasado es un rojo que hay que creerse. Éste se
+// reproduce en cualquier commit, ejecutando.
+test.describe("AIT-128 · el comprobador de rótulos se pone rojo de verdad", () => {
+  test("caza el rótulo exacto que se coló en la ronda 1", () => {
+    const problemas = comprobarEtiquetas({
+      atrasados: { etiqueta: "Seguimientos atrasados", unidad: "oportunidades" },
+    });
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]).toContain("no nombra su unidad");
+  });
+
+  test("y caza cualquier otro desajuste, no sólo ése", () => {
+    // Una lista negra de textos prohibidos pasaría esto en verde.
+    const problemas = comprobarEtiquetas({
+      valor: { etiqueta: "Clientes activos", unidad: "dinero" },
+      abiertas: { etiqueta: "Tareas pendientes", unidad: "oportunidades" },
+    });
+    expect(problemas).toHaveLength(2);
+  });
+
+  test("y NO grita con las etiquetas coherentes (no es un control que grita siempre)", () => {
+    expect(
+      comprobarEtiquetas({
+        abiertas: { etiqueta: "Oportunidades abiertas", unidad: "oportunidades" },
+        valor: { etiqueta: "Valor en juego", unidad: "dinero" },
+      }),
+    ).toEqual([]);
   });
 });

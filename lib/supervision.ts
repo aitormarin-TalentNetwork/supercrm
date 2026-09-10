@@ -112,3 +112,65 @@ export function construirComparativa<TId extends string>(
 
   return filas.sort((a, b) => b.openAmount - a.openAmount);
 }
+
+/** Cada cifra visible de /supervision, junto a LA UNIDAD QUE MIDE DE VERDAD.
+ *
+ *  AIT-128 (ronda 2). El rótulo y la unidad viven aquí juntos porque el defecto
+ *  de esta ficha se repitió DENTRO de su propio arreglo: se revisaron cinco
+ *  rótulos y se quedaron fuera los dos que nombran la métrica reinterpretada.
+ *  "Seguimientos atrasados" seguía puesto sobre un número que cuenta
+ *  OPORTUNIDADES, no seguimientos.
+ *
+ *  Las pruebas comparaban números y nadie comparaba textos, así que el rótulo
+ *  falso pasaba en verde. `comprobarEtiquetas()` cierra eso: una etiqueta que
+ *  no nombra su propia unidad pone la suite en rojo.
+ */
+export const METRICAS = {
+  comerciales: { etiqueta: "Comerciales", unidad: "personas" },
+  abiertas: { etiqueta: "Oportunidades abiertas", unidad: "oportunidades" },
+  valor: { etiqueta: "Valor en juego", unidad: "dinero" },
+  // El número cuenta OPORTUNIDADES abiertas con seguimiento vencido, no
+  // seguimientos: decía "Seguimientos atrasados" sobre una unidad que no es ésa.
+  atrasados: { etiqueta: "Oportunidades atrasadas", unidad: "oportunidades" },
+  interacciones: {
+    etiqueta: "Interacciones (30 días)",
+    unidad: "interacciones",
+  },
+} as const;
+
+/** Con qué palabras se nombra cada unidad. Deliberadamente por VOCABULARIO y no
+ *  por una lista de textos prohibidos: un rótulo nuevo que se desincronice tiene
+ *  que caer igual, y una lista negra sólo caza los errores que ya conocemos. */
+const SUSTANTIVOS_POR_UNIDAD: Record<string, readonly string[]> = {
+  personas: ["comercial", "comerciales", "persona", "personas", "equipo"],
+  oportunidades: ["oportunidad", "oportunidades"],
+  dinero: ["valor", "importe", "euros"],
+  interacciones: ["interaccion", "interacciones"],
+};
+
+function sinTildes(t: string) {
+  return t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/** Devuelve los desajustes entre lo que una etiqueta NOMBRA y lo que MIDE.
+ *  Vacío = coherentes. */
+export function comprobarEtiquetas(
+  metricas: Record<string, { etiqueta: string; unidad: string }> = METRICAS,
+): string[] {
+  const problemas: string[] = [];
+  for (const [clave, m] of Object.entries(metricas)) {
+    const permitidos = SUSTANTIVOS_POR_UNIDAD[m.unidad];
+    if (!permitidos) {
+      problemas.push(`${clave}: unidad desconocida "${m.unidad}"`);
+      continue;
+    }
+    const palabras = sinTildes(m.etiqueta).split(/[^a-z0-9]+/).filter(Boolean);
+    if (!palabras.some((p) => permitidos.includes(p))) {
+      problemas.push(
+        `${clave}: la etiqueta "${m.etiqueta}" no nombra su unidad (${m.unidad}); ` +
+          `se esperaba alguna de: ${permitidos.join(", ")}`,
+      );
+    }
+  }
+  return problemas;
+}
