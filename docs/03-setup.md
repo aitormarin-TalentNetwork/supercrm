@@ -418,11 +418,26 @@ distintos:
 | `authAccounts` vacía, o el login no reconoce el email | **NO existe** | **aquí, §6quinquies** |
 | El login falla con `InvalidSecret` (existe, pero la contraseña no casa) | **SÍ existe** | **§6quater** |
 
-**Por qué son dos procedimientos y no uno:** usan funciones distintas de Convex Auth con
-**precondiciones opuestas** — `createAccount` falla si la cuenta ya existe;
-`modifyAccountCredentials` falla si no existe. Un procedimiento único que ramificara por
-dentro no te diría en qué rama estás hasta la mitad, que es justo lo que necesitas saber
-antes de empezar.
+**Por qué son dos procedimientos y no uno:** hacen cosas distintas y **ninguno de los dos
+sirve para el caso del otro**. La siembra **solo crea cuentas que faltan** y nunca toca la
+credencial de una que ya exista; `modifyAccountCredentials` es justo lo contrario —cambia
+la credencial de una cuenta existente— y falla si no existe. Un procedimiento único que
+ramificara por dentro no te diría en qué rama estás hasta la mitad, que es justo lo que
+necesitas saber antes de empezar.
+
+⚠️ **Ojo con una creencia extendida sobre `createAccount`, porque es falsa y esta guía la
+afirmaba hasta ahora:** *no* falla cuando la cuenta ya existe. Verificado en la fuente del
+paquete (`@convex-dev/auth` 0.0.94,
+`dist/server/implementation/mutations/createAccountFromCredentials.js:27-38`):
+
+- si la cuenta existe y **el secreto coincide** → **devuelve la existente, sin error**;
+- si existe y **el secreto no coincide** → lanza `Account <id> already exists`;
+- si no existe → la crea.
+
+O sea que **no es un guardia de unicidad**, y no conviene apoyarse en él como si lo fuera.
+Lo que garantiza que la siembra no pise una credencial existente es el **guardia explícito
+sobre la tabla `users`** que hace `seedPasswordAccounts` antes de llamarla — no la
+librería.
 
 ⚠️ **Solo dev/test.** Producción no se siembra por aquí: las cuentas reales del negocio son
 **Google-only** (ADR-003), y cambiar eso es AIT-113, que está sin decidir.

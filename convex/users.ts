@@ -187,8 +187,18 @@ export const bootstrapInitialAccounts = internalMutation({
 // provider rechaza). Sin cuentas, la suite e2e no puede correr allí.
 //
 // LO QUE ESTO **NO** ES, y la distinción decide qué función usar:
-//   la cuenta NO existe  -> AIT-99, aquí: `createAccount`, falla si YA existe
+//   la cuenta NO existe  -> AIT-99, aquí: `createAccount`
 //   la cuenta SÍ existe  -> AIT-102: `modifyAccountCredentials`, falla si NO
+//
+// ⚠️ `createAccount` NO "falla si ya existe" — eso decía este comentario hasta
+// la ronda 2 y era falso. Verificado en la fuente del paquete
+// (`dist/server/implementation/mutations/createAccountFromCredentials.js:27-38`,
+// @convex-dev/auth 0.0.94): si la cuenta ya existe, **devuelve la existente
+// cuando el secreto COINCIDE**, y solo lanza `Account <id> already exists`
+// cuando NO coincide. O sea que no es un guardia de unicidad.
+// Lo que separa de verdad los dos procedimientos es el guardia explícito
+// sobre `users` de más abajo, no una precondición de la librería: esta siembra
+// NUNCA actualiza la credencial de una cuenta ya creada. (Hallazgo M5.)
 // Son precondiciones opuestas y modos de fallo opuestos. Cambiar
 // SEED_OWNER_PASSWORD/SEED_SALES_PASSWORD **no** cambia la contraseña de una
 // cuenta ya creada: para eso, docs/03-setup.md §6quater.
@@ -358,6 +368,22 @@ export const seedPasswordAccounts = internalAction({
         continue;
       }
 
+      // SEGUNDO GUARDIA, YA DENTRO DEL CLAIM. El de arriba se lee ANTES de
+      // reclamar, así que no protege del interleaving en el que otra ejecución
+      // crea la cuenta y libera su claim mientras nosotros veníamos de camino:
+      // esta ejecución reclamaría un claim libre y llegaría a `createAccount`
+      // con la cuenta ya creada. El claim solo excluye a quien coincide DENTRO
+      // de la ventana; no dice nada de lo que pasó antes de entrar en ella.
+      // (Hallazgo M2 de la auditoría de código, ronda 1.)
+      if (await ctx.runQuery(internal.users.getUserByEmail, { email })) {
+        await ctx.runMutation(internal.users.releaseBootstrapSlot, { claimKey });
+        omitidas.push({
+          email,
+          motivo: "ya existía al reclamar (otra ejecución la creó antes)",
+        });
+        continue;
+      }
+
       let creationError: unknown = null;
       try {
         await createAccount(ctx, {
@@ -367,6 +393,21 @@ export const seedPasswordAccounts = internalAction({
         });
       } catch (err) {
         creationError = err;
+      }
+
+      // UN ERROR DE `createAccount` NUNCA SE CONVIERTE EN ÉXITO, aunque la
+      // consulta de abajo encuentre al usuario: si lanzó, esa fila la creó
+      // OTRA ejecución, no ésta, y su credencial puede ser otra. Declararla
+      // en `creadas` sería afirmar dos cosas falsas —que la creamos nosotros
+      // y que la contraseña es la de nuestra variable—. (M2.)
+      if (creationError) {
+        await ctx.runMutation(internal.users.releaseBootstrapSlot, { claimKey });
+        throw new Error(
+          `Fallo creando la cuenta ${email}: createAccount lanzó un error. NO se ha ` +
+            `dado por creada aunque exista ahora una fila para ese email — puede haberla ` +
+            `creado otra ejecución, con otra credencial. Revisa a mano "authAccounts" y ` +
+            `"users" en el dashboard de Convex. Error original: ${creationError}`,
+        );
       }
 
       // COMPROBACIÓN POR EFECTO, no por el try/catch: si ya hay una cuenta
@@ -379,11 +420,14 @@ export const seedPasswordAccounts = internalAction({
       });
       if (!created) {
         await ctx.runMutation(internal.users.releaseBootstrapSlot, { claimKey });
+        // Aquí `creationError` es necesariamente null: el caso contrario ya
+        // lanzó arriba. Así que este mensaje describe UN SOLO escenario, y
+        // puede decirlo sin ramificar.
         throw new Error(
-          `Fallo creando la cuenta ${email}. Antes de reintentar, revisa a mano las tablas "authAccounts" y "users" en el dashboard de Convex.` +
-            (creationError
-              ? ` Error original: ${creationError}`
-              : " createAccount no lanzó ningún error explícito; probablemente ya existe una cuenta huérfana en authAccounts para este email."),
+          `Fallo creando la cuenta ${email}: createAccount no lanzó ningún error ` +
+            `explícito pero no hay fila en "users". Lo más probable es que ya exista ` +
+            `una cuenta huérfana en "authAccounts" para ese email. Revísalo a mano en ` +
+            `el dashboard de Convex; no lo reintentes a ciegas.`,
         );
       }
 
