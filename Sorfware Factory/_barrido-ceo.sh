@@ -205,7 +205,40 @@ done
 echo "  (una terminal en fase de plan tiene 'codigo' viejo y 'export' reciente: eso es SANO)"
 
 # --- 6. Lo que este script NO puede hacer -----------------------------------
+# --- 5ter. INSUMO PARA EL CRUCE DEL CENSO (diseno del Factory Architect, 3aa237a) ---
+# Imprime QUE WORKTREES tienen transcript fresco. El script NO concluye nada con esto:
+# el cruce lo hace el agente en el censo, contra lo que cada sesion DECLARE de si misma.
+# 🔑 POR QUE ASI Y NO AUTOMATICO: **no existe ninguna clave estable que una un transcript
+# con una sesion.** Ni el nombre ni el [ref] (los dos caducan; hoy van 3 relanzamientos),
+# ni el cwd (cambia solo, D25). **La unica fuente fiable es que la sesion diga de si misma
+# donde vive**, y eso solo existe preguntando. Cualquier cruce automatico que no pase por
+# ahi esta inventando una clave que no existe.
+echo ""
+echo "--- worktrees con transcript FRESCO (insumo del cruce; NO concluye nada) ---"
+PROY="/Users/aitor/.claude/projects"
+AHORA_S=$(date -u +%s)
+for D in $(ls -d "$PROY"/-Users*Vibe-Coding-Sorfware-Factory--worktrees-* 2>/dev/null); do
+  WT=$(basename "$D" | sed 's/.*--worktrees-//')
+  MEJOR=""
+  for F in "$D"/*.jsonl; do
+    [ -e "$F" ] || continue
+    T=$(/usr/bin/grep -oE '"timestamp":"[0-9T:.Z-]+"' "$F" | tail -1 | /usr/bin/grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+')
+    [ -n "$T" ] || continue
+    SEC=$(date -u -j -f "%Y-%m-%dT%H:%M:%S" "$T" +%s 2>/dev/null) || continue
+    M=$(( (AHORA_S-SEC)/60 ))
+    if [ -z "$MEJOR" ] || [ "$M" -lt "$MEJOR" ]; then MEJOR=$M; fi
+  done
+  [ -n "$MEJOR" ] || continue
+  if [ "$MEJOR" -le 40 ]; then printf "  FRESCO  %-16s ultimo evento hace %s min\n" "$WT" "$MEJOR"; fi
+done
+echo "  🔴 UN WORKTREE FRESCO QUE NINGUNA SESION VIVA RECLAME = TERMINAL MUERTA SIN ADVERTIR."
+echo "     Es el unico estado que NO ve ninguno de los dos instrumentos por separado:"
+echo "     el transcript no se borra al morir la ventana (parece activa hasta 40 min),"
+echo "     y despues una MUERTA es indistinguible de una ESPERANDO. Solo ListAgents"
+echo "     distingue muerta de callada, y el vigilante no lo mira."
+
 cat <<'PEND'
+
 
 --- PENDIENTES DEL AGENTE (este script NO las cubre; no las des por hechas) ---
   (a) `ListAgents` + cruce con `Sorfware Factory/_registro-agentes.txt`.
@@ -299,6 +332,26 @@ cat <<'PEND'
       no es "¿por que esta parado?" sino **"¿le ha llegado algo y no lo ha contestado?"**,
       que si es medible: su ultima respuesta a un mensaje. (Del propio Factory Architect,
       2026-09-10 09:57Z.)
+  (b-bis) 🔑 CRUCE DE MUERTE NO ADVERTIDA (diseno del Factory Architect, 3aa237a; lo
+      ejecuta el CEO porque el FA decide el proceso y NUNCA lo implementa el mismo).
+      En el censo, **pide a cada desarrollador que declare SU WORKTREE** (`pwd -P`), NO su
+      nombre — el nombre y el [ref] caducan. Cruza esas declaraciones contra la lista
+      "worktrees con transcript FRESCO" que imprime la seccion 5ter.
+      **CANTA SI: hay un worktree con transcript fresco que NINGUNA sesion viva reclama.**
+      SOLO EN EL CENSO. Ningun control periodico nuevo: con el sistema sano no dispara
+      jamas, y un vigilante mas seria un control que grita en verde (se aprende a ignorar)
+      y un cuarto proceso que el sistema puede matar.
+      ⚠️ LO QUE NO CUBRE, DECLARADO: si el censo no corre, el cruce no corre. **No detecta
+      una muerte en tiempo real y no lo pretende.** Detecta una muerte NO ADVERTIDA ENTRE
+      DOS CENSOS — que es el caso real del 2026-09-10 10:35Z: T4 se cerro, el vigilante la
+      dio por activa 21 min mas, y despues la habria dado por "quieta", indistinguible de
+      "esperando", con las otras tres produciendo y nada gritando.
+      📌 Y POR QUE NO SE PUEDE CONTAR EN VEZ DE PREGUNTAR (mi propuesta, tumbada por el FA
+      y con razon): "N worktrees frescos vs N sesiones vivas" NO compara lo mismo — las
+      sesiones vivas incluyen los seis roles de raiz, que inflan el lado derecho y hacen
+      que la desigualdad casi nunca dispare. Y separarlos exige reconocer cuales son
+      desarrolladores, **que es emparejar por nombre otra vez por la puerta de atras**.
+      **Contar tampoco escapa de la identidad: solo la esconde.**
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
       viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
       CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
