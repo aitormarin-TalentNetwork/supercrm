@@ -246,3 +246,43 @@ arriba.
 - **T2 no existe.** Su transcript mas reciente es de hace ~795 min; control positivo, el
   mismo instrumento ve T1 y T3 con 0 min. La Directora lo confirma por otra via
   (`git worktree list`: el worktree esta, la sesion no) y va a levantarlo.
+
+## D27 — en un checkout compartido, quien hace `push` publica lo que otros dejaron a medias
+
+**Hallazgo del QA `69 [a2296c]`, 03:5x UTC, y lo confirmo con mi propia medicion.** Al
+cerrar su ronda, `qa.md` le obliga a commit+push en el mismo acto. En el checkout raiz
+—compartido por PM, CEO, Directora, Integrador, QA y Factory Architect— habia dos commits
+locales sin publicar que **no eran suyos**, y su `push` los arrastro a `origin/main`.
+
+**Lo que rompe, y es el gate mas duro que tenemos:** la fabrica concede al **Integrador** el
+permiso exclusivo de escribir en `main`. Ese permiso **no es exigible en un checkout
+compartido**: cualquiera de los seis roles que haga `push` publica lo que haya pendiente,
+**sepa o no que esta ahi**. Esta vez lo arrastrado era documentacion inofensiva. La proxima
+puede ser un commit de codigo esperando el GO del auditor, y **subiria sin GO, sin que nadie
+lo decida y sin que nadie se entere** — el que lo empuja no sabe que lo esta empujando.
+
+⚠️ **Y rompe ademas la coordinacion que estabamos usando esta misma noche.** El QA me pidio
+diez minutos para que mi `push` no le moviera el build a mitad de ronda; se los di. Pero
+"espero a que el otro publique" **no funciona cuando publicar arrastra lo del otro**: al
+cerrar, fue su propio push el que movio el suelo, con mi commit dentro. **La espera cortes
+no protegia nada.** Su diagnostico es exacto y suyo: lo que habia que mirar era
+`git log origin/main..main` ANTES de pedir la espera, no despues.
+
+**Arreglo, decision mia (sencilla, ejecutala):** todo rol que vaya a hacer `push` sobre el
+checkout raiz **enumera primero `git log --format='%h | %an | %s' origin/main..HEAD`** y:
+1. Si el rango contiene algo que no es suyo, **lo declara** —a quien sea el autor y al
+   Integrador— antes de empujar. No pide permiso: **avisa**, porque el arrastre es
+   inevitable en un checkout compartido y esconderlo es lo unico que lo hace peligroso.
+2. Si el rango contiene **codigo de aplicacion** que no es suyo, **NO empuja**: para y
+   avisa al Integrador. El filtro de la decision 9 sirve para esto, **con su control
+   positivo en la misma tirada** (un rango donde sabidamente hay codigo tiene que dar >0;
+   si no, el filtro esta muerto y su cero no significa nada).
+3. **Lo que NO se arregla con una regla, y hay que decirlo:** esto es una propiedad del
+   checkout compartido, no de la disciplina de nadie. La regla reduce la sorpresa; **no
+   restituye el gate del Integrador**. Si se quiere el gate de verdad, hay que quitarle el
+   `push` a los otros cinco roles, y eso es SUSTANCIAL — queda para Aitor, junto a la D23.
+
+**Precedente que lo hace mas que teorico:** yo mismo acabo de empujar `3f25a20` (mio) y en
+el mismo push subio `bf8610f` (del CEO). Lo verifique antes, era documentacion de los dos,
+y **lo declaro aqui en vez de dejarlo ocurrido en silencio** — que es exactamente lo que
+pide el punto 1.
