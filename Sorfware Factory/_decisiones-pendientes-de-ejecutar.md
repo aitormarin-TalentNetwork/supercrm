@@ -2090,3 +2090,108 @@ citada.**
 `55a9d3d` en menos de una hora**. **Un export escrito hace veinte minutos ya cita una punta que no
 existe.** Es la D56 llevada a la estructura del documento: **si la coordenada es un puntero, el
 documento tiene que decir cuales de sus datos lo son.**
+
+## 🔴 D57.1 — CORRIJO EL VERBO DE MI PROPIA D57: "declara" se lee como "escribe"
+
+**Dos terminales, la misma ronda, el mismo malentendido — o sea que el defecto es de mi redaccion,
+no de ellas:**
+```
+T4:  ">= 111 tests"      escrito en el criterio, nada lo evalua
+T2:  "FALLA si N < 38"   escrito en el criterio, nada lo extrae ni lo compara
+```
+**Los dos anadieron el numero que la D57 pedia y ninguno anadio algo que ABORTARA.**
+
+**El diagnostico es de T2 y es exacto:** *"la decision dice «declara un minimo» y «declarar» se lee
+como «escribir». Lo que me habria parado es «**ejecuta un control que aborte** por debajo del
+minimo». **El verbo es el que engana, no la cifra.**"*
+
+**D57 corregida:** *todo runner **EJECUTA UN CONTROL QUE ABORTA** por debajo de su minimo esperado.*
+No "declara". No "documenta". **Aborta.**
+
+📌 **Fila general, y es de las que sirven fuera de aqui: el VERBO de una regla decide si cumplirla
+produce un ARTEFACTO o un EFECTO.** *Declarar, documentar, indicar, especificar* → **se cumplen
+escribiendo**, y **se sienten cumplidos**. *Ejecutar, abortar, fallar, rechazar* → **se cumplen
+haciendo**. **La lectura facil de un verbo debil produce un criterio inerte que pasa auditoria**, y
+el autor no esta incumpliendo nada: **esta obedeciendo lo que puse.**
+
+## D60 — un control de NO-REGRESION es inmune a "el estado anterior" como mundo de fallo
+
+**Medido por T4.** Monto un runner con tres gates y lo declaro no-vacio ejecutandolo contra la base:
+```
+gate C2 contra la base -> FALLA
+gate C4 contra la base -> FALLA
+gate C5 contra la base -> 🔴 PASA
+```
+**La causa no es un descuido: C5 mide el vigilante, y el arreglo no lo toca** — el fichero es byte a
+byte identico en las dos puntas, **y el criterio existe precisamente para que siga siendolo**.
+
+> **Ejecutar un control contra un estado anterior solo lo hace no-vacio si su SUJETO DIFIERE entre
+> los dos estados.**
+
+⚠️ **Y lo peligroso es que la ejecucion conjunta sale ROJA igual**, asi que **el gate mudo queda
+tapado por los que si fallan**. La afirmacion *"una sola ejecucion hace no-vacios los tres"* era
+falsa **y nadie la habria comprobado**.
+
+📌 **Afecta a una CLASE entera: los controles de NO-REGRESION.** Todo criterio cuyo proposito sea
+*"esto debe seguir igual"* **es inmune por definicion a un mundo de fallo construido como «el estado
+anterior»**. Necesitan un **adversario FABRICADO** — T4 usara un vigilante deliberadamente roto que
+devuelva 0 para todo, y exigira que el gate lo suspenda. *(Es lo mismo que tuve que hacer yo con el
+vigilante de la D53: el caso que discrimina hubo que construirlo, el disco no lo daba.)*
+
+**Y la segunda mitad, tambien suya: el runner NO PUEDE CORTOCIRCUITAR.** Contra la base el resultado
+esperado **no es "no-cero": es `C2=FALLA · C4=FALLA · C5=PASA`, los tres nombrados** — asi **un runner
+que evalua mal no se esconde tras un exit agregado.**
+
+## D61 — sobre exports y veredictos, filtrar por longitud de linea ANTES de contar
+
+**Regla operativa. La pide el PM y me la traslada la Directora porque es proceso de fabrica.**
+> **Sobre exports y veredictos de este proyecto: `length < 300` ANTES de contar nada.**
+
+**Dos instrumentos independientes, el mismo fallo, la misma carpeta, cinco minutos de diferencia:**
+el `grep` del PM devolvio **507 KB de base64**; el enumerador de la Directora **conto dos etiquetas
+que nadie escribio** (`C6` y `C8`), sacadas de tres lineas de **24.607, 387.281 y 78.977
+caracteres** — JS minificado y fuentes incrustadas **dentro de un veredicto**. **Es una propiedad de
+esos ficheros, no mala suerte.**
+
+🔴 **Y EL HALLAZGO DE VERDAD ES OTRO: `C6` resultaba EXISTIR. O sea que el instrumento roto ACERTO.**
+Si el PM no llega a ir a la fuente, **ese acierto habria sido la prueba de que el metodo funcionaba**
+y `C8` se habria leido como un despiste suelto.
+
+> ***Un instrumento roto que acierta se valida solo. El acierto por accidente es mas peligroso que el
+> error, porque APAGA LA PREGUNTA.***
+
+✅ **Contramedida concreta, y refina la D54: el control positivo tiene que comprobar que lo devuelto
+es DEL TIPO BUSCADO, no solo que devuelve algo.** Contar etiquetas **y comprobar que sean etiquetas**.
+Un control de presencia dice *"el instrumento encuentra"*; **hace falta uno de tipo, que diga
+"encuentra LO QUE BUSCA"**.
+
+## D62 — una reescritura de ficha exige un diff contra la fuente, y la pregunta es QUE FALTA
+
+**Caso:** el PM reescribio AIT-127 entera de memoria y **se cayeron cuatro criterios de aceptacion,
+dos de ellos del alcance auditado.** Se restauraron desde el veredicto del auditor.
+
+**SI, hace falta el paso, y lo que lo hace replicable es COMO lo pidio el, no que lo pidiera:** pidio
+que alguien mirara **QUE HABIA DESAPARECIDO**, no que estaba mal. Su razon: ***mirar lo que escribio
+es mirar donde el fallo no puede estar.***
+
+**Regla:** *toda reescritura de una ficha o documento hecha de memoria se compara contra la fuente
+antes de publicarse, y la pregunta del comparador es **"¿que falta?"**, nunca "¿que esta mal?".*
+**Una omision no se ve leyendo lo escrito: solo se ve enumerando la fuente.**
+
+## Fila — el rigor se concentra donde ya dolio y el hueco se muda al eje de al lado
+
+**Tres roles, cuatro horas, mismo mecanismo. La Directora no trae propuesta y pide que, si se nombra,
+se nombre con las instancias. Van las tres:**
+- **T4** persigue *"verde sin mirar"* en un comprobador **y su plan trae cinco criterios que dan verde
+  sin ejecutar**.
+- **T2** descubre que un positivo por otro recorrido no vale, rehace el positivo **y lo rehace por el
+  recorrido viejo**.
+- **La Directora** le pone el filtro de longitud a su vigilante de auditorias por el aviso de T4 **y
+  no se lo pone al enumerador que corria sobre los mismos ficheros media hora despues**.
+
+**Lo unico accionable que le veo, y es barato — no es "mas cuidado":** **cuando arregles un
+instrumento por un defecto D, ENUMERA en ese mismo acto los otros instrumentos que comparten su
+ENTRADA, y aplicaselo.** No los que se parecen: **los que leen lo mismo.** El caso de la Directora es
+exactamente eso — dos instrumentos suyos sobre los mismos ficheros, arreglado uno. **La enumeracion
+es corta y se hace mientras tienes el defecto en la cabeza**, que es el unico momento en que es
+gratis.
