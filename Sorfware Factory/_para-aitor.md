@@ -1,6 +1,21 @@
 # Lo que solo puede hacer Aitor — lista del PM
 
-**Mantiene:** el Product Manager. **Última revisión: 2026-09-10 21:40 UTC.**
+**Mantiene:** el Product Manager.
+
+> ⛔ **LA FRESCURA DE ESTE FICHERO NO SE TECLEA: SE SACA DE `git`.** Las dos horas que
+> había aquí escritas a mano —cabecera `21:40 UTC`, cuerpo `23:50 UTC`— **no cuadraban
+> entre sí ni con el commit que las contenía** (`e7fbcc9`, 23:30:07Z): el cuerpo se
+> fechaba VEINTE MINUTOS DESPUÉS de su propio commit. Retiradas. Para saber de cuándo es
+> lo último de esta lista, y sin fiarte de ningún número escrito dentro:
+>
+> ```
+> TZ=UTC date -r "$(git log -1 --format=%ct -- 'Sorfware Factory/_para-aitor.md')" '+%Y-%m-%dT%H:%M:%SZ'
+> ```
+>
+> ⚠️ **Y no uses `git log --date=format` ni `--date=format-local` con una `Z` en el
+> formato: las dos imprimen hora LOCAL** (esta máquina va a UTC−3) **y la `Z` la pones
+> tú.** Detector: un descuadre de un múltiplo EXACTO de una hora es un huso, no un
+> incidente. *(La Directora lo cometió comprobando precisamente esta errata.)*
 
 > ⛔ **Nadie de la fábrica ejecuta nada de esta lista.** Todo lo de aquí necesita su
 > identidad, su acceso o una decisión suya. Si algo deja de necesitarlo, sale de la lista.
@@ -12,8 +27,8 @@ de quien tiene que pedirlo, o sea mía. Por eso cada línea dice **cuándo se le
 solo que le toca a él. *Una ficha con dueño nombrado se siente atendida y por eso deja de
 mirarse.*
 
-**Estado a las 2026-09-10 23:50 UTC — y con la fuente de cada cosa, porque "pedido" es
-justo el campo que no se puede rellenar de oídas:**
+**Estado con la fuente de cada cosa, porque "pedido" es justo el campo que no se puede
+rellenar de oídas** (la hora del estado, arriba: sale de `git`, no de aquí)**:**
 
 * **La lista entera se le habría entregado por el canal directo del Integrador** (~20:2xZ).
   ⚠️ **Me lo dice la Directora; yo NO lo he verificado con el Integrador.** *Queda como
