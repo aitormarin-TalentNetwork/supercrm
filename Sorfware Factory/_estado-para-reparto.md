@@ -2358,3 +2358,198 @@ FRASE.** Es una reescritura y **depende de la respuesta del CEO.**
     T1 ... tramo 1 congelado (212 lineas, cuerpo c4c00de0), TERCERO en cola. AIT-139 esperando al CEO.
     T2 ... r9 en su scratchpad, FUERA de `codigo para auditar/` a proposito, sin cierre ni hash.
     T3 ... AIT-143 r15 EN AUDITORIA desde 22:28:29Z.
+
+## 22:52Z — AIT-145 a un major del GO, y los duplicados tienen mecanismo vivo
+
+### 🟢 AIT-145 r10 · M9-2, M11-1, M11-2 y M11-3 RESUELTOS. Solo queda M9-1
+Y lo que queda es mecanico: **la receta del paso 0 no es ejecutable sin interpretacion** — cuatro
+puntos: deployment nombrado, terminacion reproducible de `convex logs`, **separacion entre la
+llamada testigo y la ventana de recuento cero**, y derivados.
+📌 El tercero es el unico con miga: **la llamada testigo ES una invocacion de la ruta vieja**, asi
+que si cae dentro de la ventana, **el propio control positivo contamina el sujeto**. Misma clase
+que el testigo de cookies de M12.
+
+**PKCE AUTORIZADO POR EL PM (a), con cuatro limites** — y el argumento que descarta mi lectura:
+> *"runId/enganche: beneficio EXCLUSIVO del arnes. **PKCE: propiedad de SEGURIDAD DEL PRODUCTO**,
+> gana el usuario real y ganaria igual aunque no existiera ninguna prueba."*
+⛔ **Yo le habia llevado "es la tercera vez que el producto paga por el arnes" — un PARECIDO DE
+FORMA presentado como PRECEDENTE.** El catalogo como atajo, cometido en el mensaje donde le pedia
+que decidiera con cuidado. **El separo por a quien BENEFICIA; yo habia agrupado por a quien
+CUESTA.**
+
+🔴 **Y EL LIMITE 2 DEL PM ABRIA UN AGUJERO, lo encontro T2 al escribirlo:**
+> *"Si una fila SIN verificador es una fila VALIDA, canjear sin verificador es exactamente el
+> mundo de antes de PKCE. **La ligadura se caeria por la puerta que abre su propio requisito de
+> compatibilidad.**"*
+> **"Sin criterio explicito, gana el de compatibilidad EN SILENCIO — porque de los dos
+> requisitos, el de no romper lo viejo es el unico que produce un ERROR si se incumple. El otro
+> solo produce un agujero."**
+**Cierre en tres piezas: opcional en el SCHEMA · obligatorio en la ESCRITURA · exigido en el
+CANJE.** Y el PM **le quito la pata fragil**: *"aunque la caducidad fuera falsa, la decision no
+cambia: el peor caso de rechazar una fila vieja es que el usuario VUELVA A PULSAR EL BOTON. Eso
+no es romper compatibilidad, es un reintento."* Mas su reformulacion: **"aditivo significa QUE NO
+HAY QUE MIGRAR DATOS, no que el sistema deba seguir aceptando lo que el cambio existe para
+rechazar."**
+
+### AIT-149 · el recibo que no escribio el autor
+Mi corazonada del enmascaramiento (si `opportunities:remove` borra los `nextSteps`, volver a la
+base es compatible con "nunca se creo") la resolvio T1 mejor que con el orden del log:
+> **"Las filas de idempotencia SOBREVIVIERON y apuntan a lo creado. La limpieza no puede
+> enmascarar una creacion que dejo su propio RECIBO — y el recibo no lo escribi yo, lo escribio
+> `createQuick`."**
+*El orden de un log lo escribe el autor; una fila que liga llamante con oportunidad la escribio
+el sistema auditado.* **El mismo residuo que era un inconveniente es hoy la prueba.**
+Y su distincion que corrige mi relay: **"las SALIDAS si estaban; lo que faltaba eran los
+COMANDOS. Una salida sin su comando se lee pero no se reproduce: es una CITA, no una medicion."**
+⚠️ Yo habia relayado *"la evidencia primaria no esta"*, mas ancho de lo que el auditor dijo
+(*"no puedo rederivar"*). **Endureci la frase al pasarla.**
+
+### 🔴 LOS DUPLICADOS: 63, NO 35 — Y EL MECANISMO SIGUE ACTIVO
+**Mi barrido de las 22:37 conto 35; el de las 22:44, mismo comando y sin silenciar stderr, 63.**
+En el primero **T2 salia con CERO** y tiene **18**. Los 28 que faltaban **no son nuevos**: el que
+lo destapo nacio el 4 de septiembre. **No se por que el primero fue bajo y no lo invento.**
+> **UN BARRIDO QUE SUBESTIMA NO FALLA RUIDOSAMENTE: ENTREGA CALMA.** Y reparti *"35, y solo 4
+> importan"* con autoridad de medicion, cerrando el arbitraje. *Reverso del control que grita 61
+> veces: al ruidoso alguien acaba mirandolo.*
+
+    12 documentos de PROCESO (intro-terminal 2.txt, director/pm/ceo/integrador 2.md...)
+     6 de CODIGO y producto: Avatar 2.tsx (la version ANTES de AIT-129, con el bug de las
+       iniciales ya publicado como arreglado), authState 2.ts, check-e2e-preconditions 2.mjs,
+       docs/03-setup 2.md, prd 2.md, 00-e2e-preconditions.spec 2.ts
+
+**El FA decide borrar los doce**, medido: los 12 untracked, canonico existe para los 12, **el
+canonico es SUPERCONJUNTO en todos**, y abrio las 17 lineas unicas de README una a una. Guarda
+por fichero: *se borra solo si el canonico existe; si falta, se renombra y ESO ES UN HALLAZGO.*
+⛔ **Y su correccion a mi lectura del riesgo:** *"que alguien lea `director 2.md` exige abrir un
+fichero con un 2. **Lo que no exige nada es un `git add -A` desde T2**"* — con antecedente medido
+esta noche (`_turno-raiz.log`).
+🟢 **`.gitignore` de `* 2.*` condicionado a que un barrido periodico se los quede: LO ASUMO YO**,
+con el recuento de la vuelta anterior al lado.
+🔴 **Y el mecanismo sigue vivo:** `migracion-fuera-de-icloud.md:3` — *"decidido el 2026-09-09, NO
+EJECUTADO TODAVIA"*; once duplicados del dia 9 **y uno de hoy a las 07:31**. *Un aplazamiento que
+fabrica trabajo mientras espera deja de ser un aplazamiento gratis.* Va a Aitor.
+⚠️ **Y el instrumento fallido del FA es el peor de la noche:** `case "$PWD" in *Mobile\ Documents*`
+le dijo "NO esta en iCloud" — **y la sincronizacion de Documentos DEJA LA RUTA EN `~/Documents`**.
+> **"Mi comprobacion solo descarta UNA FORMA DE RUTA, no el mecanismo. Habria reportado un «no»
+> tranquilizador de un instrumento INCAPAZ DE DAR EL «SI»."**
+
+### 🔴 Y MI SEGUNDA DE LA MISMA FORMA
+Le dije a T2 *"los seis duplicados ya estan en el FA"* **y no se los habia mandado.** Lo escribi
+como hecho mientras lo pensaba. **Segunda vez esta noche** — la primera fue el convenio `4/5/6`.
+
+### Ocupacion 22:52Z
+    T1 ... AIT-149 tramo1 r3 congelada, SEGUNDA en cola
+    T2 ... AIT-145 r11: solo M9-1, los cuatro puntos del paso 0
+    T3 ... AIT-143 r17 EN AUDITORIA desde 22:50:15Z
+
+## 23:05Z — el hueco de la convención, y un GNU-ismo por cada dirección
+
+### 🔑 EL HASH NO PROTEGE AL MUNDO DEL FICHERO (T2), y ya esta tapado
+> **"Es «un veredicto de una version desconocida» POR EL OTRO EXTREMO: no cambio el fichero,
+> CAMBIO EL MUNDO CONTRA EL QUE DICE MEDIRSE."** Cierto al escribirlo, falso al usarlo, **y sin
+> chirriar: el numero seguia ahi, perfectamente formado.**
+
+**Adoptado en mi disparo:** comparar la punta declarada del cierre con `origin/main`. **Salto en su
+primer uso sobre DOS exports** — T2 (35 commits) y T3 (14), y **T3 no sabia que la suya lo estaba.**
+⛔ **Y con la SEGUNDA MITAD, que es la que lo hace legible: medir si esos commits tocan la
+huella.** En T3, 0 de 14 (control: 13 tocan `Sorfware Factory/`). **Caducada en el NUMERO, no en
+el SUJETO.** *La distancia es el disparador; la huella es el veredicto* (formulacion del FA).
+📌 Y el FA cierra su propia cuenta: *"cuando firme la convencion escribi «ata la version, no dice
+que sea la punta — son dos comprobaciones». **Declare la segunda y no la construi.**"*
+> **UN LIMITE DECLARADO NO ES UNA TAREA ASIGNADA.** Quedo escrito, correcto y sin dueño tres
+> horas, y **lo cerro que alguien tropezara con el caso, no el catalogo.**
+
+### 🔴 DOS GNU-ISMOS MIOS EN UNA NOCHE, Y LA COMPARACION QUE LOS ORDENA
+Mi `sed 's/\(punta\|base\)/'` — **alternacion de GNU en un BSD**, la misma familia que mi
+`head -n -1`. Dio VACIO en los dos exports.
+✅ **Falló hacia "no puedo comparar" y lo cazo MI PROPIA REGLA de decir en voz alta que significa
+un vacio.** La frase *"VACIO: el cierre no declara punta con 40 hex"* es lo que impidio leerlo
+como "todo al dia".
+🔑 **Y la comparacion de T2, que es la que hay que retener:**
+> **Mi `sed \|` fallo hacia "NO PUEDO COMPARAR". Su `timeout` fallo hacia "NO APARECE LA COPIA".
+> Misma familia, direcciones opuestas. La mia me obligo a mirar; la suya le habria dejado
+> tranquilo.** *Ninguno de los dos lo elegimos: lo eligio el sitio del pipeline donde estaba el
+> comando ausente.*
+⛔ Y el FA lo usa contra su propia resta: *"una receta que viaja con su salida pegada NO PUEDE
+estar sin ejecutar. Tus dos habrian sido imposibles bajo la resta — **y no te alcanzo porque la
+resta es TEXTO y no cruza ningun paso obligatorio**."* **Primera instancia medida de que la resta
+no basta sola, con dos horas de vida.**
+
+### AIT-143 r18 · M1.1 CERRADO. La cache de modulos rompe la marca de fichero
+> **M1.2: "la marca de fichero no identifica necesariamente al FICHERO CONSUMIDOR."**
+El modulo del gate **se carga UNA VEZ POR WORKER**: si dos specs comparten worker, el segundo no
+produce marca **y la regla lo acusaria de no haber importado**. *El observable SI procede del
+sistema, pero mide otra cosa de la que dice medir.* Alcance: **negativo de DOS SPECS EN UN
+WORKER.** Mas M1.3, segunda ronda con *el numero declarado no es el numero fabricado*.
+✅ Y las quince referencias de impostores, correctas por primera vez.
+
+### AIT-145 r11/r12 · M11 CERRADO, y la ceguera declarada hacia el verde
+**M9-1 pedia tres cosas y T2 las cierra con el dato, no con el juicio:**
+- *"El orden en que el CLI imprime no es un dato: es una PRESENTACION."* -> frontera por
+  `timestamp` del evento crudo; **testigo A SEÑALADO y no supuesto**; ventana estrictamente
+  mayor; **y un testigo B al final** que acredita que la captura siguio viva.
+- ⛔ **Y DECLARA LA CEGUERA, que va hacia el verde:** `timestamp` tiene resolucion de segundo,
+  asi que **una invocacion real en el mismo segundo que A contaria de menos**. Regla: *si algo
+  comparte segundo con A, NO CONCLUYENTE y se repite.* **NO SE AJUSTA EL CRITERIO PARA QUE PASE.**
+- Y "suficientemente ancha" deja de ser juicio: **umbral escrito ANTES de mirar el dato** (*"uno
+  fijado a posteriori acaba justo por debajo de lo que salio"*) **+ suelo calculado del propio
+  dato**: mas larga que el mayor hueco entre entradas consecutivas — *"si el deployment se calla
+  tramos mas largos que mi ventana, mi cero es indistinguible de ese silencio."*
+📌 **Y me corrige una regla que yo citaba como gratis:** tener un solo fichero suyo en la carpeta
+me protege de disparar sobre el viejo **y le quita al auditor la comparacion entre rondas**.
+> **Una regla que se transmite sin su precio se incumple la primera vez que el precio aparece.**
+
+### AIT-149 tramo 1 · r3 y r4
+🔴 **El auditor EJECUTO lo que T1 habia pegado y el contador FALLABA** (`NameError`, exit 1).
+Causa suya: *"lo habia limpiado para que se leyera mejor"*.
+> **UN COMANDO ABREVIADO ES PEOR QUE NINGUN COMANDO: parece rederivable y no lo es. Sin el, el
+> lector sabe que le falta algo; con el, cree tenerlo.**
+🔴 **Y su `$?` detras de un pipe**, en la seccion "controles a este propio export": *"un `$?`
+despues de un pipe mide el ultimo eslabon, y el ultimo eslabon casi siempre tiene exito."*
+Corregido **y escrito dentro del export, no borrado.**
+✅ **Y retira el alcance de su propio recibo:** cubre UN TERCIO. *"Lo presente como si cerrara el
+punto entero porque me parecio elegante, y lo elegante viaja mas ancho de lo que mide."*
+⚠️ **Y yo lo ensanche al relayarlo** — segunda vez esta noche con sus mensajes. **Cuando algo me
+parece elegante lo repito mas ancho de lo que es.**
+
+### Ocupacion 23:05Z
+    T1 ... tramo1 r4 EN AUDITORIA desde 23:03:47Z
+    T2 ... AIT-145 r12 congelada, rebasada a 77838c5, SEGUNDA en cola
+    T3 ... AIT-143 r19: marca por spec bajo cache de modulos + aritmetica de C18
+
+## ⛔⛔ 23:09Z — EL CUPO DE CODEX SE HA AGOTADO. LA PUERTA DE AUDITORIA ESTA CERRADA
+
+    ERROR: You've hit your usage limit. ... or try again at Sep 15th, 2026 6:52 AM.
+
+**Medido, no deducido:** la r12 de AIT-145 se disparo a las 23:08:05Z, **murio a los 34 s con 0
+lineas de veredicto** y 7.705 bytes, con ese mensaje DOS VECES al final. El proceso ya no corre.
+**La ultima ronda buena termino a las 23:06:41Z (T1 tramo1-r4). La siguiente, 84 segundos
+despues, ya no tenia cupo.**
+
+⛔ **CONSECUENCIA: no se puede auditar nada hasta que Aitor compre creditos o hasta el 15 de
+septiembre.** Las tres fichas estan a mitad de bucle y las tres dependen del gate:
+
+    AIT-145 (T2) · r12 disparada y MUERTA · quedaba UN major (M9-1) y estaba cerrandose
+    AIT-143 (T3) · r19 congelada 23:05:18Z, SIN DISPARAR · quedaban dos, ambos cerrados en la r19
+    AIT-149 (T1) · tramo1 r5 por escribir · quedaban SOLO los autocontroles, ronda de forma
+
+**Las tres estaban a una o dos rondas del GO.** *El cupo no se agoto por una ronda cara: se agoto
+por el volumen del dia — hoy se han disparado del orden de treinta.*
+
+**LO QUE HE HECHO:** parar la cola, avisar a los tres para que NO congelen mas (congelar sin poder
+disparar produce artefactos que envejecen), escalar al CEO como bloqueo operativo —es lo que dice
+`CLAUDE.md` para un sistema externo caido— y al PM para que decida que hacen los tres mientras
+tanto. **Va a la lista de Aitor: es la SEGUNDA de cupo del dia, con AIT-120 (Convex por encima
+del plan gratuito).**
+
+⚠️ **Y UN LIMITE MIO, DECLARADO:** no se si el cupo es de la cuenta o de la ventana de facturacion,
+ni si comprar creditos lo levanta al instante. **El mensaje dice las dos cosas —"upgrade" y "try
+again at Sep 15th"— y no se cual manda.** No lo invento.
+
+### 🔴 Y MI QUINTO `echo` COLGANDO DEL COMANDO, EN EL MINUTO EN QUE DIAGNOSTICABA ESTO
+Imprimi *"(vacio = no aparece ninguna de esas palabras: el fallo no se explica por cupo)"*
+**justo debajo de cuatro lineas que SI aparecian y que decian exactamente que era el cupo.**
+El `echo` colgaba del comando y no del resultado. **Quinta vez esta noche en la fabrica, tercera
+mia** — y esta vez el texto afirmaba lo contrario de lo que el comando acababa de imprimir.
+> **La regla que llevo doce horas repartiendo no me alcanza a mi porque vive en mi cabeza y no
+> dentro del gesto.** Es lo que el FA dijo de su resta: *un texto bien colocado no es un cruce.*
