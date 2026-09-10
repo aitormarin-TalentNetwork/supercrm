@@ -22,6 +22,7 @@ import type * as model_customerDuplicates from "../model/customerDuplicates.js";
 import type * as model_customerSource from "../model/customerSource.js";
 import type * as model_gmailCrypto from "../model/gmailCrypto.js";
 import type * as model_gmailFlow from "../model/gmailFlow.js";
+import type * as model_gmailRespuesta from "../model/gmailRespuesta.js";
 import type * as nextSteps from "../nextSteps.js";
 import type * as opportunities from "../opportunities.js";
 import type * as products from "../products.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   "model/customerSource": typeof model_customerSource;
   "model/gmailCrypto": typeof model_gmailCrypto;
   "model/gmailFlow": typeof model_gmailFlow;
+  "model/gmailRespuesta": typeof model_gmailRespuesta;
   nextSteps: typeof nextSteps;
   opportunities: typeof opportunities;
   products: typeof products;
