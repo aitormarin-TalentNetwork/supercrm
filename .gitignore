@@ -74,6 +74,17 @@ next-env.d.ts
 # segundo cerrojo, nacido con la D18 (2026-09-10). Su entrada FALTABA: cualquier `git add -A`
 # lo habria commiteado, y habria llegado a main como un turno tomado por una sesion muerta.
 /Sorfware Factory/_turno-raiz.lock
+# RUTA RETIRADA, y esta linea existe para que quien la busque encuentre esto:
+# `_turno-convex/` (sin sufijo .lock) fue la forma correcta del cerrojo de Convex
+# ANTES del 2026-09-10. Ya NO se usa. La canonica es `_turno-convex.lock`, y se
+# reclama y libera SOLO con `Sorfware Factory/_cerrojo.sh`.
+# POR QUE ESTA AQUI: el 2026-09-10 una terminal la uso de buena fe porque la
+# saco de VEREDICTOS ARCHIVADOS, donde sigue escrita como correcta. Durante 12
+# minutos su cerrojo fue invisible para todos los demas y el turno de Convex
+# estuvo abierto sin que nadie lo supiera. Difundir la herramienta nueva no
+# arregla eso: mientras el archivo diga lo viejo, el siguiente que llegue al
+# archivo antes que a la herramienta repetira exactamente lo mismo.
+/Sorfware Factory/_turno-convex
 # Registro de quien tuvo el turno y cuando lo libero (decision 88). Sin secretos: solo quien y cuando.
 /Sorfware Factory/_turno-convex.log
 # Su gemelo del cerrojo de raiz. Su entrada tambien faltaba: la D18 creo DOS artefactos por
