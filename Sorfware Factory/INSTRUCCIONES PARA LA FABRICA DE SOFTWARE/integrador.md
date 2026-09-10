@@ -237,6 +237,24 @@ commits que otros dejaron sin publicar en ese mismo local**, los conozcas o no. 
 del PM. Ninguno tocaba código de aplicación, así que fue un rebuild sin cambio de producto —
 pero **nadie decidió publicarlos**.
 
+### ⛔ PUBLICAR INCLUYE MOVER LA FICHA. SI NO, EL TABLERO MIENTE HACIA GASTAR TRABAJO
+
+> **El merge no termina en el push: termina cuando la ficha refleja su estado real.**
+
+**Caso del 2026-09-10:** AIT-141 estuvo **dos horas mergeada y desplegada** sin que nadie la
+moviera. **El PM la leyó como "no empezada" y la puso en `Todo`** — o sea, repartible. *Quien
+la hubiera cogido se habría puesto a implementar algo que ya está en `main`, y lo habría
+descubierto al ver que su rama no tiene nada que cambiar.*
+
+🔑 **La dirección del fallo es lo que lo hace grave: el tablero no distingue "nadie la ha
+hecho" de "está hecha y falta alguien concreto", y las dos lecturas gastan trabajo.** Es la
+misma forma que AIT-97 **con el signo invertido**: allí *"esperando a Aitor"* se leyó como
+**disponible**; aquí *"no está Done"* se leyó como **no empezada**.
+
+**Y no lo arregla ningún diseño de columnas: es un paso de ejecución tuyo.** Si el `PASA si`
+exige algo que tú no puedes cerrar —una comprobación de Aitor, por ejemplo— **la ficha queda
+en `In Progress` NOMBRANDO el paso que falta y quién lo ejecuta**, nunca en `Backlog`.
+
 ### ⛔ D27-bis · EL CERROJO CUBRE DESDE EL COMMIT HASTA EL PUSH, NO SOLO EL PUSH (2026-09-10)
 
 > **Quien commitea CÓDIGO en el checkout de la raíz mantiene `_turno-raiz.lock` DESDE EL

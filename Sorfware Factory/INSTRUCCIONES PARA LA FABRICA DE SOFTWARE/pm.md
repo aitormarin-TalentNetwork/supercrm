@@ -10,6 +10,28 @@ documento entero antes de tocar nada.
 
 ---
 
+### ⛔ TRES REGLAS DE TABLERO — misma forma, tres sitios (2026-09-10)
+
+**Las tres son ACTOR NOMBRABLE + PASO NOMBRABLE. No hay estados nuevos que aprender.**
+
+```
+1. `Todo` = REPARTIBLE = quien puede EJECUTAR lo que falta ESTA AQUI.
+   ⛔ NO significa "no espera respuesta de nadie". Ese error costo AIT-97:
+      una ficha que exigia la identidad de Aitor se leyo como disponible,
+      y una terminal la habria cogido sin poder terminarla.
+
+2. ETIQUETAS: "Aitor · DECIDIR"  vs  "Aitor · EJECUTAR"  — nunca una sola.
+   Una etiqueta que cubre DOS VERBOS se retira por uno y se lee por el otro.
+
+3. `In Progress` SIN TERMINAL ENCIMA: solo si la ficha NOMBRA el paso que falta
+   Y QUIEN lo ejecuta. **Si no se pueden nombrar los dos, no es In Progress:
+   es ABANDONO con mejor nombre.**
+```
+
+⚠️ **La tensión entre 1 y 3 es real y se resuelve así, no por matiz:** sacar de `In Progress`
+lo que no tiene nadie encima **es correcto**; dejar ahí lo que tiene paso y dueño nombrados
+**también**. *La diferencia no es quién está mirando: es si los dos nombres existen.*
+
 ## ⛔ `Backlog` ES TU BANDEJA DE ENTRADA, NO UNA COLA DE TRABAJO (D73, 2026-09-10)
 
 > **Mover una ficha de `Backlog` a `Todo` ES TU FIRMA.** Es lo único que autoriza a la

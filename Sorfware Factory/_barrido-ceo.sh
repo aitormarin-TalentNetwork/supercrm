@@ -352,6 +352,12 @@ cat <<'PEND'
       que la desigualdad casi nunca dispare. Y separarlos exige reconocer cuales son
       desarrolladores, **que es emparejar por nombre otra vez por la puerta de atras**.
       **Contar tampoco escapa de la identidad: solo la esconde.**
+  (c-bis) 🔑 CRUZA DOS LISTAS INDEPENDIENTES, NO REPASES LA TUYA (2026-09-10).
+      Ha funcionado DOS VECES HOY, en direcciones opuestas: el PM encontro una ficha que el
+      nunca aprobo mirando la cola de la Directora, y ella encontro una mal colocada mirando
+      la del PM. **Un repaso propio encuentra los errores que uno ya sabe que comete.**
+      Coste cero: las dos listas ya existen. Pide a cada uno la suya y cruzalas.
+
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
       viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
       CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
