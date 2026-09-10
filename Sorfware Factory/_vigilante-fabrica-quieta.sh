@@ -14,7 +14,7 @@ now=$(date +%s)
 # Descubrimiento, no enumeracion. Solo T<digitos> exacto: descarta los
 # sub-worktrees viejos tipo "T1-ait-14-15", que no son puestos.
 TERMS=$(ls -d $BASE/$PAT* 2>/dev/null | sed "s#.*--worktrees-##" \
-        | grep -E '^T[0-9]+$' | sort -V | uniq)
+        | /usr/bin/grep -E '^T[0-9]+$' | sort -V | uniq)
 
 if [ -z "$TERMS" ]; then
   echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
@@ -35,7 +35,10 @@ for d in $TERMS; do
   m=$(find "$BASE" -maxdepth 1 -type d -name "$PAT$d" 2>/dev/null | while read -r p; do
         for f in "$p"/*.jsonl; do
           [ -f "$f" ] || continue
-          ts=$(grep -oE '"timestamp":"[0-9]{4}-[0-9-]+T[0-9:]+' "$f" 2>/dev/null | tail -1 | grep -oE '[0-9]{4}-[0-9-]+T[0-9:]+')
+          # 2026-09-10: ruta absoluta (D67) y SIN 2>/dev/null. Descartar el stderr en una
+          # invocacion de MEDICION borra justo la senal que distingue "no hay" de "no pude
+          # mirar"; si este grep se queja, queremos verlo en la salida del cron.
+          ts=$(/usr/bin/grep -oE '"timestamp":"[0-9]{4}-[0-9-]+T[0-9:]+' "$f" | tail -1 | /usr/bin/grep -oE '[0-9]{4}-[0-9-]+T[0-9:]+')
           [ -n "$ts" ] && date -j -u -f '%Y-%m-%dT%H:%M:%S' "$ts" +%s 2>/dev/null
         done
       done | sort -rn | head -1)

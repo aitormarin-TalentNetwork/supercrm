@@ -2625,3 +2625,62 @@ correcto en el sitio equivocado.*
 - **`grep ... 2>/dev/null` en la linea 38 descarta el stderr en una invocacion de medicion**, contra
   la regla que adopte del Integrador (*jamas se descarta el stderr en una invocacion de control*).
   **Ese si es un defecto real y es mio.**
+
+## D70 — la EVIDENCIA de un export se mide con un programa y el gate se implementa con otro
+
+**Consecuencia que aporta la Directora y que no habiamos nombrado.** Ya teniamos que **un gate cambia
+de sujeto al desplegarse**; falta la mitad anterior:
+
+> **Cuando alguien pega en un export una medicion hecha A MANO y luego la implementa en un script, el
+> SUJETO CAMBIA ENTRE LA MEDICION Y LA IMPLEMENTACION.** La medicion se hizo con `ugrep` o con una
+> funcion de shell; **el script correra con el binario.**
+
+**No es solo que el gate cambie de sujeto: es que la EVIDENCIA QUE LO JUSTIFICA se midio con otro
+programa.** Y es peor que la D56 (las coordenadas caducan), porque alli el hallazgo seguia siendo
+cierto y solo se movia el puntero — **aqui puede no serlo: el numero que justifica el umbral se
+obtuvo con una herramienta que responde distinto.**
+
+**Ejecucion, y encaja con el bloque fechado de T2:** una medicion pegada en un export **declara con
+que herramienta se hizo, con ruta absoluta**. Si el script la implementa con otra, **es una medicion
+distinta y hay que rehacerla**, no heredarla.
+
+**Su medicion propia, que es como hay que declararlo:** sus controles de cita usan
+`grep -lF <cita> VEREDICTO_*.txt`, **el glob expande a 56 ficheros NOMBRADOS** y funcion y binario
+**coinciden (1 y 1)**. **Aguantan por la FORMA del comando, no por prudencia** — nunca escribio
+`grep` sobre un directorio. Y su control negativo mide la divergencia real: sobre `.`, **funcion = 2,
+binario = 0. No un matiz: una respuesta contraria.**
+
+## Fila — un arreglo correcto EN EL SITIO EQUIVOCADO no es neutro: CONSUME LA ALARMA
+
+**Formulacion de la Directora sobre lo que yo estuve a punto de hacer** (anadir rutas absolutas a mi
+vigilante y declararlo arreglado, cuando el defecto estaba en otro sitio):
+
+> **Nadie vuelve a mirar una clase que consta como cerrada.**
+
+**Es lo mismo que el "resuelto" en falso que T2 tuvo que reabrir con la D59**, pero **producido por un
+cambio CORRECTO**: el parche no rompe nada, se ve bien en el diff, **y apaga la unica señal que
+habria hecho volver.** Un arreglo inutil es peor que ninguno **porque el inutil parece uno bueno.**
+
+**Regla que no teniamos escrita y que vale para todo: MEDIR EL ALCANCE ANTES DE ARREGLAR.** No basta
+con confirmar el defecto: hay que medir **donde muerde**, porque el sitio obvio y el sitio real
+pueden ser opuestos — aqui lo eran.
+
+## Fila — escribir el MOTIVO junto a lo que parece expuesto y no lo esta
+
+**Practica de la Directora, y es la direccion contraria a la habitual:** sus controles de cita **se
+quedan como estan, con el motivo escrito al lado** —glob a ficheros nombrados, verificado con los dos
+binarios— **para que nadie los "arregle" creyendo que estaban expuestos.**
+
+📌 **Es el mismo mecanismo de la fila anterior, jugado por delante: un cambio inocuo presentado como
+arreglo, prevenido antes de que ocurra.** Y cubre un hueco que no teniamos: **documentamos por que
+algo esta mal; no documentamos por que algo que PARECE mal esta bien** — y eso es justo lo que
+invita a la regresion bienintencionada. **El que viene detras con la regla nueva en la mano es
+peligroso precisamente porque tiene razon en general.**
+
+## Corregido en mi vigilante — el defecto real, que no era la ruta
+
+`_vigilante-fabrica-quieta.sh:38` descartaba el stderr con `2>/dev/null` **en una invocacion de
+MEDICION**. Eso **borra justo la señal que distingue "no hay" de "no pude mirar"**, que es lo unico
+que ese vigilante mide. **Quitado**, y las dos invocaciones pasan a `/usr/bin/grep` por higiene.
+**Reprobado: caso real -> OK con las cuatro terminales; control negativo (ruta sin terminales) ->
+INDETERMINADO, nunca OK.**
