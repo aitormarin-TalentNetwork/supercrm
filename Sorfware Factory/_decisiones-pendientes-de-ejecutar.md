@@ -864,3 +864,68 @@ acaba de pasar por una correccion.
 **Mitigacion adoptada, y encaja exactamente en el carril rapido de la D37: no se borra —puede ser
 cierta y es util— se MARCA:** de donde viene, que **no se re-verifico en este cambio**, y que
 haria falta para comprobarla. Es una retirada de confianza, no una afirmacion nueva.
+
+## D38 — "control positivo" nunca se escribe solo: se nombra LA MUESTRA y EL RESULTADO ESPERADO
+
+**Escalado por la Directora, detectado por el auditor en el M2 del plan de `authState`, y
+escalado por T3 en vez de arreglarlo callando** — que es lo correcto, porque el rotulo ya habia
+viajado a seis personas entre los dos.
+
+**La distincion que se estaba invirtiendo:**
+- **Control POSITIVO** = una muestra que **sabes positiva** tiene que dar **positivo**. *"El mismo
+  `grep` sobre un fichero que si contiene el patron lo encuentra."*
+- **Control NEGATIVO** = una que **sabes negativa** tiene que dar **negativo**. *"La misma llamada
+  **sin token** tiene que fallar."*
+
+**Lo que la Directora escribio esta noche y difundio a tres terminales:** *"su control positivo:
+la misma llamada sin token tiene que lanzar «No autenticado»"*. **Eso es un control NEGATIVO.**
+
+🔴 **Por que no es vocabulario, y es exacto: si alguien construye un "control positivo" siguiendo
+ese ejemplo, construye el NEGATIVO y cree que tiene los dos.** Y ese es **precisamente el estado
+que los dos controles existen para impedir** — la 60.1 ya dice que *un control que solo ha visto
+verde esta sin estrenar, y uno que solo ha visto rojo tampoco, porque no sabemos si sabe
+callarse*. **El rotulo invertido hace que alguien crea haber cumplido esa regla habiendo hecho la
+mitad**, y la mitad que falta **cambia segun cual haya construido**: ni siquiera falla igual dos
+veces.
+
+### AUDITORIA DE MIS PROPIOS TEXTOS — medida con un comando, no recordada (D36)
+
+`grep -c "control positivo"`: **13 en este fichero**, 7 en `ceo.md`, 7 en `README.md`, 2 en
+`factory-architect.md`, 2 en `director.md`, 3 en `_barrido-ceo.sh`, 1 en
+`_detector-exports-sin-veredicto.sh`, 1 en `_cobertura-de-los-comandos.sh`.
+
+**Lei las 13 de este fichero una a una. Resultado: NINGUNA esta invertida** — las que nombran la
+muestra son correctas (`core.bare` que si existe -> devuelve valor; el rango que si tiene codigo
+-> da 7; el test que si ve `_worktrees`), y las tres etiquetadas "control negativo" tambien
+(ruta vacia -> `INDETERMINADO`; el `exit 2` esperado que mato el arnes con `set -e`).
+
+⚠️ **PERO el barrido encontro el problema de verdad, que no es la inversion: CUATRO usos
+DESNUDOS**, que no nombran ni la muestra ni el resultado esperado — lineas 423 (relayada de la
+Directora, no verificada por mi), 593, 597 y 612. **Un "control positivo" a secas no se puede
+auditar, y es exactamente el que se copia mal.** Los dos casos del sabotaje de Convex (593, 597)
+son defendibles —la muestra implicita es *"algo que SI necesita Convex tiene que fallar con el
+sabotaje puesto"*— **pero no lo dicen**, y quien los copie elegira la muestra que se le ocurra.
+
+### LA REGLA, y es lo unico que arregla la clase entera
+
+**Nunca se escribe "control positivo" ni "control negativo" a secas. Se escribe siempre con las
+dos piezas: QUE MUESTRA y QUE RESULTADO SE ESPERA de ella.**
+- ✅ *"control positivo: el mismo `grep` sobre un fichero que SI contiene el patron -> lo
+  encuentra"*
+- ✅ *"control negativo: la misma llamada SIN token -> tiene que fallar"*
+- ❌ *"con su control positivo"*
+
+**Por que asi y no con una tabla de definiciones:** el rotulo **es lo que viaja** — es lo que se
+cita, lo que cabe en un mensaje y lo que se copia; el cuerpo se queda en el mensaje original y
+nadie vuelve a el. Un rotulo que **lleva la muestra dentro se corrige solo** en el momento en que
+alguien lo lee, sin necesidad de que nadie recuerde la definicion. Es la misma familia que la
+D30 (*un comando no se relee, se ejecuta*) y la D36 (*el resumen lo pone el autor*): **el fallo
+esta en la etiqueta, que es la unica parte que nadie vuelve a comprobar contra su cuerpo.**
+
+**Reparto de la correccion, ya en marcha:** T3 escribe a los tres a quienes se lo dijo el, la
+Directora a T1, T4 y el Integrador. **Lo publicado en `.md` es mio y queda auditado arriba.**
+
+📌 **Merito de T3, y es el mismo principio que la D37 acaba de decidir para otra cosa:** el
+auditor le senalo un fallo de vocabulario dentro de un NO-GO y, en vez de corregirlo en su plan y
+seguir, **fue a mirar a cuanta gente se lo habia escrito mal y lo escalo**. Corregir **donde se
+lee**, no donde se descubre.
