@@ -693,13 +693,64 @@ fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es m
 > **No fue que me resistiera bien a mi propio interés — fue que el interés dejó de poder
 > decidir.** Un sistema que depende de que la parte interesada se porte bien no tiene control.
 
+### La métrica que hacía parecer paradas a tres de cada cuatro terminales
+Toda la noche medí si una terminal trabajaba con `git log -1`: **cuándo tocó código por última
+vez.** Es exacto y no sirve. **En fase de plan no se toca código POR DISEÑO** — el commit llega
+después del GO. Así que una terminal planificando bien y una atascada **dan el mismo número.**
+
+El caso que lo destapó lo trajo la Directora: **T4 llevaba 141 minutos sin tocar código y en
+ese rato había producido cuatro rondas de plan**, cada una con su NO-GO. *La terminal más
+productiva de la fase se reportaba como la más parada.* Su frase: **"el efecto medible de un
+plan es el export, no el commit"**. Medido con las dos métricas a la vez, a las 09:46:
+
+    T1  codigo 302 min · export 18 min        T3  codigo  21 min · export  7 min
+    T2  codigo 1257 min · export 10 min       T4  codigo 149 min · export  0 min
+
+**Las cuatro produciendo. La vieja habría escalado tres.** Y ojo a la forma, que es la de toda
+la noche: **1.257 minutos sin tocar código era CIERTO.** No era un número falso — era un número
+exacto contestando una pregunta que no era la que se le hacía.
+
+### Y una que no es de esta fábrica sino de cualquiera: dónde se prueba un gate
+La Directora encontró que `grep` en la terminal interactiva **no es el mismo programa** que
+`grep` dentro de un script (uno recursa en directorios y devuelve 0/1; el otro se niega y
+devuelve 2), y que **`which grep` te enseña justo el que NO se ejecuta**. Su conclusión vale
+mucho más allá del caso:
+
+> **Un gate probado a mano cambia de sujeto al desplegarse.**
+
+Todo lo que validamos escribiéndolo en una terminal y luego metemos en un `.sh` corre bajo otro
+intérprete de nombres. Fui a mirar mis tres herramientas en vez de suponer que no me afectaba:
+ninguna de las siete llamadas opera sobre un directorio, así que ninguna puede tropezar con esa
+diferencia. **Está comprobado, no descartado por parecerse poco.**
+
+📌 **Y ella misma se corrigió a los cinco minutos**, que es la parte que me llevo: había dicho
+"tres comportamientos" y eran dos — **atribuyó a dos versiones del mismo programa lo que era
+una diferencia entre dos programas distintos**. Su lectura, no la mía: eso *"manda a investigar
+instalaciones cuando el problema es de nombres"*, y no lo dudó porque **"ni siquiera las dos
+variantes concuerdan" suena más profundo que la explicación correcta, que es aburrida.**
+
 ---
 
-## 5. Estado de la fábrica al cierre del informe (05:05 UTC)
+## 5. Estado de la fábrica — remedido a las 09:47 UTC
 
-- **11 sesiones vivas**, ninguna parada. Seis roles + T1, T2, T3, T4 + una en reserva.
-- **`main` == `origin`**, working tree limpio, cerrojos circulando solos entre roles.
-- **Ningún export huérfano** esperando auditoría.
+> ⚠️ **Esta sección decía "al cierre del informe (05:05 UTC)" y llevaba casi cinco horas
+> caducada.** El informe no se cerró a las 05:05: siguió escribiéndose toda la noche. **Un
+> apartado de ESTADO con un sello viejo no envejece como un apartado de historia** — se lee
+> como "esto es lo que hay ahora", que es justo para lo que lo vas a usar al despertarte.
+> Todo lo de abajo está medido en la tirada de las **09:46:56Z**, no recordado.
+
+- **12 sesiones vivas** (11 pares + la mía), ninguna parada. Contadas con `ListAgents`, no de
+  memoria: **decía 11 y eran 12** — hay dos sesiones T1 (`t1-6d` y `t1-f7`), que es la que el
+  texto viejo llamaba "una en reserva" sin haberla contado.
+- **Las cuatro terminales de desarrollo produciendo**, medido con la métrica nueva (commit Y
+  export): T1 export hace 18 min · T2 hace 10 · T3 hace 7 · T4 hace 0.
+  🔴 **Con la métrica vieja, tres de las cuatro habrían salido "paradas"** — T2 marcaba 1.257
+  minutos sin tocar código. Ver la lección al final de la sección 4.
+- **`main` == `origin/main` == `0cdc4f9`** (medido contra el remoto, no contra la copia
+  local), working tree de la raíz limpio, **los dos cerrojos libres**.
+- **Ningún export huérfano de verdad.** El detector marca uno (loop2 de AIT-127, 94 min),
+  pero **está superado por la ronda 3, disparada a las 09:40:50Z y todavía en vuelo**. Es el
+  caso (4) de la cabecera del detector: la tarea avanza aunque el fichero no se mueva.
 - **Gates vivos:** (1) nada que pueda cambiar el comportamiento de autenticación se publica sin
   GO de implementación **en su último loop** + revisión del Integrador; (2) desde un worktree,
   ningún comando de Convex que resuelva el deployment **por URL + admin key**.
