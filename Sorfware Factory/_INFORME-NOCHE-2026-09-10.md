@@ -887,6 +887,27 @@ comprobador **sí** caza cambian el **estado**. El que lo atraviesa cambia la **
 que es justo lo que el comprobador usa para decidir. **Un adversario que no difiere en el
 sujeto le da verde con razón, y ese verde no prueba nada.**
 
+### 🔑 Y esto es lo más grande que sale de la noche: el arreglo repite el defecto que arregla
+Tres veces, medidas, en seis horas:
+
+| dónde apareció | el defecto estaba… |
+|---|---|
+| AIT-122, major de esta ronda | **dentro del script que T1 escribió para cerrar el major anterior** |
+| AIT-127, M7 | dentro de `check-e2e-preconditions`, el comprobador nuevo |
+| el comprobador del gate 2 | y **sus propios comentarios dicen que ya se corrigió una vez el mismo patrón** |
+
+**Tres no es casualidad.** Y hay una razón por la que se repite y no la habíamos nombrado:
+**el artefacto que viene a cerrar un agujero llega blindado.** Nadie audita la pieza que
+arregla — suena a solución, no a código nuevo. Pero **es código nuevo, escrito deprisa, por
+quien acaba de equivocarse en ese mismo terreno.**
+
+> **La pregunta que lo caza, y cabe en una línea (formulación del QA):**
+> ***¿he auditado el arreglo buscando el MISMO defecto que arregla?***
+
+**Para ti, Aitor, en términos prácticos:** cuando alguien te diga *"ya está arreglado"*, la
+pregunta que más rinde no es *"¿funciona?"* sino *"¿el arreglo tiene dentro lo mismo que venía
+a quitar?"*. **Esta noche habría acertado tres de tres.**
+
 ---
 
 ## 5. Estado de la fábrica — remedido a las 09:47 UTC
