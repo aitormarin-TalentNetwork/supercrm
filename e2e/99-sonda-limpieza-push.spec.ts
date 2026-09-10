@@ -12,7 +12,7 @@ import { LIMITE_LIMPIEZA_MS } from "@/components/push/useSignOutAndUnlinkPush";
 
 /** AIT-134 · SONDA: ¿cuánto tarda DE VERDAD la desvinculación push?
  *
- * 🔴 QUÉ PREGUNTA CONTESTA Y POR QUÉ EXISTE. `LIMITE_LIMPIEZA_MS` (750 ms) es
+ * 🔴 QUÉ PREGUNTA CONTESTA Y POR QUÉ EXISTE. `LIMITE_LIMPIEZA_MS` (750 ms cuando se escribió esto; 544 hoy) es
  * uno de los tres sumandos que agotan el presupuesto de C3, y hay que recortarlo
  * porque el margen de sobrecarga no cubre lo medido. El PM puso la condición
  * exacta, y es la razón de este fichero:

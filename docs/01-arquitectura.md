@@ -685,20 +685,30 @@ navega, se avisa. La regla se aplica sola, sin excepciones que escribir.
 **Decisión 3 — el camino de fallo tiene su propio presupuesto: 5 s.**
 C3 exige `/login` en ≤3 s. Al hacer que la recuperación **navegue**, C3 empezaba a
 aplicarle, y no cabía: las etapas que ya existían suman el presupuesto entero
-(`616 + 1400 + 500 + 484 = 3000`), o sea **cero hueco**.
+(`544 + 1400 + 500 + 556 = 3000`), o sea **cero hueco**.
 
-> ⚠️ **Esos dos números cambiaron el 2026-09-10 y conviene saber por qué**, porque
-> el reparto entre ellos no es libre: la suma está clavada en 3000. El margen de
-> sobrecarga subió de 350 a **484 ms** —el peor valor observado de verdad, en la
-> corrida de las 17:02:51Z (HEAD `ab0e826`), donde C3 falló— y ese aumento salió
-> **entero** del límite de la limpieza push, que bajó de 750 a **616 ms**.
-> El 616 no es un número elegido: es `3000 − 484 − 1400 − 500`, o sea el recorte
-> **mínimo** que cierra la cuenta. Se recorta esa etapa y no otra porque es la
+> ⚠️ **Esos dos números se movieron TRES VECES el 2026-09-10, y la pendiente es el
+> dato, no el valor.** El reparto entre ellos no es libre: la suma está clavada en
+> 3000, así que lo que sube el margen sale **entero** de la limpieza push.
+>
+> | medición de la sobrecarga | margen | limpieza push |
+> |---|---|---|
+> | (antes, con 278 como peor) | 350 | 750 |
+> | 484 ms · 17:02:51Z · `ab0e826` | 484 | 616 |
+> | 556 ms · 18:14:42Z · `c8fd110` | 556 | **544** |
+>
+> Ninguno de esos límites se eligió: cada uno es `3000 − margen − 1400 − 500`.
+> **Cada vez que se ha medido la sobrecarga ha salido peor**, y el presupuesto se
+> cuadra robándole a la única etapa que puede ceder. Eso es exactamente lo que
+> pasa cuando el peor caso se guarda como literal: deja de ser el peor en cuanto
+> vuelves a medir.
+> ⛔ **Regla de parada (PM):** si la limpieza push tiene que bajar de ~350 ms, se
+> **para** y se vuelve al PM. No se sigue recortando porque todavía quepa. Se recorta esa etapa y no otra porque es la
 > única **abandonable**: su fallo no detiene el cierre, y lo peor que produce es
 > que a quien cerró sesión le sigan llegando avisos — molesto, acotado, y **la
 > persona afectada lo ve**. Recortar el límite del cierre, en cambio, fabricaría
 > avisos falsos de "no se ha podido cerrar".
-> Que 616 basta está **medido**, no estimado: la sonda
+> Que 544 basta está **medido**, no estimado: la sonda
 > `e2e/99-sonda-limpieza-push.spec.ts` cronometra la mutación por el websocket de
 > Convex y da `n=14 · p50 147 · max 171 ms`. **Con una salvedad que falla hacia el
 > verde:** esas muestras son del caso en que la fila no existe; el caso real añade

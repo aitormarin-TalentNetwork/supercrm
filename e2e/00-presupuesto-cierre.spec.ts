@@ -54,7 +54,7 @@ test("C3 · el margen de sobrecarga no puede quedarse por debajo de lo medido", 
   // CONTROL del margen: sin esto, un rojo de la prueba de arriba se "arregla"
   // recortando el margen en vez de los límites, y la sobrecarga real —que no
   // depende de nosotros— se queda fuera del presupuesto otra vez.
-  // ⚠️ ACTUALIZADO 278 -> 484, Y ES EL APAÑO, NO EL ARREGLO. Este literal
+  // ⚠️ ACTUALIZADO 278 -> 484 -> 556. Este literal
   // **nunca baja**: sólo sube cuando se mide algo peor.
   //
   // 🔴 Y DE PASO CORRIJO UN NÚMERO MÍO SIN FUENTE: escribí primero 445 y le
@@ -67,6 +67,15 @@ test("C3 · el margen de sobrecarga no puede quedarse por debajo de lo medido", 
   // de corrida y el registro de QA, no de memoria): 218, 226, 226, 484 ms.
   //   484 ms → 2026-09-10 17:02:51Z, HEAD ab0e826, total 3084 ms sobre 2600 ms
   //            forzados. C3 FALLÓ en esa corrida.
+  //   556 ms → 2026-09-10 18:14:42Z, HEAD c8fd110, corrida limpia. La que cazó
+  //            la guarda POR CORRIDA en su estreno.
+  //
+  // 🔑 Y AQUÍ ESTE LITERAL YA NO ES EL APAÑO: el PM separó los dos trabajos que
+  // yo había juntado en una disyuntiva falsa (a)/(b). Esta prueba es REGISTRO —
+  // sube siempre y no bloquea por sí misma—, y quien bloquea es la guarda por
+  // corrida. Lo que sí debe bloquear es `MARGEN >= PEOR_REGISTRADO`, porque un
+  // margen por debajo del registro es un cambio DELIBERADO de alguien, no la
+  // realidad derivando.
   //
   // ⚠️ CONDICIÓN DE ESA MEDICIÓN, declarada porque cambia cómo se lee: la
   // máquina iba cargada (swap 1485M, y las tres etapas por encima de su propio
@@ -83,7 +92,7 @@ test("C3 · el margen de sobrecarga no puede quedarse por debajo de lo medido", 
   // `08-cierre-de-sesion.spec.ts`: la corrida falla si la sobrecarga observada
   // EN ELLA supera el margen. Esta se queda como cinturón contra el recorte
   // silencioso del margen, que es lo único que sí puede medir.
-  const PEOR_SOBRECARGA_MEDIDA_MS = 484;
+  const PEOR_SOBRECARGA_MEDIDA_MS = 556;
   expect(
     MARGEN_SOBRECARGA_MS,
     `el margen (${MARGEN_SOBRECARGA_MS} ms) es menor que la peor sobrecarga ` +
@@ -107,7 +116,7 @@ test("C3-fallo · el camino de recuperación cabe en su presupuesto", () => {
   // 🔴 POR QUÉ EXISTE ESTE SEGUNDO PRESUPUESTO. Al hacer que la recuperación
   // navegue (M3), C3 empezó a aplicarle un criterio escrito para otro camino. Y
   // no cabía: las etapas que ya existían suman el presupuesto ENTERO —
-  //     616 + 1400 + 500 + 484 = 3000
+  //     544 + 1400 + 500 + 556 = 3000
   // — o sea CERO hueco para la ruta local y la confirmación.
   //
   // ⚠️ Y el número que hay que usar en esa cuenta es el MARGEN DECLARADO (350),

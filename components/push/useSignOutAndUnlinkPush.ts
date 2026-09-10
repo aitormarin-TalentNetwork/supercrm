@@ -52,7 +52,17 @@ import { PUSH_ENDPOINT_KEY } from "./useSyncPushSubscription";
 // pantalla): sin `NEXT_PUBLIC_VAPID_PUBLIC_KEY` la sección de notificaciones
 // queda en "No disponibles en este navegador" y la UI no puede crear una fila
 // real. Por eso NO se recorta hasta el suelo medido: se recorta lo mínimo.
-export const LIMITE_LIMPIEZA_MS = 616;
+// ⚠️ Y OTRA VEZ: 616 -> 544. Sigue sin ser un número elegido — es lo que QUEDA:
+// 3000 - 556 - 1400 - 500. Comprobado por mí, no heredado del mensaje que lo trae.
+//
+// 📉 VAN 750 -> 616 -> 544 EN UNA HORA, y esa pendiente es el dato, no el valor.
+// Cada vez que se mide la sobrecarga sale peor, y el presupuesto se cuadra
+// robándole a la única etapa que puede ceder. Con la distribución medida (max
+// 171 ms) siguen sobrando ~3,2x, así que la regla de parada del PM no se
+// dispara todavía.
+// ⛔ REGLA DE PARADA, NUMERADA POR EL PM: si esto tiene que bajar de ~350 ms, se
+// PARA y se vuelve a él. No se sigue recortando "porque todavía cabe".
+export const LIMITE_LIMPIEZA_MS = 544;
 
 // AIT-127 (hallazgo de auditoría de código, M1) — Margen para la limpieza de
 // estado del cliente DESPUÉS de que el cierre ya esté confirmado.
@@ -138,14 +148,19 @@ export const PRESUPUESTO_C3_MS = 3000;
 // (swap 1485M, las tres etapas por encima de su límite). No lo descarto por eso
 // —una sobrecarga que ocurrió, ocurrió, y C3 no promete "3 s si la máquina va
 // descargada"— pero nadie ha medido aún la cola de esta distribución.
-export const MARGEN_SOBRECARGA_MS = 484;
+// ⚠️ SUBIDO OTRA VEZ, 484 -> 556, Y LA TERCERA VEZ EN UNA HORA NO ES RUIDO: es
+// que el peor caso guardado como literal deja de ser el peor en cuanto vuelves a
+// medir. 556 ms se observaron en la corrida limpia de las 18:14:42Z (HEAD
+// c8fd110), donde la guarda por corrida falló con 3022 ms sobre 2466 forzados.
+// Universo observado: 218, 226, 226, 484, 556.
+export const MARGEN_SOBRECARGA_MS = 556;
 
 // AIT-134 — EL PRESUPUESTO DEL CAMINO DE FALLO. Decisión del PM, 2026-09-10.
 //
 // C3 exige `/login` en ≤ `PRESUPUESTO_C3_MS` desde el clic. Hasta AIT-134 eso
 // gobernaba un solo camino, porque **el de fallo no navegaba**. Al hacer que la
 // recuperación navegue, C3 empezaba a aplicarle — y no cabía:
-//     616 + 1400 + 500 + MARGEN(484) = 3000 ms   <- el presupuesto ENTERO
+//     544 + 1400 + 500 + MARGEN(556) = 3000 ms   <- el presupuesto ENTERO
 // o sea **cero hueco** para la ruta local y la confirmación, que son dos idas y
 // vueltas HTTP y una de ellas pasa por el middleware.
 //
