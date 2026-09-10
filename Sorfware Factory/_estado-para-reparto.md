@@ -366,3 +366,25 @@ clasificacion NO fue independiente y no cuenta como segunda opinion.
 me haya dado la suya.** Es la misma forma que la tabla de valores esperados que el le mando
 al QA: un valor esperado a la vista invita a comparar, y no hay disciplina de lectura que lo
 deshaga. **La independencia se protege con el canal, no con el proposito del lector.**
+
+### 🔴 UN GUARD QUE NUNCA DEJA PASAR NO PROTEGE: PARA (13:23Z)
+
+Puse en `encolar.sh` un rechazo si `pgrep -f "playwright"` encontraba algo, para no competirle
+memoria a una suite. **Matcheaba los SERVIDORES MCP DE PLAYWRIGHT**, que estan vivos SIEMPRE
+en las nueve sesiones. Medido: 29 procesos hacen match y **`pgrep -f "playwright test"` da 0**.
+
+**El Integrador libero a las 13:15:26Z y mi gate siguio bloqueando la cola 8 minutos**, con
+tres exports congelados esperando. Y era invisible: el rechazo se lee como prudencia
+—"hay una suite corriendo"— y **nadie discute una espera que parece responsable**.
+
+**LA SENAL BUENA NO ES OLFATEAR PROCESOS: ES EL CERROJO**, que es una DECLARACION de quien
+corre la suite y sabe lo que hace. Ahora `encolar.sh` mide (a) `_turno*.lock` y (b) el
+corredor real (`playwright test` / `test:e2e`), anclados a la forma del comando.
+
+⚠️ **Y el limite, declarado:** el (b) esta disenado pero **NO validado contra una corrida
+real** — cuando el Integrador vuelva a correr la suite, comprobar que efectivamente rechaza.
+Hasta entonces el que protege de verdad es el cerrojo.
+
+**La direccion importa:** este guard falla hacia BLOQUEADO, que es el lado que parece seguro
+y cuesta produccion. El anterior (encolar un prompt en vez de un script) fallaba hacia el
+verde. Los dos cuestan; solo uno se nota.
