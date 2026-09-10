@@ -22,7 +22,13 @@ import { PUSH_ENDPOINT_KEY } from "./useSyncPushSubscription";
 //
 // 🔴 Si algún criterio fallara por este número, la respuesta NO es bajarlo: eso
 // sería ajustar el criterio al resultado. Se vuelve al PM.
-export const LIMITE_LIMPIEZA_MS = 1000;
+// ⚠️ RONDA 4 (M5): BAJADO DE 1000 A 750 PARA HACER SITIO AL MARGEN DE
+// SOBRECARGA. Se recorta ESTA etapa y no el límite del cierre porque la
+// asimetría manda: la limpieza push es ABANDONABLE —su fallo no detiene nada—
+// mientras que el límite del cierre es el que decide si al usuario se le dice
+// "no confirmado". Recortar el que decide produciría avisos falsos; recortar
+// el abandonable solo reduce la probabilidad de confirmar la desvinculación.
+export const LIMITE_LIMPIEZA_MS = 750;
 
 // AIT-127 (hallazgo de auditoría de código, M1) — Margen para la limpieza de
 // estado del cliente DESPUÉS de que el cierre ya esté confirmado.
@@ -75,6 +81,26 @@ export const LIMITE_CIERRE_MS = 1400;
 // levanta servidor, no toca Convex, y falla en 700 ms si alguien mueve un número
 // sin mirar los otros dos.
 export const PRESUPUESTO_C3_MS = 3000;
+
+// AIT-127 (hallazgo de auditoría de código, ronda 3, M5) — Lo que tarda el
+// cierre APARTE de las tres esperas.
+//
+// 🔴 ESTE NÚMERO ESTÁ MEDIDO, NO ELEGIDO. Mi guarda anterior sumaba los tres
+// temporizadores (1000+1400+500 = 2900 ≤ 3000) y se daba por satisfecha. Pero
+// C3 mide desde el CLIC hasta `/login`, y entre medias hay cosas que no son
+// ninguna de las tres esperas: la lectura síncrona, crear y despachar las dos
+// peticiones, resolver promesas, el render, `router.replace` y la navegación.
+//
+// Medido forzando las tres etapas cerca de su máximo (ver el test de C3 en
+// e2e/08-cierre-de-sesion.spec.ts): gesto → /login dio **3002, 3021 y 3078 ms**
+// con 2800 ms forzados. O sea una sobrecarga de **202, 221 y 278 ms** — y, lo
+// que importa: **C3 se estaba incumpliendo de verdad** mientras la guarda pura
+// seguía en verde, porque la suma seguía siendo 2900.
+//
+// Se reservan 350 ms: por encima del peor medido (278), no un número redondo
+// elegido antes de mirar. Si la sobrecarga medida sube, este número sube y son
+// los LÍMITES los que bajan — nunca el presupuesto.
+export const MARGEN_SOBRECARGA_MS = 350;
 
 /** AIT-127: lo único que detiene la NAVEGACIÓN es que el cierre no se confirme.
  *  ⚠️ "No confirmado" incluye tres cosas distintas y a propósito: que responda

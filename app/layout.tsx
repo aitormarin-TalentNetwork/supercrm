@@ -5,6 +5,7 @@ import { ConvexClientProvider } from "./ConvexClientProvider";
 import { NavProvider } from "@/components/nav/NavContext";
 import { AppNav } from "@/components/nav/AppNav";
 import { AreaBloqueable } from "@/components/nav/AreaBloqueable";
+import { AvisoCierreSesion } from "@/components/nav/AvisoCierreSesion";
 import { PushSubscriptionSync } from "@/components/push/PushSubscriptionSync";
 import { NewVersionNotice } from "@/components/version/NewVersionNotice";
 import { getDeployedVersion } from "@/lib/version";
@@ -52,6 +53,10 @@ export default function RootLayout({
                   pantallas no cambia. Ver AreaBloqueable.tsx. */}
               <AreaBloqueable>{children}</AreaBloqueable>
               <AppNav />
+              {/* AIT-127: hermano de lo que se bloquea, no hijo — durante el
+                  cierre la pantalla y el panel van `inert`, y un aviso dentro
+                  de ellos no se podría leer. */}
+              <AvisoCierreSesion />
               {/* AIT-57 (hallazgo de auditoría NO-GO ronda 2): igual que
                   AppNav, montada una sola vez para toda la app — no puede
                   depender de qué pantalla está activa, tiene que

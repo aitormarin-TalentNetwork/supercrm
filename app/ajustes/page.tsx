@@ -58,12 +58,11 @@ export default function AjustesPage() {
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(api.users.getCurrentUserInfo);
   const cerrarSesion = useSignOutAndUnlinkPush();
-  // AIT-127: si el cierre FALLA no se navega, y el usuario tiene que enterarse.
-  const [errorCierre, setErrorCierre] = useState(false);
-  // AIT-127 (C2a): el estado bloqueante es compartido, no local, porque lo que
-  // hay que apagar mientras el cierre está en vuelo vive fuera de esta pantalla
-  // — el botón ☰ y, tras él, todos los enlaces del panel.
-  const { cerrandoSesion, setCerrandoSesion } = useNav();
+  // AIT-127 (C2a): estado compartido, no local. Lo que hay que apagar durante
+  // el cierre vive fuera de esta pantalla (el ☰ y, tras él, el panel entero), y
+  // el aviso lo pinta <AvisoCierreSesion> desde el layout — porque esta
+  // pantalla va `inert` mientras el cierre está en vuelo y no podría leerse.
+  const { cerrandoSesion, setCerrandoSesion, setErrorCierre } = useNav();
 
   // AIT-127: la navegación vive aquí y no en el hook — el hook no sabe desde
   // dónde se le llama, y el aviso tiene que estar en el árbol de este
@@ -158,20 +157,6 @@ export default function AjustesPage() {
                     ? "Cerrando sesión…"
                     : "Cerrar sesión"}
                 </Button>
-                {/* AIT-127 · rama de fallo, opción (C) del PM (2026-09-10,
-                    bloque de las 08:55 de la ficha — la línea anterior de la
-                    descripción, «se redirige a /login IGUALMENTE», está
-                    muerta). Se suelta el bloqueo, el botón vuelve a estar
-                    vivo y el aviso dice que la sesión NO se ha cerrado. */}
-                {errorCierre && (
-                  <p
-                    role="alert"
-                    className="mt-2 rounded-md bg-error-subtle p-2.5 text-sm text-error"
-                  >
-                    No se ha podido cerrar la sesión: sigue abierta. Vuelve a
-                    pulsar «Cerrar sesión» para intentarlo otra vez.
-                  </p>
-                )}
               </div>
 
               {/* AIT-79: qué commit está sirviendo la app. Al final y en

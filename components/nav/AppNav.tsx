@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -26,12 +26,12 @@ const FOCUSABLE_SELECTOR =
 // AppSidebar/BottomTabBar antes — porque su estado abierto/cerrado vive
 // en NavContext, compartido con el botón ☰ de cada pantalla.
 export function AppNav() {
-  const { open, close, cerrandoSesion, setCerrandoSesion } = useNav();
+  const { open, close, cerrandoSesion, setCerrandoSesion, setErrorCierre } =
+    useNav();
   const pathname = usePathname();
   const router = useRouter();
   const cerrarSesion = useSignOutAndUnlinkPush();
   // AIT-127: si el cierre FALLA no se navega, y hay que avisar.
-  const [errorCierre, setErrorCierre] = useState(false);
   const role = useQuery(api.users.getCurrentUserRole);
   // getCurrentUserInfo (a diferencia de getCurrentUserRole) usa
   // requireUser y lanza si no hay sesión — al estar este componente
@@ -127,7 +127,15 @@ export function AppNav() {
         // de auditoría, AIT-51 loop1). Se mantiene montado (no
         // `if (!open) return null`) para poder animar la entrada/salida
         // con translateX.
-        inert={!open}
+        // AIT-127 (ronda 4, M3): también mientras el cierre está en vuelo, no
+        // solo cuando el panel está fuera de pantalla. El enumerador ancho de
+        // C2a encontró aquí el botón «Cerrar menú» en 10 de 10 activaciones:
+        // los enlaces ya no navegaban, pero ese botón seguía alcanzable, y el
+        // criterio dice CERO controles, no "cero enlaces". Ahora se puede
+        // hacer sin silenciar nada porque el anuncio del cierre vive fuera
+        // (<AvisoCierreSesion>, en el layout) — con la versión anterior, esto
+        // habría dejado mudo al propio control que dice "Cerrando sesión…".
+        inert={!open || cerrandoSesion !== null}
         tabIndex={-1}
         className={`fixed inset-y-0 left-0 z-[70] flex w-[260px] flex-none flex-col border-r border-border bg-surface shadow-[var(--shadow-e3)] outline-none transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           open ? "translate-x-0" : "-translate-x-full"
@@ -170,6 +178,17 @@ export function AppNav() {
             // navegar. Y va DENTRO del map, así que cualquier item que se añada
             // mañana pasa por aquí sin que nadie tenga que acordarse.
             // El opacity-50 es el `disabled` de design.md:206.
+            //
+            // ⚠️ DESDE LA RONDA 4 ESTO ES REDUNDANTE, y lo digo yo para que no
+            // se lea como si sostuviera algo: el panel entero va `inert`
+            // mientras el cierre está en vuelo, así que estos enlaces ya
+            // quedarían fuera de alcance aunque conservaran su `href`.
+            // NINGÚN TEST DISTINGUE ESTA RAMA — quitarla dejaría C2a igual de
+            // verde. Se conserva porque no depende del soporte de `inert`:
+            // donde ese atributo no se honre, un `<span>` sigue sin navegar.
+            // Si alguien decide que esa redundancia no compensa, puede borrarla
+            // sin romper ningún criterio; lo que no puede es creer que la
+            // estaba protegiendo un test.
             if (cerrandoSesion !== null) {
               return (
                 <span
@@ -246,15 +265,6 @@ export function AppNav() {
                 : "Cerrar sesión"}
             </span>
           </button>
-          {errorCierre && (
-            <p
-              role="alert"
-              className="mx-3 mt-2 rounded-md bg-error-subtle p-2.5 text-sm text-error"
-            >
-              No se ha podido cerrar la sesión: sigue abierta. Vuelve a pulsar
-              «Cerrar sesión» para intentarlo otra vez.
-            </p>
-          )}
         </div>
       </aside>
     </>

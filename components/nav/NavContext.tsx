@@ -4,13 +4,17 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 
 // AIT-127: desde dónde se pulsó "Cerrar sesión", no solo "si se pulsó".
 //
-// Hace falta el ORIGEN y no un booleano porque el control que corre el cierre
-// tiene que seguir siendo perceptible mientras dura (es él quien dice
-// "Cerrando sesión…"), y los dos controles viven en árboles distintos: el del
-// panel dentro de <AppNav>, el de Ajustes dentro de {children}. Con un
-// booleano solo se puede bloquear "todo", y "todo" incluye al control que
-// enseña el estado — que quedaría fuera del árbol de accesibilidad justo
-// cuando tiene algo que anunciar.
+// ⚠️ EL ORIGEN YA NO DECIDE QUÉ SE BLOQUEA (ronda 4, M3): durante el cierre se
+// bloquea TODO, venga de donde venga. Se conserva porque decide qué botón
+// enseña "Cerrando sesión…" y porque `close()` del panel solo procede si el
+// cierre salió de ahí.
+//
+// La versión anterior bloqueaba solo el árbol contrario para no silenciar al
+// control que anuncia el estado. Eso dejaba viva la pantalla que corría el
+// cierre — y el auditor midió que ahí ya hay navegación por `router.push`
+// (app/clientes, app/pipeline), no solo enlaces. La salida no era afinar el
+// bloqueo sino SACAR EL ANUNCIO FUERA: lo pinta <AvisoCierreSesion>, montado
+// en el layout y por tanto fuera de todo lo que se bloquea.
 export type OrigenCierre = "panel" | "pagina";
 
 type NavContextValue = {
@@ -20,6 +24,10 @@ type NavContextValue = {
   // null = no hay cierre en vuelo.
   cerrandoSesion: OrigenCierre | null;
   setCerrandoSesion: (origen: OrigenCierre | null) => void;
+  // AIT-127: el fallo del último cierre. Compartido y no local a cada pantalla
+  // porque quien lo pinta es <AvisoCierreSesion>, que vive en el layout.
+  errorCierre: boolean;
+  setErrorCierre: (hay: boolean) => void;
 };
 
 const NavContext = createContext<NavContextValue | null>(null);
@@ -35,6 +43,7 @@ export function NavProvider({ children }: { children: ReactNode }) {
   const [cerrandoSesion, setCerrandoSesion] = useState<OrigenCierre | null>(
     null,
   );
+  const [errorCierre, setErrorCierre] = useState(false);
   const value: NavContextValue = {
     open,
     // AIT-127: la guarda va AQUÍ y no solo en el `disabled` del botón ☰.
@@ -46,6 +55,8 @@ export function NavProvider({ children }: { children: ReactNode }) {
     close: () => setOpen(false),
     cerrandoSesion,
     setCerrandoSesion,
+    errorCierre,
+    setErrorCierre,
   };
   return <NavContext.Provider value={value}>{children}</NavContext.Provider>;
 }

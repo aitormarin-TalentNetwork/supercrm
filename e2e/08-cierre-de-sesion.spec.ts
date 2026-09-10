@@ -1,10 +1,14 @@
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import { HOME_BY_ROLE, type Role } from "./authState";
-import { ENUMERAR_NAVEGADORES_ALCANZABLES } from "./enumerarNavegadores";
+import { ENUMERAR_CONTROLES_ALCANZABLES } from "./enumerarNavegadores";
 import {
   LIMITE_LIMPIEZA_MS,
   LIMITE_CIERRE_MS,
+  LIMITE_LIMPIEZA_CLIENTE_MS,
+  PRESUPUESTO_C3_MS,
+  MARGEN_SOBRECARGA_MS,
 } from "@/components/push/useSignOutAndUnlinkPush";
+import { PUSH_ENDPOINT_KEY } from "@/components/push/useSyncPushSubscription";
 
 /** AIT-127 — El cierre de sesión, comprobado POR EFECTO CONTRA EL SERVIDOR.
  *
@@ -154,90 +158,107 @@ async function conElCierreEnVuelo(
 
 for (const role of ["owner", "sales"] as Role[]) {
   for (const boton of ["ajustes", "menu"] as const) {
-    test(`C2a · ${role} · botón de ${boton}: cero navegadores alcanzables mientras el cierre está en vuelo`, async ({
+    test(`C2a · ${role} · botón de ${boton}: cero controles alcanzables en ${INTENTOS_POR_COMBINACION} activaciones`, async ({
       browser,
     }) => {
-      const pagina = await abrirSesionPropia(browser, role);
+      // ⚠️ RONDA 4 (M4): SON DIEZ ACTIVACIONES POR COMBINACIÓN, NO UNA. Antes
+      // había un test por combinación y cada uno inspeccionaba el DOM UNA vez
+      // — cuatro miradas en total. Un bloqueo intermitente que fallara una de
+      // cada diez tenía el 90 % de probabilidades de no aparecer en cada
+      // mirada. Los 40 intentos que exige la ficha estaban, pero bajo C2c, que
+      // mide otra cosa (la barra de direcciones) y que además no exige cero.
+      // O sea: el criterio pedía 40 y ninguna de las dos mitades los daba.
+      test.slow();
+      let conControles = 0;
+      const hallazgos: string[] = [];
 
-      // CONTROL POSITIVO DEL INSTRUMENTO, y va ANTES de bloquear nada: con la
-      // app en reposo el enumerador TIENE que encontrar navegación. Un
-      // enumerador que devuelve cero porque no supo mirar da exactamente el
-      // mismo verde que uno que enumeró bien y no había nada.
-      if (boton === "menu") {
-        await pagina.getByRole("button", { name: /abrir men/i }).click();
-      } else {
-        await pagina.goto("/ajustes");
+      for (let i = 0; i < INTENTOS_POR_COMBINACION; i++) {
+        // Sesión propia por iteración, igual que el resto del fichero.
+        const pagina = await abrirSesionPropia(browser, role);
+        const control = await prepararCierre(pagina, boton);
+
+        // CONTROL POSITIVO DE LA ITERACIÓN, y va ANTES de bloquear nada: con la
+        // app en reposo el enumerador TIENE que encontrar controles. Uno que
+        // devuelve cero porque no supo mirar da exactamente el mismo verde que
+        // uno que enumeró bien y no había nada.
+        const enReposo: string[] = await pagina.evaluate(
+          ENUMERAR_CONTROLES_ALCANZABLES,
+        );
+        expect(
+          enReposo.length,
+          `iteración ${i + 1}: el enumerador no encontró NINGÚN control con la ` +
+            "app en reposo; su cero durante el cierre no valdría",
+        ).toBeGreaterThan(0);
+
+        const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, () =>
+          control.click(),
+        );
+        await enVuelo;
+        const durante: string[] = await pagina.evaluate(
+          ENUMERAR_CONTROLES_ALCANZABLES,
+        );
+        soltar();
+
+        if (durante.length > 0) {
+          conControles++;
+          hallazgos.push(`iteración ${i + 1}: ${durante.join(" · ")}`);
+        }
+        await pagina.context().close();
       }
-      const enReposo: string[] = await pagina.evaluate(
-        ENUMERAR_NAVEGADORES_ALCANZABLES,
-      );
-      expect(
-        enReposo.length,
-        "el enumerador no encontró NINGÚN navegador con la app en reposo: " +
-          "no está midiendo lo que cree medir, y su cero durante el cierre no valdría",
-      ).toBeGreaterThan(0);
-
-      const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, async () => {
-        await pagina.getByRole("button", { name: "Cerrar sesión" }).click();
-      });
-      await enVuelo;
-
-      const durante: string[] = await pagina.evaluate(
-        ENUMERAR_NAVEGADORES_ALCANZABLES,
-      );
-      soltar();
 
       expect(
-        durante,
-        `con el cierre en vuelo quedan ${durante.length} navegadores alcanzables ` +
-          `(en reposo había ${enReposo.length}): ${durante.join(" · ")}`,
-      ).toEqual([]);
+        conControles,
+        `${conControles} de ${INTENTOS_POR_COMBINACION} activaciones dejaron ` +
+          `controles alcanzables durante el cierre:\n${hallazgos.join("\n")}`,
+      ).toBe(0);
     });
   }
 }
 
-test("C2a · control positivo: un enlace que NO pase por el bloqueante pone C2a en rojo", async ({
+test("C2a · control positivo: un control que NO sea un enlace y NO pase por el bloqueante pone C2a en rojo", async ({
   browser,
 }) => {
   // 🔴 EL SEGUNDO DIENTE DE C2a, textual del PM: "se añade un enlace de prueba
   // que no pase por el bloqueante y C2a se pone roja. Sin eso no se sabe si la
   // enumeración enumera."
   //
-  // El enlace se inyecta en el contenido de /ajustes, y esa elección ES el
-  // hallazgo: cuando el cierre se lanza DESDE la pantalla, `AreaBloqueable` no
-  // la puede poner `inert` sin silenciar al propio control que dice "Cerrando
-  // sesión…". O sea que este enlace no está cubierto por el mecanismo — y por
-  // eso sirve de control positivo, y por eso el residuo queda escrito aquí en
-  // vez de en un comentario que nadie relee.
+  // ⚠️ RONDA 4 (M3): EL ADVERSARIO ERA DEL TIPO EQUIVOCADO. Antes inyectaba un
+  // `<a href>` — justo el elemento que mi enumerador ya sabía ver. Un señuelo
+  // diseñado desde dentro de la implementación no prueba nada: confirma. Ahora
+  // se inyecta un `<button>`, que es como navega de verdad esta app en
+  // app/clientes y app/pipeline (`router.push` desde un manejador), y que la
+  // versión anterior del enumerador NO habría visto.
+  //
+  // Y se inyecta en `document.body`, fuera de <AreaBloqueable> y del panel,
+  // porque ahí es donde el mecanismo NO llega: cualquier cosa montada a nivel
+  // de layout con un control dentro quedaría alcanzable durante la ventana.
+  // El control positivo documenta ese hueco además de validar el instrumento.
   const pagina = await abrirSesionPropia(browser, "sales");
-  await pagina.goto("/ajustes");
+  const control = await prepararCierre(pagina, "ajustes");
 
-  const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, async () => {
-    await pagina.getByRole("button", { name: "Cerrar sesión" }).click();
-  });
+  const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, () =>
+    control.click(),
+  );
   await enVuelo;
 
   await pagina.evaluate(() => {
-    const a = document.createElement("a");
-    a.href = "/pipeline";
-    a.textContent = "enlace de prueba";
-    // Dentro de <main>, o sea dentro del contenido de la pantalla: es donde
-    // aterrizaría un enlace de verdad si alguien lo añadiera a /ajustes.
-    const destino = document.querySelector("main");
-    if (destino === null) throw new Error("no hay <main> en /ajustes");
-    destino.appendChild(a);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = "control adversario";
+    b.addEventListener("click", () => history.pushState({}, "", "/pipeline"));
+    document.body.appendChild(b);
   });
 
   const durante: string[] = await pagina.evaluate(
-    ENUMERAR_NAVEGADORES_ALCANZABLES,
+    ENUMERAR_CONTROLES_ALCANZABLES,
   );
   soltar();
 
   expect(
     durante.join(" · "),
-    "el enumerador NO vio un enlace puesto delante de sus narices durante el " +
+    "el enumerador NO vio un control puesto delante de sus narices durante el " +
       "cierre: su cero en los otros cuatro tests no distingue nada",
-  ).toContain("enlace a /pipeline");
+  ).toContain("control adversario");
 });
 
 test("C2c · la ventana residual del servidor: se mide y se publica, no se declara cerrada", async ({
@@ -380,6 +401,86 @@ for (const role of ["owner", "sales"] as Role[]) {
   }
 }
 
+test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 s", async ({
+  browser,
+}) => {
+  // 🔴 ESTE TEST EXISTE PORQUE LA GUARDA PURA NO BASTABA (ronda 3, M5). Aquélla
+  // suma constantes; C3 mide TIEMPO, desde el clic hasta `/login`. Medido con
+  // los límites de entonces (1000+1400+500 = 2900 "dentro de presupuesto"), el
+  // recorrido real daba **3002, 3021 y 3078 ms**: C3 se incumplía y la guarda
+  // seguía verde. El camino no era patológico — era el peor camino normal.
+  //
+  // Las tres etapas se fuerzan de verdad, cada una por su mecanismo:
+  //   1) limpieza push: se deja un endpoint en el dispositivo Y se corta la red
+  //      del contexto, así que la mutación de Convex no puede resolverse y la
+  //      carrera consume su límite entero.
+  //   2) el cierre: se retiene la petición hasta 50 ms antes de su límite y
+  //      entonces se responde OK. Es el peor caso que aún CONFIRMA — un poco
+  //      más y sería el abortado, que ya no navega y no es lo que mide C3.
+  //   3) limpieza de cliente: la llamada de `signOut()` no responde nunca.
+  //
+  // ⚠️ `route.fulfill` no toca la red, así que funciona con el contexto
+  // offline. La red se restablece justo antes de responder, para que la
+  // navegación a /login sea real y no una simulación.
+  test.slow();
+  const pagina = await abrirSesionPropia(browser, "sales");
+  await pagina.goto("/ajustes");
+  await pagina.evaluate(
+    ([clave]) =>
+      window.localStorage.setItem(
+        clave,
+        "https://ejemplo.invalido/endpoint-de-prueba",
+      ),
+    [PUSH_ENDPOINT_KEY],
+  );
+
+  const RETARDO_CIERRE_MS = LIMITE_CIERRE_MS - 50;
+  let peticiones = 0;
+  await pagina.route("**/api/auth", async (route) => {
+    if (!(route.request().postData() ?? "").includes("signOut")) {
+      return route.fallback();
+    }
+    peticiones++;
+    if (peticiones === 1) {
+      await new Promise((r) => setTimeout(r, RETARDO_CIERRE_MS));
+      await pagina.context().setOffline(false);
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ tokens: null }),
+      });
+    }
+    return new Promise(() => {}); // la de signOut() no responde nunca
+  });
+
+  const control = pagina.getByRole("button", { name: "Cerrar sesión" });
+  await control.hover(); // asentar antes de cronometrar (ver prepararCierre)
+  await pagina.context().setOffline(true);
+  const t0 = Date.now();
+  await control.click();
+  await pagina.waitForURL("**/login", { timeout: PRESUPUESTO_C3_MS + 3000 });
+  const total = Date.now() - t0;
+
+  const forzado =
+    LIMITE_LIMPIEZA_MS + RETARDO_CIERRE_MS + LIMITE_LIMPIEZA_CLIENTE_MS;
+  console.log(
+    `[AIT-127 · C3] gesto → /login = ${total} ms · forzado = ${forzado} ms · ` +
+      `sobrecarga = ${total - forzado} ms (margen reservado ${MARGEN_SOBRECARGA_MS} ms)`,
+  );
+
+  // CONTROL: las dos peticiones se alcanzaron. Sin esto, un total pequeño no
+  // distingue "fue rápido" de "no se forzó nada".
+  expect(
+    peticiones,
+    "no se alcanzaron las dos llamadas de cierre: las etapas no se forzaron",
+  ).toBeGreaterThanOrEqual(2);
+
+  expect(
+    total,
+    `del gesto a /login pasaron ${total} ms y C3 da ${PRESUPUESTO_C3_MS} ms`,
+  ).toBeLessThanOrEqual(PRESUPUESTO_C3_MS);
+});
+
 test("C3 y C4 · con el cierre correcto, se llega a /login en ≤3 s y no se queda en la pantalla autenticada", async ({
   browser,
 }) => {
@@ -425,7 +526,7 @@ for (const role of ["owner", "sales"] as Role[]) {
       await expect(
         pagina
           .getByRole("alert")
-          .filter({ hasText: "No se ha podido cerrar la sesión" }),
+          .filter({ hasText: "No se ha podido confirmar el cierre de sesión" }),
       ).toBeVisible();
 
       // (2) NO se ha navegado
@@ -484,7 +585,7 @@ test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /
   await pagina.context().close();
 });
 
-test("M2 · la PRIMERA llamada de cierre se queda colgada: aviso visible, sin navegar y sin mentir", async ({
+test("M2 · la PRIMERA llamada de cierre se queda colgada: sigue pendiente hasta el límite, se aborta, y solo entonces avisa", async ({
   browser,
 }) => {
   const pagina = await abrirSesionPropia(browser, "sales");
@@ -493,7 +594,22 @@ test("M2 · la PRIMERA llamada de cierre se queda colgada: aviso visible, sin na
   // la segunda. Aquí la PRIMERA se queda PENDIENTE: no rechaza ni responde, así
   // que sin límite no se clasifica como fallo NI tiene duración máxima, y el
   // hook no retornaba nunca.
+  //
+  // ⚠️ RONDA 4 (M2): ANTES ESTO SOLO CONTABA QUE LA PETICIÓN SE ALCANZÓ. El
+  // control era `peticionesDeCierre >= 1`, y con eso el test quedaba verde
+  // aunque la petición hubiera terminado por cualquier otro motivo antes del
+  // límite — o aunque una regresión futura la rechazara al instante. Contaba
+  // que el sujeto EXISTIÓ, no que le pasara lo que el test dice comprobar.
+  // Ahora se observan las dos mitades del sujeto: que sigue PENDIENTE mientras
+  // no ha vencido el plazo, y que lo que la termina es un ABORTADO.
   let peticionesDeCierre = 0;
+  const fallos: string[] = [];
+  pagina.on("requestfailed", (peticion) => {
+    if ((peticion.postData() ?? "").includes("signOut")) {
+      fallos.push(peticion.failure()?.errorText ?? "(sin errorText)");
+    }
+  });
+
   await pagina.route("**/api/auth", async (route) => {
     const cuerpo = route.request().postData() ?? "";
     if (!cuerpo.includes("signOut")) return route.fallback();
@@ -501,25 +617,53 @@ test("M2 · la PRIMERA llamada de cierre se queda colgada: aviso visible, sin na
     return new Promise(() => {}); // no se resuelve NUNCA
   });
 
-  await pulsarCerrarSesion(pagina, "ajustes");
+  const control = await prepararCierre(pagina, "ajustes");
+  const t0 = Date.now();
+  await control.click();
 
-  // Al vencer el plazo se clasifica como NO CONFIRMADO, que es lo único que se
-  // sabe: abortar no dice si el servidor llegó a cerrar. Así que se avisa y no
-  // se navega — falla hacia el rojo, no hacia la mentira.
-  await expect(
-    pagina
-      .getByRole("alert")
-      .filter({ hasText: "No se ha podido cerrar la sesión" }),
-  ).toBeVisible({ timeout: 5000 });
-  expect(pagina.url()).not.toContain("/login");
-
-  // CONTROL, sin el cual esto no prueba nada: que la primera llamada se alcanzó
-  // de verdad. Un verde sin esto no distingue "se abortó y se avisó" de "nunca
-  // hubo petición que colgar".
+  // (1) ANTES DEL LÍMITE: la petición se alcanzó, sigue PENDIENTE (no ha
+  //     fallado) y NO hay aviso todavía. Sin esta mitad, un rechazo prematuro
+  //     produciría el mismo verde que el abortado que se quiere comprobar.
+  const ANTES_MS = LIMITE_CIERRE_MS - 400;
+  const esperaAntes = t0 + ANTES_MS - Date.now();
+  if (esperaAntes > 0) await pagina.waitForTimeout(esperaAntes);
   expect(
     peticionesDeCierre,
     "no se llegó a la primera llamada de cierre: el test no ejercita M2",
   ).toBeGreaterThanOrEqual(1);
+  expect(
+    fallos,
+    `a los ${ANTES_MS} ms la petición ya había terminado (${fallos.join(", ")}): ` +
+      "no llegó pendiente hasta el límite, así que lo de abajo no mide el abortado",
+  ).toEqual([]);
+  // ⚠️ SE FILTRA POR TEXTO, Y NO ES COSMÉTICA: `getByRole("alert")` a secas
+  // devolvía DOS elementos aquí y ninguno era mío — Next monta su propio
+  // anunciador de ruta con `role="alert"`. Contar "alertas" habría sido contar
+  // mobiliario del framework: la sonda no distinguía mi aviso de lo que hay
+  // siempre. Es el mismo fallo que un cero sin control positivo, del lado del
+  // uno.
+  await expect(
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido confirmar el cierre de sesión" }),
+    "el aviso de fallo aparece ANTES de vencer el límite: el cierre no espera " +
+      "lo que dice esperar",
+  ).toHaveCount(0);
+
+  // (2) DESPUÉS DEL LÍMITE: lo que termina la petición es un ABORTADO, y solo
+  //     entonces aparece el aviso. Esto es lo que ata el verde al
+  //     `AbortController`, y no a un genérico "algo salió mal".
+  await expect(
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido confirmar el cierre de sesión" }),
+  ).toBeVisible({ timeout: 5000 });
+  expect(pagina.url()).not.toContain("/login");
+  expect(
+    fallos.join(" · "),
+    "la petición no terminó abortada: el aviso podría venir de otro fallo, " +
+      "no del límite que este test comprueba",
+  ).toMatch(/abort/i);
 
   await pagina.context().close();
 });

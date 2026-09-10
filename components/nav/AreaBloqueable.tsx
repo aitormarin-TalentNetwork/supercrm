@@ -20,16 +20,20 @@ import { useNav } from "./NavContext";
 // así que los hijos siguen siendo items flex de <body>. `inert` no depende
 // del display — se aplica al elemento y a su subárbol.
 //
-// SOLO cuando el cierre viene del panel. Si viene de la pantalla de Ajustes,
-// el control que corre el cierre (y el aviso de fallo) están DENTRO de este
-// subárbol: bloquearlo silenciaría al propio control que tiene que decir
-// "Cerrando sesión…". Ese caso lo cubre el bloqueo del botón ☰ — la única
-// vía de navegación que Ajustes ofrece — y lo vigila el enumerador de C2a,
-// que se pondría rojo solo si alguien añadiera un enlace ahí.
+// SIEMPRE que hay un cierre en vuelo, venga del panel o de la pantalla.
+//
+// ⚠️ RONDA 4 (M3): antes se bloqueaba solo si venía del panel, para no
+// silenciar al control de Ajustes que dice "Cerrando sesión…". El precio era
+// que /ajustes quedaba viva, y eso solo estaba a salvo porque hoy no tiene
+// enlaces — una propiedad de la pantalla de hoy, no del mecanismo. El auditor
+// midió que la app ya navega con `button` + `router.push` (app/clientes,
+// app/pipeline), así que un control nuevo ahí navegaría sin que nada lo
+// impidiera. El anuncio se sacó fuera (<AvisoCierreSesion>, en el layout) y
+// aquí se bloquea todo.
 export function AreaBloqueable({ children }: { children: ReactNode }) {
   const { cerrandoSesion } = useNav();
   return (
-    <div style={{ display: "contents" }} inert={cerrandoSesion === "panel"}>
+    <div style={{ display: "contents" }} inert={cerrandoSesion !== null}>
       {children}
     </div>
   );
