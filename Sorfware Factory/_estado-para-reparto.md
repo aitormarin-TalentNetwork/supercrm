@@ -262,3 +262,32 @@ normal es `npm run build`.
 
 **Regla en vigor del CEO:** si la suite muere dos veces, no se da por pasada ni se llama
 intermitente — se publica declarando que no se pudo correr, EN LA FICHA.
+
+### Como se decide un GO cuyo export lleva evidencia falsa (Integrador, 12:35Z)
+
+Mi enunciado era *"un GO apoyado en una evidencia que sabemos falsa no es un GO"*. El
+Integrador le puso la prueba que lo hace aplicable, y es mejor:
+
+> **No decide que la evidencia sea falsa: decide SI LO QUE SOSTIENE EL VEREDICTO PASA POR
+> ELLA.** (La misma regla con la que se lee un `SIN:`: no importa cuanto declara el hueco,
+> importa si la evidencia central cae dentro.)
+
+Tres casos, y solo uno para la publicacion:
+
+- **(a) El auditor LO DETECTO.** Publica. Y ademas es senal fuerte a favor: la ronda no se
+  limito a leer el export, fue a comprobar lo que afirmaba.
+- **(b) No lo detecto, pero su GO NO se apoya en esa medicion** (verifico por su cuenta lo
+  que la medicion pretendia sostener). **El GO se mantiene.** Publica DECLARANDO en la
+  ficha que el export llevaba un error de evidencia y que el veredicto no descansa en el.
+  Que la conclusion sea correcta por otra via no es excusa para callarlo.
+- **(c) No lo detecto Y su GO se apoya en esa medicion.** **NO se publica.** Vuelve a
+  ronda con el dato corregido aunque la conclusion acabe siendo la misma: *"acerto igual"*
+  y *"lo comprobo"* son dos cosas, y el segundo es el que compra el GO.
+
+**Como se distingue, y es medible:** buscar en el veredicto si CITA esa medicion y si la
+usa como apoyo de alguna afirmacion propia. La cita y la corrige -> (a). No aparece -> (b).
+Aparece sosteniendo algo -> (c).
+
+⚠️ **Y por eso el GO se entrega CON la correccion adjunta, nunca limpio:** la ruta de la
+revision final no pasa por el export completo, pasa por el veredicto y por la huella. Si
+la correccion no viaja pegada, el Integrador no se la cruza.
