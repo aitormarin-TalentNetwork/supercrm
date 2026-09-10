@@ -149,3 +149,26 @@ AIT-128 r3 esta escrito y esperando en `scratchpad/encargo-AIT-128-r3.txt`.
 ### Pendiente de Aitor
 Los cuatro permisos de **AIT-99** (desbloquean tambien AIT-125) y **`~/.claude.json`**
 (sin el, AIT-97 no arregla las seis sesiones de raiz).
+
+### REGLA DE REPARTO: la huella, no el delta. Y falla hacia "libre"
+
+Para repartir, la pregunta NO es *"¿lo ha tocado en esta ronda?"* sino **"¿esta en su
+huella?"**, y eso es SIEMPRE `git diff --name-only origin/main...<punta>`. El rango corto
+(`base..HEAD`) sirve para *"¿que he cambiado desde el ultimo veredicto?"* y para nada mas.
+
+Medido hoy sobre AIT-127, sobre `components/push/useSignOutAndUnlinkPush.ts`:
+
+    origin/main...fcda1f0  ->  223 inserciones, 60 borrados, en SEIS commits
+    aada8f2..fcda1f0       ->  0 ficheros        <- el rango corto: "LIBRE"
+
+Es el embudo unico de los dos botones de cierre, o sea el corazon de la ficha.
+
+**LA DIRECCION DEL FALLO NO ES SIMETRICA, y por eso esta regla vive aqui.** Un reparto que
+se equivoca hacia "ocupado" cuesta una espera. Hacia "libre" cuesta DOS ramas reescribiendo
+el mismo fichero y un merge a mano. El rango corto falla siempre hacia "libre".
+
+**Y el modo en que se cuela:** lo medi yo con el rango malo y se lo sellé a T3 como
+"VERIFICADO POR MI"; el volvio a EJECUTAR el comando y lo etiqueto como "medido por MI, no
+relayado". Re-ejecutar el comando de otro verifica SU SALIDA, no SU ELECCION DE SUJETO.
+**Dos sellos apilados apagaron la comprobacion mejor que uno**, y T3 tenia el rango bueno
+escrito de su puño en el §9 del mismo fichero cuarenta minutos antes.
