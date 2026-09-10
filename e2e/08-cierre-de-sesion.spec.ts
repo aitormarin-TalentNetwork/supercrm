@@ -1,5 +1,10 @@
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import { HOME_BY_ROLE, type Role } from "./authState";
+import { ENUMERAR_NAVEGADORES_ALCANZABLES } from "./enumerarNavegadores";
+import {
+  LIMITE_LIMPIEZA_MS,
+  LIMITE_CIERRE_MS,
+} from "@/components/push/useSignOutAndUnlinkPush";
 
 /** AIT-127 — El cierre de sesión, comprobado POR EFECTO CONTRA EL SERVIDOR.
  *
@@ -58,16 +63,42 @@ async function abrirSesionPropia(browser: Browser, role: Role): Promise<Page> {
   return pagina;
 }
 
-/** Pulsa "Cerrar sesión" por uno de los dos caminos que tiene la app. */
-async function pulsarCerrarSesion(pagina: Page, boton: "ajustes" | "menu") {
+/** Deja al usuario DELANTE del botón de cerrar sesión, ASENTADO y sin pulsarlo.
+ *  Devuelve el control, listo para que el siguiente `click()` se despache ya.
+ *
+ * 🔴 EL `hover()` NO ES DECORACIÓN: es lo que separa "esperar a poder pulsar"
+ * de "pulsar". `click()` corre primero las comprobaciones de accionabilidad
+ * (visible, estable, sin nada encima) y solo después despacha. Medido en
+ * /ajustes: el clic se despachaba **805-841 ms** después de que el test
+ * llamara a `click()`, porque la pantalla seguía asentándose con las queries
+ * de Convex. `hover()` corre esas MISMAS comprobaciones antes, así que tras
+ * él `click()` retorna en 23-35 ms y el gesto ocurre cuando el cronómetro
+ * dice que ocurre.
+ *
+ * ⚠️ Sin esto, CUALQUIER cronómetro alrededor del clic mide otra cosa — y da
+ * igual de qué lado se ponga, porque las dos formas obvias fallan en
+ * direcciones opuestas y las dos hacia el verde:
+ *   · `click(); esperar(500)` sondea a gesto+513 ms.
+ *   · `t0 = ahora; click(); esperar hasta t0+500` sondea a gesto **menos**
+ *     305 ms — o sea ANTES de que el usuario haya pulsado. Eso daba "10 de
+ *     10 entraron", que no es un fallo: es la sesión viva porque el cierre
+ *     todavía no había empezado.
+ */
+async function prepararCierre(pagina: Page, boton: "ajustes" | "menu") {
   if (boton === "ajustes") {
     await pagina.goto("/ajustes");
-    await pagina.getByRole("button", { name: "Cerrar sesión" }).click();
-    return;
+  } else {
+    await pagina.getByRole("button", { name: /abrir men/i }).click();
   }
-  // El del menú lateral: hay que abrirlo primero.
-  await pagina.getByRole("button", { name: /abrir men/i }).click();
-  await pagina.getByRole("button", { name: "Cerrar sesión" }).click();
+  const control = pagina.getByRole("button", { name: "Cerrar sesión" });
+  await control.hover();
+  return control;
+}
+
+/** Pulsa "Cerrar sesión" por uno de los dos caminos que tiene la app. */
+async function pulsarCerrarSesion(pagina: Page, boton: "ajustes" | "menu") {
+  const control = await prepararCierre(pagina, boton);
+  await control.click();
 }
 
 /** LA COMPROBACIÓN QUE MANDA: una petición NUEVA E INDEPENDIENTE a una ruta
@@ -78,40 +109,273 @@ async function elServidorDejaEntrar(pagina: Page): Promise<boolean> {
     failOnStatusCode: false,
   });
   const destino = respuesta.headers()["location"] ?? "";
-  return !(respuesta.status() >= 300 && respuesta.status() < 400 && destino.includes("/login"));
+  return !(
+    respuesta.status() >= 300 &&
+    respuesta.status() < 400 &&
+    destino.includes("/login")
+  );
+}
+
+/** Deja el cierre EN VUELO y devuelve el control al test en ese instante.
+ *
+ *  Interceptar `/api/auth` y no soltarlo es lo único que da un instante
+ *  estable: la ventana real dura milisegundos y medir "a ojo" con un
+ *  `waitForTimeout` daría verde por llegar tarde, no por estar bloqueado.
+ *  ⚠️ Solo se retiene el POST de `auth:signOut`. Por esa misma ruta pasa el
+ *  refresco de sesión del propio paquete de auth, y retenerlo todo sería
+ *  fabricar un bloqueo que la app no tiene.
+ */
+async function conElCierreEnVuelo(
+  pagina: Page,
+  pulsar: () => Promise<void>,
+): Promise<{ enVuelo: Promise<void>; soltar: () => void }> {
+  let marcarEnVuelo!: () => void;
+  const enVuelo = new Promise<void>((r) => {
+    marcarEnVuelo = r;
+  });
+  let soltar!: () => void;
+  const permiso = new Promise<void>((r) => {
+    soltar = r;
+  });
+
+  await pagina.route("**/api/auth", async (route) => {
+    if (!(route.request().postData() ?? "").includes("auth:signOut")) {
+      await route.continue();
+      return;
+    }
+    marcarEnVuelo();
+    await permiso;
+    await route.continue();
+  });
+
+  await pulsar();
+  return { enVuelo, soltar };
 }
 
 for (const role of ["owner", "sales"] as Role[]) {
   for (const boton of ["ajustes", "menu"] as const) {
-    test(`C2a · ${role} · botón de ${boton}: cero entradas en ${INTENTOS_POR_COMBINACION} intentos a velocidad humana`, async ({
+    test(`C2a · ${role} · botón de ${boton}: cero navegadores alcanzables mientras el cierre está en vuelo`, async ({
       browser,
     }) => {
+      const pagina = await abrirSesionPropia(browser, role);
+
+      // CONTROL POSITIVO DEL INSTRUMENTO, y va ANTES de bloquear nada: con la
+      // app en reposo el enumerador TIENE que encontrar navegación. Un
+      // enumerador que devuelve cero porque no supo mirar da exactamente el
+      // mismo verde que uno que enumeró bien y no había nada.
+      if (boton === "menu") {
+        await pagina.getByRole("button", { name: /abrir men/i }).click();
+      } else {
+        await pagina.goto("/ajustes");
+      }
+      const enReposo: string[] = await pagina.evaluate(
+        ENUMERAR_NAVEGADORES_ALCANZABLES,
+      );
+      expect(
+        enReposo.length,
+        "el enumerador no encontró NINGÚN navegador con la app en reposo: " +
+          "no está midiendo lo que cree medir, y su cero durante el cierre no valdría",
+      ).toBeGreaterThan(0);
+
+      const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, async () => {
+        await pagina.getByRole("button", { name: "Cerrar sesión" }).click();
+      });
+      await enVuelo;
+
+      const durante: string[] = await pagina.evaluate(
+        ENUMERAR_NAVEGADORES_ALCANZABLES,
+      );
+      soltar();
+
+      expect(
+        durante,
+        `con el cierre en vuelo quedan ${durante.length} navegadores alcanzables ` +
+          `(en reposo había ${enReposo.length}): ${durante.join(" · ")}`,
+      ).toEqual([]);
+    });
+  }
+}
+
+test("C2a · control positivo: un enlace que NO pase por el bloqueante pone C2a en rojo", async ({
+  browser,
+}) => {
+  // 🔴 EL SEGUNDO DIENTE DE C2a, textual del PM: "se añade un enlace de prueba
+  // que no pase por el bloqueante y C2a se pone roja. Sin eso no se sabe si la
+  // enumeración enumera."
+  //
+  // El enlace se inyecta en el contenido de /ajustes, y esa elección ES el
+  // hallazgo: cuando el cierre se lanza DESDE la pantalla, `AreaBloqueable` no
+  // la puede poner `inert` sin silenciar al propio control que dice "Cerrando
+  // sesión…". O sea que este enlace no está cubierto por el mecanismo — y por
+  // eso sirve de control positivo, y por eso el residuo queda escrito aquí en
+  // vez de en un comentario que nadie relee.
+  const pagina = await abrirSesionPropia(browser, "sales");
+  await pagina.goto("/ajustes");
+
+  const { enVuelo, soltar } = await conElCierreEnVuelo(pagina, async () => {
+    await pagina.getByRole("button", { name: "Cerrar sesión" }).click();
+  });
+  await enVuelo;
+
+  await pagina.evaluate(() => {
+    const a = document.createElement("a");
+    a.href = "/pipeline";
+    a.textContent = "enlace de prueba";
+    // Dentro de <main>, o sea dentro del contenido de la pantalla: es donde
+    // aterrizaría un enlace de verdad si alguien lo añadiera a /ajustes.
+    const destino = document.querySelector("main");
+    if (destino === null) throw new Error("no hay <main> en /ajustes");
+    destino.appendChild(a);
+  });
+
+  const durante: string[] = await pagina.evaluate(
+    ENUMERAR_NAVEGADORES_ALCANZABLES,
+  );
+  soltar();
+
+  expect(
+    durante.join(" · "),
+    "el enumerador NO vio un enlace puesto delante de sus narices durante el " +
+      "cierre: su cero en los otros cuatro tests no distingue nada",
+  ).toContain("enlace a /pipeline");
+});
+
+test("C2c · la ventana residual del servidor: se mide y se publica, no se declara cerrada", async ({
+  browser,
+}) => {
+  // ⚠️ ESTE TEST NO AFIRMA QUE LA VENTANA NO EXISTA. Existe: entre que el
+  // usuario pulsa y que el servidor invalida la sesión pasa un tiempo real, y
+  // durante él la barra de direcciones sigue entrando. C2a cierra lo que la
+  // app OFRECE; la barra de direcciones no la ofrece la app, y la única
+  // mitigación real es la revocación en servidor (AIT-133, congelada).
+  //
+  // `FALLA si` el cierre se redacta como si la ventana hubiera desaparecido.
+  // Aquí eso se traduce en dos dientes: la ventana tiene que existir de verdad
+  // (si midiéramos 0 ms, o el servidor ya cerraba antes o la sonda no
+  // discrimina), y tiene que caber en el límite declarado — no en un margen
+  // sobrante que nadie fijó.
+  test.slow();
+  const pagina = await abrirSesionPropia(browser, "sales");
+  expect(
+    await elServidorDejaEntrar(pagina),
+    "la sesión no servía ANTES de cerrar: la medición no vale",
+  ).toBe(true);
+  const control = await prepararCierre(pagina, "ajustes");
+
+  const t0 = Date.now();
+  await control.click();
+
+  const TECHO_MS = LIMITE_LIMPIEZA_MS + LIMITE_CIERRE_MS;
+  // ⚠️ CADA SONDEO SE FECHA CUANDO SALE, NO CUANDO VUELVE, y esto me costó
+  // publicar un número falso antes de cazarlo. La primera versión medía
+  // `Date.now()` al RECIBIR la respuesta y daba "ventana ≈ 985 ms" tres
+  // corridas seguidas, con toda la pinta de un dato sólido. Era mentira: el
+  // sondeo se encola detrás del POST del cierre y tarda ~980 ms en volver,
+  // pero **la respuesta describe el estado de cuando SALIÓ**. Ese 985 no era
+  // la ventana; era la hora a la que miré el reloj.
+  //
+  // Lo delató una contradicción entre dos medidas MÍAS, no una revisión: si
+  // la ventana durase 985 ms, las 40 navegaciones a 500 ms del gesto habrían
+  // entrado TODAS, y entraron cero. Dos números incompatibles, y el falso era
+  // el que parecía más preciso.
+  //
+  // Y por eso los sondeos van ESPACIADOS y cronometrados desde t0, no en
+  // bucle apretado: encadenados se encolan unos detrás de otros y la cola se
+  // come la resolución.
+  const PASO_MS = 100;
+  let ultimoSiEntraMs = -1;
+  let primerNoEntraMs = -1;
+  let sondeos = 0;
+  for (let offset = 0; offset <= TECHO_MS + 1000; offset += PASO_MS) {
+    const espera = t0 + offset - Date.now();
+    if (espera > 0) await pagina.waitForTimeout(espera);
+    const salida = Date.now() - t0;
+    sondeos++;
+    if (await elServidorDejaEntrar(pagina)) {
+      ultimoSiEntraMs = salida;
+      continue;
+    }
+    primerNoEntraMs = salida;
+    break;
+  }
+  const ventanaMs = primerNoEntraMs;
+
+  console.log(
+    `[AIT-127 · C2c] ventana residual ACOTADA en (${ultimoSiEntraMs}, ${primerNoEntraMs}] ms ` +
+      `— ${sondeos} sondeos espaciados ${PASO_MS} ms y fechados al SALIR. ` +
+      `Techo declarado ${TECHO_MS} ms = limpieza ${LIMITE_LIMPIEZA_MS} + cierre ${LIMITE_CIERRE_MS}`,
+  );
+
+  expect(
+    ventanaMs,
+    `el servidor seguía dejando entrar pasados ${TECHO_MS + 1000} ms: ` +
+      "la ventana residual es mayor que el techo que declara el código",
+  ).toBeGreaterThanOrEqual(0);
+  expect(
+    ventanaMs,
+    "la ventana residual midió 0 ms. O el servidor ya cerraba antes de pulsar " +
+      "(y entonces el control positivo de arriba miente), o la sonda no " +
+      "distingue. Un cero aquí no es una buena noticia: es una sonda sospechosa.",
+  ).toBeGreaterThan(0);
+  expect(ventanaMs, `ventana residual ${ventanaMs} ms`).toBeLessThanOrEqual(
+    TECHO_MS,
+  );
+});
+
+for (const role of ["owner", "sales"] as Role[]) {
+  for (const boton of ["ajustes", "menu"] as const) {
+    test(`C2c · ${role} · botón de ${boton}: cuántas de ${INTENTOS_POR_COMBINACION} entran a ${RETARDO_GESTO_MS} ms del gesto`, async ({
+      browser,
+    }) => {
+      // Esta es la medición que originó la ficha, y se CONSERVA aunque C2a ya
+      // no la use como instrumento: C2a cierra lo que la app OFRECE, y esto
+      // mide lo que la barra de direcciones sigue consiguiendo durante la
+      // ventana residual. Son dos cosas distintas, y borrar la segunda al
+      // reformular la primera habría sido recortar la ficha sin decirlo.
+      //
+      // ⚠️ NO EXIGE CERO, Y NO PUEDE EXIGIRLO. Exigir cero aquí sería redactar
+      // el cierre como si la ventana residual hubiera desaparecido, que es
+      // literalmente el `FALLA si` de C2c. Se publica el número. La mitigación
+      // real es la revocación en servidor (AIT-133, congelada).
+      //
+      // ⚠️ Y SU SUELO ES DÉBIL, LO DIGO YO ANTES QUE EL AUDITOR: solo se pone
+      // rojo si entran TODAS, o sea si el cierre no cierra nada. Los dientes
+      // fuertes de C2c están en el test de la ventana medida; esto es el dato
+      // de campo que lo acompaña.
+      //
+      // ⚠️ Y VAN CUATRO TESTS, NO UNO CON LAS 40: medido, las 40 iteraciones
+      // en un solo test agotan el timeout de 90 s a mitad de camino. Un rojo
+      // por timeout se lee igual que un rojo por defecto, y no lo es.
       test.slow();
       let entradas = 0;
 
       for (let i = 0; i < INTENTOS_POR_COMBINACION; i++) {
         const pagina = await abrirSesionPropia(browser, role);
-
-        // CONTROL POSITIVO de la iteración: antes de pulsar, el servidor TIENE
-        // que dejar entrar. Sin esto, un "no entra" después no distingue
-        // "se cerró" de "esta sesión nunca sirvió".
         expect(
           await elServidorDejaEntrar(pagina),
-          `iteración ${i + 1}: la sesión no servía ANTES de cerrar, la medición no vale`,
+          `iteración ${i + 1}: la sesión no servía ANTES de cerrar`,
         ).toBe(true);
 
-        await pulsarCerrarSesion(pagina, boton);
-        await pagina.waitForTimeout(RETARDO_GESTO_MS); // el gesto humano
+        const control = await prepararCierre(pagina, boton);
 
+        // El cronómetro arranca con el control ya asentado, así que t0 es el
+        // gesto de verdad. Ver `prepararCierre`: sin eso este número no es
+        // 500 ms desde nada que le pase al usuario.
+        const t0 = Date.now();
+        await control.click();
+        const restante = t0 + RETARDO_GESTO_MS - Date.now();
+        if (restante > 0) await pagina.waitForTimeout(restante);
         if (await elServidorDejaEntrar(pagina)) entradas++;
-
         await pagina.context().close();
       }
 
+      console.log(
+        `[AIT-127 · C2c] ${role}/${boton}: entraron ${entradas} de ${INTENTOS_POR_COMBINACION} a ${RETARDO_GESTO_MS} ms`,
+      );
       expect(
         entradas,
-        `${entradas} de ${INTENTOS_POR_COMBINACION} navegaciones entraron con la sesión ya cerrada`,
-      ).toBe(0);
+        `entraron las ${INTENTOS_POR_COMBINACION}: el cierre no está cerrando nada`,
+      ).toBeLessThan(INTENTOS_POR_COMBINACION);
     });
   }
 }
@@ -147,7 +411,9 @@ test("C7 · si el cierre FALLA: alerta visible, NO se navega, y la sesión sigue
 
   // (1) el aviso existe y se puede afirmar por su ROL, no por un testid
   await expect(
-    pagina.getByRole("alert").filter({ hasText: "No se ha podido cerrar la sesión" }),
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido cerrar la sesión" }),
   ).toBeVisible();
 
   // (2) NO se ha navegado
@@ -224,7 +490,9 @@ test("M2 · la PRIMERA llamada de cierre se queda colgada: aviso visible, sin na
   // sabe: abortar no dice si el servidor llegó a cerrar. Así que se avisa y no
   // se navega — falla hacia el rojo, no hacia la mentira.
   await expect(
-    pagina.getByRole("alert").filter({ hasText: "No se ha podido cerrar la sesión" }),
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido cerrar la sesión" }),
   ).toBeVisible({ timeout: 5000 });
   expect(pagina.url()).not.toContain("/login");
 
