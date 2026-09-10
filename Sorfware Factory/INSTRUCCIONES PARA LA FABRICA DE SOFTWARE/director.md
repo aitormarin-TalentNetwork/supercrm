@@ -1061,7 +1061,22 @@ aislada (p. ej. un recurso compartido migrado a uno propio), no la sobrescribas 
 con la de la raíz. Instala dependencias donde falten. Después: relee el estado real del
 gestor de tareas (no te fíes de un fichero de brief desactualizado si la fuente de
 verdad dice otra cosa), confirma que no hay nada a medio publicar, y confirma que la
-infraestructura de despliegue sigue viva. **Re-arma también tu propio `/loop` del
+infraestructura de despliegue sigue viva.
+
+> 🔑 **PERO ES "NO TE FÍES DE ÉL **SOLO**", NO "NO TE FÍES DE ÉL" (2026-09-10).** Antes de
+> reconstruir nada, **abre `Sorfware Factory/_estado-para-reparto.md`**: es el diario de la
+> Directora anterior, y **los veredictos del auditor lo citan por ruta**. **Léelo Y
+> contrástalo con el gestor de tareas** — si discrepan, **manda el gestor**, pero el fichero
+> te dice **qué se estaba haciendo y por qué**, que el gestor no cuenta.
+>
+> ⚠️ **Por qué hay que escribirlo aquí y no en un apartado propio:** ésta es la sección que
+> lee tu sucesora, y **lo único que decía sobre ficheros era que no se fiara de ellos** — la
+> mandaba al gestor de tareas y **la alejaba del único sitio donde vive el razonamiento del
+> día**. Medido el 2026-09-10: dieciocho commits de contexto que no están en ninguna ficha.
+>
+> 📌 **Y la clase, que vale para cualquier artefacto de la fábrica: uno que existe porque su
+> autor lo anuncia DESAPARECE CON EL AUTOR.** *La caída que previene es la misma que borra el
+> aviso.* **Re-arma también tu propio `/loop` del
 barrido periódico nada más recrear la sesión** — es session-only (ver "Barrido
 periódico proactivo" arriba), no sigue corriendo solo porque la sesión exista; no lo
 asumas.
