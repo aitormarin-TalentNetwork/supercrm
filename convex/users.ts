@@ -386,6 +386,17 @@ export const seedPasswordAccounts = internalAction({
               : " createAccount no lanzó ningún error explícito; probablemente ya existe una cuenta huérfana en authAccounts para este email."),
         );
       }
+
+      // Y se libera TAMBIÉN en éxito. El claim solo cierra la carrera entre
+      // "¿existe?" y createAccount; una vez creada la cuenta, el guardia de
+      // idempotencia es getUserByEmail de arriba y la reserva ya no pinta
+      // nada. Dejarla puesta convierte un cerrojo efímero en una fila
+      // permanente, y eso tiene un modo de fallo concreto: si alguien borra
+      // la fila de `users` sin borrar el claim, la siembra siguiente no crea
+      // la cuenta y la declara "otra ejecución concurrente la está creando
+      // ahora mismo" — un diagnóstico falso que apunta a una concurrencia
+      // que no existe.
+      await ctx.runMutation(internal.users.releaseBootstrapSlot, { claimKey });
       creadas.push(email);
     }
 
