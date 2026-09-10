@@ -114,14 +114,32 @@ async function pulsarCerrarSesion(pagina: Page, boton: "ajustes" | "menu") {
  * metía en el mismo saco *"me dejó entrar"* y *"pasó algo raro"*.
  * **"No es la denegación esperada" NO implica "el servidor deja entrar."**
  *
- * ⚠️ Y ENDURECERLO CRUZA EN DOS DIRECCIONES SEGÚN QUIÉN LO CONSUMA — esto no es
- * una propiedad del cambio, es del cambio Y de la expectativa que lo lee:
- *   · los que CUENTAN entradas (C2a, C2c) se vuelven más exigentes -> hacia el rojo;
- *   · los que esperaban `true` (los dos CONTROLES POSITIVOS y C7) pasan más
- *     fácil -> hacia el verde. **Un control que pasa más fácil discrimina menos**,
- *     y discriminar es su único trabajo.
- * Por eso los tres que esperaban `true` pasan a exigir `ACCESO_CONFIRMADO`, que
- * es un observable POSITIVO, en vez de la negación de la denegación.
+ * ⚠️ ENDURECERLO NO ES NEUTRO, y la dirección no es propiedad del cambio: es del
+ * cambio Y de la expectativa que consume su resultado.
+ *
+ * ⛔ ESTE PÁRRAFO AFIRMÓ LO CONTRARIO Y ERA FALSO. Decía: *"los que CUENTAN
+ * entradas (C2a, C2c) se vuelven más exigentes -> hacia el rojo"*. **Lo medí
+ * después y es al revés.** Lo dejo citado en pasado en vez de sustituirlo en
+ * limpio, porque el error estaba **dentro del bloque que explica esta misma
+ * lección** y eso es lo que hay que poder ver.
+ *
+ * 🔴 LO CIERTO: LOS CUATRO CONSUMIDORES IBAN HACIA EL VERDE, por DOS mecanismos
+ * distintos — y por eso ninguno se habría puesto rojo:
+ *   · los que esperaban `true` (los dos CONTROLES POSITIVOS y C7) **pasan más
+ *     fácil**. Un control que pasa más fácil discrimina menos, y discriminar es
+ *     su único trabajo.
+ *   · los que CUENTAN (C2a, C2c) **pierden el caso**: un `ANOMALO` deja de
+ *     contar como entrada y **desaparece del recuento** en vez de contar. El
+ *     «cero entradas» de C2a se vuelve más fácil, y el barrido de C2c lee un
+ *     anómalo como *"ya no entra"* y **ACORTA la ventana residual medida** — un
+ *     número más bonito por un fallo, no por un cierre.
+ *
+ * 🔑 **Un test que se ablanda no se pone rojo: se queda verde discriminando
+ * menos.** Por eso los tres que esperaban `true` pasan a exigir
+ * `ACCESO_CONFIRMADO` —observable POSITIVO, no la negación de la denegación— y
+ * los dos que cuentan pasan a contar los TRES estados exigiendo cero `ANOMALO`.
+ * Se cierra por PARTICIÓN y no por lista de casos: cada sondeo cae en uno y sólo
+ * uno, así que no queda resto por donde algo desaparezca.
  */
 type EstadoAcceso = "ACCESO_CONFIRMADO" | "DENEGACION_ESPERADA" | "ANOMALO";
 
