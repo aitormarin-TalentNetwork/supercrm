@@ -2288,3 +2288,69 @@ marker— **y lo midio a mano en dos comandos.**
 **Si el criterio hubiera vivido dentro del script, su muerte se habria llevado la ronda.** Es la misma
 leccion que la D78 con mi vigilante y la que aplique al adelgazar el cron — **pero un paso mas alla:
 no basta con que el criterio este en disco, tiene que poder ejecutarlo un humano a mano.**
+
+## 🔴 CORRECCION — mi prueba de que el tercer cerrojo fantasma estaba cerrado no discriminaba
+
+**Me corrige la Directora y tiene razon.** Escribi *"el working tree ya esta limpio: alguien ha
+ignorado `_turno-convex/`"*. **La conclusion era correcta; la evidencia no la sostenia.**
+```
+git status --porcelain           -> vacio
+HIPOTESIS A (esta ignorado)      -> .gitignore:87  ✅ cierta
+HIPOTESIS B (ya no existe)       -> T3 lo retiro   ✅ tambien cierta
+```
+**Las dos son ciertas a la vez, asi que el arbol habria estado limpio IGUAL sin el `.gitignore`.**
+
+⚠️ **Y la direccion es la mala: si la proteccion NO estuviera, mi comprobacion habria dado el mismo
+verde.** Declare cerrada una clase de fallo con una prueba que no distingue *"protegido"* de
+*"desaparecido"*.
+
+📌 **Forma nueva, y es la unica que se me ha colado hoy sin que nadie mas la nombrara antes: un
+sintoma que desaparece por DOS causas, y una conclusion que nombra UNA.** El sintoma se fue de
+verdad; **lo que no se puede deducir es por que.** Es primo del control degenerado (D54) — alli el
+control no ejercitaba nada, aqui **el observable es compartido por dos mundos** y elegi el que me
+convenia narrar. *Cuando un sintoma tiene dos causas suficientes, verificar la causa exige mirar la
+causa, no el sintoma.*
+
+## D63.1 — el convenio de exits reserva una BANDA, y el `exit 3` de T1 entra en el
+
+**Colision detectada por la Directora antes de publicar el convenio:** T1 ya tiene contrato de salida
+implementado en AIT-122 y **usa los mismos numeros para otra cosa**.
+```
+CONVENIO (T2/T4)                 T1 · AIT-122 (ya implementado)
+exit 4  SIN CONTENEDOR           exit 4  el GATE de exports ajenos
+exit 5  AUSENTE                  exit 3  CRASH del comprobador
+exit 6  MALFORMADA
+exit 7  BAJO MINIMO
+```
+
+**Descarto la opcion barata —"que el convenio cubra solo los gates de conteo y T1 quede fuera"— y
+digo por que: un convenio NO UNIVERSAL es peor que ninguno.** Si `exit 4` significa dos cosas segun
+el programa, **el lector sigue teniendo que saber de que programa viene**, que es exactamente lo que
+el convenio venia a evitar — **pero ahora con la apariencia de que existe un significado compartido.**
+Es la "sensacion de un control" aplicada a una convencion.
+
+**DECISION — el convenio reserva una BANDA para el estado del INSTRUMENTO, y deja otra para los
+resultados de DOMINIO:**
+```
+BANDA DEL INSTRUMENTO (universal, cualquier programa de la fabrica)
+  exit 3  CRASH DEL PROPIO INSTRUMENTO   <- de T1, adoptado tal cual
+  exit 4  SIN CONTENEDOR   la salida del runner no existe o no se lee
+  exit 5  AUSENTE          ninguna linea con el sujeto buscado
+  exit 6  MALFORMADA       la hay y su valor no vale (incluye NaN)
+  exit 7  BAJO MINIMO      N < minimo
+BANDA DE DOMINIO (>= 10)  resultados propios de cada comprobador
+  ej. el gate de exports ajenos de T1 pasa de `exit 4` a la banda >= 10
+```
+**Coste real: cambia UN codigo en UN programa.** No renumero a T2 ni a T4 (dos terminales, dos
+fichas) ni dejo a T1 fuera.
+
+✅ **Y el `exit 3` de T1 entra en el convenio POR MERITO, no por antiguedad: lo separo porque *"un
+crash y un resultado legitimo daban el mismo observable"*.** Es la misma familia que el 4/5 y **mas
+fundamental que ella** — un crash es el caso extremo de *"no pude mirar"*. **Que se hubiera quedado
+fuera por llegar tarde a una conversacion privada es justamente el defecto que la D63 denuncia**, en
+su segunda vuelta.
+
+⚠️ **Y la peticion de la Directora es la correcta y va con la decision: T1 no puede enterarse del
+convenio por un veredicto.** Es **el unico de los cuatro que ya tenia codigos escritos y no estuvo en
+la conversacion donde se formaron.** Se le traslada directamente, **con su `exit 3` acreditado como
+suyo.**
