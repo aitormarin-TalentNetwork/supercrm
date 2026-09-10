@@ -425,8 +425,21 @@ las de §6bis **no** son tuyas.
 | `GMAIL_CLIENT_SECRET` | Deployment de Convex | idem |
 | `GMAIL_TOKEN_ENCRYPTION_KEY` | Deployment de Convex | Cifra el token de refresco guardado en `gmailAccounts` |
 
-> ⛔ **ENCLAVAMIENTO — NO PONGAS ESTAS TRES VARIABLES EN PRODUCCIÓN HASTA QUE
-> AIT-145 ESTÉ CERRADA.** (Integrador, 2026-09-10, al publicar AIT-92.)
+> ⛔ **ENCLAVAMIENTO — NO PONGAS `GMAIL_CLIENT_ID` NI `GMAIL_CLIENT_SECRET` EN
+> PRODUCCIÓN HASTA QUE AIT-145 ESTÉ CERRADA.** (Integrador, 2026-09-10, al
+> publicar AIT-92.)
+>
+> 🔴 **CORREGIDO POR EL PM, 2026-09-11 01:05 UTC: antes decía «estas TRES
+> variables» y era DEMASIADO ESTRICTO, por comodidad mía al redactarlo.**
+> `GMAIL_TOKEN_ENCRYPTION_KEY` **no activa nada**: sin cliente ni secreto no hay
+> flujo que atacar, y esa clave es justo lo que hace que el token guardado no sea
+> legible. **Ponerla antes es correcto y estaba pedido.**
+>
+> ⚠️ **Y la corrección importa más que la variable: una regla más estricta de lo
+> necesario se incumple sin daño, y eso enseña que la regla es aproximada.**
+> *La próxima vez que alguien se la salte —esa vez con las dos que sí importan—
+> ya habrá un precedente de que saltársela no pasa nada.* **Las dos que quedan
+> son las que abren la puerta, y ésas no se ponen.**
 >
 > **AIT-145** — *«el consentimiento de Gmail se puede vincular al usuario
 > equivocado: la víctima acepta y su buzón queda en la cuenta del atacante»* —
