@@ -725,14 +725,31 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
   // llegaras.
   const etapaPush = tPrimeraPeticion - t0;
   const etapaCierre = tRespuesta - tPrimeraPeticion;
-  const etapaCliente = total - (tRespuesta - t0);
+  // 🔴 ESTO NO ES "LA ETAPA DE LIMPIEZA", Y SE LLAMABA ASÍ. Es un RESIDUO: todo
+  // lo que queda entre la respuesta del cierre y `/login`. Contiene la carrera de
+  // limpieza (acotada a LIMITE_LIMPIEZA_CLIENTE_MS) **y además** `router.replace`,
+  // el render y la carga de la pantalla.
+  //
+  // ⛔ LO DELATA LA ARITMÉTICA: las tres "etapas" suman EXACTAMENTE el total
+  // (medido: 782+1357+945 = 3084 y 769+1353+696 = 2818). **Un residuo no puede
+  // tener límite propio, porque contiene todo lo que los otros dos no midieron.**
+  //
+  // ⚠️ SE RENOMBRA PORQUE EL NOMBRE YA ENGAÑÓ A DOS PERSONAS: al leer
+  // `cliente 945 ms (límite 500)` la conclusión natural es "la limpieza incumple
+  // su límite", y es falsa — 500 son la carrera y 445 la cola. **Dos lectores con
+  // el mismo malentendido sobre el mismo número no es mala suerte: es el nombre.**
+  const restoHastaLogin = total - (tRespuesta - t0);
+  // Y ÉSTE es el número que de verdad importa para el presupuesto: lo que la cola
+  // añade por encima de la carrera. Es lo que `MARGEN_SOBRECARGA_MS` dice cubrir.
+  const sobrecargaDeLaCola = restoHastaLogin - LIMITE_LIMPIEZA_CLIENTE_MS;
 
   console.log(
     `[AIT-127 · C3] gesto → /login = ${total} ms · forzado = ${forzado} ms · ` +
       `sobrecarga = ${total - forzado} ms (margen reservado ${MARGEN_SOBRECARGA_MS} ms)\n` +
       `[AIT-127 · C3] etapas medidas: push ${etapaPush} ms (límite ${LIMITE_LIMPIEZA_MS}) · ` +
       `cierre ${etapaCierre} ms (retenido ${RETARDO_CIERRE_MS}) · ` +
-      `cliente ${etapaCliente} ms (límite ${LIMITE_LIMPIEZA_CLIENTE_MS})`,
+      `resto hasta /login ${restoHastaLogin} ms = carrera ${LIMITE_LIMPIEZA_CLIENTE_MS} ` +
+      `+ cola ${sobrecargaDeLaCola} ms · margen reservado ${MARGEN_SOBRECARGA_MS}`,
   );
 
   // CONTROL: las dos peticiones se alcanzaron. Sin esto, un total pequeño no
@@ -755,10 +772,13 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
       `${RETARDO_CIERRE_MS} ms: no se retuvo lo que este test afirma retener`,
   ).toBeGreaterThanOrEqual(RETARDO_CIERRE_MS - TOLERANCIA_ETAPA_MS);
 
+  // Suelo del RESIDUO: tiene que contener al menos la carrera entera. Es un
+  // suelo, no un techo — y no se le pone techo a propósito, porque lo que lo
+  // excede no es la limpieza sino la cola, que se vigila con el margen.
   expect(
-    etapaCliente,
-    `la limpieza de cliente consumió ${etapaCliente} ms y su límite es ` +
-      `${LIMITE_LIMPIEZA_CLIENTE_MS} ms: no se agotó`,
+    restoHastaLogin,
+    `el resto hasta /login fue ${restoHastaLogin} ms y sólo la carrera de ` +
+      `limpieza ya vale ${LIMITE_LIMPIEZA_CLIENTE_MS} ms: no se agotó`,
   ).toBeGreaterThanOrEqual(LIMITE_LIMPIEZA_CLIENTE_MS - TOLERANCIA_ETAPA_MS);
 
   // SUELO DEL TOTAL, derivado del retardo REALMENTE forzado. Es redundante con
