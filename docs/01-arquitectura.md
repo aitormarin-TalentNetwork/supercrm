@@ -647,6 +647,79 @@ Alternativas descartadas, y las dos por motivos distintos:
 
 **Estado:** 🟢 Cerrada.
 
+### ADR-0xx · Un cierre que NO se confirma tampoco puede dejar la sesión usable — 2026-09-10 (AIT-134)
+
+**Contexto.** AIT-127 dejó el cierre *honesto*: si no se confirma, la app lo dice
+y no navega. Pero **la sesión seguía usable**. Cuando el POST a `/api/auth` no
+llega a completarse —lo aborta nuestro propio `AbortController` a
+`LIMITE_CIERRE_MS`— nadie emite el `Set-Cookie` que borra las cookies, y el
+servidor sigue dejando entrar. **Medido por efecto contra el servidor**, con
+control positivo (sesión viva → entra) y negativo (sin sesión → no entra).
+
+📌 **Y el productor del caso es nuestro propio timeout**, no sólo la librería: el
+enunciado original hablaba de que `signOut()` se traga los errores, y eso es
+cierto; pero el camino que lo dispara a diario lo introdujo AIT-127.
+
+**Decisión 1 — una ruta propia que borre las cookies sin pasar por Convex.**
+`POST /api/cerrar-sesion-local`, y **excluida del matcher de `proxy.ts`**.
+
+> ⛔ **La exclusión no es un detalle de configuración: es de lo que depende que la
+> ruta sirva para algo.** El middleware ejecuta `convexAuth.isAuthenticated()` en
+> toda ruta capturada, y eso es un `fetchQuery` a Convex **sin límite**. Con
+> Convex lento, la petición no llega al handler y la ruta **hereda la dependencia
+> que viene a rodear**. Un `return` temprano dentro del middleware no vale:
+> `convexAuthNextjsMiddleware` **envuelve** a nuestro handler y puede renovar
+> tokens antes de que corra nuestro código.
+
+**Decisión 2 — `ok:true` significa CONFIRMADO POR EFECTO, no "respondió 200".**
+La confirmación pide una ruta protegida y clasifica en **tres** estados —
+`ACCESO_CONFIRMADO`, `DENEGACION_ESPERADA`, `ANOMALO` — y **ninguno se deduce de
+la negación de otro**. *"No es la denegación esperada" no implica "el servidor
+deja entrar"*: con un predicado binario, un 500 se leía como sesión cerrada.
+
+⚠️ **La confirmación va acotada, y por el mismo motivo que todo lo demás:** una
+ruta protegida pasa por el middleware, así que **la comprobación hereda la
+dependencia ilimitada**. Si no puede completarse → no se ha confirmado → no se
+navega, se avisa. La regla se aplica sola, sin excepciones que escribir.
+
+**Decisión 3 — el camino de fallo tiene su propio presupuesto: 5 s.**
+C3 exige `/login` en ≤3 s. Al hacer que la recuperación **navegue**, C3 empezaba a
+aplicarle, y no cabía: las etapas que ya existían suman el presupuesto entero
+(`750 + 1400 + 500 + 350 = 3000`), o sea **cero hueco**.
+
+> 🔑 **Por qué no es ajustar el criterio al resultado:** C3 se escribió para el
+> camino normal, y **el de recuperación no navegaba cuando se escribió**. Ese
+> hecho es **anterior** al problema. Aplicarle a un camino nuevo un criterio
+> redactado para otro es retroajuste, no cumplimiento.
+
+⚠️ **Los 5 s son un JUICIO del PM, no una medición.** No salen de lo que cuesta la
+implementación —se fijaron antes de saberlo— sino del usuario: en un camino de
+fallo la restricción no es parecer rápido, es **que la persona no se rinda y se
+vaya antes de que termine**, porque irse creyendo que ha salido es el daño de
+AIT-127. Lo cambiaría evidencia sobre cuándo se abandona una pantalla que habla.
+
+🔴 **DOS GUARDAS, Y LA SEGUNDA ES UNA DEPENDENCIA VIVA CON AIT-127:**
+
+1. **No cascadea.** Ningún otro camino hereda ese margen. Hay un test que se pone
+   rojo si alguien iguala los dos presupuestos "para simplificar".
+2. ⛔ **Lo que hace aceptables 5 segundos es la alerta de AIT-127, que aparece a
+   los ~102 ms.** El usuario no espera en silencio: espera informado.
+   **Si esa alerta desaparece, este presupuesto vuelve a 3 s el mismo día.**
+   *Se escribe aquí porque quien toque AIT-127 no va a leer el fichero del hook.*
+
+**Lo que esta decisión NO arregla, y queda declarado por imposibilidad:** sin red,
+o con el servidor de la app caído, **ninguna vía de cliente puede borrar una
+cookie `httpOnly`** — ni JavaScript, ni `document.cookie`, ni una navegación sin
+respuesta, ni un service worker, **ni crear otra cookie no-`httpOnly` con el mismo
+nombre**. No es una carencia del diseño: es el protocolo. Ahí lo único honesto es
+lo que ya hace AIT-127: decirlo y no navegar.
+
+Y esto **no revoca nada en el servidor**: quien capturara el token antes sigue
+entrando hasta que expire. Eso es AIT-133.
+
+**Estado:** 🟡 En curso.
+
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:

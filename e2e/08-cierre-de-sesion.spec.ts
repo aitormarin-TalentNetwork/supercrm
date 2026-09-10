@@ -7,6 +7,7 @@ import {
   LIMITE_LIMPIEZA_CLIENTE_MS,
   PRESUPUESTO_C3_MS,
   MARGEN_SOBRECARGA_MS,
+  PRESUPUESTO_C3_FALLO_MS,
 } from "@/components/push/useSignOutAndUnlinkPush";
 import { PUSH_ENDPOINT_KEY } from "@/components/push/useSyncPushSubscription";
 
@@ -105,19 +106,69 @@ async function pulsarCerrarSesion(pagina: Page, boton: "ajustes" | "menu") {
   await control.click();
 }
 
-/** LA COMPROBACIÓN QUE MANDA: una petición NUEVA E INDEPENDIENTE a una ruta
- *  protegida. Devuelve `true` si el servidor deja entrar. */
-async function elServidorDejaEntrar(pagina: Page): Promise<boolean> {
+/** AIT-134 · Los TRES estados. Ninguno se deduce de la negación de otro.
+ *
+ * 🔴 QUÉ ARREGLA, Y ERA UN DEFECTO MÍO DE AIT-127: el predicado anterior era
+ * `destino.includes("/login")`, que acepta **una URL con `/login` en el query** y
+ * **un destino de OTRO ORIGEN terminado en `/login`**. Y era binario, así que
+ * metía en el mismo saco *"me dejó entrar"* y *"pasó algo raro"*.
+ * **"No es la denegación esperada" NO implica "el servidor deja entrar."**
+ *
+ * ⚠️ Y ENDURECERLO CRUZA EN DOS DIRECCIONES SEGÚN QUIÉN LO CONSUMA — esto no es
+ * una propiedad del cambio, es del cambio Y de la expectativa que lo lee:
+ *   · los que CUENTAN entradas (C2a, C2c) se vuelven más exigentes -> hacia el rojo;
+ *   · los que esperaban `true` (los dos CONTROLES POSITIVOS y C7) pasan más
+ *     fácil -> hacia el verde. **Un control que pasa más fácil discrimina menos**,
+ *     y discriminar es su único trabajo.
+ * Por eso los tres que esperaban `true` pasan a exigir `ACCESO_CONFIRMADO`, que
+ * es un observable POSITIVO, en vez de la negación de la denegación.
+ */
+type EstadoAcceso = "ACCESO_CONFIRMADO" | "DENEGACION_ESPERADA" | "ANOMALO";
+
+async function clasificarAcceso(pagina: Page): Promise<EstadoAcceso> {
   const respuesta = await pagina.request.get(RUTA_PROTEGIDA, {
     maxRedirects: 0,
     failOnStatusCode: false,
   });
-  const destino = respuesta.headers()["location"] ?? "";
-  return !(
-    respuesta.status() >= 300 &&
-    respuesta.status() < 400 &&
-    destino.includes("/login")
-  );
+  const codigo = respuesta.status();
+  if (codigo >= 300 && codigo < 400) {
+    const cabecera = respuesta.headers()["location"] ?? "";
+    let destino: URL;
+    try {
+      destino = new URL(cabecera, new URL(respuesta.url()).origin);
+    } catch {
+      return "ANOMALO";
+    }
+    const mismoOrigen = destino.origin === new URL(respuesta.url()).origin;
+    // `pathname` EXACTO. Ni `includes`, ni query, ni fragmento.
+    return mismoOrigen && destino.pathname === "/login"
+      ? "DENEGACION_ESPERADA"
+      : "ANOMALO";
+  }
+  if (codigo === 200) return "ACCESO_CONFIRMADO";
+  return "ANOMALO";
+}
+
+/** 🔴 ESTE HELPER SE RETIRA, Y EL MOTIVO ES UN ABLANDAMIENTO QUE ME HICE YO.
+ *
+ *  Al endurecer el clasificador, `!(denegación)` pasó a `=== ACCESO_CONFIRMADO`.
+ *  Suena más estricto y **para los conteos es más FLOJO**:
+ *      antes -> un ANOMALO contaba como entrada
+ *      ahora -> un ANOMALO no cuenta como nada, y desaparece
+ *  O sea que el «cero entradas» de C2a se volvía **más fácil de pasar**, y por
+ *  la peor puerta: **un test que se ablanda no se pone rojo, se queda verde
+ *  discriminando menos.** Nadie lo habría visto en la suite.
+ *
+ *  Se sustituye por un contador de los TRES estados, que no deja hueco: cada
+ *  sondeo cae en uno y sólo uno, y el ANÓMALO **se cuenta aparte y se exige
+ *  cero** en vez de absorberse. */
+type Recuento = { entradas: number; denegaciones: number; anomalos: number };
+
+function contar(recuento: Recuento, estado: EstadoAcceso): Recuento {
+  if (estado === "ACCESO_CONFIRMADO") recuento.entradas++;
+  else if (estado === "DENEGACION_ESPERADA") recuento.denegaciones++;
+  else recuento.anomalos++;
+  return recuento;
 }
 
 /** Deja el cierre EN VUELO y devuelve el control al test en ese instante.
@@ -425,9 +476,9 @@ test("C2c · la ventana residual del servidor: se mide y se publica, no se decla
   test.slow();
   const pagina = await abrirSesionPropia(browser, "sales");
   expect(
-    await elServidorDejaEntrar(pagina),
+    await clasificarAcceso(pagina),
     "la sesión no servía ANTES de cerrar: la medición no vale",
-  ).toBe(true);
+  ).toBe("ACCESO_CONFIRMADO");
   const control = await prepararCierre(pagina, "ajustes");
 
   const t0 = Date.now();
@@ -454,19 +505,36 @@ test("C2c · la ventana residual del servidor: se mide y se publica, no se decla
   let ultimoSiEntraMs = -1;
   let primerNoEntraMs = -1;
   let sondeos = 0;
+  const recuento: Recuento = { entradas: 0, denegaciones: 0, anomalos: 0 };
   for (let offset = 0; offset <= TECHO_MS + 1000; offset += PASO_MS) {
     const espera = t0 + offset - Date.now();
     if (espera > 0) await pagina.waitForTimeout(espera);
     const salida = Date.now() - t0;
     sondeos++;
-    if (await elServidorDejaEntrar(pagina)) {
+    const estado = await clasificarAcceso(pagina);
+    contar(recuento, estado);
+    if (estado === "ACCESO_CONFIRMADO") {
       ultimoSiEntraMs = salida;
       continue;
+    }
+    // ⛔ Sólo la DENEGACIÓN cierra la ventana. Un ANÓMALO no la cierra y no se
+    //    absorbe. Con el predicado binario un anómalo se leía como "ya no
+    //    entra" y ACORTABA la ventana medida: un número más bonito por un
+    //    fallo, no por un cierre.
+    if (estado === "DENEGACION_ESPERADA") {
+      primerNoEntraMs = salida;
+      break;
     }
     primerNoEntraMs = salida;
     break;
   }
   const ventanaMs = primerNoEntraMs;
+
+  expect(
+    recuento.anomalos,
+    `hubo ${recuento.anomalos} respuestas ANÓMALAS durante el barrido: no son ` +
+      `accesos ni denegaciones, así que la ventana medida no significa lo que dice.`,
+  ).toBe(0);
 
   console.log(
     `[AIT-127 · C2c] ventana residual ACOTADA en (${ultimoSiEntraMs}, ${primerNoEntraMs}] ms ` +
@@ -515,14 +583,14 @@ for (const role of ["owner", "sales"] as Role[]) {
       // en un solo test agotan el timeout de 90 s a mitad de camino. Un rojo
       // por timeout se lee igual que un rojo por defecto, y no lo es.
       test.slow();
-      let entradas = 0;
+      const recuento: Recuento = { entradas: 0, denegaciones: 0, anomalos: 0 };
 
       for (let i = 0; i < INTENTOS_POR_COMBINACION; i++) {
         const pagina = await abrirSesionPropia(browser, role);
         expect(
-          await elServidorDejaEntrar(pagina),
+          await clasificarAcceso(pagina),
           `iteración ${i + 1}: la sesión no servía ANTES de cerrar`,
-        ).toBe(true);
+        ).toBe("ACCESO_CONFIRMADO");
 
         const control = await prepararCierre(pagina, boton);
 
@@ -533,15 +601,24 @@ for (const role of ["owner", "sales"] as Role[]) {
         await control.click();
         const restante = t0 + RETARDO_GESTO_MS - Date.now();
         if (restante > 0) await pagina.waitForTimeout(restante);
-        if (await elServidorDejaEntrar(pagina)) entradas++;
+        contar(recuento, await clasificarAcceso(pagina));
         await pagina.context().close();
       }
 
       console.log(
-        `[AIT-127 · C2c] ${role}/${boton}: entraron ${entradas} de ${INTENTOS_POR_COMBINACION} a ${RETARDO_GESTO_MS} ms`,
+        `[AIT-127 · C2c] ${role}/${boton}: entraron ${recuento.entradas} de ` +
+          `${INTENTOS_POR_COMBINACION} a ${RETARDO_GESTO_MS} ms · denegaciones ` +
+          `${recuento.denegaciones} · anómalos ${recuento.anomalos}`,
       );
+      // ⛔ EL ANÓMALO SE EXIGE CERO. Sin esto, endurecer el clasificador ABLANDA
+      //    este conteo: un anómalo dejaría de contar como entrada y
+      //    desaparecería, y el criterio pasaría más fácil sin ponerse rojo.
       expect(
-        entradas,
+        recuento.anomalos,
+        `${recuento.anomalos} respuestas ANÓMALAS en ${INTENTOS_POR_COMBINACION} intentos`,
+      ).toBe(0);
+      expect(
+        recuento.entradas,
         `entraron las ${INTENTOS_POR_COMBINACION}: el cierre no está cerrando nada`,
       ).toBeLessThan(INTENTOS_POR_COMBINACION);
     });
@@ -747,7 +824,10 @@ for (const role of ["owner", "sales"] as Role[]) {
       //     reintroduce el defecto. Y se comprueba CONTRA EL SERVIDOR: es la
       //     única condición de C7 que no se puede sustituir por leer un
       //     almacenamiento.
-      expect(await elServidorDejaEntrar(pagina)).toBe(true);
+      expect(
+        await clasificarAcceso(pagina),
+        "C7: la sesion tiene que seguir VIVA tras un cierre fallido, y se acredita\n         con el observable POSITIVo (ACCESO_CONFIRMADO), no negando la denegacion",
+      ).toBe("ACCESO_CONFIRMADO");
 
       await pagina.context().close();
     });
@@ -873,6 +953,191 @@ test("M2 · la PRIMERA llamada de cierre se queda colgada: sigue pendiente hasta
     "la petición no terminó abortada: el aviso podría venir de otro fallo, " +
       "no del límite que este test comprueba",
   ).toMatch(/abort/i);
+
+  await pagina.context().close();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AIT-134 — Un cierre que FALLA no puede dejar la sesión usable
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** La cabecera que `proxy.ts` pone en TODA respuesta que maneja el middleware.
+ *  Su AUSENCIA es el observable de que el middleware NO corrió para esa ruta. */
+const CABECERA_MIDDLEWARE = "x-supercrm-commit";
+const RUTA_CIERRE_LOCAL = "/api/cerrar-sesion-local";
+
+test("AIT-134 · FASE A · la ruta de cierre local NO pasa por el middleware", async ({
+  browser,
+}) => {
+  // 🔑 QUÉ MIDE Y POR QUÉ ASÍ. La ruta existe para el caso en que Convex no
+  // responde. Si pasara por el middleware, éste ejecuta `isAuthenticated()` —un
+  // `fetchQuery` a Convex SIN LÍMITE— y la ruta heredaría exactamente la
+  // dependencia que viene a rodear.
+  //
+  // ⚠️ NO SE PUEDE INTERCEPTAR ESE `fetchQuery`: ocurre SERVIDOR -> Convex, no
+  // desde el navegador, así que `page.route` no lo ve. El observable es otro y
+  // es externo: `proxy.ts` pone `x-supercrm-commit` en toda respuesta que
+  // maneja. **Si la cabecera no está, el middleware no corrió.**
+  //
+  // ⛔ ESTE TEST ES EL QUE VIGILA EL REGEX DEL MATCHER, que no se verifica
+  // leyéndolo. Si alguien devuelve la ruta al matcher, esto se pone rojo.
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // CONTROL POSITIVO DEL OBSERVABLE, y va primero: una ruta que SÍ está en el
+  // matcher tiene que traer la cabecera. Sin esto, una cabecera ausente en todas
+  // partes daría verde sin distinguir nada.
+  const enMatcher = await pagina.request.get("/login", {
+    maxRedirects: 0,
+    failOnStatusCode: false,
+  });
+  expect(
+    enMatcher.headers()[CABECERA_MIDDLEWARE],
+    `el observable no discrimina: /login está en el matcher y su respuesta NO ` +
+      `trae ${CABECERA_MIDDLEWARE}, así que su ausencia en la ruta local no ` +
+      `probaría nada`,
+  ).toBeTruthy();
+
+  const excluida = await pagina.request.post(RUTA_CIERRE_LOCAL, {
+    failOnStatusCode: false,
+  });
+  expect(excluida.status(), "la ruta de cierre local no respondió 200").toBe(200);
+  expect(
+    excluida.headers()[CABECERA_MIDDLEWARE],
+    `${RUTA_CIERRE_LOCAL} trae ${CABECERA_MIDDLEWARE}: el middleware SÍ corrió ` +
+      `para ella, o sea que la exclusión del matcher no está funcionando y la ` +
+      `ruta depende de Convex igual que todo lo demás`,
+  ).toBeUndefined();
+
+  await pagina.context().close();
+});
+
+test("AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR ENTRAR", async ({
+  browser,
+}) => {
+  // Independiente de la fase A a propósito: son `test()` separados, así que un
+  // rojo de A no impide que ésta corra ni que reporte.
+  test.slow();
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // ── M1 · EL OBSERVABLE DE QUE ESTA PRUEBA ALCANZÓ SU SUJETO ──────────────
+  // Contador instalado POR EL TEST y FUERA del cuerpo que se quiere acreditar.
+  // Si el test retornara antes, el contador se queda en cero y el `expect` de
+  // abajo lo caza. Un verde sin este número no acredita nada.
+  let peticionesALaRutaProtegida = 0;
+  pagina.on("request", (peticion) => {
+    if (new URL(peticion.url()).pathname === RUTA_PROTEGIDA) {
+      peticionesALaRutaProtegida++;
+    }
+  });
+
+  // CONTROL POSITIVO PROPIO DE ESTA FASE: antes de cerrar, el servidor deja
+  // entrar. Sin él, un "deniega" al final no distingue "cerró" de "el
+  // instrumento dice que no a todo".
+  expect(
+    await clasificarAcceso(pagina),
+    "control positivo de la fase B: la sesión no servía ANTES de cerrar",
+  ).toBe("ACCESO_CONFIRMADO");
+
+  // Se aborta el POST de cierre: es el disparador estrecho de la ficha. NO se
+  // simula un error de Convex — ése es el camino que HOY YA borra las cookies.
+  let abortados = 0;
+  await pagina.route("**/api/auth", async (ruta) => {
+    if (!(ruta.request().postData() ?? "").includes("auth:signOut")) {
+      return ruta.continue();
+    }
+    abortados++;
+    return ruta.abort("failed");
+  });
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+  await pagina.waitForURL("**/login", {
+    timeout: PRESUPUESTO_C3_FALLO_MS + 2000,
+  });
+
+  const estadoFinal = await clasificarAcceso(pagina);
+  console.log(
+    `[AIT-134 · FASE B] peticiones a ${RUTA_PROTEGIDA}: ${peticionesALaRutaProtegida} · ` +
+      `abortados: ${abortados} · estado final: ${estadoFinal}`,
+  );
+
+  expect(
+    abortados,
+    "no se abortó ningún cierre: esta prueba no midió el caso que dice medir",
+  ).toBeGreaterThanOrEqual(1);
+  expect(
+    peticionesALaRutaProtegida,
+    "el contador de peticiones a la ruta protegida está en cero: esta prueba " +
+      "no llegó a ejercitar su sujeto y su verde no acreditaría nada",
+  ).toBeGreaterThanOrEqual(1);
+  expect(
+    estadoFinal,
+    `tras el cierre abortado el servidor devolvió ${estadoFinal}. Sólo ` +
+      `DENEGACION_ESPERADA acredita que la sesión dejó de ser usable: ni ` +
+      `ACCESO_CONFIRMADO ni ANOMALO valen.`,
+  ).toBe("DENEGACION_ESPERADA");
+
+  await pagina.context().close();
+});
+
+test("AIT-134 · momento (3) · si la recuperación TAMPOCO se confirma, no se navega", async ({
+  browser,
+}) => {
+  // El caso que cierra el falso verde bilateral: la recuperación falla y la app
+  // NO puede reportar éxito. `ok:true` significa confirmado por efecto, nunca
+  // "la petición devolvió algo".
+  test.slow();
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  await pagina.route("**/api/auth", async (ruta) => {
+    if (!(ruta.request().postData() ?? "").includes("auth:signOut")) {
+      return ruta.continue();
+    }
+    return ruta.abort("failed");
+  });
+  // Y la ruta de recuperación responde 500: completa, pero NO acredita nada.
+  await pagina.route(`**${RUTA_CIERRE_LOCAL}`, (ruta) =>
+    ruta.fulfill({ status: 500, body: "" }),
+  );
+
+  const urlAntes = pagina.url();
+  await pulsarCerrarSesion(pagina, "ajustes");
+  await expect(
+    pagina.getByRole("alert"),
+    "con la recuperación fallando, el usuario tiene que ver el aviso",
+  ).toBeVisible({ timeout: PRESUPUESTO_C3_FALLO_MS });
+
+  expect(
+    pagina.url(),
+    "se navegó pese a que NADIE confirmó el cierre: eso es exactamente el " +
+      "`ok:true` que significa «el fetch no reventó»",
+  ).toBe(urlAntes);
+
+  await pagina.context().close();
+});
+
+test("AIT-134 · el clasificador NO acepta un /login de otro origen ni en el query", async ({
+  browser,
+}) => {
+  // 🔴 CONTROL DEL INSTRUMENTO, y fabrica el rojo del predicado VIEJO: los dos
+  // señuelos de abajo pasaban con `destino.includes("/login")` y ahora tienen
+  // que clasificarse ANOMALO. Sin este test, "endurecí el predicado" es una
+  // afirmación mía y no una medición.
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  for (const [nombre, location] of [
+    ["otro origen", "https://ejemplo.invalido/login"],
+    ["/login en el query", "/panel?redirigido=/login"],
+  ] as const) {
+    await pagina.route(`**${RUTA_PROTEGIDA}`, (ruta) =>
+      ruta.fulfill({ status: 302, headers: { location } }),
+    );
+    expect(
+      await clasificarAcceso(pagina),
+      `un 302 con Location "${location}" (${nombre}) se clasificó como algo ` +
+        `distinto de ANOMALO: el predicado sigue siendo laxo`,
+    ).toBe("ANOMALO");
+    await pagina.unroute(`**${RUTA_PROTEGIDA}`);
+  }
 
   await pagina.context().close();
 });
