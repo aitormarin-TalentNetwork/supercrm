@@ -555,6 +555,53 @@ Y su conexión con lo demás es exacta: **es el mismo animal que la lista cerrad
 no incluía a T4.** Allí el vigilante no la veía **porque no la enumeraba**; aquí **porque le
 habían dicho que estaba bien.** Misma ceguera, entrada distinta.
 
+### Dos falsos ROJOS, y la defensa que sirvió en uno no habría servido en el otro
+Casi todo lo de esta noche falla hacia el verde. **Estos dos fallan hacia el rojo, y por eso
+entran por otra puerta: nadie pide evidencia cuando le traen una mala noticia.**
+
+**El primero (QA):** en headless, Chromium devuelve `Notification.permission === "denied"`
+aunque se concedan los permisos explícitamente; en headed, el mismo código da `granted`. **La
+diferencia entre "el botón no existe" y "el botón está ahí" es el modo del navegador, no la
+app.** Quien pruebe notificaciones en headless lee un defecto de producto donde hay una
+limitación del entorno.
+
+**El segundo (Integrador):** vio que un spec declarado como desactivado aparecía en
+`playwright test --list`, e iba a reportar *"un spec que dice estar apagado está activo y
+produce un verde que no discrimina"* — un rojo urgente **sobre el trabajo de otro**. **No lo
+mandó: fabricó el control.**
+```
+con el fixme  -> 1 skipped, exit 0   <- desactiva de verdad
+sin el fixme  -> 1 failed,  exit 1   <- control negativo: sin el, si corre y si falla
+--list        -> LO LISTA IGUAL, desactivado o no
+```
+**`--list` lista también los tests desactivados**, así que *"Total: 1 test"* no significa *"1
+test que va a correr"*. La alarma era del instrumento.
+
+🔑 **Y LA COMPARACIÓN ENTRE LOS DOS ES LO QUE VALE, y la hizo él:** al QA lo salvó que **su
+número era demasiado gordo para creerlo**. **Aquí eso no habría servido: su hallazgo era
+pequeño, plausible y encajaba.** Lo salvó **fabricar el caso**, no dudar.
+> **La implausibilidad es una defensa que solo funciona contra los errores llamativos. Contra
+> los creíbles, la única defensa es construir el control.**
+
+⚠️ **Y el daño evitado no era el ruido:** ese falso rojo aterrizaba **sobre la única ficha que
+puede mover el 0% del compromiso**, a un major del GO. **Habría hecho dudar de un trabajo que
+está bien** — y desmontar esa duda cuesta más que haberla creado.
+
+### Una decisión de publicación que evita fabricar código sin auditar
+La implementación de una ficha vive en una rama **con el nombre de otra tarea que también
+existe**. Lo natural sería partirla en dos publicaciones. **Medido: los ficheros de los dos
+grupos no se solapan, pero los commits están entrelazados en el tiempo**, así que separarlas
+exige `cherry-pick`.
+
+**Y ahí está la razón para no hacerlo: un `cherry-pick` fabrica commits nuevos que ningún
+veredicto cubre** — es la ronda que corrige, la más peligrosa del ciclo, aplicada **por
+comodidad de rótulo**. Lo que cierra la decisión es que **el veredicto en curso YA cubre las
+dos cosas**: su huella declarada las incluye. **El riesgo real no era el nombre de la rama:
+era si el alcance del veredicto llegaba a las dos. Y llega.**
+
+Se publica en un solo merge, **con el mensaje y la ficha diciendo explícitamente que cierra dos
+asuntos** — porque el nombre de la rama dirá otra cosa para siempre en el histórico.
+
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
 fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es mía:
