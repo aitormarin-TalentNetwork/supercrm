@@ -165,6 +165,27 @@ ya daba igual**. Ésa es la diferencia entre **un control que informa y uno que 
 un experimento controlado. **La regla se adopta porque es barata y porque encaja con todos los
 casos, no porque su causa esté demostrada.**
 
+🔴 **Y AQUÍ VA EL LÍMITE DE ESTA MISMA CONCLUSIÓN, que lo encontró T2 y que la deja bastante
+más pequeña de lo que parece.** La formuló corrigiendo una instrucción que le habían dado:
+
+> *"Ejecutar el control no basta si el caso de prueba lo diseña quien escribió el instrumento,
+> porque sale del mismo modelo mental — y ese modelo es justo lo que está fallando."*
+
+**Le habían dicho "no leas el instrumento, ejecútalo contra un caso que debería hacerlo
+fallar". Lo ejecutó… y fabricó el caso a imagen del instrumento.** El control pasó, y no
+probaba nada.
+
+**Esto me aplica de lleno: TODOS los controles positivos que puse esta noche los diseñé yo,
+para instrumentos que había escrito yo.** El del `-newermt` funcionó por suerte —el caso que
+elegí resultó separar—; el de los transcripts no, y ya vimos que validaba el eje equivocado.
+**Poner el control delante evita una parte del problema; no evita que el control herede la
+ceguera del que lo escribió.**
+
+**Lo que sí funcionó de verdad esta noche, mirando los ocho casos:** de los seis que no se
+detectaron solos, **la mayoría los cazó otra persona con otro método** — una discrepancia entre
+dos filtros, un señuelo, una sesión que puso un número que no cuadraba. **Un control propio es
+barato y ayuda; una comprobación ajena construida por otra vía es lo que realmente separa.**
+
 **Y la enumeración completa, que es lo que la convierte en hallazgo y no en impresión** — la
 hice porque el Factory Architect dijo que era *"fuente agotable, un rato de lectura"*, y tenía
 razón. **Ocho instrumentos rotos, no seis:**
@@ -427,6 +448,30 @@ concluir que no había problema.
 ✅ **Corregido y reprobado con 6 casos**, y el que decide hubo que **fabricarlo a propósito**
 —fichero tocado ahora, último evento hace 90 minutos— **porque era el único que separaba el
 método viejo del nuevo, y el disco no lo iba a dar espontáneamente.**
+
+### Dos defectos que se compensan, y el arreglo de uno solo empeora las cosas
+**T1 encontró tres parejas de defectos que se anulaban entre sí.** Una: un patrón roto que
+buscaba una sección **más** un índice incompleto que la tenía. **Verde por partida doble.**
+
+⚠️ **Y lo que lo convierte en trampa, no en curiosidad: arreglar UNO SOLO habría convertido 74
+verdes falsos en 74 ROJOS falsos.** Quien viera ese estropicio —con buen criterio— **habría
+revertido el arreglo, y habría dejado los dos defectos en su sitio CON UNA RAZÓN ESCRITA PARA
+NO TOCARLOS.** El intento correcto de arreglarlo produce la evidencia que blinda el defecto.
+
+📌 Y la tercera pareja aterrizaba en **la columna que nadie mira**: la de las referencias que
+*sí* resuelven. **Un defecto en el sitio donde solo se miran los fallos es invisible por
+diseño.**
+
+### Un `SIN:` idéntico entre dos rondas, y por qué eso rompe una comprobación nuestra
+Esta noche instituimos atar un veredicto a su ronda con dos piezas, y una era **su campo
+`SIN:` propio y distinto**. En el GO de AIT-127, **el `SIN:` es idéntico palabra por palabra al
+de la ronda anterior**: como discriminante valió **cero**, y quien se hubiera apoyado en él
+habría atado el GO a la ronda equivocada.
+
+**Lo que sí lo ató:** cita explícita de la ronda en el cierre, **18 menciones de una sección que
+solo existe en esa ronda**, y referencias a líneas concretas de ese export. **Regla: el `SIN:`
+discrimina cuando cambia, y cuando no cambia no dice nada — hace falta al menos un elemento que
+SOLO pueda existir en esa ronda.**
 
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
