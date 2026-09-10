@@ -267,6 +267,21 @@ cat <<'PEND'
       **El control que lo cerro no dependio de que nadie dijera la verdad:** el HEAD de T1
       paso de ac7a6e6 a f7ab3bd, y la sesion ociosa no habia hecho ese commit. **El puesto
       estaba cubierto, y quien lo dijo no tuvo que ser creido.**
+
+      🔴🔴 PERO SOLO VALE EN UN SENTIDO, Y LO AVISO LA MISMA SESION QUE ME DIO LA REGLA,
+      ANTES DE QUE NADIE LA USARA (2026-09-10 10:0xZ):
+        **SI EL PUESTO AVANZA -> ESTA CUBIERTO.** Solido, no depende del testimonio de nadie.
+        **SI NO AVANZA -> NO CONCLUYE NADA.** Puede estar en fase de PLAN, esperando un
+        veredicto de auditoria, o leyendo. **t4-bb dejo escrito que en fase de plan "no se
+        escribe nada del repo ni de ningun backend"**, y T1 paso de 09:28 a 09:55 con el
+        export congelado esperando veredicto — **que es lo que MANDA el procedimiento.**
+      **ES UN CONTROL POSITIVO, NO UN DETECTOR DE ABANDONO: sirve para confirmar vida,
+      nunca para declarar muerte.** Usarlo al reves hereda el error del cerrojo de esta
+      noche: **declarar abandono con una evidencia que solo sabe hablar en la otra
+      direccion.** Y falla hacia el rojo sobre una PERSONA, que es la peor clase.
+      REGLA: que el HEAD no se mueva **no concluye nada por si solo — solo dispara la
+      pregunta** (`pwd -P` y en que punto del bucle esta). El instrumento castigaba
+      justo la conducta que el procedimiento exige.
       ⚠️ CASO REAL DEL DESAJUSTE, Y VA EN EL SENTIDO CONTRARIO AL QUE ESPERAS: t1-f7
       ARRANCO en `_worktrees/T1` y su directorio primario **se mudo solo a la raiz** a las
       04:42Z. Se sigue llamando T1 y ya no esta en T1. Un censo que busque "la sesion cuyo
