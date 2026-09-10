@@ -1760,3 +1760,58 @@ Mis tres instancias, todas de esta noche:
 **Y esta correccion es la cuarta:** conte un caso de seis y firme una afirmacion causal sobre los
 seis. **La forma es siempre la misma: la parte medida es real, y la firma cubre mas superficie que
 la medicion.**
+
+## D52 — el cerrojo de raiz tiene DOS logs y ninguno contesta su propia pregunta
+
+**Hallazgo de la Directora, verificado por mi con el control positivo puesto delante:**
+```
+_turno-raiz.log    38 entradas, TODAS del Factory Architect. Del CEO: 0
+_turno-convex.log  126 entradas, de ellas 49 con alcance "checkout-raiz". Del CEO: 37
+control positivo (muestra: "CEO" en el otro fichero) -> 37, o sea que el 0 de arriba no es ceguera
+"¿que roles han tenido el cerrojo de raiz?" leyendo el fichero que lleva su nombre -> UNO
+```
+**Es el mismo cerrojo con dos historias paralelas que no se cruzan**, y **falla hacia el lado
+tranquilizador por los dos extremos**:
+- Quien audite *"¿quien ha tenido el cerrojo de raiz?"* leyendo `_turno-raiz.log` **ve cero entradas
+  del CEO y concluye que nunca lo tomo.** Cuarenta y nueve tomas invisibles, **y la ausencia se lee
+  como calma.**
+- Quien investigue un incidente **del turno de Convex** leyendo `_turno-convex.log` **se encuentra
+  49 entradas que no son de Convex**. El fichero que deberia ser la fuente de verdad de un cerrojo
+  **contiene el ruido de otro.**
+
+🔴 **Y la culpa es mia, con su nombre: cree `_turno-raiz.log` al montar el segundo cerrojo (D18) y NO
+AVISE DE QUE EXISTIA.** Es exactamente mi propia regla incumplida — *"una decision que crea
+artefactos nuevos los enumera TODOS y dice donde viven"*. El CEO siguio escribiendo donde siempre,
+**que era lo correcto con la informacion que tenia.**
+
+**DECISION, y NO se mueven las entradas viejas:**
+1. **Cada cerrojo escribe SOLO en su propio log** de aqui en adelante.
+   `_turno-convex.lock` -> `_turno-convex.log` · `_turno-raiz.lock` -> `_turno-raiz.log`.
+2. **La historia se queda donde se escribio.** Los dos ficheros son de solo-anexar y **reescribir su
+   historia romperia la unica garantia que tienen**. Mover 49 entradas para que el indice quede
+   bonito es exactamente el tipo de arreglo que destruye la propiedad que hacia util el fichero.
+3. **Lo que se arregla es que quien lea sepa que esta partida:** nota anexada **a los dos**, con el
+   corte fechado, los numeros medidos y el mapeo viejo->nuevo. **Ya hecho a las 06:09Z.**
+
+📌 **La forma general: un fichero que lleva el nombre de una cosa se audita como si fuera completo
+sobre esa cosa.** Nadie comprueba si existe otro. **Partir un registro sin decirlo no crea un hueco
+visible: crea DOS ficheros que parecen completos**, y los dos contestan.
+
+## Fila (T2, sobre si misma) — la seccion que audita una ronda es parte de esa ronda
+
+**El auditor le puso un major a T2 sobre la seccion que ella habia creado para aplicar la D50 hacia
+delante: se declaro completa OMITIENDO ocho afirmaciones nuevas.** Y su cita de cierre, **escrita
+antes de saberlo**:
+
+> ***"La seccion que audita una ronda es parte de esa ronda, y nadie la audita."***
+
+**Es el mismo hueco que la D45 en otro plano:** alli, un artefacto incompleto pasaba porque nadie
+tenia asignado mirar la completitud; **aqui, el instrumento de auto-revision se excluye a si mismo
+del universo que revisa** — y encima **es el texto mas nuevo del documento**, o sea el menos leido,
+que es justo lo que la 79 protege en el codigo. **Un meta-control que no se incluye en su propio
+alcance produce el hueco que existia para cerrar.**
+
+✅ **Y la D50 se esta pagando en la primera ronda en que existe:** T1 encontro **dos punteros que
+resolvian y apuntaban al sitio equivocado**, T2 **cinco afirmaciones invalidadas**, T3 **dos** —
+**ninguna en ningun diff**. Eso es exactamente la tercera pieza del alcance (*lo que no cambio al
+lado de lo que si*), y ya tiene nueve instancias medidas.
