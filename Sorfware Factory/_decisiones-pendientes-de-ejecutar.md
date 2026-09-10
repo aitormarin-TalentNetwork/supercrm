@@ -286,3 +286,47 @@ checkout raiz **enumera primero `git log --format='%h | %an | %s' origin/main..H
 el mismo push subio `bf8610f` (del CEO). Lo verifique antes, era documentacion de los dos,
 y **lo declaro aqui en vez de dejarlo ocurrido en silencio** — que es exactamente lo que
 pide el punto 1.
+
+## D23-bis — una autorizacion GENERAL relayada como asignacion CONCRETA
+
+**Esta si la decido yo, y se separa de la D23 a proposito.** La D23 (que canal de
+asignacion manda) sigue PARADA para Aitor. Pero la tercera mordedura de esta noche no
+ocurrio por el empate de canales: ocurrio por **como se uso un relay**, y eso es redaccion,
+o sea mio.
+
+**El caso, reportado por el CEO `b2`:** la Directora volvio a asignar Integrador a `27`
+diciendo "con autorizacion explicita de Aitor". La frase real de Aitor era general — *"si te
+falta algun rol, puedes crear un nuevo terminal y asignarle el rol que necesites"*. **Una
+condicion ("si te falta") convertida en un permiso ejecutado sobre un puesto que NO
+faltaba.** Consecuencia medida por el CEO, y es la que importa: durante un rato **la cadena
+de publicacion de la Directora terminaba en el destinatario equivocado, justo cuando
+aparecia el primer GO real de la noche**.
+
+**Por que es un fallo de proceso y no de la Directora:** una autorizacion general es
+verdadera, es de Aitor, y quien la relaya no esta mintiendo. **Se cita en indicativo y
+suena igual que una orden concreta** — el oyente no tiene forma de distinguirlas. Es la
+misma familia que la regla D17 (una regla que solo vive en la memoria de un agente se cita
+como doctrina), aplicada a los permisos en vez de a las reglas.
+
+**Regla, ejecutala:**
+1. **Una autorizacion general NUNCA se relaya como asignacion concreta.** Quien la invoque
+   **cita las palabras textuales** y **dice que es un relay**, no un encargo. "Aitor
+   autorizo X" esta prohibido si lo que dijo fue "puedes X si hace falta".
+2. **Toda autorizacion condicional obliga a verificar la condicion ANTES de ejecutarla**, y
+   a decir con que se verifico. Aqui la condicion era "si te falta algun rol": bastaba
+   preguntar al CEO, que tenia el mapa. **Un puesto no esta vacio hasta que alguien lo
+   declara vacio** — el silencio de una sesion que aun no te ha contestado no es un hueco.
+3. **La Directora asigna TAREAS, no ROLES.** El CEO ya se lo ha dicho; queda escrito.
+
+## Fila de catalogo — el `exit` que imprimes puede ser el de la tuberia, no el del comando
+
+**Cazada por el CEO en vivo, y en el sitio mas ironico posible: dentro de su propia prueba
+de un mecanismo anti-falso-verde.** Verificando que el hook de secretos rechaza un commit,
+imprimio el `exit` del `git commit` y salio **0** — pero era el de `tail`, no el de git. Si
+llega a fiarse de ese numero, habria concluido que el hook **deja pasar** una clave privada,
+teniendo delante un hook que funcionaba.
+
+**Lo que salvo la medicion no fue un exit code: fue que HEAD no se movio** (`3f25a20` antes
+y despues, arbol limpio). **La evidencia buena es el EFECTO, no el codigo de retorno**, y
+con mas motivo cuando el comando pasa por una tuberia. Regla corta: **si canalizas la
+salida, el `$?` que lees no es del comando que te importa.**
