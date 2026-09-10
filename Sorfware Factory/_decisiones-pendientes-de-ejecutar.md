@@ -929,3 +929,85 @@ Directora a T1, T4 y el Integrador. **Lo publicado en `.md` es mio y queda audit
 auditor le senalo un fallo de vocabulario dentro de un NO-GO y, en vez de corregirlo en su plan y
 seguir, **fue a mirar a cuanta gente se lo habia escrito mal y lo escalo**. Corregir **donde se
 lee**, no donde se descubre.
+
+## D39 — un `SIN:` que se repite es la condicion de salida del bucle, no una nota del auditor
+
+**Escalado por el CEO; medido por la Directora, que declara su propia posicion contraria y aun
+asi lo sube — por dos razones que comparto: T4 predijo esta condicion ANTES de saber como saldria
+la ronda (prediccion, no racionalizacion), y ella dispara las auditorias, asi que no es quien debe
+juzgar si el ciclo que administra protege o gira en vacio.**
+
+**Los datos, de AIT-123, cuarta ronda de plan, NO-GO otra vez:**
+- **Ninguna ronda repitio hallazgo:** M1-M3, M4-M5, M6, M7-M8. Todos reales y nuevos, ninguno de
+  forma.
+- **Las cuatro llevan el MISMO `SIN:` — *"ejecucion del stub"*.** Cuatro veces el auditor ha
+  declarado que **no puede probar la pieza central del plan**.
+
+**LAS DOS LECTURAS SON CIERTAS A LA VEZ, y por eso el debate no se resolvia:** la Directora tiene
+razon en que **cada ronda cazo defectos reales**, y el CEO tiene razon en que **el centro nunca se
+audito**. No son incompatibles: **las rondas fueron productivas en la PERIFERIA del plan mientras
+el MECANISMO seguia sin verse correr.** Y como bien dice el CEO, *un plan que crece tiene mas
+superficie, y mas superficie tiene mas defectos* — eso puede producir hallazgos nuevos
+indefinidamente **sin acercarse a nada**.
+
+🔑 **LA DECISION, y no es un tope de rondas: el `SIN:` REPETIDO es el disparador.** Por la D34, el
+`SIN:` **es el mapa de las condiciones bajo las que el veredicto es valido**. Cuatro `SIN:`
+identicos no son cuatro notas defensivas: son **cuatro veredictos que, sobre el punto central, son
+el mismo no-veredicto repetido**. El auditor lleva cuatro rondas diciendo exactamente que le falta,
+y se ha leido como una coletilla.
+
+**Regla:**
+1. **El MISMO `SIN:` en DOS rondas de la misma tarea PARA el bucle.** No hay tercera ronda sobre
+   el mismo punto ciego.
+2. **La salida no es otra ronda: es QUITAR el `SIN:`.** Autorizar lo minimo que permita al auditor
+   medir — aqui, un esqueleto ejecutable del stub, en su propio ciclo — **o aceptar el riesgo
+   explicitamente y con nombre**, escrito en la ficha, no por omision.
+3. **Nunca por tope de rondas.** Un tope corta la hemorragia sin decir por que sangra, y ademas
+   caduca: cortaria igual un bucle sano de cinco rondas. **El `SIN:` repetido nombra el hecho
+   concreto que activa el gate**, que es lo que un gate necesita para no ser prudencia decorativa.
+
+**El coste que ya se pago y que nadie contabilizaba, del CEO:** cuatro rondas de auditoria son el
+recurso mas caro de la fabrica, y la noche anterior se gastaron tres sobre un plan de una opcion
+que el PM habia descartado. **Con esta regla ese gasto se habria parado en la segunda.**
+
+**Para AIT-123, en concreto:** no se dispara `plan-loop5` sobre el mismo punto ciego. Se decide
+entre (2a) esqueleto minimo ejecutable o (2b) riesgo asumido con nombre. **Lo decide quien
+reparte, no yo** — yo solo cierro que la tercera ronda ciega no es una opcion.
+
+## D40 — cuando una regla falla, la tentacion es AMPLIAR LA LISTA, y la lista no avisa cuando deja de servir
+
+**Del CEO, con tres enunciaciones de un mismo gate en una hora y el Integrador tumbandole dos.**
+
+- **v1, lista de FICHEROS** (`convex/auth.ts`, `authState`, cookies). Cayo con un cambio de 22
+  lineas de comentario, cero ejecutables, **que la lista cubria por la letra sin que hubiera
+  riesgo**.
+- **v2, lista de FORMAS DE CAMBIO** (*"¿hay lineas ejecutables en ese camino?"*). Cayo con: **subir
+  `@convex-dev/auth` en `package.json` tiene cero lineas ejecutables y cambia el comportamiento de
+  auth entero.** No es hipotetico: es una de las salidas plausibles del arreglo de manana.
+- **v3, por EFECTO:** *no se publica ningun diff que **pueda cambiar lo que hace el sistema al
+  autenticar***. Ante la duda, se retiene.
+
+📌 **La fila, y el autoengano que la hace dificil de ver: el CEO creyo que estaba cambiando de
+NIVEL al pasar de ficheros a formas de cambio, y solo habia cambiado de LISTA.** Ampliar una lista
+—anadir `package.json`, anadir "cambios de dependencia"— **funciona hasta el siguiente caso y NO
+AVISA cuando deja de funcionar**. Lo que no caduca es **la pregunta por el EFECTO**, que es mas
+incomoda porque exige juicio en vez de comprobacion mecanica, **y por eso se rehuye**.
+
+⚠️ **El corolario que lo hace urgente y no academico: el v2 fallaba hacia PUBLICAR, y fallaba justo
+en el caso peor.** Un cambio de dependencia de auth es **el que mas falta hace retener y el que ese
+criterio dejaba pasar mas limpio**.
+
+### La norma del CEO al Integrador: VALIDADA, con una condicion
+
+Le dijo que, al encontrar un hueco en una regla suya, **aplique la lectura conservadora sin
+esperarle** y le avise despues. **Correcto, y por la misma razon que sostiene la D37: una accion
+que solo puede RESTAR riesgo no necesita gate.** Retener una publicacion no puede meter nada malo
+en `main`; su peor caso es una espera. Esperar a que se reescriba la regla, en cambio, **deja la
+ventana abierta justo mientras se discute como cerrarla**.
+
+**Las dos condiciones, que no son burocracia:**
+1. **Solo vale hacia RETENER.** La lectura conservadora nunca autoriza publicar algo que la regla
+   literal prohibia; ahi no hay simetria, porque el peor caso ya no es una espera.
+2. **Se DECLARA el hueco, no solo la retencion.** Si solo se comunica *"he retenido"*, la regla
+   defectuosa sigue en pie y vuelve a fallar con el siguiente. Es la D37 otra vez: **retirar
+   confianza de una regla mala es gratis; sustituirla es lo que cuesta.**
