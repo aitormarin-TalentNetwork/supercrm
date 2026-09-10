@@ -5,6 +5,11 @@ import {
   versionDelFormato,
 } from "../convex/model/gmailCrypto";
 import {
+  mensajeDeErrorDeGoogle,
+  paginaHtml,
+  urlDeVuelta,
+} from "../convex/model/gmailRespuesta";
+import {
   debeEscribirse,
   resolverUpsert,
   validarState,
@@ -144,5 +149,65 @@ test.describe("cifrado del token de refresco", () => {
     await expect(cifrarToken("x", btoa("corta"))).rejects.toThrow(
       /GMAIL_TOKEN_ENCRYPTION_KEY/,
     );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AIT-92 ronda 2 · M1 — XSS REFLEJADO EN LA PÁGINA DEL CALLBACK
+// El auditor lo demostró EJECUTÁNDOLO: un valor que cierra `<p>` e introduce
+// `<script>` producía `scriptTags: 1` y `escapedLt: 0`. La puerta era la rama de
+// manejo de errores, la que existe para ser amable cuando algo falla.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe("la página del callback no refleja HTML del solicitante", () => {
+  const PAYLOAD = '</p><script>alert(1)</script><p x="';
+
+  test("CONTROL POSITIVO: el instrumento SÍ ve una etiqueta cuando la hay", () => {
+    // Sin esto, «no encontré <script>» no distingue «está escapado» de «mi
+    // búsqueda no sabía buscarlo».
+    const conEtiqueta = `<p>${PAYLOAD}</p>`;
+    expect(conEtiqueta).toContain("<script>");
+  });
+
+  test("un payload en el detalle sale escapado, no interpretado", () => {
+    const html = paginaHtml("Título", PAYLOAD, "https://app.example/ajustes");
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
+  });
+
+  test("un payload en el título tampoco pasa", () => {
+    const html = paginaHtml(PAYLOAD, "detalle", "https://app.example/ajustes");
+    expect(html).not.toContain("<script>");
+  });
+
+  test("un payload en la URL de vuelta no rompe el atributo", () => {
+    const html = paginaHtml("t", "d", '"><script>alert(1)</script>');
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&quot;");
+  });
+
+  test("el código de error de Google NO se refleja: se traduce", () => {
+    // La lista cerrada no depende de que el escapado sea perfecto.
+    expect(mensajeDeErrorDeGoogle(PAYLOAD)).not.toContain("<");
+    expect(mensajeDeErrorDeGoogle(PAYLOAD)).toBe(
+      "Google no ha concedido el permiso. No se ha guardado nada.",
+    );
+  });
+
+  test("CONTROL POSITIVO: un código conocido sí da su mensaje propio", () => {
+    expect(mensajeDeErrorDeGoogle("access_denied")).toContain("Rechazaste");
+  });
+});
+
+test.describe("M3 · la vuelta a Ajustes apunta a la app, no al host de Convex", () => {
+  test("con SITE_URL, la URL es absoluta al origen de la app", () => {
+    expect(urlDeVuelta("https://app.example")).toBe("https://app.example/ajustes");
+    expect(urlDeVuelta("https://app.example/")).toBe("https://app.example/ajustes");
+  });
+
+  test("sin SITE_URL cae a la relativa, que es lo único que queda", () => {
+    // Se declara: en ese caso el enlace sigue aterrizando en el host de Convex.
+    // No se inventa un dominio.
+    expect(urlDeVuelta(undefined)).toBe("/ajustes");
   });
 });

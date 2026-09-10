@@ -4,6 +4,11 @@ import { internal } from "./_generated/api";
 import { auth } from "./auth";
 import { debeEscribirse } from "./model/gmailFlow";
 import {
+  mensajeDeErrorDeGoogle,
+  paginaHtml,
+  urlDeVuelta,
+} from "./model/gmailRespuesta";
+import {
   GMAIL_CLIENT_ID,
   GMAIL_CLIENT_SECRET,
   GMAIL_TOKEN_ENCRYPTION_KEY,
@@ -22,13 +27,12 @@ auth.addHttpRoutes(http);
 // orden importa — el `state` se consume antes de hablar con Google, para que un
 // reenvío del mismo callback no llegue siquiera a pedir un token.
 
-/** Página mínima de vuelta. No imprime tokens, ni truncados, ni su longitud. */
+/** Página mínima de vuelta. Todo lo dinámico se escapa en `paginaHtml`, y este
+ *  handler no construye HTML por su cuenta: no tiene forma de reflejar sin
+ *  escapar aunque alguien lo edite con prisa. */
 function pagina(titulo: string, detalle: string, status: number): Response {
   return new Response(
-    `<!doctype html><meta charset="utf-8"><title>${titulo}</title>` +
-      `<body style="font-family:system-ui;margin:40px;max-width:32rem">` +
-      `<h1 style="font-size:18px">${titulo}</h1><p>${detalle}</p>` +
-      `<p><a href="/ajustes">Volver a Ajustes</a></p>`,
+    paginaHtml(titulo, detalle, urlDeVuelta(process.env.SITE_URL)),
     { status, headers: { "content-type": "text/html; charset=utf-8" } },
   );
 }
@@ -42,11 +46,11 @@ http.route({
     // Rechazo del usuario en Google: no se guarda nada y se explica.
     const error = params.get("error");
     if (error !== null) {
+      // ⛔ El valor NO se refleja: se traduce por una lista cerrada. Viene de una
+      // query pública, así que quien construye la URL elige el contenido.
       return pagina(
         "No se ha conectado tu Gmail",
-        error === "access_denied"
-          ? "Rechazaste el permiso en Google, así que el CRM no ha guardado nada."
-          : `Google devolvió el error «${error}». No se ha guardado nada.`,
+        mensajeDeErrorDeGoogle(error),
         200,
       );
     }
@@ -155,8 +159,8 @@ http.route({
 
     return pagina(
       "Gmail conectado",
-      `Se ha conectado <strong>${emailAddress}</strong>. El CRM solo puede leer: ` +
-        `no puede modificar ni borrar nada de tu buzón.`,
+      `Se ha conectado ${emailAddress}. El CRM solo puede leer: no puede ` +
+        `modificar ni borrar nada de tu buzón.`,
       200,
     );
   }),
