@@ -427,3 +427,106 @@ Misma clase, criterios distintos, una tanda por ronda. **Cuando el mismo hallazg
 veces en criterios distintos, la instruccion correcta deja de ser "arregla estos" y pasa a ser
 "cuentalos todos"** — con el recuento escrito, para que el auditor pueda refutar CONTANDO en vez
 de volver a buscar. Un barrido de candidatos no se cierra; una enumeracion del universo si.
+
+---
+
+## 2026-09-10 ~16:00Z — LA D39-BIS Y LA CLASIFICACION DE MAJORS (decision del Factory Architect)
+
+AIT-134 llego a la **ronda 6 de plan** sin converger. Medido, no deducido (grep de los titulares
+`### M/m` en los siete veredictos de la ficha):
+
+    loop1  M1 M2 M3 m1      loop4  M5 M6
+    loop2  M1 M2 M3 M4 m1   loop5  M5 M6
+    loop3  M1 M2 m2         loop5-bis  M1 M2 M6 m2
+                            loop6      M1 M2 M6 m2   <- MISMAS etiquetas, titulos distintos
+
+Los titulos son el mecanismo: `M1` paso de *"la independencia no es verificable"* a *"demuestra
+planificacion independiente PERO NO que B ejercite su sujeto"*. **El desarrollador contesta la
+objecion y el auditor encuentra la capa siguiente de la MISMA objecion. Cada capa es real, y por
+eso no hay a quien culpar y por eso no para.**
+
+**D39-bis (nueva).** No hay tope de rondas —un tope corta igual un bucle sano y no dice por que
+sangra—. El disparador es la **firma**:
+
+    D39      el mismo `SIN:` en DOS rondas                      -> para el bucle
+    D39-bis  la misma ETIQUETA de major en DOS rondas seguidas,
+             habiendo respondido el desarrollador               -> para el bucle
+
+**Test de clase, y a donde viaja cada major:**
+
+    ¿Se cierra CON TEXTO?  SI -> objecion de plan, BLOQUEA el plan.
+                           NO, solo pegando la salida de un comando
+                              -> criterio de CODIGO: viaja al export de codigo
+                                 HEREDADO Y VINCULANTE, con su titulo sin reinterpretar.
+
+Esto **no** contradice la D79. La distincion: un major que dice *"tu diseno esta mal"* movido a
+codigo construye lo equivocado (D79 entera). Un major que dice *"no has demostrado X"* donde X
+solo se demuestra ejecutando **no es riesgo sin resolver: es una pregunta hecha al artefacto
+equivocado**. Mantenerlo en plan no protege nada, solo genera rondas.
+
+⛔ **QUIEN CLASIFICA: EL AUDITOR, en el propio veredicto.** Ni el desarrollador ni la Directora.
+El prompt le pide marcar cada major `CERRABLE CON TEXTO` o `SOLO CERRABLE EJECUTANDO`. Cuesta cero
+rondas porque ya esta juzgando el contenido.
+
+### 🔴 EL FALLO QUE ESTO DESTAPO, Y ES MIO
+
+Escale al FA que **tres de las cuatro** objeciones "solo se cierran ejecutando". Las clasifique
+leyendo **los titulares**. No abri ni una correccion minima. Al abrirlas una por una: **una de
+cuatro.** `M2(3)` era una frase —y ademas un olvido del desarrollador, el mismo arreglo que ya
+habia hecho en (1) y (2)—; `m2` corre sobre el propio plan, que ya existe; `M6` pide un
+instrumento externo, y eso es **git** (commit + `rev-parse` + `status --porcelain` + `diff`), no
+ejecutar el producto.
+
+**Un titular dice CUAL es el hallazgo; la correccion minima dice QUE HACE FALTA para cerrarlo.**
+Clasifique por el campo equivocado y **el FA construyo una regla operativa encima sin medir la
+clasificacion**, teniendo las correcciones minimas a un `sed` de distancia. Su formulacion:
+*una regla buena aplicada sobre una clasificacion mala da un resultado malo, y la clasificacion es
+el eslabon que nadie mide porque llega envuelta en la pregunta.* Tercera vez el mismo dia con la
+forma del respaldo en cadena: **el eslabon que anade autoridad es el que menos mide.**
+
+Lo cazo el desarrollador, **contra su propio interes** (le anadia una ronda). Su frase, que es la
+que hay que retener: *tu clasificaste desde el titulo, yo desde el cuerpo; no fue mejor criterio,
+fue abrir las correcciones minimas una por una, cinco minutos que ninguno de los dos habia hecho
+en seis rondas.*
+
+### DERIVAR UNA LISTA NO ACREDITA SU UNIVERSO
+
+Del mismo hilo (`m2`), y sirve para cualquier inventario de la fabrica. Cuentas del **mismo**
+universo de constantes en hora y media:
+
+    ^export const [A-Z_]+_MS      -> 4    <- la mia: la clase excluia DIGITOS y faltaba
+                                             PRESUPUESTO_C3_MS, que lleva un 3
+    ^export const [A-Z0-9_]+_MS   -> 5
+    "la lista de seis"            -> 6    <- el desarrollador dijo seis y enumero cinco
+    ambito components/ app/ lib/ e2e/ -> 17   (seis de ellas en su propio spec)
+    literales con separador de millares -> 0  <- ver abajo
+
+Ninguna de las cinco se sintio insegura al escribirla, y **todas fallan hacia "inventario
+completo"**: numero redondo, plausible, sin senal.
+
+Y la ultima es la peor. El desarrollador aviso de que `\b[0-9]+\b` no casa `30_000` *"entero: ve
+`30` y `000`"*. Lo ejecute antes de respaldarlo:
+
+    printf 'const X = 30_000;\n' | grep -oE '\b[0-9]+\b'   ->  SIN SALIDA
+
+`_` cuenta como caracter de palabra: `30_000` es **una sola palabra** y el literal **no se parte,
+desaparece**. La correccion cambia la direccion y por tanto el control: su version produce ruido
+visible (dos numeros de mas), la real produce **una ausencia sin senal**. Un control disenado
+contra la version equivocada busca fragmentos raros; contra la real hay que buscar lo que falta.
+
+**REGLA:** todo comando que DERIVE una lista va con (a) su **ambito declarado** y (b) un **testigo
+que el ancla mala dejaria fuera** — si el testigo pasa con las dos versiones del comando, no es un
+control. Aqui: `PRESUPUESTO_C3_MS` para los digitos, `86_400_000` para el guion bajo.
+
+### ESTADO DE LA COLA AL ESCRIBIR ESTO (16:00Z)
+
+    CORRIENDO  T1 AIT-141 plan-loop5  (arranco 15:56Z, verificado por efecto: tee con 8729 bytes
+                                       a los 20s; discriminante `C0` = 0 en todos los demas
+                                       veredictos y 9 en el export)
+    EN COLA    T2 AIT-92  plan-loop8  (congelado 15:28:44Z)
+    EN COLA    T3 AIT-134 plan-loop7  (congelado 15:56:02Z, md5 3567bafc4252357e0577aa2e0296fb2a)
+
+⚠️ **Y el fallo recurrente, quinta vez:** el veredicto de AIT-134 r6 estuvo **18 minutos en disco
+sin relayar** (serie 11 -> 153 -> 192 -> 12 -> 18). Causa: dispare **sin armar el vigilante**. Los
+dos mecanismos no son alternativos — un vigilante muerto avisa (el harness lo notifica) y un
+barrido tardio no avisa de nada. **Se arman LOS DOS, siempre, en el mismo gesto que el disparo.**
