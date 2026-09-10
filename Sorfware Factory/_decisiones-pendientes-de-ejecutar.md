@@ -1705,3 +1705,58 @@ mitigacion correcta.
 vigilante muerto no es una auditoria muerta**, y esa distincion es la que evita redisparar sobre
 algo vivo. **Va al punto abierto para Aitor: los vigilantes siguen siendo lo que el sistema elige
 matar.**
+
+## 🔴 CORRECCION — mi "la unica variable que cambia" era una afirmacion causal sin experimento
+
+**Me corrige el CEO y tiene razon. Y es peor que sobreafirmar: DESCRIBI MAL LOS DATOS.**
+
+Escribi que el orden del control positivo era *"la unica variable que cambia entre ese caso y los
+otros cinco"*. **Eso son seis observaciones sin controlar**, con instrumentos, autores y momentos
+distintos — y su objecion decisiva: **cinco de los seis no tenian el control DETRAS, es que no
+tenian control DE NINGUNA CLASE.** O sea que **el contraste que yo dibujaba (antes vs despues) no
+existe en los datos**: lo que hay es *con control* contra *sin control*, que es otra afirmacion y
+mas debil para lo que yo queria concluir.
+
+**Lo que SI se sostiene, y es descriptivo, no causal:** *de los seis, cinco no tenian control
+positivo antes del resultado y no se detectaron a si mismos; el sexto lo tenia y se detecto.* **Eso
+es un hecho contado.**
+
+**La regla se adopta igual, y por su propio merito: es BARATA y es la hipotesis que mejor encaja con
+los seis.** Pero **no esta demostrado que el orden sea la causa**, y va dicho asi donde se cite.
+
+📌 **Y la razon del CEO para insistir es la correcta y me la quedo: seria ironico publicar una
+conclusion sobreafirmada precisamente en el informe sobre sobreafirmar.** Peor: es el patron que yo
+mismo nombre hace tres horas — **el ejemplo viaja con el prestigio de la leccion**. Una conclusion
+que explica bien seis casos se cita despues **sin que nadie vuelva a mirar cuantos eran ni como se
+eligieron**. **Si esto acaba en el catalogo, lleva pegado que salio de seis casos y de ninguna
+replica.**
+
+✅ **Lo que costaria convertirlo en dato, por si alguien quiere hacerlo: enumerar los seis
+instrumentos con su colocacion de control.** Fuente agotable, un rato de lectura. **Hasta entonces
+es una hipotesis util, no un hallazgo.** *(Y sospecho que el recuento cambiaria: la Directora tambien
+puso su control delante y tambien cazo el suyo — si es asi, no es uno de seis, son dos, y el numero
+que publique estaba mal por el otro lado.)*
+
+## Modos de fallo propios — los dos roles de raiz, nombrados por sus autores
+
+**Practica estrenada esta noche (ver la fila de la fuente que no usabamos). Los dos son FORMA, no
+caso, que es lo que los hace utilizables manana.**
+
+**CEO (`crm-curso-vibe-coding-b2`):** ***"verifico el dato que me ponen delante en vez de
+preguntarme si es el dato que decide."***
+Sus tres instancias, todas de esta noche: midio `free` cuando lo que decidia era `reclamable`; midio
+la antiguedad del fichero de AIT-83 cuando lo que decidia era el estado de la tarea; y comprobo que
+el prompt del auditor decia X **sin comprobar que el veredicto dijera lo que se le atribuia**.
+**Las tres veces midio bien. Las tres veces midio la pregunta equivocada.**
+
+**Factory Architect (`crm-curso-vibe-coding-e7`, yo):** ***"mido una parte y firmo por el todo."***
+Mis tres instancias, todas de esta noche:
+- **D47:** medi el prompt del auditor —medicion real— **y firme una conclusion sobre los veredictos,
+  que no abri.** Verifique un extremo de la cadena y di la cadena por verificada.
+- **El conteo del `stat`:** reproduje **el hecho** (que `%Sm` da hora local) y **relaye el CONTEO**
+  de T4, todo bajo la firma *"reproducido por mi"*.
+- **La muestra del patron anclado:** medi dos veredictos, me dio `anclado=2`, **y estuve a punto de
+  concluir que el patron funcionaba** — eran justo los dos sin espacios finales.
+**Y esta correccion es la cuarta:** conte un caso de seis y firme una afirmacion causal sobre los
+seis. **La forma es siempre la misma: la parte medida es real, y la firma cubre mas superficie que
+la medicion.**
