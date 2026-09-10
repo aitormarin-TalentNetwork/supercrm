@@ -1620,3 +1620,88 @@ era un razonamiento; **ahora tiene un caso medido y un remedio barato.**
 distinguido nada.** No fallan: **contestan**. Y los tres se cazaron **por casualidad o por un
 tercero, ninguno por su propio control** — que es lo que dice que la vigilancia no escala y que el
 control positivo tiene que ir **dentro** del instrumento y **antes** del resultado.
+
+## D51 — el canal tiene TIPOGRAFIA y nuestros patrones tienen TECLADO: normalizar antes de comparar
+
+**Agrupado por la Directora con tres casos medidos, mas uno del CEO. Son CUATRO INSTANCIAS DE UNA
+CLASE, no cuatro incidentes:**
+```
+el `$` anclado del patron canonico   -> 0 en 2 de 4 veredictos   (dos espacios finales de markdown)
+comillas rectas contra tipograficas  -> 0 al buscar la cita de cierre de un veredicto
+guion `-` contra raya `–`            -> 0 al buscar los rangos de linea que cita el auditor (T1)
+`find -newermt "-40 minutes"`        -> 0 transcripts frescos... con 12 sesiones vivas (CEO)
+```
+
+**Los tres primeros comparten UNA causa y por eso el arreglo es UNO: el auditor escribe en markdown
+CON TIPOGRAFIA y nosotros buscamos CON TECLADO.** No es defecto suyo ni de quien busca — **el canal
+tiene una tipografia y los patrones no la contemplan.**
+
+**REGLA: cualquier patron que se aplique a un veredicto NORMALIZA ANTES DE COMPARAR** — espacios
+finales, comillas rectas/tipograficas, guion/raya. **Generaliza la D49, que era el mismo fallo visto
+en un solo sitio.**
+
+🔑 **Y LA CONTRAPARTIDA OPERATIVA, que la enuncio T1 mejor que ninguno de nosotros: ANTE UN CERO,
+SOSPECHAR DEL INSTRUMENTO ANTES QUE DEL SUJETO.** Los tres se cerraron **cambiando el patron, no
+dudando del auditor** — y esa es la parte que importa: **si llegamos a dudar del auditor, habriamos
+"arreglado" algo que funcionaba.** Es el complemento exacto de *"un cero sin control positivo no es
+un cero"*: aquella dice que el cero no prueba ausencia; **esta dice hacia donde mirar primero.**
+
+✅ **EL CUARTO ES EL UNICO DE LOS SEIS INSTRUMENTOS ROTOS DE ESTA NOCHE QUE DETECTO SU PROPIO
+FALLO, y el porque es la unica leccion accionable del grupo.** El conteo del CEO dijo *"0
+transcripts tocados en 40 minutos"* **mientras el control positivo que habia puesto DELANTE decia
+que el suyo se habia tocado hace 0 minutos.** La contradiccion interna lo delato. **Sin ese control
+habria escrito a once terminales diciendoles que estaban paradas: un falso rojo masivo, con la
+confianza de haber medido.**
+
+📌 **Y lo que lo hizo posible es la regla de la Directora: el control positivo va ANTES de mirar el
+resultado.** Puesto despues, habria leido el cero, habria actuado, **y el control le habria dado la
+razon cuando ya daba igual**. Ahi esta la diferencia entre un control que informa y uno que impide.
+**Cinco instrumentos se cazaron por casualidad o por un tercero; el unico que se cazo solo es el
+unico que tenia el control delante.**
+
+## Fila (T3, sobre si mismo) — parar de escribir justo cuando el mecanismo empieza a existir
+
+**Quinta aparicion de la misma clase en AIT-127, y su autodiagnostico es mas fino que "afirmar sin
+mecanismo":** el error no es afirmar una propiedad sin escribirla — **es PARAR DE ESCRIBIR EN CUANTO
+EL MECANISMO EMPIEZA A EXISTIR.** Puso una frase, la convirtio en una llamada real, la llamo
+observable — **y el estado se actualiza mientras ningun componente lo consume.**
+
+🔴 **Lo peligroso es el punto exacto donde se para: el texto ya NO parece una frase vacia, PARECE
+CODIGO.** Una comprobacion que busque *"afirmaciones sin mecanismo"* **no lo encuentra**, porque hay
+mecanismo. Lo que falta es el otro extremo: **quien lo consume.** *Media implementacion pasa
+cualquier filtro escrito contra ninguna implementacion.*
+
+## Fila (T2, sobre si mismo) — acotar el universo antes de mirarlo
+
+**Clasifico las 15 tablas del esquema; el export traia 22.** Le faltaba una tabla de componente **que
+la suite escribe en cada login**. **No fallo la clasificacion: fallo el UNIVERSO.** Su formulacion,
+literal: ***"mi modo de fallo caracteristico es acotar el universo antes de mirarlo."***
+
+**Y con esto son DOS instancias de la misma clase esta noche**, asi que es clase y no anecdota: el
+comprobador de punteros de T1 *"no tenia un problema de precision, tenia el universo equivocado"*.
+**Antes de clasificar o de medir: enumerar el universo desde la fuente, no desde lo que uno cree que
+lo compone.**
+
+## 📌 Fuente que no estabamos usando: la terminal nombrando su PROPIO modo de fallo
+
+**Las dos filas de arriba no las encontro un auditor ni un vigilante: las nombraron T3 y T2 SOBRE SI
+MISMOS**, y son de las mejores del turno. **Un agente tiene acceso a algo que ningun instrumento
+externo tiene: en que punto exacto dejo de mirar y por que le parecio suficiente.** Un detector ve
+el resultado; **solo el autor ve la decision de parar.**
+
+**Que se les pida, entonces:** al cerrar una tarea con hallazgos repetidos, **nombrar el propio modo
+de fallo caracteristico en una frase**. Cuesta una linea. **Y no vale "me equivoque en X": tiene que
+ser la FORMA** — *"acoto el universo antes de mirarlo"*, *"paro de escribir cuando el mecanismo
+empieza a existir"*.
+
+## ⚠️ Evidencia nueva para la decision de Aitor sobre los vigilantes
+
+**05:58Z: el sistema mato OTRO vigilante de la Directora**, con **3.512 MB reclamables** (medidos con
+el metodo de la 78). **El sistema eligio matar precisamente un vigilante, otra vez.** Ella lo mitigo
+bajando la frecuencia (30 s en vez de 15) — **menos coste por el mismo alcance**, que es la
+mitigacion correcta.
+
+**Y verifico que la auditoria NO murio con el** — por efecto primero, por marker despues. **Un
+vigilante muerto no es una auditoria muerta**, y esa distincion es la que evita redisparar sobre
+algo vivo. **Va al punto abierto para Aitor: los vigilantes siguen siendo lo que el sistema elige
+matar.**
