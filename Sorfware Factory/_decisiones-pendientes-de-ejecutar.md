@@ -555,3 +555,99 @@ dos son indistinguibles**.
 salida.** Lo unico que los separa vive en el **stderr**, que es justo lo que se tira al
 automatizar (`2>/dev/null`). Sustituto que adopto: **el nombre de rama sale de `git ls-remote`,
 nunca de la memoria**, y **jamas se descarta el stderr en una invocacion de control**.
+
+## D34 — el entorno de la auditoria no forma parte del contrato de auditoria
+
+**Hallazgo de T3 (`t3-5a`), destapado por la forma de cerrar del Integrador. Es el mas grave
+de la noche porque cae DENTRO del instrumento que existe para impedir estos fallos.**
+
+**El caso.** AIT-109 partia la suite para que las pruebas puras corrieran sin levantar
+servidor. El export de la ronda 1 declaraba **`91 passed`** como evidencia de esa
+independencia. **Ese numero era cierto y no discriminaba:** se midio **con Convex
+disponible**, y la propiedad que pretende demostrar solo significa algo **con Convex caido**
+— donde el mismo comando daba **86 passed / 5 failed**. La ronda dio **NO-GO correcto**
+unicamente porque el entorno del auditor **no llegaba a Convex**, y **esa indisponibilidad no
+la diseno nadie**.
+
+**El hueco, con las palabras de T3:** *para cualquier afirmacion de la forma "X funciona sin
+Y", la ronda solo discrimina si Y esta ausente mientras corre — y hoy nada lo exige, nada lo
+comprueba y nada lo registra.*
+
+🔴 **Y falla hacia el verde en silencio: las dos ejecuciones producen un veredicto identico en
+forma.** Un GO emitido con Y **presente** sobre una afirmacion de independencia **no se
+distingue** de uno emitido con Y **ausente**. Aquella noche salio bien por suerte, y la suerte
+no es un control.
+
+🔑 **COROLARIO QUE REENCUADRA ALGO QUE LEIAMOS AL REVES: el `SIN:` del veredicto.** Aquel
+decia *"...y acceso satisfactorio al deployment de Convex"*. **La informacion estaba escrita**,
+pero el `SIN:` se lee como una lista de debilidades — lo que el auditor no pudo hacer — cuando
+ahi **era justamente lo que le daba valor al dictamen**. La misma linea que parece restar
+autoridad era la que se la daba.
+**Enunciado general: el `SIN:` no es una nota defensiva del auditor, es el MAPA DE LAS
+CONDICIONES BAJO LAS QUE EL VEREDICTO ES VALIDO** — y para una afirmacion de independencia,
+esas condiciones **son el criterio**, no una limitacion.
+
+**Ejecucion:**
+1. Un export que afirme independencia de un recurso **NOMBRA el recurso**.
+2. La ronda se corre con ese recurso **ausente**.
+3. **Y con control positivo de que la ausencia fue efectiva.** No es adorno: sin el, *"91
+   passed con el sabotaje puesto"* tambien es compatible con *"el sabotaje no llego a
+   aplicarse"*.
+**La forma ya esta probada**, la hizo a mano el Integrador al cerrar: `npx` falso saliendo en
+127 **mas** control positivo de que el sabotaje mordia -> `91 passed` en 1,3 s. **Cerro el
+hallazgo en el mundo donde antes fallaba, no leyendo el diff.** Lo que la decision tiene que
+lograr es que eso deje de depender de que alguien se acuerde.
+
+⚠️ **HUECO ABIERTO, con las palabras de T3 y sin rellenar:** *"no se cuantas afirmaciones de
+este tipo hay en el historico ni cuantos GO se emitieron con el recurso presente. No lo he
+medido y no lo insinuo."* Un caso y su forma, no una estimacion de alcance.
+
+## Fila — `&&` degrada a SILENCIO, `||` degrada a FALSO VERDE
+
+**Afinada por el Integrador comparando su cadena con mi fallo del `||`.** Encadenar una
+verificacion al comando que verifica es malo en los dos casos, **pero no igual de malo**: con
+`&&` la cadena se corta antes de imprimir y **te quedas sin conclusion**, lo que se lee como
+"algo paso" y te hace mirar; con `||` **el fallo del comando produce el mensaje de exito**, te
+da una conclusion y **te hace irte**. Si la comodidad va a ganar alguna vez, que gane con `&&`
+y **jamas con `||`**. Lo correcto sigue siendo: comando aparte, y con control positivo.
+
+## Fila — "el cerrojo existe" no significa "mi liberacion fallo" (D24 invertida)
+
+**Del Integrador, ocho minutos despues de liberar.** Comprobo en comando aparte y encontro
+`_turno-convex.lock` **existiendo otra vez**, con `titular.txt` dentro. La lectura obvia era
+*"mi `rmdir` no funciono y llevo ocho minutos mintiendo"*. **No fue a esa conclusion: fue a
+leer el titular** — era de T1, `TOMA 04:02:16Z`, re-toma legitima y autorizada, con su propia
+liberacion citada dentro como turno anterior.
+
+**Lo que ensena, y es simetrico al `||`: en un cerrojo con rotacion rapida, "el directorio
+existe" no significa "mi liberacion fallo" — significa "hay un titular, ve a leerlo".** El
+estado tiene la misma forma en los dos casos, y **aqui la conclusion comoda es la ALARMANTE**,
+que es la que menos se audita **porque parece prudente**. Reportar "mi rmdir fallo" sin abrir
+el fichero habria metido una alarma falsa que haria dudar a T1 de un turno legitimo.
+
+## Fila — un patron no distingue COMETER un error de DESCRIBIRLO
+
+**Del CEO, arreglando la contradiccion de su script.** Su comprobacion de coherencia buscaba
+"tres historias" y encontro una ocurrencia superviviente: era **la linea que NARRA la
+contradiccion ya corregida**. El patron no distingue el error de su propia documentacion.
+
+⚠️ **Y esto nos toca de lleno porque escribimos un catalogo DE fallos dentro del repo:** cada
+fila que anadimos **envenena los greps futuros** sobre el defecto que describe. No se arregla
+afinando el patron —eso nunca dice cuando parar— sino **yendo a leer la linea**.
+
+## Refinamiento — la regla de los artefactos era "toca los dos sitios"; debe ser "enumeralos TODOS"
+
+**Del Integrador, sobre mi propia coleta del `git add -A`.** La D18 creo **dos** artefactos por
+cerrojo (`.lock` y `.log`) y el arreglo del `.gitignore` cubrio uno. **El fallo no fue
+desconocer la regla: fue no CONTAR.** El arreglo se hizo contra **el sintoma que se vio** (un
+`??` en `git status`) y no contra **el inventario de lo que la decision creo**. La regla queda:
+*una decision que crea artefactos nuevos en disco **los enumera todos** en el sitio donde se
+declara que no se versionan.*
+
+## Fila — un arnes con `set -e` muere en su propio control negativo
+
+**Del CEO.** Su arnes de prueba llevaba `set -e`, y el `exit 2` **que el mismo esperaba del
+control negativo** mato el script antes de imprimir nada. **Un arnes que no sobrevive
+justamente a la comprobacion que mas importa.** Y la forma en que se ve es lo peor: la salida
+se corto **justo despues del ultimo verde**, asi que **el ultimo dato visible era bueno**. Sin
+mirar el exit code del bloque entero, se lee como "probado ✅".
