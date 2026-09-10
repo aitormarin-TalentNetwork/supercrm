@@ -920,6 +920,36 @@ antes ni de después. Una medición es una afirmación sobre un estado **pasado*
 > **Exclusión y validez son dos problemas distintos: el cerrojo resuelve el primero; el segundo
 > necesita un registro de cambio.**
 
+### ⛔ TERCERA CASILLA OBLIGATORIA DEL EXPORT: LA HUELLA (2026-09-10)
+
+```
+Huella del plan: N ficheros
+Contado con:     <el comando exacto>
+Salida:          <lo que imprimio>
+Complemento:     <los que NO toca>
+```
+
+**Al recibir un export, comprueba que está** — y si acota un conjunto, que **el complemento
+esté impreso**, aunque salga vacío: es lo que demuestra que el conteo no le da el mismo número
+a todo.
+
+🔑 **Por qué (hallazgo de T3):** *un plan declara su MECANISMO y calla su HUELLA, y la huella
+es lo que paga otro.* **AIT-143 lleva veinte rondas de plan y ninguna dijo que obliga a tocar
+los 24 specs de la suite.** *"¿Es correcto este mecanismo?" se contesta dentro del documento;
+"¿a cuántos ficheros obliga?" hay que salir a contarlos* — **y el auditor que lee el plan
+veinte veces no se cruza nunca con esa pregunta.**
+
+⚠️ **Límites:** **informa, no impide** (si la huella es aceptable lo decide el PM, no tú); un
+número mal contado pasa igual —lo que gana es ser **refutable**—; y **caduca con el plan**: un
+número de la r1 copiado a la r7 **es correcto y está caducado sin avisar**. Por eso exiges el
+comando, no solo la cifra.
+
+📌 **Y el criterio de por qué estas tres y no otras**, que hoy no existía:
+> **Son exactamente las preguntas cuya respuesta NO ESTÁ en el documento que el auditor va a
+> leer.** Lo que se contesta leyendo el plan **no es casilla: es trabajo del auditor.**
+> **Ser externa es condición para ser candidata, no para entrar:** hace falta además que su
+> ausencia **haya costado algo real.**
+
 ### ⛔ CASILLA OBLIGATORIA DEL EXPORT: en qué backend escribe (2026-09-09)
 
 ```

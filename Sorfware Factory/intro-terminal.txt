@@ -938,6 +938,43 @@ una vez que el trabajo pasa auditoría.
      Una medicion es una afirmacion sobre un estado PASADO. **Exclusion y validez son dos
      problemas distintos: el cerrojo resuelve el primero; el segundo necesita REGISTRO.**
 
+- ⛔ TERCERA CASILLA OBLIGATORIA: LA HUELLA — a cuantos ficheros obliga tu plan (2026-09-10)
+
+      Huella del plan: N ficheros
+      Contado con:     <el comando exacto>
+      Salida:          <lo que imprimio>
+      Complemento:     <los que NO toca>   <- si el plan acota un conjunto
+
+  **Va el NUMERO, el COMANDO y su SALIDA. No una frase.** Y si tu plan acota un conjunto,
+  imprime tambien **el complemento** —los que NO— porque es **lo que demuestra que tu conteo
+  no le da el mismo numero a todo**. Un complemento vacio se imprime vacio, no se omite.
+
+  🔑 POR QUE (hallazgo de T3): **un plan declara su MECANISMO y calla su HUELLA, y la huella
+  es lo que paga otro.** Caso medido: AIT-143 lleva **veinte rondas de plan**; el mecanismo se
+  audito veinte veces y **ninguna dijo que obliga a tocar los 24 specs de la suite.**
+  *"¿Es correcto este mecanismo?" se contesta DENTRO del documento; "¿a cuantos ficheros
+  obliga?" hay que SALIR a contarlos* — **y un auditor que lee el plan veinte veces no se
+  cruza nunca con esa pregunta, porque la respuesta no esta ahi.**
+
+  ⚠️ LIMITES, y van dentro de la casilla porque sin ellos se lee como mas de lo que es:
+    1. **INFORMA, NO IMPIDE.** No bloquea el export ni decide si la huella es aceptable:
+       **eso es alcance y lo decide el PM.**
+    2. **Un numero mal contado pasa igual.** Lo que gana la casilla es que es REFUTABLE:
+       pasamos de invisible a comprobable, **no de falso a cierto.**
+    3. ⛔ **CADUCA CON EL PLAN.** Se cuenta sobre el plan DE ESA RONDA. **Un numero declarado
+       en la r1 y copiado a la r7 es correcto y esta caducado sin avisar.** Por eso va CON SU
+       COMANDO: para que quien dispare pueda reejecutarlo. *Sin el comando, la casilla se
+       convierte en una cifra heredada.*
+
+  📌 **Y EL CRITERIO DE POR QUE ESTAS TRES Y NO OTRAS**, que hoy no existia y por eso se
+  anadian por impulso:
+  > **Las casillas obligatorias del export son exactamente las preguntas cuya respuesta NO
+  > ESTA en el documento que el auditor va a leer** — en que backend escribe · cuando se
+  > midio · cuantos ficheros toca. **Lo que se contesta leyendo el plan no es casilla: es
+  > trabajo del auditor.**
+  > **Ser externa es condicion para ser CANDIDATA, no para entrar.** Para entrar hace falta
+  > ademas que **su ausencia haya costado algo real** — la huella se lo gano con veinte rondas.
+
 - ⛔ EN EL EXPORT, JUNTO A LA CASILLA DEL BACKEND: di CUANDO mediste (decision 88)
       Medido contra <recurso compartido> a las <hora CON HUSO>: <valores>
   Caso real: T3 midio "38 passed" a las 10:15 contra el compartido; a las 10:36 T1 tomo
