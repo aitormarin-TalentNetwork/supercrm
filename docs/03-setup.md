@@ -481,15 +481,57 @@ de guardarlo de antemano — minimiza cuánto tiempo vive un secreto de producci
 donde se usa de verdad. `npx convex deployment token delete <nombre> --prod` lo revoca
 si deja de hacer falta.
 
-**Nota sobre `npx convex deploy` desde un worktree local:** si `.env.local` tiene
+### 🔴 Prohibido: resolver el deployment por URL+admin key desde un worktree (AIT-123)
+
+**Está prohibido ejecutar, desde un worktree, cualquier invocación de `convex` que
+resuelva el deployment POR URL + ADMIN KEY en vez de POR NOMBRE.** Da igual cómo se
+llegue a ese estado: **la prohibición es sobre el mecanismo, no sobre ningún flag.**
+
+Formas conocidas de caer en él — son **ejemplos, no la definición**:
+
+- `--env-file <fichero con CONVEX_SELF_HOSTED_URL + CONVEX_SELF_HOSTED_ADMIN_KEY>`
+- `--url <…> --admin-key <…>`, **sin `--env-file` por ninguna parte**
+- esas mismas variables self-hosted presentes en el entorno *(no medido)*
+
+**Qué hace, medido el 2026-09-10 contra el binario real (convex 1.42.1), en un
+entorno desechable y sin tocar ningún deployment.** Son **dos** escrituras sobre el
+`.env.local` **del directorio en que se invoca**, no una:
+
+1. **borra la línea `CONVEX_DEPLOYMENT`**;
+2. **reescribe `NEXT_PUBLIC_CONVEX_URL` y `NEXT_PUBLIC_CONVEX_SITE_URL`** para que
+   apunten al destino del comando.
+
+La segunda es la peor y es la que faltaba en la descripción original del defecto: el
+worktree **no queda "sin saber contra qué backend corre"** — queda **corriendo contra
+otro**, de forma persistente, porque Next lee `NEXT_PUBLIC_CONVEX_URL`. *No es
+ausencia de configuración: es configuración equivocada, que es peor y no se parece.*
+
+**El CLI SÍ lo avisa**, en la primera línea de su salida:
+
+```
+Removed the CONVEX_DEPLOYMENT environment variable from .env.local
+Saved NEXT_PUBLIC_CONVEX_URL and NEXT_PUBLIC_CONVEX_SITE_URL to .env.local
+```
+
+Lo que no avisa es la **consecuencia**, que llega después y en manos de otro. Por eso
+`npm run test:e2e` la convierte en un gate: `scripts/check-e2e-preconditions.mjs`
+comprueba, antes de ejecutar un solo test, que `CONVEX_DEPLOYMENT` esté y que las dos
+`NEXT_PUBLIC_*` sean exactamente las que se derivan de su nombre.
+
+**Sobre `npx convex deploy` desde un worktree local:** si `.env.local` tiene
 `CONVEX_DEPLOYMENT` puesto (el caso normal de cualquier terminal de desarrollo), el
-propio comando pide confirmación interactiva antes de empujar a producción — no hay
-forma de saltarse ese prompt con variables de entorno adicionales (`CI=true`, exportar
-`CONVEX_DEPLOY_KEY`, etc. no lo evitan, comprobado en la práctica). La única forma de
-desplegar sin esa confirmación desde un worktree con `.env.local` de dev es usar
-`--env-file <fichero-con-solo-CONVEX_DEPLOY_KEY>`, que aísla el comando de la
-`CONVEX_DEPLOYMENT` local — es justo lo que hace Railway automáticamente, porque su
-entorno de build nunca tiene un `.env.local` con `CONVEX_DEPLOYMENT` de por medio.
+comando pide confirmación interactiva antes de empujar a producción — y no hay forma
+de saltarse ese prompt con variables de entorno adicionales (`CI=true`, exportar
+`CONVEX_DEPLOY_KEY`, etc. no lo evitan, comprobado en la práctica). **Esa
+confirmación es una salvaguarda y no se desactiva.** Railway despliega sin ella
+porque su entorno de build nunca tiene un `.env.local` de por medio, que es otra
+situación.
+
+⚠️ **Lo que `convex deploy` le hace al `.env.local` NO ESTÁ MEDIDO**, ni con
+`--env-file` ni sin él: lo medido arriba es `convex dev`, y son caminos de código
+distintos (`deploy.js` no llama a la función que borra). **No se afirma ni se
+desmiente.** Medirlo es AIT-130, y el desbloqueo de esta prohibición es esa medición,
+no una excepción.
 
 ---
 

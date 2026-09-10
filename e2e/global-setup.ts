@@ -1,6 +1,11 @@
 import { chromium } from "@playwright/test";
 import { E2E_PORT } from "../playwright.config";
 import {
+  formatEnvLocalMessage,
+  problemasDelEnvLocal,
+  readEnvLocal,
+} from "../scripts/check-e2e-preconditions.mjs";
+import {
   capturarEstadoRodado,
   COOKIE_JWT,
   COOKIE_REFRESH,
@@ -86,6 +91,25 @@ async function autenticarRol(role: Role): Promise<StorageState> {
 }
 
 async function globalSetup(): Promise<void> {
+  // PASO AIT-123: contra QUÉ backend corremos. Va el PRIMERO de todos, incluso
+  // antes que el login, porque si el `.env.local` apunta a otro deployment el
+  // resto de la corrida mide otra cosa — incluidas las cookies que capturamos
+  // abajo, que serían de otro backend.
+  //
+  // *** POR QUÉ ESTÁ AQUÍ Y NO SOLO EN `npm run test:e2e`. ***
+  // `package.json` encadena el script de precondiciones ANTES del runner, así
+  // que por esa vía ya está cubierto. Pero `npx playwright test` a pelo —que es
+  // la invocación que sale sola para correr un solo spec— NO pasa por ahí.
+  // `globalSetup` sí corre en CUALQUIER invocación del runner e2e, así que es
+  // el único sitio que cubre las dos.
+  const contenidoEnv = readEnvLocal();
+  if (contenidoEnv !== null) {
+    const problemas = problemasDelEnvLocal(contenidoEnv);
+    if (problemas.length > 0) {
+      throw new Error(formatEnvLocalMessage(problemas));
+    }
+  }
+
   // PASO AIT-95 (pendiente): comprobar aquí que el backend está desplegado.
   // PASO AIT-103 (pendiente): comprobar aquí el estado del limitador.
 
