@@ -1049,6 +1049,135 @@ test("C7'' · el cierre RESPONDE 502 (no se cae): con la recuperación también 
   await pagina.context().close();
 });
 
+// ══ EL MUNDO QUE FALTABA: LA RUTA CONTESTA 200 Y LA SESIÓN SIGUE VIVA ═══════
+//
+// 🔴 POR QUÉ EXISTE, Y NO ES "UN CASO MÁS": SIN ESTE TEST, LA DECISIÓN CENTRAL DE
+// AIT-134 NO TENÍA NI UN SOLO CRITERIO QUE LA EJERCITARA.
+//
+// El código prohíbe expresamente fusionar dos cosas:
+//     `rutaLocalOk`  = "la ruta de cierre local respondió 200"
+//     `confirmado`   = "el servidor YA NO DEJA ENTRAR"  (comprobado por efecto)
+// Y esta implementación las pasa TODAS menos ésta:
+//     const confirmado = rutaLocalOk;        // <- el impostor
+//
+// Se encontró aplicando al CONJUNTO la pregunta que no se le hace a un criterio
+// suelto: **no "¿puede fallar cada uno?", sino "¿qué implementación rota los
+// pasa todos?"**. La respuesta salió de una línea medida: los CUATRO tests que
+// tocaban `/api/cerrar-sesion-local` la forzaban a **500**. Con la ruta siempre
+// caída, `rutaLocalOk` es false en los seis criterios de "no navega / avisa /
+// sesión viva", y true sólo donde la sesión SÍ se cierra de verdad. **El mundo
+// en que la ruta contesta y aun así no hay que fiarse no existía.**
+//
+// ⚠️ QUÉ HACE EL IMPOSTOR, MEDIDO Y NO DEDUCIDO. Yo escribí primero que
+// "navega a /login afirmando un cierre que nadie comprobó". **Es lo que predije,
+// no lo que hace.** Ejecutado: el impostor da el cierre por bueno, llama a
+// `signOut()` y borra el endpoint — y la pantalla acaba en **"Algo ha ido mal"**,
+// la frontera de error. Ni avisa ni navega.
+// Lo dejo escrito porque la predicción sonaba mejor que la medición y habría
+// viajado igual: el daño de fondo es el mismo —dar por cerrada una sesión que
+// sigue viva— pero **el observable es otro**, y quien vaya a reproducir esto
+// buscando una navegación a /login no la va a encontrar.
+// Lo que NO cambia es que el criterio discrimina: con el código correcto sale
+// AVISA; con el impostor, no.
+//
+// 🔑 CÓMO SE FABRICA EL MUNDO, y es lo bonito: `route.fulfill` **impide que el
+// handler real corra**. Así que la respuesta dice 200 pero **nadie ha emitido el
+// `Set-Cookie` que borra las cookies**: siguen vivas y el servidor sigue dejando
+// entrar. No hay que simular nada — el 200 es de verdad y el cierre no ocurrió.
+test("AIT-134 · la ruta local responde 200 pero NO cerró nada: no se fía, avisa y NO navega", async ({
+  browser,
+}) => {
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // El cierre normal no confirma, así que entra la recuperación.
+  await pagina.route("**/api/auth", async (ruta) => {
+    if (!((ruta.request().postData() ?? "").includes("signOut"))) {
+      return ruta.fallback();
+    }
+    return ruta.abort("failed");
+  });
+
+  // Y la ruta local dice que sí SIN HACER NADA: `fulfill` no ejecuta el handler,
+  // así que no hay Set-Cookie y la credencial sobrevive.
+  let respondio200 = false;
+  await pagina.route(`**${RUTA_CIERRE_LOCAL}`, (ruta) => {
+    respondio200 = true;
+    return ruta.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ cerrado: true }),
+    });
+  });
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+
+  // (0) CONTROL AL INSTRUMENTO: si el 200 no se llega a fabricar, este test mide
+  // el camino de la ruta caída y no el suyo — y pasaría por el motivo equivocado.
+  expect(
+    respondio200,
+    "la ruta local no llegó a responder 200: este test no ha medido su mundo",
+  ).toBe(true);
+
+  // (1) SE ESPERA AL DESENLACE ANTES DE JUZGARLO, y esto no es cosmético:
+  // mirar `pagina.url()` justo después del clic lo lee ANTES de que la
+  // navegación ocurra, así que con el impostor —que sí navega— la aserción de
+  // la URL pasaba y saltaba la de la alerta. El test se ponía rojo, pero
+  // señalando "no hay alerta" cuando el defecto es "navegó afirmando un cierre
+  // falso". Un error desplazado hace cavar en el sitio equivocado con confianza.
+  const alerta = pagina
+    .getByRole("alert")
+    .filter({ hasText: "No se ha podido confirmar el cierre de sesión" });
+  // ⚠️ CADA RAMA RESUELVE O NO TERMINA NUNCA — NINGUNA RECHAZA, y esto es el
+  // arreglo de un defecto que tuvo este mismo test hace cinco minutos.
+  // `Promise.race` propaga el primer SETTLEMENT, y un rechazo es un settlement:
+  // con el impostor, el `waitFor` de la alerta vencía a los 5 s y su RECHAZO
+  // ganaba la carrera **aunque la navegación ya hubiera ocurrido**. El test se
+  // ponía rojo (bien) diciendo "NI_UNA_COSA_NI_LA_OTRA" (mal): el veredicto era
+  // correcto y el motivo mentía. Un rojo con el motivo equivocado manda a cavar
+  // al sitio equivocado con toda la confianza.
+  const nuncaTermina = () => new Promise<never>(() => {});
+  const desenlace = await Promise.race([
+    alerta
+      .waitFor({ state: "visible", timeout: PRESUPUESTO_C3_FALLO_MS })
+      .then(() => "AVISA" as const)
+      .catch(nuncaTermina),
+    pagina
+      .waitForURL("**/login", { timeout: PRESUPUESTO_C3_FALLO_MS })
+      .then(() => "NAVEGA" as const)
+      .catch(nuncaTermina),
+    // El único que decide por tiempo, y va DESPUÉS de los dos: si llega éste,
+    // es que de verdad no pasó ninguna de las dos cosas.
+    new Promise<"NI_UNA_COSA_NI_LA_OTRA">((r) =>
+      setTimeout(() => r("NI_UNA_COSA_NI_LA_OTRA"), PRESUPUESTO_C3_FALLO_MS + 750),
+    ),
+  ]);
+
+  expect(
+    desenlace,
+    "con la ruta local devolviendo 200 SIN haber borrado nada, la app tiene que " +
+      "AVISAR, porque nadie ha comprobado que la sesión se cerrara.\n" +
+      "· NAVEGA -> se afirma un cierre sin confirmarlo.\n" +
+      "· NI_UNA_COSA_NI_LA_OTRA -> es lo que se midió con el impostor " +
+      "`confirmado = rutaLocalOk`: da el cierre por bueno, limpia el cliente y " +
+      "la pantalla acaba en «Algo ha ido mal».\n" +
+      "Las dos salidas significan lo mismo: alguien fusionó «la ruta respondió» " +
+      "con «la sesión se cerró», que es el defecto de AIT-127 entrando por la " +
+      "puerta que abrió AIT-134.",
+  ).toBe("AVISA");
+
+  // (2) y la URL, ya con el desenlace decidido
+  expect(pagina.url()).not.toContain("/login");
+
+  // (3) y la prueba de que el 200 era mentira: la sesión sigue sirviendo.
+  expect(
+    await clasificarAcceso(pagina),
+    "si esto no es ACCESO_CONFIRMADO, el mundo que este test dice fabricar no se " +
+      "fabricó: la sesión tenía que seguir viva, porque nadie borró la cookie",
+  ).toBe("ACCESO_CONFIRMADO");
+
+  await pagina.context().close();
+});
+
 test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /login en ≤3 s", async ({
   browser,
 }) => {
