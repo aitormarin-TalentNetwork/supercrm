@@ -9,13 +9,37 @@
 > lo último de esta lista, y sin fiarte de ningún número escrito dentro:
 >
 > ```
-> TZ=UTC date -r "$(git log -1 --format=%ct -- 'Sorfware Factory/_para-aitor.md')" '+%Y-%m-%dT%H:%M:%SZ'
+> TZ=UTC git log -1 --date=iso-local --format=%ad -- 'Sorfware Factory/_para-aitor.md'
 > ```
 >
-> ⚠️ **Y no uses `git log --date=format` ni `--date=format-local` con una `Z` en el
-> formato: las dos imprimen hora LOCAL** (esta máquina va a UTC−3) **y la `Z` la pones
-> tú.** Detector: un descuadre de un múltiplo EXACTO de una hora es un huso, no un
-> incidente. *(La Directora lo cometió comprobando precisamente esta errata.)*
+> **Una línea, sin tubería, y el desfase lo imprime `git`, no tú:** sale
+> `2026-09-10 23:54:07 +0000`. **Ese `+0000` es del programa; una `Z` escrita a mano no.**
+>
+> ⚠️ **Lo que NO vale, y las dos formas se parecen muchísimo:**
+>
+> ```
+> git log --date=format:'…Z'          -> 20:54:07Z   hora LOCAL, y la Z la pusiste tú
+> TZ=UTC git log --date=format:'…Z'   -> 20:54:07Z   IGUAL: `format` (sin `-local`) usa el
+>                                                    huso GUARDADO EN EL COMMIT (−0300),
+>                                                    así que `TZ=UTC` delante no hace nada
+> TZ=UTC git log --date=format-local  -> 23:54:07    correcto: con `-local` el TZ SÍ manda
+> ```
+>
+> **`TZ=UTC` funciona — pero sólo con las variantes `-local`.** *No es que el entorno no
+> sirva aquí: es que `format` e `iso` lo ignoran y `format-local` e `iso-local` lo respetan.*
+>
+> ⛔ **Y no lo hagas con `date -r <epoch>`, aunque en esta máquina funcione: es de BSD.**
+> En GNU/Linux `date -r` es *el mtime de un fichero* y habría que escribir `date -d @<epoch>`.
+> **Falla ruidosamente, que es la dirección buena, pero el comando que documenta la frescura
+> de este fichero no debería tener ese borde.** *(Medido: aquí `date -d` responde
+> `illegal option -- d`.)*
+>
+> 🔑 **Y el detector, que es lo único que no depende de saberse las banderas: un descuadre de
+> un múltiplo EXACTO de una hora es un huso, no un incidente.** *La Directora cometió el
+> error comprobando precisamente esta errata, y lo que lo cazó no fue el cuidado: tenía dos
+> comandos distintos dando el mismo número —lo cual se lee como corroboración— y estaban mal
+> por la misma causa.* **Dos instrumentos que coinciden porque comparten el defecto no son
+> dos fuentes.**
 
 > ⛔ **Nadie de la fábrica ejecuta nada de esta lista.** Todo lo de aquí necesita su
 > identidad, su acceso o una decisión suya. Si algo deja de necesitarlo, sale de la lista.
