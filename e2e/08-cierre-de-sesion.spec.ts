@@ -141,30 +141,24 @@ async function pulsarCerrarSesion(pagina: Page, boton: "ajustes" | "menu") {
  * Se cierra por PARTICIÓN y no por lista de casos: cada sondeo cae en uno y sólo
  * uno, así que no queda resto por donde algo desaparezca.
  */
-type EstadoAcceso = "ACCESO_CONFIRMADO" | "DENEGACION_ESPERADA" | "ANOMALO";
+import {
+  clasificarRespuesta,
+  type EstadoAcceso,
+} from "./clasificarAcceso";
 
+/** Envoltorio: pide la ruta protegida y delega la CLASIFICACIÓN en la función
+ *  pura, que es la que tiene su propia prueba (`00-clasificar-acceso.spec.ts`).
+ *  Aquí sólo vive el "cómo se pide"; el "qué significa" vive allí. */
 async function clasificarAcceso(pagina: Page): Promise<EstadoAcceso> {
   const respuesta = await pagina.request.get(RUTA_PROTEGIDA, {
     maxRedirects: 0,
     failOnStatusCode: false,
   });
-  const codigo = respuesta.status();
-  if (codigo >= 300 && codigo < 400) {
-    const cabecera = respuesta.headers()["location"] ?? "";
-    let destino: URL;
-    try {
-      destino = new URL(cabecera, new URL(respuesta.url()).origin);
-    } catch {
-      return "ANOMALO";
-    }
-    const mismoOrigen = destino.origin === new URL(respuesta.url()).origin;
-    // `pathname` EXACTO. Ni `includes`, ni query, ni fragmento.
-    return mismoOrigen && destino.pathname === "/login"
-      ? "DENEGACION_ESPERADA"
-      : "ANOMALO";
-  }
-  if (codigo === 200) return "ACCESO_CONFIRMADO";
-  return "ANOMALO";
+  return clasificarRespuesta(
+    respuesta.status(),
+    respuesta.headers()["location"] ?? "",
+    respuesta.url(),
+  );
 }
 
 /** 🔴 ESTE HELPER SE RETIRA, Y EL MOTIVO ES UN ABLANDAMIENTO QUE ME HICE YO.
@@ -1119,8 +1113,15 @@ test("AIT-134 · momento (3) · si la recuperación TAMPOCO se confirma, no se n
 
   const urlAntes = pagina.url();
   await pulsarCerrarSesion(pagina, "ajustes");
+  // ⚠️ FILTRADO POR TEXTO A PROPÓSITO: `getByRole("alert")` a secas casa
+  // TAMBIÉN con `__next-route-announcer__`, el anunciador de rutas de Next, que
+  // también lleva `role="alert"`. Sin el filtro, strict mode falla por
+  // ambigüedad — y el aviso SÍ estaba. Era un defecto de mi localizador, no del
+  // producto.
   await expect(
-    pagina.getByRole("alert"),
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido confirmar el cierre de sesión" }),
     "con la recuperación fallando, el usuario tiene que ver el aviso",
   ).toBeVisible({ timeout: PRESUPUESTO_C3_FALLO_MS });
 
@@ -1133,29 +1134,17 @@ test("AIT-134 · momento (3) · si la recuperación TAMPOCO se confirma, no se n
   await pagina.context().close();
 });
 
-test("AIT-134 · el clasificador NO acepta un /login de otro origen ni en el query", async ({
-  browser,
-}) => {
-  // 🔴 CONTROL DEL INSTRUMENTO, y fabrica el rojo del predicado VIEJO: los dos
-  // señuelos de abajo pasaban con `destino.includes("/login")` y ahora tienen
-  // que clasificarse ANOMALO. Sin este test, "endurecí el predicado" es una
-  // afirmación mía y no una medición.
-  const pagina = await abrirSesionPropia(browser, "sales");
-
-  for (const [nombre, location] of [
-    ["otro origen", "https://ejemplo.invalido/login"],
-    ["/login en el query", "/panel?redirigido=/login"],
-  ] as const) {
-    await pagina.route(`**${RUTA_PROTEGIDA}`, (ruta) =>
-      ruta.fulfill({ status: 302, headers: { location } }),
-    );
-    expect(
-      await clasificarAcceso(pagina),
-      `un 302 con Location "${location}" (${nombre}) se clasificó como algo ` +
-        `distinto de ANOMALO: el predicado sigue siendo laxo`,
-    ).toBe("ANOMALO");
-    await pagina.unroute(`**${RUTA_PROTEGIDA}`);
-  }
-
-  await pagina.context().close();
-});
+// 🔴 EL CONTROL DEL INSTRUMENTO NO VIVE AQUÍ, Y ES UN DEFECTO MÍO CORREGIDO.
+//
+// Escribí un test e2e que interceptaba con `page.route()` la ruta protegida para
+// devolver un 302 a otro origen… y `pagina.request.get()` **no pasa por
+// `page.route()`**: las peticiones de `APIRequestContext` son OTRO CANAL. El
+// señuelo nunca se aplicó, respondió el `/pipeline` real y el test daba
+// `ACCESO_CONFIRMADO`.
+//
+// ⛔ Lo grave no es que fallara: es que **habría dado el mismo resultado con el
+// predicado roto**. Un control que no toca lo que dice tocar no discrimina nada.
+//
+// Se rehace como prueba PURA sobre `clasificarRespuesta` en
+// `e2e/00-clasificar-acceso.spec.ts`: sin servidor no hay dos canales que
+// confundir, y el señuelo se construye a mano.
