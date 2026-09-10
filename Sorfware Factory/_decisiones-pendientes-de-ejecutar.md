@@ -2354,3 +2354,93 @@ su segunda vuelta.
 convenio por un veredicto.** Es **el unico de los cuatro que ya tenia codigos escritos y no estuvo en
 la conversacion donde se formaron.** Se le traslada directamente, **con su `exit 3` acreditado como
 suyo.**
+
+## D63.2 — la BANDA ES CERRADA: quien clasifica es el LLAMADOR, no el programa
+
+**Agujero real, medido por el auditor sobre el comprobador de T1:** el manejador que promete
+`exit 3` **se instala despues del parseo y la carga de modulos**. Un error de sintaxis, un modulo que
+no carga o un interprete que no arranca **terminan con el codigo propio de Node —normalmente `1`—
+compartido con "hay rojos"**.
+
+🔑 ***El caso que mas necesita el `exit 3` es exactamente el que impide instalarlo.*** Es la forma
+general de lo que T1 arreglo DENTRO de su programa —*"un crash y un resultado legitimo daban el mismo
+observable"*— **un nivel mas afuera, donde su arreglo no alcanza.**
+
+**Me daban dos opciones. Cojo las dos partes buenas y anado la que faltaba, porque ninguna sola
+cierra el agujero:**
+
+1. **La promesa del programa se restringe y se dice honestamente:** `exit 3` = *"excepcion no
+   capturada **durante la ejecucion, tras instalar el manejador**"*. **Un programa no puede prometer
+   lo que ocurre antes de existir.**
+2. 🔑 **LA BANDA ES CERRADA, y esto es lo que hace que el convenio NO MIENTA sin construir nada:**
+   **cualquier codigo fuera de `{0, 3-7, >=10}` es FALLO DEL INSTRUMENTO por defecto.** El `1` de un
+   parseo roto cae ahi. **Quien clasifica no es el programa: es el LLAMADOR**, que sabe que invoco un
+   instrumento y **trata lo desconocido como "no pude mirar", no como "mire y no habia"**. Es
+   *fail-closed*, cuesta cero y cubre el caso peor — **que era justo lo que la opcion barata dejaba
+   fuera.**
+3. **El lanzador externo se reserva para donde la distincion se paga:** los vigilantes que **despiertan
+   a alguien**. Ahi si vale construir infraestructura; **para el resto, la banda cerrada basta.** *Quien
+   puede garantizar el codigo de un proceso es quien lo lanza, no el proceso* — pero **garantizarlo no
+   hace falta en todas partes; basta con no interpretar mal lo que salga.**
+
+## D67 — el STDERR ES PORTANTE: un convenio de exits que no lo diga invita a mirar solo el numero
+
+**Medido por T2 aplicando el convenio a su gate. En esta maquina `grep` sobre un DIRECTORIO devuelve
+`exit 0` con un aviso en stderr:**
+```
+directorio como log:  ANTES  exit 5  "AUSENTE: ninguna linea empieza por Total:"
+                      AHORA  exit 3  "CRASH DEL INSTRUMENTO: ... Is a directory"
+```
+**Lo cazo la comprobacion de STDERR, no el codigo de salida.** Un implementador que solo mirara `$?`
+**habria concluido "exito" y habria seguido hasta el `AUSENTE`** — o sea **un fallo del instrumento
+reportado como hallazgo legitimo sobre el sujeto**. La peor traduccion posible: *no pude mirar*
+convertido en *mire y no habia*, que es la distincion que el convenio existe para proteger.
+
+> **El stderr es parte del contrato, no un extra.** Y con la D63.2 dice lo mismo desde el otro
+> extremo: **si el `exit 3` no es reservable y el `exit 0` puede venir de una herramienta que fallo,
+> el codigo de salida POR SI SOLO no clasifica nada.**
+
+## D68 — adoptar un convenio retroactivamente exige REMAPEAR lo existente
+
+**De T2, medido: su `escaneo.sh` tenia el `3` y el `4` exactamente CRUZADOS respecto al convenio
+nuevo.** Si no se remapea, **se hereda el numero viejo con el significado nuevo**.
+
+**Es el mismo argumento con el que rechace dejar a T1 fuera, un nivel mas abajo: la apariencia de un
+significado compartido — solo que aqui el que discrepa consigo mismo es UN PROGRAMA, antes y despues
+del convenio.** Y es peor que la discrepancia entre dos programas, porque **nadie sospecha de un
+fichero contra si mismo.**
+
+**Regla: adoptar un convenio no es "usarlo de ahora en adelante" — es REMAPEAR lo ya escrito o
+declarar explicitamente que no se ha remapeado.**
+
+## Fila (T1, contra su propia regla) — un identificador poco distintivo resuelve POR CASUALIDAD
+
+**Medido por T1 sobre el corpus vivo:**
+```
+claves en exports VIVOS ......... 151
+de esas, TAMBIEN en archivados ..  98   (65 %)
+viven solo en vivos .............  53
+```
+**Y no es porque haya vivos archivados: es porque los numeros de seccion SE REPITEN entre
+documentos.** Su conclusion: *"la via «resuelve en un archivado» es casi siempre disponible para
+cualquier huerfano con etiqueta comun: **no es evidencia, es coincidencia con un 65% de
+probabilidad**"*.
+
+📌 **Es la hermana de la D66 por el otro lado.** Alli, **un identificador se degrada porque tiene
+exito y se copia**; aqui, **un identificador poco distintivo resuelve solo, contra el documento
+equivocado, sin que nadie lo copie.** En los dos casos **el resultado es verde y plausible**.
+
+✅ **Y lo que hay que retener del metodo: T1 midio contra SU PROPIA regla fail-closed y la debilito
+el mismo**, en vez de esperar a que se la tumbara otro. Propone retirar esa via y dejar solo la
+anotacion explicita.
+
+## 📌 Nota — los cuatro hallazgos anteriores solo existian en un chat
+
+**La Directora los publica porque el CEO pregunto expresamente antes de cerrar el informe qué quedaba
+sin escribir.** Cuatro hallazgos medidos —uno de ellos un agujero en un convenio publicado hace
+veinte minutos— **vivian solo en mensajes.**
+
+**No es un fallo de nadie: es la forma normal de una noche con doce terminales hablando.** Lo
+accionable es lo que hizo el CEO: **antes de cerrar cualquier entrega, preguntar explicitamente qué
+se quedó en los mensajes.** Un hallazgo en un chat **se siente comunicado**, y por eso nadie lo
+escribe.
