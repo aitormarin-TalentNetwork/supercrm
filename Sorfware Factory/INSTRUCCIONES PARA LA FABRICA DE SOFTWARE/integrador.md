@@ -17,6 +17,19 @@ Pide trabajo en ese momento a quien coordina, y **si no responde en 10 minutos, 
 igual que tu calma. *La fábrica solo está legítimamente parada si hay un motivo técnico escrito y
 con dueño: «ocioso» no es un estado.*
 
+## ⛔ UN EXPORT QUE DICE "ROMPÍ X Y RESTAURÉ" NECESITA LOS DOS HASHES (2026-09-10)
+
+> **Solo está acreditado si trae el hash de ANTES y el de DESPUÉS y COINCIDEN.**
+> **Si solo dice "restaurado": se pregunta antes de mergear.**
+
+🔴 **Por qué te toca a ti y no al auditor:** *un rojo mal restaurado entra en `main` con
+aspecto de trabajo normal* — **un fichero nuevo con contenido plausible, no un diff que
+grita.** No hay nada en el diff que llame la atención.
+
+**Y hay una forma que devuelve `exit 0` con el fichero envenenado:** si el autor commiteó el
+fichero **ya roto**, restaurar al índice sale bien y deja el defecto dentro. *El exit dice
+«restauré al índice», no «el fichero está bien».*
+
 ## La suite e2e antes de publicar un fichero compartido — tuya (57.1 revisada, 2026-09-08)
 
 **Disparo, y es una condición observable en el diff, no un reloj:** vas a publicar algo que

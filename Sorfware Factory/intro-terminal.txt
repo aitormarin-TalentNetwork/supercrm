@@ -535,6 +535,39 @@ una vez que el trabajo pasa auditoría.
 - Sigue las reglas de alcance y arquitectura del proyecto (documento raíz del
   proyecto — cuál es, en Configuración).
 
+🔴 SI ROMPES UN FICHERO A PROPOSITO PARA VER UN ROJO: CUATRO FORMAS DE FALLAR AL
+   RESTAURARLO, Y SOLO DOS GRITAN (2026-09-10)
+
+   Tres desarrolladores tropezaron con esto en DOS HORAS. El aviso existia — en el cuaderno
+   de la Directora, que lo lee ella y no vosotros. **No fue un fallo de conocimiento: fue de
+   difusion.**
+
+   (3) 🔴 LA QUE NO GRITA, Y VA PRIMERA POR ESO: commiteaste el fichero YA ROTO.
+       Restaurar al indice te devuelve EXIT 0 y te deja el fichero envenenado.
+       **"El exit dice «restaure al INDICE», NO «el fichero esta BIEN». Son dos
+         afirmaciones distintas y solo la primera esta medida."**  [T1]
+
+   (2) 🔴 SIN TRACKEAR, y el TEST tampoco trackeado: se commitea el defecto CON SU
+       TEST EN VERDE AL LADO. **No es un fallo silencioso: es una ACREDITACION
+       FABRICADA del fallo.**  [T3]
+
+   (1) TRACKEADO y el exit se pierde en una tuberia: `$?` detras de `| tee` es el de
+       `tee`, no el del comando. A T2 se le quedo un XSS dentro del arbol.
+
+   (4) el estado de referencia se SUPONE bueno, sin haberlo comprobado.
+
+   ✅ PROCEDIMIENTO QUE CUBRE LAS CUATRO:
+       pruebas en verde -> md5 de lo que vas a romper -> commitear ese estado
+       -> romper -> restaurar LEYENDO EL EXIT SIN TUBERIA -> md5 otra vez y COMPARAR
+
+   🔑 **El penultimo paso dice que git hizo algo; el ULTIMO dice que el fichero esta bien.**
+
+   ⛔ Y LA REFERENCIA NO ES "UN COMMIT": ES UN ESTADO VERIFICADO CONTRA EL QUE COMPARAR.
+      Un commit es una forma; **el `md5` es la otra, y la UNICA cuando el fichero no esta
+      trackeado.** Y ese estado tiene que tener **LAS PRUEBAS EN VERDE** — si no, la
+      comparacion acredita que volviste a donde estabas, **no que ahi se estuviera bien.**
+
+
 🔴 AL ESCRIBIR UN CRITERIO DE ACEPTACION: TIENE QUE PODER SALIR MAL (D55)
 
    Todo criterio con verbo de observacion declara TRES cosas:
@@ -553,6 +586,12 @@ una vez que el trabajo pasa auditoría.
       cerrado— entonces una implementacion rota AL REVES, que rechace todo o no escriba
       nunca, LOS PASA TODOS.** Sus palabras: *"siete verdes que no habrian medido nada"*.
       => Cada criterio de rechazo necesita al lado uno que exija que el caso BUENO ocurra.
+
+   🔑 Y AL ESCRIBIR LA NEGACION DE UN CRITERIO (T3, 2026-09-10):
+      **la negacion hereda el MUNDO pero NO las GARANTIAS.**
+      Su caso: *"navega + no avisa"* lo cumplia **exactamente el defecto que el criterio
+      existia para impedir**. **Una negacion mal construida no es un criterio debil:
+      es el criterio DEL DEFECTO.**
 
    Ejemplo del mismo dia: un criterio de unicidad por buzon se cumple con un indice unico
    por `emailAddress` — que es justo el error que rompe el modelo. Lo que discrimina es el
