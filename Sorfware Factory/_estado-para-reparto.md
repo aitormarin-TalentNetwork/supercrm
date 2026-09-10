@@ -666,6 +666,8 @@ resolver**; ahora el diseno esta aprobado y lo que viaja es **la validacion de u
 
 ⛔ **El auditor confirma la reclasificacion en una linea al recibir el export de codigo.** Si dice
 que no, vuelve a plan.
+**SE LEVANTA CUANDO:** exista `VEREDICTO_T3_AIT-134_codigo-loop*.txt` con esa linea. Comprobable
+por quien lea esto, sin preguntarle a nadie.
 
 ### REGLA NUEVA SOBRE MI PROPIO CANAL
 
@@ -700,6 +702,12 @@ produciendo una contramedida que cuesta mas que el defecto** — la misma que "d
 vigilantes de fondo", que era cierta en su premisa y costo 12 minutos de relay.
 
 ### PENDIENTE DE RESPUESTA (no de trabajo)
+
+🟢 **CONDICION LEVANTADA 18:43Z POR EL FA — ver "EL DETECTOR QUE SE ENCUENTRA A SI MISMO" mas
+abajo. Lo de este parrafo es el estado de las 16:30Z y NO esta vigente: el FA respondio
+SUSTANCIAL (va a Aitor) y que T3 SI EXPORTA, porque la respuesta hace falta ANTES DEL MERGE,
+no antes del export. La frase de abajo "T3 implementa pero no exporta hasta tener respuesta"
+YA NO RIGE. La lei viva a las 18:40Z y pare a T3 con el export terminado.**
 
 T3 pregunta si la reclasificacion de M1 paso por Aitor. **NO paso.** El texto publicado
 (`intro-terminal.txt`, incidente AIT-76) dice *"se le pide a Aitor a traves del Factory Architect;
@@ -991,3 +999,222 @@ nadie habia pedido, y su motivo es general:
 
 Su caso: *navega + no avisa* lo cumplia exactamente **el defecto que C7 existia para impedir**.
 Hay que volver a preguntarse **que defecto satisface la negacion**.
+
+---
+
+## EL DETECTOR QUE SE ENCUENTRA A SI MISMO A RATOS (18:40Z, ACREDITADO)
+
+Tercera version en un dia de la misma linea de `encolar.sh`, y las tres fallaron por
+una raiz que no vi hasta medirla contra una suite REAL (la del Integrador, 18:36:04Z):
+
+    manana    pgrep -f "playwright"              10 servidores MCP. Bloqueo la cola 8 min.
+    tarde     pgrep -f "playwright test"         se contaba a SI MISMO (3, las tres mias)
+    18:37:12  pgrep -f "node.*playwright.*test"  = 2   <- detecta la suite
+    18:37:36  el MISMO patron                    = 3   <- y uno era MI PROPIO BASH (80668)
+
+⚠️ **Dos y tres, con veinticuatro segundos entre medias y la misma suite corriendo.**
+
+> **Un detector que se encuentra a si mismo INTERMITENTEMENTE es peor que uno que lo hace
+> siempre: pasa sus propias pruebas y falla en produccion.**
+
+Y la raiz no es el patron sino la FORMA de preguntar: **cualquier cadena que yo escriba
+viaja dentro del comando que la busca.** Por eso el ancla ya no es una cadena elegida por
+mi, sino DOS PROPIEDADES DEL SUJETO que mi shell no puede tener:
+
+    (a) el proceso cuelga del node_modules DE ESTE REPO   (los MCP viven en ~/.npm/_npx)
+    (b) su linea no contiene "shell-snapshots"             (firma de las shells de Claude Code)
+
+ACREDITADO 18:38:22Z, con la suite viva:  3 procesos de suite · 10 MCP FUERA.
+Refutado por el camino un candidato mio: anclar a `node_modules/.bin/playwright` daba **12**,
+porque el binario de los MCP tambien vive en *un* node_modules. **Lo que discrimina no es
+"playwright": es DE QUE ARBOL cuelga.**
+
+⚠️ **Y casi la doy por probada sin ejercitarla:** al correr el gate entero, **el cerrojo
+rechazo antes** y la guarda de suite no llego a evaluarse. **Un criterio tapa a otro.** La
+extraje del fichero y la corri sola: rechaza. [MEDIDO 18:39:32Z]. Falta el control negativo
+(0 sin suite), que llega solo cuando termine la corrida.
+
+## EL CONTROL POSITIVO CUYO SUJETO NO EXISTIO (18:33Z)
+
+El Integrador me abrio una ventana para acreditar el patron; la suite murio a los SEIS
+segundos (gate de precondiciones = 1) y me aviso a tiempo. **Si la hubiera medido, me habria
+dado 0 y yo habria escrito "mi patron no detecta" — y habria cambiado un instrumento que
+estaba bien, con una medicion respaldandolo.**
+
+> **Un control positivo cuyo sujeto no existio no se calla: MIENTE, y miente en la direccion
+> de refutar el instrumento. Es mas caro que no medir.**
+
+## HUECO DE CLASE EN MIS GO DE CODIGO: MERGEABLE NO ES EJECUTABLE
+
+`ls-remote`, `merge-base --is-ancestor` y `merge-tree` responden **"¿entra en main?"**. NO
+responden **"¿arranca en la maquina del siguiente?"**, y las dos salen verdes igual.
+Medido hoy en AIT-92 por el Integrador, tropezando dos veces:
+
+    vitest: command not found (127)   la ficha trae package.json nuevo; el arbol limpio no lo tiene
+    9 funciones Convex sin desplegar  `git pull` trae el codigo de una funcion; NO la despliega
+
+El auditor midio `test:callback` 19/19 — cierto **en su caja**. El Integrador reprodujo esos
+mismos 19/19 **despues** de `npm install` + `npx convex dev --once`. **Ninguno de los dos pasos
+vive en un arbol de git, y mis tres instrumentos miden arboles de git.**
+
+> **El "SIN: nada" es cierto dentro de la caja del auditor; lo que la caja no incluia era
+> "¿puede otro reproducir esto?"**
+
+PROPUESTO AL FA: seccion obligatoria `=== PASOS DE ENTORNO QUE NO ESTAN EN EL DIFF ===`, y
+**si va vacia, que lo diga y lo firme** — una seccion ausente y una vacia se leen igual y
+solo una es una afirmacion.
+
+## REGLA DE PARADA DEL PM, CON NUMERO (para que no la apruebe quien no sepa que hubo dos)
+
+    PEOR_SOBRECARGA_MEDIDA_MS   484 -> 556   REGISTRO. Sube siempre. No bloquea por si mismo.
+    MARGEN_SOBRECARGA_MS        484 -> 556   el presupuesto se ajusta a la realidad medida
+    LIMITE_LIMPIEZA_MS          616 -> 544   lo que QUEDA: 3000 - 556 - 1400 - 500
+    PRESUPUESTO_C3_MS                 3000   NO SE TOCA
+
+⛔ **Si `LIMITE_LIMPIEZA_MS` tiene que bajar de ~350 ms (2x el peor caso medido), SE PARA y
+vuelve al PM.**
+**NO SE LEVANTA: es permanente.** Lo que caduca es el numero, no la regla — si cambia el peor
+caso medido, cambia el umbral, y eso lo decide el PM.
+ Van **750 -> 616 -> 544 en una hora**, y esa progresion es invisible si cada
+bajada se justifica sola. Se esta gastando presupuesto de producto para absorber un problema
+de entorno.
+
+La distincion que separa las dos guardas: **un numero que sube solo porque el mundo empeoro
+no debe parar a nadie; un numero que baja porque alguien lo escribio, si.** Por eso
+`MARGEN >= PEOR_REGISTRADO` se conserva como bloqueante.
+
+## AIT-134: EL CAMPO DEL RECLASIFICADOR, SEPARADO EN TRES
+
+    razon tecnica ... del Factory Architect (un instrumento se valida corriendolo contra un
+                      caso que deberia fallar, y eso NO SE PUEDE HACER EN UN PLAN)
+    decision ........ MIA. Firmo yo.
+    confirmacion .... PENDIENTE del auditor, en una linea, al recibir el export de codigo
+    por Aitor ....... NO PASO
+
+🔴 **CORREGIDO 18:43Z, 3 minutos despues de escribir lo de arriba. El FA SI habia respondido y yo
+lo di por no respondido.** Su respuesta, textual:
+
+    reclasificacion de M1 = SUSTANCIAL -> va a AITOR. La via es el FA.
+    T3 EXPORTA con la pregunta declarada en la cabecera.
+    ⛔ La respuesta hace falta ANTES DEL MERGE, NO antes del export.
+
+**Asi que T3 exportando a las 18:35:29Z es CORRECTO y AIT-134 SE ENCOLA.** Lo bloqueado es
+el merge. Yo habia leido `:704` —*"no exporta hasta tener respuesta"*— como una condicion viva,
+y **era un estado congelado de las 16:30Z que la respuesta del FA ya habia superado**.
+
+> **Un fichero que sobrevive a la sesion tambien sobrevive a su propia correccion: una condicion
+> escrita ahi sigue leyendose como viva mucho despues de haberse resuelto en otro sitio.**
+
+El fallo de fondo lo asume el FA y es el mismo del dia: **lo respondio en un chat y no quedo
+donde sobrevive**. Pero la mitad mia es real: **pare a T3 por una condicion caducada que yo
+misma habia escrito**, y mi prudencia (no encolar sin saberlo) fue correcta solo por casualidad.
+
+## AIT-143 LLEGA A LA COLA CON DOS PUERTAS CERRADAS CON LLAVE QUE NO DEBERIAN ESTARLO
+
+El cupo de login (medido en el momento equivocado) y la memoria (descartada con
+`free` leido como si fueran dos extremos, con totales distintos: 14336 vs 16384, ni
+comparables). **Un descarte mal hecho es peor que no haber mirado: convierte una zona en
+tierra prohibida.** La ficha nunca lo afirmo — la afirmacion falsa vivia en nuestros mensajes,
+asi que **retire algo del sitio equivocado y el sitio bueno quedo intacto por suerte**.
+
+## EL DETECTOR NO ESTABA ROTO: LA MARCA QUE LEE NO LA ESCRIBE NADIE (CORREGIDO 18:43Z)
+
+`_detector-exports-sin-veredicto.sh` marca 🔴 SIN RELAYAR las NUEVE rondas de plan de AIT-134.
+Yo diagnostique **ruido** ("la direccion protege, la frecuencia gasta; con nueve rojos fijos
+deja de leerse") y **dije que le faltaba un observable, que yo relayo por SendMessage y no deja
+rastro**. Las dos cosas eran falsas. Medido por el FA:
+
+    veredictos en la carpeta ........................ 75
+    ficheros con la marca RELAYADO .................. 0    <- CERO. Ninguno, nunca.
+    veredictos de AIT-134 ........................... 11   (0 con marca)
+
+**El observable EXISTE**: lo decidio el FA a mediodia y el CEO lo ejecuto a las 12:10:11Z con su
+`VIGENTE_DESDE`. **En seis horas y media no lo ha escrito nadie, el FA incluido, que lo decidio.**
+
+🔑 **Asi que los nueve rojos no son ruido: son nueve veces que la marca debia estar y no estaba.**
+Las nueve rondas son posteriores al corte.
+
+> **Iba a retirar un detector que funcionaba porque medi su ruido y no su verdad. Un control que
+> grita mucho puede estar gritando con razon, y "esto ya no se lee" describe al lector, no al
+> instrumento.**
+
+⛔ **DECISION DEL FA, y la parte que ejecuto YO: relayar INCLUYE escribir la marca.** Vive donde
+ocurre el relay, o sea en mi paso y en `director.md`. Una linea anexada al veredicto:
+`RELAYADO <hora UTC> a <terminal>`.
+
+Y el nivel de abajo, del QA: **un control que nunca se ha ejercitado no esta validado, esta sin
+usar** — aqui lo que nunca se ejercito **es el observable**.
+
+## PARA AITOR, LO QUE EMPEORA SOLO (va PRIMERO de su lista)
+
+🔴 Convex avisa: *"Your projects are above the Free plan limits… avoid service interruption."*
+**Amenaza `stoic-impala-857`, o sea PRODUCCION.** Es lo unico de su lista que **se degrada con
+el tiempo sin que nadie haga nada mal**; las otras ocho estan paradas esperandole y no empeoran.
+🟡 `npm install` reporta 10 vulnerabilidades (2 criticas, 6 altas). Solo se ven cuando alguien
+instala, y hoy nadie mas iba a hacerlo.
+
+---
+
+## UNA CONDICION BLOQUEANTE NOMBRA QUE LA LEVANTA (regla nueva del FA, 18:45Z)
+
+Hoy pare a T3 con un export terminado leyendo como viva una condicion de las 16:30Z que el FA
+habia levantado horas antes en otro sitio.
+
+> **Un fichero que sobrevive a la sesion tambien sobrevive a su propia correccion. La condicion
+> queda escrita; su levantamiento ocurre en otro sitio.**
+
+⚠️ **Y la DIRECCION es lo que explica por que no salta sola** (formulacion de T3): una condicion
+caducada que **libera** se descubre en cuanto alguien la usa; una que **RETIENE no produce ninguna
+senal. Nadie protesta por un trabajo detenido de mas.** Falla hacia la prudencia, y por eso dura
+horas sin que nadie note nada.
+
+🔴 **Mi arreglo era malo y el FA lo refuto:** yo propuse *"anotar «levantada el …» junto a cada ⛔"*,
+y **eso tiene el mismo fallo que intenta cazar: depende de que alguien VUELVA**, y quien levanta la
+condicion esta en otro sitio pensando en otra cosa.
+
+⛔ **LA PIEZA VA EN EL MOMENTO DE ESCRIBIRLA, NO EN EL DE LEVANTARLA:**
+
+> **Una condicion bloqueante NOMBRA QUE LA LEVANTA.**
+> *"⛔ T3 no exporta — se levanta cuando el FA responda sencillo/sustancial."*
+
+Con eso el lector no tiene que confiar en la linea: **tiene que COMPROBAR si eso paso.** Convierte
+*"¿sigue viva?"* de pregunta de MEMORIA en pregunta VERIFICABLE, y la contesta quien esta delante.
+Anotar el levantamiento sigue siendo bueno, **pero es la red, no la viga.**
+
+📊 **MEDIDO EN MI PROPIO FICHERO, 18:46:26Z:**
+
+    condiciones bloqueantes (⛔) ............... 9
+    que nombran que las levanta ............... 0    <- nueve de nueve
+
+## EL DETECTOR: LINEA DE CORTE, NI BACKFILL NI SILENCIO (decision del FA)
+
+Ni inventar nueve marcas sacadas de mi recuerdo (*un backfill apaga nueve alarmas con datos que
+no medi*), ni dejar nueve rojos indistinguibles del decimo. **Categoria propia:**
+
+    SIN MARCA — ANTERIOR AL CORTE      (los anteriores al VIGENTE_DESDE de las 12:10:11Z)
+    SIN RELAYAR                        (los de verdad, a partir de ahora)
+
+**Y se agotan solos:** cada relay marcado nace en el lado bueno, asi que la categoria vieja no crece.
+
+## EL TEXTO QUE DOCUMENTA UNA AUSENCIA SE CUENTA COMO UNA PRESENCIA (de T1, repartir a los cinco)
+
+> **El fichero mejor comentado es el que mas miente a un grep de menciones.**
+
+T1 midio "5 claves puestas" en su `playwright.unit.config.ts` y **eran las cinco lineas de comentario
+que explican por que NO estan puestas**. Y antes, "menciones de navegador" en dos specs puros: rutas
+`app/.../page.tsx` dentro de comentarios.
+
+**Cuanto mas cuidadoso es el autor explicando una ausencia, mas falsos positivos produce en quien la
+busca — y falla hacia "SI esta", que en una comprobacion de precondiciones es la direccion mala.**
+
+## COLA (18:46Z) — el gate lleva cerrado desde las 18:32:32Z
+
+    17:58:12Z -> RECONGELADO 18:45:28Z  T1 AIT-142 codigo-loop1
+                 md5 f91ce61b835d0d8486582ed606134cb6 · 35019 bytes · punta e8723bd9
+                 (el md5 viejo 29c8c8ec... esta MUERTO; verificado por mi, no relayado)
+    18:13:08Z  T2 AIT-145 plan-loop1   md5 56c5225b24621a333273f1d182953d7b
+    18:35:29Z  T3 AIT-134 codigo-loop1 (DESBLOQUEADO: bloquea el merge, no la auditoria)
+
+Orden POR HORA DE CONGELACION. T1 cedio el turno por cortesia y NO se acepta:
+**si el orden lo decide la cortesia deja de ser un orden y pasa a ser quien insiste menos —
+y el que insiste menos siempre es el mismo.**
