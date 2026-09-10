@@ -1356,3 +1356,88 @@ distinto cada dia se aprende a reintentar, y entonces no protege: informa*.
 promete algo sobre lo que acabo de publicar?»**"* — y `docs/02` promete ser el schema literal.
 **La regla existe en CLAUDE.md y no esta en su ruta obligatoria.** Va como PASO, no como
 recordatorio: *un paso esta en la ruta; un recordatorio no*.
+
+---
+
+## UN DESPLIEGUE APLICA TODAS LAS RETIRADAS ACUMULADAS, NO SOLO LA TUYA (19:25Z)
+
+T3 corrio la suite desde una rama **68 commits detras** y le salio un rojo en `05-control-marta`:
+`/supervision` renderiza "Algo ha ido mal". **No era suyo, y tampoco era el azar.**
+
+    18:14      su corrida PASA ese test
+    18:35:34Z  el Integrador corre `npx convex dev --once` contra dev:third-goldfinch-805
+    19:04      su corrida FALLA, con el mismo proxy.ts
+
+Verificado por mi sobre commits: `422a963` define `getWorkloadByOwner` (10 `export const`),
+`825e40a` no (9). **Exactamente una menos**, con el recuento de control.
+
+> **Un `convex dev --once` sincroniza el deployment ENTERO con tu arbol: no solo anade lo tuyo,
+> RETIRA lo que tu arbol ya no tiene.**
+
+⛔ **Y LA CORRECCION DEL PROPIO INTEGRADOR, QUE LO HACE MUCHO PEOR:**
+
+    getWorkloadByOwner       retirada en e86e488, 13:04 -03, AIT-141  -> desplegada 16:34Z
+    getOverdueCountsByOwner  retirada en 4a6d3fc, 08:06 -03, AIT-128  -> desplegada 13:56Z
+    CONTROL POSITIVO del pickaxe: getForecast devuelve su commit de ALTA
+
+> **Un despliegue no aplica TU cambio: aplica todas las retiradas ACUMULADAS en `main` desde el
+> ultimo despliegue. El radio de dano no tiene el tamano de tu ficha — tiene el tamano del hueco
+> desde que alguien desplego por ultima vez.**
+
+**Es la D27 del checkout compartido en el eje del deployment:** *publicas lo que otros dejaron a
+medias*, sin ninguna senal de que lo llevas encima.
+
+**EL PAR DE PASOS, y van juntos o el primero es analgesico:**
+
+    el que CORRE, antes de la suite desde una rama detras de main:
+        para cada api.<mod>.<fn> en app/, components/ y lib/ de la punta,
+        comprobar `^export const <fn>` en main:convex/<mod>.ts
+    el que DESPLIEGA, antes de `convex dev --once`:
+        ¿que funciones define EL DEPLOYMENT que mi arbol ya no define? -> avisar a las ramas vivas
+
+**Formulacion del Integrador:** *el que corre pregunta "¿mi rama llama a algo que ya no esta?";
+el que despliega pregunta "¿voy a quitar algo que alguien llama?". **La primera la hace la victima
+despues; la segunda, el causante antes.*** **El barrido del que corre no evita el dano: lo explica
+rapido.**
+
+⚠️ **Y no fue un descuido: el gate de precondiciones le OBLIGABA a desplegar para poder correr la
+suite de AIT-92, y el propio gate lo prescribe.** Hizo lo correcto y el efecto lateral se lo comio
+otro. **Un procedimiento correcto con un efecto lateral no declarado no se arregla con mas
+cuidado: se arregla declarando el efecto.**
+
+⛔ **LIMITE DEL CASO, declarado y no convertido en tarea:** todo lo anterior son **COMMITS**. **Lo
+que el deployment tenia a las 18:14 es otro sujeto y YA NO EXISTE: no es medible a posteriori.**
+El problema de hoy nace justo de que un commit y un deployment no coinciden, asi que medir uno
+para hablar del otro seria el error que estamos investigando. **Causa suficiente, no unica** —
+nadie puede enumerar despliegues ajenos.
+
+## MI COMENTARIO CONTADO COMO PRESENCIA, 34 MINUTOS DESPUES DE REPARTIR LA REGLA
+
+Mi primer barrido dijo que **`main` TAMBIEN llamaba a la funcion retirada**. Era la **linea 41: un
+COMENTARIO** que explica que se retiro. Estuve a punto de anunciar que `main` estaba roto.
+
+**Es la regla de T1 de las 18:45, que yo misma habia repartido a cinco sesiones, incumplida a los
+34 minutos y sobre la ficha del que me la enseno.** Y hacia "si esta", que es el lado malo.
+
+🔑 **Lo que lo cazo no fue el catalogo ni la prudencia: fue que el resultado era ABSURDO.** `main`
+no puede llamar a lo que `main` acaba de retirar **y desplegar**. **Fui a mirar la linea por
+increible.** Si el defecto hubiera sido PLAUSIBLE, lo habria publicado.
+**La implausibilidad filtra por TAMANO del error, no por su existencia.**
+
+**ARREGLO (del FA):** *donde un procedimiento diga "busca X", el procedimiento ENTREGA EL ANCLA, y
+el ancla pregunta por el USO y no por el nombre* — `useQuery\(api\.<mod>\.<fn>`, `^export const`.
+**Asi la regla deja de recordarse y pasa a consumirse.** ⚠️ Mi limite a ese arreglo: **solo cubre
+donde hay procedimiento escrito**; fuera de ahi sigo eligiendo yo el ancla, y la mayoria de mis
+mediciones de hoy han sido anclas inventadas sobre la marcha.
+
+## EL VOLUMEN DEL CATALOGO VA A AITOR (decision del FA, y le apoyo)
+
+~70 reglas, y **los fallos de hoy han sido casi todos reglas MAL APLICADAS, no reglas ausentes.**
+
+> **Un catalogo que crece porque sus propias entradas se incumplen no esta aprendiendo: esta
+> registrando el mismo fallo con nombres nuevos.**
+
+Mi caso va como evidencia **y tiene que ir entero** —regla escrita, repartida a cinco sesiones,
+con su ejemplo, incumplida a los 34 minutos por quien la repartio— porque **sin esos detalles
+parece un despiste y con ellos es un dato sobre el mecanismo.** El FA no lo decide el mismo:
+**ha escrito casi todas las reglas, y el que las cuenta no puede ser el que decide si sobran.**
