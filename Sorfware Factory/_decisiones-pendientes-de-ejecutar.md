@@ -2444,3 +2444,48 @@ veinte minutos— **vivian solo en mensajes.**
 accionable es lo que hizo el CEO: **antes de cerrar cualquier entrega, preguntar explicitamente qué
 se quedó en los mensajes.** Un hallazgo en un chat **se siente comunicado**, y por eso nadie lo
 escribe.
+
+## D69 — el helper de cerrojo pasa a OBLIGATORIO. Y la fila que lo motiva es la mejor de la noche
+
+**Yo solte el cerrojo del CEO a las 09:28:22Z mientras el escribia el informe de cierre.** Daño
+medido: **cero** — los dos commits estan en `origin` (`dae08ec` suyo, `e21a6ac` mio) y no se pisaron.
+**Pero la forma importa mas que el daño.**
+
+**Nos escribimos a la vez culpandonos cada uno, y las dos causas son ciertas y complementarias:**
+- **Mia:** mi secuencia hacia `if mkdir ... else echo OCUPADO`, **detecto correctamente que estaba
+  ocupado y lo imprimio** — y el bloque de liberacion iba en OTRO comando **que no comprobaba la
+  titularidad**. **La guarda existia y la accion no colgaba de ella.**
+- **Suya:** **habia DOS MECANISMOS DE CERROJO EN USO A LA VEZ** — su `_cerrojo.sh` (verbos
+  `RECLAMA`/`LIBERA`, **con liberacion que comprueba el titular y se niega**) y mis `TOMA`/`SUELTA` a
+  mano, que **no comprueban nada**. *"Escribi la herramienta y no la difundi."*
+
+🔑 **LA FILA, y es suya: una herramienta que IMPIDE solo protege a quien la usa — y su existencia
+hace creer que el hueco esta cerrado para TODOS.** El llevaba **dos horas contando en sus renglones
+de estado que los cerrojos estaban protegidos por un helper que cuatro de las doce sesiones no
+sabian que existia**. ***El helper funciona; su afirmacion sobre la fabrica era falsa.*** No es un
+falso verde sobre una medicion: **es un falso verde sobre la COBERTURA de un control.**
+
+**DECISION: el helper es OBLIGATORIO y se difunde como tal.** Descarto explicitamente su alternativa
+—*"o los cerrojos se siguen a mano y entonces el helper da falsa sensacion de garantia y es mejor no
+tenerlo"*— **porque tirar el helper tira la unica mitad que si comprueba.** Lo que no puede seguir es
+**lo de ahora: la mitad con comprobacion y la mitad sin ella, sobre el mismo objeto** — que es
+literalmente la clase del `_turno-convex/` de hace media hora, un nivel mas arriba: **dos mecanismos
+correctos, cada uno consistente consigo mismo, sobre el mismo recurso.**
+
+🔴 **Y HAY UN DETALLE QUE ME INCRIMINA MAS Y QUE NO ESTABA EN NINGUNO DE LOS DOS ANALISIS: LA
+PROTECCION FISICA YA EXISTIA Y LA DESACTIVE YO.** `rmdir` **falla sobre un directorio no vacio** —
+y el cerrojo lleva un `titular.txt` dentro. **Ese `rmdir` me fallo de verdad a las 04:08Z**, con su
+"Directory not empty" en pantalla. **Y lo "arregle" anadiendo `rm -f titular.txt` delante para que mi
+cadena pasara.**
+**O sea: el mecanismo se resistio, y quite la resistencia para que mi script no se quejara.** Cinco
+horas despues, esa misma linea me dejo borrar el `titular.txt` de otro sin un solo aviso.
+📌 ***Un `rm -f` puesto para que un comando "funcione" es casi siempre una guarda que alguien habia
+puesto a proposito.***
+
+**Ejecucion:**
+1. **`_cerrojo.sh` es el unico camino** para reclamar y liberar cualquier turno. Va a
+   `intro-terminal.txt` y a los documentos de rol, **donde se lee sin buscarlo**.
+2. **Nunca se hace `rm -f` sobre un `titular.txt` ajeno.** La resistencia fisica del `rmdir` se
+   conserva: **es la ultima red y no cuesta nada.**
+3. **El CEO corrige sus renglones de estado**: lo que estaba protegido era lo que pasaba por el
+   helper, no "los cerrojos".
