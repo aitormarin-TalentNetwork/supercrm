@@ -144,3 +144,21 @@ next-env.d.ts
 # Cuarentena: NUNCA dentro del repo (decisión 69). Vive en ~/.cuarentena-fabrica/.
 # Un `add` ancho la versionó el 2026-09-09 y dejó `tsc --noEmit` en rojo con el código sano.
 /Sorfware Factory/_copias-congeladas-por-revisar/
+
+# ── Duplicados de iCloud: "fichero 2.ext" ────────────────────────────────────
+# iCloud renombra asi cuando dos maquinas tocan el mismo fichero. Medido el
+# 2026-09-10: 62 en el repo, 18 de ellos DENTRO del worktree de T2.
+#
+# 🔑 POR QUE HACE FALTA ESTA REGLA SI YA ESTA `/Sorfware Factory/_worktrees/`:
+# esa regla es ABSOLUTA DESDE LA RAIZ, asi que **no casa cuando git corre desde
+# dentro del worktree**. Medido: desde la raiz salen ignorados; desde T2,
+# `git add -An` los anadiria — los DIECIOCHO. **El mismo fichero, ignorado o no
+# segun desde donde mires**, y el sitio desde el que se mira es justo el sitio
+# donde alguien va a escribir `git add -A`.
+#
+# ⚠️ Y LO QUE ESTA REGLA *NO* ARREGLA, declarado: el mecanismo que los crea sigue
+# activo. La migracion fuera de iCloud esta decidida y NO ejecutada, y las fechas
+# de los duplicados son once del 09-09 y uno del 09-10. **Ignorarlos impide que se
+# commiteen; no impide que aparezcan.**
+* 2.*
+* 2

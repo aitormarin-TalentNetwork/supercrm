@@ -1,0 +1,268 @@
+[e2e] puerto 3103 · marcador e2e0000…
+[WebServer] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+[WebServer]  We detected multiple lockfiles and selected the directory of /Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/package-lock.json as the root directory.
+[WebServer]  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+[WebServer]    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+[WebServer]  Detected additional lockfiles: 
+[WebServer]    * /Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/package-lock.json
+[WebServer] 
+
+[e2e] sesión preparada para 2 roles (owner, sales)
+
+Running 67 tests using 1 worker
+
+[e2e] puerto 3103 · marcador e2e0000…
+
+[1/67] [chromium] › e2e/01-captar-oportunidad.spec.ts:8:5 › captar oportunidad desde Hoy genera el Detalle con el primer próximo paso
+[2/67] [chromium] › e2e/01-captar-oportunidad.spec.ts:32:5 › dar de alta un teléfono que ya existe avisa y ofrece usar el cliente existente
+[3/67] [chromium] › e2e/02-seguimiento-diario.spec.ts:8:5 › registrar interacción desde Hoy actualiza el próximo paso y vuelve a Hoy
+[4/67] [chromium] › e2e/03-presupuesto-y-etapa.spec.ts:11:5 › registrar presupuesto y cambiar etapa mueve la oportunidad en Pipeline
+[5/67] [chromium] › e2e/04-cierre.spec.ts:8:7 › Cierre de oportunidad › marcar como ganada registra el importe final y desactiva las acciones abiertas
+[6/67] [chromium] › e2e/04-cierre.spec.ts:34:7 › Cierre de oportunidad › marcar como perdida exige motivo y lo muestra en el Detalle
+[7/67] [chromium] › e2e/04-cierre.spec.ts:56:7 › Cierre de oportunidad › reabrir una oportunidad perdida la devuelve al pipeline con próximo paso
+[8/67] [chromium] › e2e/05-control-marta.spec.ts:8:5 › Marta filtra Supervisión por comercial y llega al Detalle de una oportunidad de Carlos
+[WebServer] [browser] Error: [CONVEX Q(dashboard:getWorkloadByOwner)] [Request ID: 41592751f203e659] Server Error
+[WebServer] Could not find public function for 'dashboard:getWorkloadByOwner'.
+[WebServer] 
+[WebServer]   Called by client
+[WebServer]     at OptimisticQueryResults.queryResult (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:3612:19)
+[WebServer]     at BaseConvexClient.localQueryResult (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:5498:44)
+[WebServer]     at Object.localQueryResult (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7257:44)
+[WebServer]     at QueriesObserver.getLocalResults (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7676:31)
+[WebServer]     at useQueriesHelper.useMemo[subscription] (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7808:41)
+[WebServer]     at useSubscription.useEffect.checkForUpdates (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7003:43)
+[WebServer]     at basicStateReducer (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4797:47)
+[WebServer]     at updateReducerImpl (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4879:79)
+[WebServer]     at updateReducer (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4829:16)
+[WebServer]     at Object.useState (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:15492:24)
+[WebServer]     at exports.useState (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_0i33f5v._.js:1754:36)
+[WebServer]     at useSubscription (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:6974:246)
+[WebServer]     at useQueriesHelper (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7822:242)
+[WebServer]     at useQueries (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7788:12)
+[WebServer]     at useQuery (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7494:241)
+[WebServer]     at SupervisionPage (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/Sorfware%20Factory__worktrees_T3_0ic6xet._.js:2656:235)
+[WebServer]     at Object.react_stack_bottom_frame (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:15037:24)
+[WebServer]     at renderWithHooks (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4620:24)
+[WebServer]     at updateFunctionComponent (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:6081:21)
+[WebServer]     at beginWork (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:6691:24)
+[WebServer]     at runWithFiberInDEV (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:965:74)
+[WebServer]     at performUnitOfWork (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9555:97)
+[WebServer]     at workLoopSync (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9449:40)
+[WebServer]     at renderRootSync (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9433:13)
+[WebServer]     at performWorkOnRoot (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9098:47)
+[WebServer]     at performWorkOnRootViaSchedulerTask (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:10255:9)
+[WebServer]     at MessagePort.performWorkUntilDeadline (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_0i33f5v._.js:2647:64)
+[WebServer]     at ErrorBoundaryHandler.render (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_client_1qgx8oo._.js:1556:55)
+[WebServer]     at ErrorBoundary (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_client_1qgx8oo._.js:1574:50)
+[WebServer]     at OuterLayoutRouter (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:14165:51) (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/Sorfware%20Factory__worktrees_T3_15a3jnt._.js:23:21)
+
+[WebServer] [browser] Error: [CONVEX Q(dashboard:getWorkloadByOwner)] [Request ID: 41592751f203e659] Server Error
+[WebServer] Could not find public function for 'dashboard:getWorkloadByOwner'.
+[WebServer] 
+[WebServer]   Called by client
+[WebServer]     at OptimisticQueryResults.queryResult (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:3612:19)
+[WebServer]     at BaseConvexClient.localQueryResult (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:5498:44)
+[WebServer]     at Object.localQueryResult (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7257:44)
+[WebServer]     at QueriesObserver.getLocalResults (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7676:31)
+[WebServer]     at useQueriesHelper.useMemo[subscription] (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7808:41)
+[WebServer]     at useSubscription.useEffect.checkForUpdates (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7003:43)
+[WebServer]     at basicStateReducer (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4797:47)
+[WebServer]     at updateReducerImpl (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4879:79)
+[WebServer]     at updateReducer (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4829:16)
+[WebServer]     at Object.useState (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:15492:24)
+[WebServer]     at exports.useState (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_0i33f5v._.js:1754:36)
+[WebServer]     at useSubscription (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:6974:246)
+[WebServer]     at useQueriesHelper (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7822:242)
+[WebServer]     at useQueries (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7788:12)
+[WebServer]     at useQuery (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:7494:241)
+[WebServer]     at SupervisionPage (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/Sorfware%20Factory__worktrees_T3_0ic6xet._.js:2656:235)
+[WebServer]     at Object.react_stack_bottom_frame (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:15037:24)
+[WebServer]     at renderWithHooks (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:4620:24)
+[WebServer]     at updateFunctionComponent (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:6081:21)
+[WebServer]     at beginWork (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:6691:24)
+[WebServer]     at runWithFiberInDEV (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:965:74)
+[WebServer]     at performUnitOfWork (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9555:97)
+[WebServer]     at workLoopSync (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9449:40)
+[WebServer]     at renderRootSync (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9433:13)
+[WebServer]     at performWorkOnRoot (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:9098:47)
+[WebServer]     at performWorkOnRootViaSchedulerTask (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_react-dom_1qe1-w0._.js:10255:9)
+[WebServer]     at MessagePort.performWorkUntilDeadline (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_compiled_0i33f5v._.js:2647:64)
+[WebServer]     at ErrorBoundaryHandler.render (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_client_1qgx8oo._.js:1556:55)
+[WebServer]     at ErrorBoundary (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_client_1qgx8oo._.js:1574:50)
+[WebServer]     at OuterLayoutRouter (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_16-5ak1._.js:14165:51) (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/Sorfware%20Factory__worktrees_T3_15a3jnt._.js:23:21)
+
+  1) [chromium] › e2e/05-control-marta.spec.ts:8:5 › Marta filtra Supervisión por comercial y llega al Detalle de una oportunidad de Carlos 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: 'Supervisión' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: 'Supervisión' })
+
+
+      34 |
+      35 |   await page.goto("/supervision");
+    > 36 |   await expect(page.getByRole("heading", { name: "Supervisión" })).toBeVisible();
+         |                                                                    ^
+      37 |
+      38 |   await expect(page.getByRole("link", { name: customerName })).toBeVisible();
+      39 |
+        at /Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/e2e/05-control-marta.spec.ts:36:68
+
+    Error Context: test-results/05-control-marta-Marta-fil-002d2-e-una-oportunidad-de-Carlos-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/05-control-marta-Marta-fil-002d2-e-una-oportunidad-de-Carlos-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/05-control-marta-Marta-fil-002d2-e-una-oportunidad-de-Carlos-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[e2e] puerto 3103 · marcador e2e0000…
+
+[9/67] [chromium] › e2e/06-aviso-version-nueva.spec.ts:67:7 › Aviso de versión nueva (AIT-83) › avisa cuando el servidor sirve un commit distinto
+[10/67] [chromium] › e2e/06-aviso-version-nueva.spec.ts:84:7 › Aviso de versión nueva (AIT-83) › NO avisa cuando el commit coincide
+[11/67] [chromium] › e2e/06-aviso-version-nueva.spec.ts:100:7 › Aviso de versión nueva (AIT-83) › NO avisa cuando el servidor devuelve commit: null
+[12/67] [chromium] › e2e/06-aviso-version-nueva.spec.ts:119:7 › Aviso de versión nueva (AIT-83) › NO avisa ante 5xx ni ante JSON inválido, y se recupera después
+[13/67] [chromium] › e2e/06-aviso-version-nueva.spec.ts:166:7 › Aviso de versión nueva (AIT-83) › no recarga sola, y al cerrar no vuelve a insistir con el mismo commit
+[14/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:75:7 › #1 Eliminar oportunidad › BLOQUEADO con interacciones: avisa, NO abre la confirmación, y la oportunidad sigue existiendo
+[15/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:113:7 › #1 Eliminar oportunidad › PERMITIDO sin interacciones: abre la confirmación real
+[16/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:133:7 › #2 y #3 Presupuesto · comparten un solo diálogo › BLOQUEADO con la venta cerrada: avisa y el editor SIGUE CERRADO
+[17/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:162:7 › #2 y #3 Presupuesto · comparten un solo diálogo › PERMITIDO con la venta abierta: abre el editor real
+[18/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:176:7 › #5 Reabrir oportunidad · el caso que añadió AIT-86 › BLOQUEADO si ya está facturada: avisa y la venta sigue cerrada
+[19/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:208:7 › #5 Reabrir oportunidad · el caso que añadió AIT-86 › PERMITIDO si está cerrada pero sin facturar: la reabre de verdad
+[20/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:233:7 › #4 Eliminar cliente › BLOQUEADO con oportunidades: avisa, NO abre la confirmación, y el cliente sigue existiendo
+[21/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:271:7 › Los avisos dicen CUÁNTOS › el aviso de la oportunidad cuenta las interacciones, y cuenta bien
+[22/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:298:7 › Los avisos dicen CUÁNTOS › el aviso del cliente cuenta sus oportunidades
+[23/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:333:7 › Guardar etapa y prioridad ya no se quedan grises sin explicar › el botón está habilitado sin cambios, y guardar sin cambiar nada NO escribe
+[24/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:364:7 › Guardar etapa y prioridad ya no se quedan grises sin explicar › y con un cambio real sigue guardando igual que antes
+[25/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:415:7 › #3 Nueva versión · el camino que faltaba › BLOQUEADO con la venta cerrada: avisa y el editor SIGUE CERRADO
+[26/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:441:7 › #3 Nueva versión · el camino que faltaba › PERMITIDO con la venta abierta: abre el editor real
+[27/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:460:7 › #4 Eliminar cliente · el camino permitido que faltaba › PERMITIDO sin oportunidades: abre la confirmación real
+[28/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:488:7 › Guardar prioridad · el botón que modifiqué y no estaba probado › habilitado sin cambios, y guardar sin cambiar nada NO escribe
+[29/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:511:7 › Guardar prioridad · el botón que modifiqué y no estaba probado › y con un cambio real sigue guardando
+[30/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:538:7 › #6 Registrar interacción · el aviso global de QuickActions › BLOQUEADO sin oportunidad abierta: avisa y NO abre el formulario
+[31/67] [chromium] › e2e/06-avisos-de-bloqueo.spec.ts:562:7 › #6 Registrar interacción · el aviso global de QuickActions › PERMITIDO con una oportunidad abierta: abre el formulario real
+[32/67] [chromium] › e2e/07-acceso-google.spec.ts:31:7 › Acceso con Google › volver de Google sin sesión muestra el aviso
+[33/67] [chromium] › e2e/07-acceso-google.spec.ts:39:7 › Acceso con Google › entrar a /login normal no muestra ningún aviso de Google
+[34/67] [chromium] › e2e/07-contacto-sin-venta.spec.ts:131:7 › Guardar un contacto sin abrirle una venta › crea el cliente y NINGUNA oportunidad, medido sobre lo suyo
+[35/67] [chromium] › e2e/07-contacto-sin-venta.spec.ts:161:7 › Guardar un contacto sin abrirle una venta › y en modo venta sigue creando la oportunidad, como siempre
+[36/67] [chromium] › e2e/07-contacto-sin-venta.spec.ts:199:7 › Guardar un contacto sin abrirle una venta › al contacto se le puede añadir una oportunidad después (flujo de AIT-74)
+[37/67] [chromium] › e2e/07-contacto-sin-venta.spec.ts:228:7 › El aviso de duplicado en modo contacto NO crea ventas › «Abrir su ficha» navega y no escribe NADA
+[38/67] [chromium] › e2e/07-contacto-sin-venta.spec.ts:274:7 › El aviso de duplicado en modo contacto NO crea ventas › «Crear uno nuevo igualmente» crea SOLO el cliente
+  2) [chromium] › e2e/07-contacto-sin-venta.spec.ts:274:7 › El aviso de duplicado en modo contacto NO crea ventas › «Crear uno nuevo igualmente» crea SOLO el cliente 
+
+    Error: [e2e] NO se guarda una instantánea inválida — la instantánea de sesión de "sales" no sirve: falta __convexAuthJWT y __convexAuthRefreshToken. Tiene 0 cookie(s): [ninguna]. Bórrala (`rm e2e/.auth/<rol>.json`) y lanza la SUITE ENTERA. No relances un test suelto: eso regenera el fichero y esconde el problema.
+
+       at authState.ts:156
+
+      154 |   const problema = problemaDeInstantanea(state, role);
+      155 |   if (problema !== null) {
+    > 156 |     throw new Error(`[e2e] NO se guarda una instantánea inválida — ${problema} ${QUE_HACER}`);
+          |           ^
+      157 |   }
+      158 |   fs.mkdirSync(dir, { recursive: true });
+      159 |   const destino = statePath(role, dir);
+        at writeStateAtomically (/Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/e2e/authState.ts:156:11)
+        at loginAs (/Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/e2e/helpers.ts:106:23)
+        at /Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/e2e/07-contacto-sin-venta.spec.ts:275:5
+
+    Error Context: test-results/07-contacto-sin-venta-El-a-75417-mente»-crea-SOLO-el-cliente-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/07-contacto-sin-venta-El-a-75417-mente»-crea-SOLO-el-cliente-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/07-contacto-sin-venta-El-a-75417-mente»-crea-SOLO-el-cliente-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[e2e] puerto 3103 · marcador e2e0000…
+
+[39/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:273:9 › C2a · owner · botón de ajustes: cero controles alcanzables en 10 activaciones
+[40/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:273:9 › C2a · owner · botón de menu: cero controles alcanzables en 10 activaciones
+[41/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:273:9 › C2a · sales · botón de ajustes: cero controles alcanzables en 10 activaciones
+[42/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:273:9 › C2a · sales · botón de menu: cero controles alcanzables en 10 activaciones
+[43/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:330:5 › C2a · control positivo (teclado): una etiqueta INVENTADA que el enumerador no puede conocer pone C2a en rojo
+[44/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:386:5 › C2a · control positivo (puntero): un control que NO toma foco pero sí recibe clic pone C2a en rojo
+[45/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:435:5 › C2a · control positivo con un componente REAL del layout: el aviso de versión nueva no deja controles alcanzables durante el cierre
+[46/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:523:5 › C2c · la ventana residual del servidor: se mide y se publica, no se declara cerrada
+[WebServer] [browser] ⨯ unhandledRejection: Error: SuperCRM: hay una versión nueva desplegada; recarga la página para continuar.
+[WebServer]     at NewVersionNotice.useEffect.gate (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/Sorfware%20Factory__worktrees_T3_1cwvbkq._.js:1806:43)
+[WebServer]     at async fetchServerAction (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_client_1qgx8oo._.js:11232:17)
+
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:523:5 › C2c · la ventana residual del servidor: se mide y se publica, no se declara cerrada
+[AIT-127 · C2c] ventana residual ACOTADA en (28, 200] ms — 2 sondeos espaciados 100 ms y fechados al SALIR. Techo declarado 1944 ms = limpieza 544 + cierre 1400
+
+[47/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · owner · botón de ajustes: cuántas de 10 entran a 500 ms del gesto
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · owner · botón de ajustes: cuántas de 10 entran a 500 ms del gesto
+[AIT-127 · C2c] owner/ajustes: entraron 0 de 10 a 500 ms · denegaciones 10 · anómalos 0
+
+[48/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · owner · botón de menu: cuántas de 10 entran a 500 ms del gesto
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · owner · botón de menu: cuántas de 10 entran a 500 ms del gesto
+[AIT-127 · C2c] owner/menu: entraron 0 de 10 a 500 ms · denegaciones 10 · anómalos 0
+
+[49/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · sales · botón de ajustes: cuántas de 10 entran a 500 ms del gesto
+[WebServer] Error: aborted
+[WebServer]     at ignore-listed frames {
+[WebServer]   code: 'ECONNRESET'
+[WebServer] }
+
+[WebServer] ⨯ uncaughtException: Error: aborted
+[WebServer]     at ignore-listed frames {
+[WebServer]   code: 'ECONNRESET'
+[WebServer] }
+
+[WebServer] ⨯ uncaughtException:  Error: aborted
+[WebServer]     at ignore-listed frames {
+[WebServer]   code: 'ECONNRESET'
+[WebServer] }
+
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · sales · botón de ajustes: cuántas de 10 entran a 500 ms del gesto
+[AIT-127 · C2c] sales/ajustes: entraron 1 de 10 a 500 ms · denegaciones 9 · anómalos 0
+
+[50/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · sales · botón de menu: cuántas de 10 entran a 500 ms del gesto
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:624:9 › C2c · sales · botón de menu: cuántas de 10 entran a 500 ms del gesto
+[AIT-127 · C2c] sales/menu: entraron 0 de 10 a 500 ms · denegaciones 10 · anómalos 0
+
+[51/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:689:5 › C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 s
+[WebServer] [browser] [AIT-127] cierre de sesión sin confirmar la desvinculación push (file:///Users/aitor/Documents/curro + proyectos/Talent Land/Sistemas/CRM curso Vibe Coding/Sorfware Factory/_worktrees/T3/.next/dev/static/chunks/0-qk_next_dist_1zblrm-._.js:2477:13)
+
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:689:5 › C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 s
+[AIT-127 · C3] gesto → /login = 2636 ms · forzado = 2394 ms · sobrecarga = 242 ms (margen reservado 556 ms)
+[AIT-127 · C3] tramos medidos: gesto→1ª petición 562 ms (contiene la carrera de 544 + el despacho) · cierre 1352 ms (retenido 1350) · resto hasta /login 722 ms = carrera 500 + cola 222 ms · margen reservado 556
+
+[52/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:883:5 › C3 y C4 · con el cierre correcto, se llega a /login en ≤3 s y no se queda en la pantalla autenticada
+[53/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:905:9 › C7' · owner · botón de ajustes · con el cierre Y LA RECUPERACIÓN forzados a fallar: alerta visible, NO se navega, y la sesión sigue viva
+[54/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:905:9 › C7' · owner · botón de menu · con el cierre Y LA RECUPERACIÓN forzados a fallar: alerta visible, NO se navega, y la sesión sigue viva
+[55/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:905:9 › C7' · sales · botón de ajustes · con el cierre Y LA RECUPERACIÓN forzados a fallar: alerta visible, NO se navega, y la sesión sigue viva
+[56/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:905:9 › C7' · sales · botón de menu · con el cierre Y LA RECUPERACIÓN forzados a fallar: alerta visible, NO se navega, y la sesión sigue viva
+[57/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:996:5 › C7'' · el cierre RESPONDE 502 (no se cae): con la recuperación también caída, alerta visible, NO se navega, y la sesión sigue viva
+[58/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1087:5 › AIT-134 · la ruta local responde 200 pero NO cerró nada: no se fía, avisa y NO navega
+[59/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1217:5 › AIT-134 · M1 · la confirmación sale ANOMALA: eso NO es un cierre, avisa y NO navega
+[60/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1297:5 › M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /login en ≤3 s
+[61/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1337:5 › M2' · la PRIMERA llamada se queda colgada y la recuperación TAMPOCO cierra: sigue pendiente hasta el límite, se aborta, y sólo entonces avisa
+[62/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1438:5 › AIT-134 · FASE A · la ruta de cierre local NO pasa por el middleware
+[63/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1483:5 › AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR ENTRAR
+[chromium] › e2e/08-cierre-de-sesion.spec.ts:1483:5 › AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR ENTRAR
+[AIT-134 · FASE B] peticiones DEL PRODUCTO a /pipeline: 1 · abortados: 2 · estado final: DENEGACION_ESPERADA · evidencia: codigo=307 location="/login" url=http://localhost:3103/pipeline?marca=sonda-1789069774041-0u94lo1k
+
+[64/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1601:5 › AIT-134 · momento (3) · si la recuperación TAMPOCO se confirma, no se navega
+[65/67] [chromium] › e2e/08-cierre-de-sesion.spec.ts:1669:5 › C7' · el reverso: si la recuperación SÍ cierra, NO se avisa y SÍ se navega
+[66/67] [chromium] › e2e/99-sonda-limpieza-push.spec.ts:141:7 › sonda (apagada) › distribución de pushSubscriptions:unsubscribe por el websocket
+[67/67] [chromium] › e2e/09-cierre-limpia-push.spec.ts:94:5 › C5 · dos dispositivos: cerrar sesión en uno borra SU fila y deja viva la del otro
+  Slow test file: [chromium] › e2e/08-cierre-de-sesion.spec.ts (5.5m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  2 failed
+    [chromium] › e2e/05-control-marta.spec.ts:8:5 › Marta filtra Supervisión por comercial y llega al Detalle de una oportunidad de Carlos 
+    [chromium] › e2e/07-contacto-sin-venta.spec.ts:274:7 › El aviso de duplicado en modo contacto NO crea ventas › «Crear uno nuevo igualmente» crea SOLO el cliente 
+  2 skipped
+  63 passed (10.9m)

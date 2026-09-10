@@ -1616,3 +1616,745 @@ de una coincidencia. Y **la firma el instrumento, no nuestra aritmetica.**
 ⚠️ **Y el Integrador declara el limite de su propia ventana:** corre desde la RAIZ, asi que
 **vuelve a acreditar solo la mitad que mi detector ya tenia.** El caso que me falta —una suite de
 **worktree**— no me lo puede dar el.
+
+---
+
+## 21:14Z — AIT-143(A) plan-loop6: NO-GO. Y una unidad que me invente yo
+
+**Veredicto** `VEREDICTO_T3_AIT-143_plan-loop6.txt` (1964 lineas, run 21:06:44Z, fin 21:08:29Z,
+marca de identidad en la linea 1863). RELAYADO a t3-55 a las 21:11:18Z, marca escrita dentro.
+
+    M4  CERRADO   C11 mata el interruptor global; el auditor confirma "sin C11 pasaria C1-C10"
+    M1  ABIERTO   C4 fabrica la PUERTA 2, no la 3: la guarda de cookies lanza tras `page.goto`
+                  y nunca se llega a `capturarEstadoRodado`. La senal se inyecta demasiado pronto.
+                  Ademas "Set-Cookie vacios" es ambiguo (omitir != borrar != valor vacio).
+    M2  ABIERTO   la tabla no define el desenlace "reautenticacion OK + reintento falla", y C6
+                  exige las dos entradas para el mismo ciclo. Pide las TRES terminaciones.
+    M3  ABIERTO   recorrio los once: C9 no tiene NINGUNO de los seis campos ("mismos que C8" es
+                  prosa) y C11 no tiene `extra`. La gramatica ademas deja fuera cosas que si son
+                  criterio, que vuelven por `extra` en prosa.
+
+DIEZ impostores construidos desde cero, sin heredar: 6 abiertos, 4 muertos. T3 va a la r7.
+
+**Y EL FALLO MIO DE ESTA HORA, que no costo nada porque lo cazamos los dos a la vez:** acuse a
+mi propio `tee` de haber destruido un veredicto anterior, y se lo confesé a T3 por escrito.
+**No habia pasado nada.** Compare `stat -f %SB` (hora LOCAL) contra `date -u -r` (UTC) — esta
+maquina va a UTC-3 — y un fichero recien nacido salio como "nace 18:06, mod 21:08".
+
+> **La `Z` la puse yo.** El formato era `-t %H:%M:%SZ`: la Z es un literal de mi cadena, pegado
+> a un numero que no era UTC. **Sellé la unidad a mano sobre un valor que no la cumplia**, y
+> un numero con la unidad equivocada no da error: da la respuesta de otro.
+
+Y encajaba con el patron que llevo el dia persiguiendo, asi que la acepte con menos evidencia
+de la que le habria pedido a una que no encajara. **Para comparar dos tiempos: epoch crudo,
+`stat -f %B` contra `stat -f %m`, y la conversion UNA vez al final.**
+
+**Lo de T3, que es la otra mitad:** *"un fallo del que te acabas de dar cuenta se cuenta con el
+dano que HABRIA tenido, y ese dano se dimensiona solo"*. Su refutacion fue mejor que mi
+confesion: **seis veredictos para seis rondas, ninguna repetida** — nunca hubo dos `plan-loop6`
+porque al partir el alcance siguio numerando hacia adelante.
+
+**Dato suyo que vale para el procedimiento:** el **md5 NO viaja al veredicto** (0 apariciones);
+lo que ata una ronda a su fichero es **la linea de cierre** (3 apariciones). El hash sirve entre
+la Directora y el worker ANTES de disparar, y no vale como ancla dentro de un veredicto.
+
+**`encolar.sh`, guarda nueva (PRECAUCION, no incidente):** extrae el destino del `| tee "..."` y
+si existe lo **ROTA** a `.PREVIO-<hora>.txt` en vez de dejar que lo trunque. Positivo: extrajo la
+ruta real del encargo disparado. Negativo: un `tee` sin comillas sale VACIO y aborta (exit 11)
+en vez de inventarse una ruta. Falla hacia "paro", no hacia "destruyo".
+
+### 21:20Z — lo que devolvieron los ocho, que es mejor que lo que reparti
+
+**T3 · el campo libre.** Su M3 no era "cuatro criterios mal": era que invento la gramatica para
+que nadie pudiera afirmar sin contar y **dejo `extra` abierto**.
+
+> **UN CAMPO LIBRE DENTRO DE UNA GRAMATICA ES LA GRAMATICA ENTERA**, porque todo lo incomodo
+> acaba ahi.
+
+Vale para cualquier plantilla de la fabrica: un `notas:`, un `observaciones:`, un `extra:` es la
+via por la que vuelve todo lo que la plantilla existia para impedir. La r7 lleva OCHO campos
+obligatorios y `extra` no existe.
+
+**T1 · la procedencia va antes que la unidad.** Mi regla (epoch crudo, conversion una vez) NO
+cubre su caso: escribio `GO 17:48:37Z` en la cabecera de su export cuando su medicion decia
+`17:48:22Z`. **Los quince segundos venian de un mensaje MIO**, copiados a un campo que dice
+"Verificado por mi".
+
+> **Antes de la unidad, la procedencia. Un numero correcto en la unidad correcta puede seguir
+> siendo el de otro. Si va en un campo mio, lo mido yo; si lo relayo, lo digo.**
+
+Y la mitad que me toca: **un dato que emito sin decir como lo medi invita a que se relaye como
+propio.** Mis horas salen a partir de ahora con su origen pegado.
+
+**El Integrador · una regla que depende de acordarse no es un control.** Me recordo que **el
+mismo fallo de la `Z` ya me lo habia reportado el a las 18:24, y que fue la tercera vez del dia
+— la mia de ahora es la CUARTA**, con la regla escrita y el patron fresco.
+
+> **El arreglo no es "recordar que la Z es literal": es no poder escribirla.**
+>
+>     mal:   stat -f '%Sm' -t '%H:%M:%SZ'      <- la Z la pones tu, sobre hora LOCAL
+>     bien:  date -u -r "$(stat -f %m F)" '+%Y-%m-%dT%H:%M:%SZ'
+>     mejor: comparar en EPOCH CRUDO, convertir una sola vez al final
+
+Y su detector, que no depende de sospechar: **si una hora descuadra un MULTIPLO EXACTO de una
+hora, es un huso, no un retraso.**
+
+**QA · la tercera fuente.** Valido su etiqueta UTC con `date -u`, con `python
+utcfromtimestamp` **y con el `servedAt` del servidor** — y lo que dice es lo bueno: *las dos
+primeras podrian equivocarse juntas porque comparten la maquina; la tercera viene de fuera.*
+
+**T2 · el control que sabe distinguir.** Comprobo su propia `Z` y ademas comprobo que su
+comprobacion discriminaba: sin `TZ=UTC` daba 16:56 y con el 19:56. *Si no hubiera diferido, el
+"coinciden" seria vacio.* La diferencia entre su caso y el mio **es una variable de entorno de
+tres letras, invisible en el resultado.**
+
+**El FA · el instrumento pasa, pero por coincidencia.** Audito su vigilante: la resta se hace en
+epoch y la conversion ocurre una vez al final. *"No la segui por metodo: coincidio."* Y encontro
+su control positivo sin haberlo nombrado nunca asi: T3 sale "hace 0 min" y T4 "hace 657" — **un
+desfase de zona los moveria a los dos por igual, asi que ese control valida la RESTA, no la
+ETIQUETA. La etiqueta no la validaba nadie.**
+
+**El PM · el resumen que se lee en vez del original.**
+> *"Cuando un resumen empieza a leerse en vez del original, sus huecos son huecos del contrato."*
+Por eso M2 era major y no cosmetica.
+
+**Y LA CONSECUENCIA COMUN, que es la unica mala noticia de la hora:** a T3 le salvo el 0 absurdo
+de C4, a T1 le salvo un huso de 103.304, a mi me salvo un desfase de tres horas.
+
+> **La implausibilidad filtra por TAMAÑO del error, no por su existencia.** Si los once
+> criterios de T3 hubieran dado 3, se lo cree; si mi desfase hubiera sido de 15 minutos, me lo
+> creo. **Ninguno de los tres tiene control contra la version pequeña del mismo fallo.**
+
+### Ocupacion 21:20Z
+    T1 ... LIBRE (AIT-142 publicada, origin/main=7596be4; AIT-128/141/142 en main). Pedido alcance al PM.
+    T2 ... parado en AIT-145 esperando las URIs del PM.
+    T3 ... AIT-143(A) plan-loop7 en auditoria, disparada 21:17:42Z, vigilante armado.
+
+## 21:22Z — AIT-143(A) plan-loop7: NO-GO. La gramatica pierde lo que no encaja
+
+`VEREDICTO_T3_AIT-143_plan-loop7.txt`, 2001 lineas, 100 s. Identidad por POSICION: el cierre de
+r7 en 513/1682/1843 y el de r6 CERO veces (sin eco). RELAYADO 21:20:23Z, marca dentro.
+
+**D39-bis: el bucle NO gira en falso.** Medido sobre los dos artefactos, comparando SUJETOS:
+
+    M1  r6 "C4 fabrica la puerta 2"          -> r7 "depende del orden temporal guarda2/refresco"
+    M2  r6 "la interfaz es contradictoria"   -> r7 "permite INICIAR OTRO CICLO despues de T3"
+    M3  r6 "los once no respetan la gramatica" -> r7 "PIERDE OBSERVABLES y no cumple su dominio"
+
+Los tres cambian de sujeto. M4 cerrado desde la r6.
+
+**M3 · LA LECCION DE LA RONDA, y es de las que se repiten en cualquier plantilla.** T3 quito el
+campo libre `extra` y formalizo ocho campos. Resultado del rastreo campo a campo del auditor:
+
+    C1  problemaDeInstantanea(...)=null ....... DESAPARECIO
+    C10 "2 errores fabricados" ................ DESAPARECIO
+    el resto ................................. paso a campo formal
+
+Dos observables perdidos **sin dar error**. Y ademas:
+
+- `FALLO_RECUP` en los once contra `FALLO_RECUPERACION` en la gramatica. Su impostor 14: *"un
+  comprobador que busque los ocho nombres declarados deberia dar `FALLO_RECUPERACION=0/11`;
+  aceptar `FALLO_RECUP` demuestra que valida una abreviatura que la gramatica no declara"*.
+  **El 8/8 de T3 era cierto contra su comprobador y falso contra su gramatica.**
+- `cadenas = NINGUNA | <literal>=<entero>` **no es lista cerrada**: admite cualquier literal.
+  **El campo libre no desaparecio: se mudo a `cadenas`.**
+
+> **Una forma que obliga obliga a tirar lo que no encaja, y eso no da error: da un plan mas
+> corto.** La pregunta que lo caza no es "¿que queda?" sino **"¿que desaparecio?"** — y no la
+> hace nadie porque lo que falta no esta.
+
+**M1 · LA TENAZA, SUBIDA AL PM.** C4 intercepta el refresco (~850 ms). Tres desenlaces medidos
+por T3: (a) llega dentro de la ventana -> puerta 3 -> verde; (b) no llega en 10 s -> rojo;
+(c) llega antes de la guarda 2 -> rojo nombrando al vecino. **No hay falso verde** y el auditor
+lo confirma — pero un caso OBLIGATORIO depende de que llegue un evento, y pide **sincronizacion
+causal**. Para borrarlas entre la guarda 2 y la captura haria falta **un enganche de prueba en
+el producto**, y T3 se niega, con razon: no es su decision.
+> **La puerta que da titulo a la ficha es la unica que no se puede fabricar sin tocar el
+> producto.**
+Tres salidas en manos del PM: declarar C4 no fabricable (incumple M1), autorizar la costura, o
+aceptar el no-determinismo **haciendolo legible** (`intercepciones = 1`, que T3 pone igual).
+⚠️ Y T3 argumenta CONTRA si mismo: su premisa "el cliente siempre refresca" se apoya en el
+comentario de `authState.ts` que midio OTRO — **el mismo cuyo limite declarado es el defecto de
+esta ficha**. *"No me apoyo dos veces en el mismo texto y solo cuando me conviene."*
+
+**M2 · el hueco ya no es la tabla, es el final.** Impostor 6: *"tras T3, registrar
+FALLO_RECUPERACION y empezar un ciclo nuevo"* **pasa la seccion leida aislada**. La decision del
+PM esta en el plan pero **no dentro de la seccion que leera quien implemente AIT-151**.
+
+**Catorce impostores desde cero. Diez muertos.** Los cuatro abiertos (6, 12, 13, 14) son cosas
+que **la r7 introdujo o perdio**: ninguno sobrevive de la r6.
+
+### Ocupacion 21:22Z
+    T1 ... AIT-149 primera mitad (enumerar por funcion, SOLO LECTURA, no cierra la ficha).
+           Detras: AIT-139 y AIT-146.
+    T2 ... AIT-145 r5 contra (B), desbloqueado: las URIs bloquean EJERCITAR, no diseñar.
+           Debe darle al PM los origenes locales MEDIDOS.
+    T3 ... AIT-143(A) r8, con M1 esperando decision del PM.
+
+## 21:27Z — la r8 en el aire, y la clase que cierra la noche
+
+**Disparada la r8 de AIT-143(A) a las 21:26:34Z** (md5 `d1a29cf…` remedido pegado al disparo,
+465 lineas, cierre en la 465, vigilante armado). T3 cerro M2 y M3 y dejo M1 abierto a proposito.
+
+**M1 · EL PM DECIDIO, y la decision va DENTRO del encargo como dato que no esta en el export:**
+- RECHAZA el enganche de prueba en el producto, **por donde iba**: *"una bandera de prueba en el
+  codigo de sesion es una rama que nadie ejercita en produccion y que decide quien entra"*.
+  Mismo patron que el `runId` de AIT-114: *al arnes le sale gratis, lo paga el producto para
+  siempre.*
+- RECHAZA retirar C4: tiraria la unica cobertura de esa puerta.
+- ACEPTA el no-determinismo A CONDICION DE QUE SE DECLARE.
+
+> **Una prueba que mide de vez en cuando y AVISA cuando no, vale mas que ninguna. Una que mide
+> de vez en cuando y CALLA, vale menos que ninguna. LA DIFERENCIA ENTERA ES EL CAMPO.**
+
+Con tres exigencias que la r8 puede no llevar: **"cobertura no garantizada" literal en la
+ficha**, dos `FALLA si` (no leer un verde de C4 sin mirar `intercepciones`; no decir al cerrar
+que la puerta 3 esta verificada) y **el registro de en cuantas corridas C4 llego a medir** —
+*"si nunca mide, no es un test: es un adorno"*. Al auditor le pedi la pregunta que las resume:
+**¿puede alguien leer un VERDE de C4 sin enterarse de que no midio nada? Si el campo existe pero
+ningun criterio obliga a MIRARLO, la declaracion es decorativa.**
+
+**Y el PM decidio con confianza en T3 por una razon concreta: trajo un dato EN CONTRA de su
+propia premisa.** Eso es lo que hoy compra credito.
+
+### 🔑 LA CLASE DE LA NOCHE, de T3, y ya somos tres hoy con la misma forma
+
+T3 escribio en su plan *"comprobado con `grep`, no de memoria"* **en el mismo comando que
+ejecutaba el `grep`** — la afirmacion se guardo ANTES de ver el resultado, y era falsa. Al
+corregirla, **la correccion añadio dos menciones mas y volvio a dejar el recuento mal**. Ahi vio
+el problema de verdad:
+
+> **CONTAR EL CONTINENTE EN VEZ DEL SUJETO HACE QUE HABLAR DEL DEFECTO CUENTE COMO COMETERLO.**
+
+El invariante no es *"cuantas veces aparece X en el fichero"* —que crece cada vez que alguien lo
+explica— sino ***"ningun criterio usa un nombre no declarado"***. **Sujeto, no continente.** Es
+la misma clase que el comentario que casi me hace anunciar que `main` estaba roto.
+
+Y la segunda mitad: **el sello "comprobado con grep" lo puso el autor sobre algo que aun no
+habia comprobado.** *La certificacion la pone el autor; no la produce la herramienta.* La forma
+mas barata de colarla es **escribir la conclusion y el comando en el mismo gesto** — mi
+`echo "(vacio = X)"` pegado al `grep` es exactamente eso.
+
+**VAN TRES HOY CON ESTA FORMA:** mi `Z` literal, el `echo "(sin salida = nunca aparece)"` del QA
+—que SI tenia salida, cuatro coincidencias— y el `grep` de T3. **Y el QA ademas eligio mal su
+control positivo:** puso `grep -c` de la URL de Railway esperando >0 y dio **0**, porque esa
+cadena no esta en su registro. *Un control que da 0 por estar mal elegido es indistinguible de
+un grep roto* — le salvo que otra cadena si aparecio, o sea que **el instrumento se valido solo
+por accidente.**
+
+### AIT-145 · lo que aporto el QA y no es de la lista
+⛔ **`accounts.google.com` tiene cookies en su perfil de Playwright**, del selector de cuentas.
+**Si el flujo de Gmail se prueba desde su navegador, no arranca limpio de sesion de Google y
+puede enmascarar justo el caso que AIT-145 quiere fabricar.** Es un VERDE POR SESION HEREDADA:
+pasaria porque Google ya sabe quien es, no porque el enlace funcione. Al PM para que decida de
+quien es la ficha.
+
+**Origenes: el QA no añade ninguno** (solo produccion; `lsof` de 3000/3100-3103 vacio). La lista
+queda en seis lineas. **La undecima accion de Aitor pasa a `NO PEDIR HASTA QUE LA r5 FIJE LA
+RUTA`**: registrar una URI cuya ruta aun no existe da un error que no menciona ni a SuperCRM ni
+a Convex.
+
+## 21:40Z — dos listas correctas de dos mundos, y un universo que se quedo corto en dos
+
+### AIT-143(A) r9 · NO-GO, solo M1. M2, M3 y M4 NO reabiertos
+Relayado 21:38:12Z. La receta de C4 la da por **restituida completa**. La separacion
+`desenlace` (que hace `loginAs`) / `resultado` (como termina el caso) la verifico EL, con tabla,
+doce a doce. **De los cuatro impostores heredados mueren dos** (el detalle no consultado y la
+ausencia tratada como fallo ordinario) **y sobreviven dos**, los dos por lo mismo: *declarado
+pero no ejecutable*.
+
+    (1) el runner termina en verde tecnico y el aviso va AL LADO
+        -> "la salida puede seguir diciendo que toda la suite paso, acompañada de una advertencia"
+    (2) `global-setup` TRUNCA el registro cada corrida y encima se exige "N de M" y tres ceros
+        -> dos artefactos correctos por separado que juntos NO PUEDEN CUMPLIRSE
+    (3) `recuento-c4` declarada como clave y NINGUN criterio la usa -> el comprobador no la ve
+
+⚠️ **Mi corazonada declarada aterrizo:** al pasar de dos valores de resultado a tres,
+**`NO_MEDIDO` podia absorber un fallo real**. Correccion del auditor: solo C4 con
+`intercepciones=0`; cualquier otro incumplimiento produce `FALLA`.
+
+**Y T3 resolvio (1) sin inventar nada: Playwright tiene TRES estados** —`passed`, `failed`,
+**`skipped`**— contados por separado. `test.skip()` en ejecucion hace que **el marcador no pueda
+sumarlo**. *La honestidad del test deja de depender de que alguien lea un aviso y pasa a la
+aritmetica del runner.*
+**El (2) lo subio al PM ANTES de escribir**, porque arreglarlo dentro de (A) es diseñar estado
+durable, o sea rehacer la particion por dentro sin decirlo.
+
+### El comentario que iba a la tabla de puertos: TUMBADO, y la clase es nueva
+Yo dije "el aviso va pegado al boton", el Integrador escribio el comentario, **y el FA midio que
+el boton era otro**: las URIs de Gmail van por **deployment de Convex**
+(`<deployment>.convex.site/gmail/oauth/callback`), no por puerto de worktree. Su prueba de que
+son dos ejes: *QA tiene deployment y no tiene puerto; T3 tiene puerto y no tiene deployment; un
+`T5` nuevo usaria el dev compartido y necesitaria CERO URIs.*
+
+> **Un aviso en la ruta obligatoria se lee con la confianza de que alguien comprobo que el boton
+> era ese. UN AVISO FALSO EN EL SITIO BUENO ES PEOR QUE NINGUNO.**
+
+Y el PM se lo apunta entero: *"acerte la ubicacion y me equivoque el sujeto, justo mientras me
+felicitaba por la regla de la colocacion. **Colocar bien un aviso es la SEGUNDA pregunta; la
+primera es si lo que dice es verdad en ese sitio.**"*
+
+⛔ **Y LA VUELTA DE TUERCA, que el FA encontro al revisar su propia refutacion:** bajo (B) —la
+direccion aprobada— el callback SI vuelve al origen de la app, **y entonces el boton si es la
+tabla de puertos**. O sea que el comentario no era falso:
+
+> **Un aviso escrito para el mundo que viene, colgado donde se lee el de ahora, es
+> indistinguible de uno equivocado — y SE VUELVE CORRECTO SOLO, sin que nadie revise si ya toca.
+> Un error se corrige; este CADUCA HACIA EL ACIERTO.**
+
+Condicion para firmarlo: **que el propio comentario diga de que mundo habla y que hecho lo
+activa.** Medido por mi: `grep -rn "gmail/oauth/callback" app` VACIO — la ruta de (B) no existe.
+
+**LAS DOS LISTAS SON CORRECTAS, DE DOS MUNDOS.** La del FA (por deployment) es la de hoy; la de
+T2 (por origen de la app) es la que (B) creara, y **se AÑADEN, no sustituyen**. Yo se la pase al
+PM como "origenes medidos" lista para Aitor **sin preguntarme de que mundo era**. Lo que lo paro
+fue el retraso de la undecima, **no que ninguno lo viera: es suerte con forma de procedimiento**.
+
+**El cruce del FA, ejecutado por el Integrador:**
+
+    A \ B  ->  VACIO                    <- la cara CARA esta vacia hoy
+    B \ A  ->  stoic-impala-857 (falso huerfano: produccion no vive en un .env.local, LIMITE
+                                 DECLARADO por el que lo midio, no contado como hallazgo)
+               uncommon-puffin-303      <- el unico real: docs dice T1 y T1 usa third-goldfinch-805
+
+⚠️ **Y el FA se caza a si mismo:** para tumbar el comentario cito `docs/03-setup.md:226-227`
+—*"el token de refresco no puede pasar por el navegador"*— **que el PM habia falsificado cuatro
+horas antes en esa misma ficha** (*"lo que pasa es el CODIGO de autorizacion"*). Su conclusion
+sobre el mundo de hoy la midio con los `.env.local`, no con esa frase, **pero el apoyo que le
+puso encima estaba muerto**. Y el doc SIGUE diciendo lo derogado, sin marca: el PM lo corrigio
+en Linear y `docs/` no se entero.
+
+### AIT-149 r1 · NO-GO, y el universo NO eran 19
+El auditor cerro dos mayores (la clase E SI es decidible leyendo —Convex documenta que la
+identidad se propaga—; y D iba al destinatario equivocado porque **la disyuntiva era falsa**:
+exigir que `p256dh/auth` coincidan respeta el requisito escrito). **Convergio con la decision
+del PM desde dos sitios distintos.**
+🔴 **Y en la r2 T1 deriva el universo con filtro reproducible y saca DOS MAS** que la ficha no
+enumera (`customers:update`, `opportunities:createForCustomer`) — **el mismo cardinal de 34
+publicas por otro camino, y otro reparto**. El auditor habia escrito que su complemento
+*"coincide por NOMBRES con el export"*. Uno de los dos esta mal y va dentro del encargo de la r2.
+
+> **Una lista de 19 se verifica contando 19. Si el conjunto real es 21, el recuento sale bien
+> igual: cuenta lo que hay dentro, no lo que falta.**
+
+**Y T1 fabrico un hallazgo de clase y lo retiro solo:** seis funciones aceptan `storeId` de fuera
+—forma exacta de un hallazgo de clase— y `docs/02-modelo-de-datos.md:785` dice que **owner =
+todas las tiendas**. *"Seis instancias se sienten como una clase y una clase se siente como
+prueba. Pero «se repite» solo dice que hay una regla detras; **no dice si la regla es el defecto
+o el diseño**."* Las dos veces de la ronda —AIT-57 y el doc— **el freno estaba fuera del codigo
+que miraba.**
+
+### Ocupacion 21:40Z
+    T1 ... AIT-149 lectura-loop2 EN AUDITORIA desde 21:39:53Z
+    T2 ... AIT-145 r5 contra (B)
+    T3 ... AIT-143(A) r10, con el hueco (2) esperando al PM
+
+## 21:48Z — el md5 dio su primer positivo, y la receta que iba a repartir no corria
+
+### El positivo
+T3 declaro congelado `md5 19cb57fd… · 637 lineas`; al ir a disparar medi `b8980d3b… · 665
+lineas`. **NO dispare.** Benigno —eran 28 lineas con la decision del PM y su aviso se cruzo con
+el mio— pero destapo el agujero. Formulacion de T3, que me corrige:
+
+> **El cierre identifica la RONDA. El md5 identifica la VERSION.** Y cubre la ventana entre
+> *"lo declaro congelado"* y *"yo lo leo"*, **que no vigilaba nada mas**.
+
+Yo llevaba el dia repartiendo el md5 como *"sirve entre el worker y yo antes de disparar"*, que
+es cierto y no dice nada. Y su remate: **que el positivo saliera benigno no lo invalida — prueba
+que el detector distingue.** *Un instrumento que nunca ha dado positivo no esta acreditado.*
+
+### 🔴 Y MI FALLO, que es el de la prescripcion
+Propuse `head -n -1 F | md5` como receta para cuatro workers. **El FA la ejecuto: `head: illegal
+line count -- -1`** — es extension de GNU y este `head` es BSD. **Iba a repartir un comando que
+no habia ejecutado ni una vez, en el mismo mensaje en el que le decia a T3 que su propuesta
+tenia un cabo suelto.**
+⚠️ Y el agravante: **habria fallado RUIDOSAMENTE**, o sea que me habria absuelto la suerte y no
+el metodo. *Un error ruidoso no acredita al que lo cometio.*
+
+### La convencion decidida (FA), medida por mi
+    sed '$d' FICHERO | md5
+    cambio de CONTENIDO ......  5fbbe293 -> 7c5badce   DETECTA
+    cambio SOLO del cierre ...  5fbbe293 -> 5fbbe293   NO se dispara
+
+**Acreditado en los dos sentidos**: detecta lo que debe y **no salta con lo unico que tiene
+permiso para moverse**.
+
+⛔ **Y por que el md5 y no "lineas y bytes", que parecia mas legible. Reproducido por mi:**
+
+    'Veredicto: GO' -> 'Veredicto: NO'
+       lineas 3 vs 3   bytes 28 vs 28    <- la opcion de contar: VERDE
+       md5    a04b9c88 vs f02ca25f       <- DETECTA
+
+> **Lineas y bytes son CIEGOS A LA SUSTITUCION, y la sustitucion es el cambio mas caro que puede
+> tener un export: UN DETECTOR CUYO PUNTO CIEGO COINCIDE CON SU PEOR CASO.**
+
+**T3 y yo comparabamos ERGONOMIA; el FA comparo DIRECCION DEL FALLO.** Un hash mal copiado da
+desajuste, o sea parada; un recuento mal copiado **puede coincidir por casualidad y falla hacia
+el verde**. Y su razon para NO poner las dos juntas, que ninguno de los dos teniamos: **dos datos
+en la misma linea crean la pregunta de cual decide, y el que no decide acaba usandose igual.**
+
+⛔ **LA MITAD QUE ARREGLA EL AGUJERO NO ES EL DIGESTO: ES QUE VIAJE.** Al CEO va como DOS
+ejecuciones: `intro-terminal.txt` para que el worker lo escriba, **y `AGENTS.md` para que el
+auditor copie la linea de cierre ENTERA, con el md5 dentro.** *Si se decide y no viaja, el
+control sigue siendo que yo mire.* Con su limite escrito al lado: **ata el veredicto a la
+version, NO dice que la version sea la punta de la rama; son dos comprobaciones.**
+
+### AIT-143(A) r10 · NO-GO, y lo que queda de M1 es UNA FILA
+> *"Las dos defensas estan juntas en la EXPLICACION, pero no juntas en el CRITERIO EJECUTABLE."*
+
+C4b exige `aviso-no-medido`, `recuento-c4` y `resultado NO_MEDIDO`, **pero ningun campo de la
+fila exige `test.skip` ni `status=skipped`**, asi que un test que imprima las dos cadenas y
+**retorne normalmente sin saltar** cumple C4b entero y **Playwright lo cuenta como pasado**. De
+los dos impostores: *skip sin identidad* muere, *identidad sin skip* **sobrevive**.
+**Es el campo libre por tercera vez en la misma ficha:** `extra` -> `cadenas` -> **y ahora el
+estado del runner viviendo en la prosa de §2.4.3.1 y no en la fila.**
+✅ Todo lo demas resuelto, y el aplazamiento a AIT-151 calificado de **"explicito y honesto"**.
+✅ **Y T3 midio la sonda de Playwright DESPUES de congelar y antes de que el auditor preguntara:**
+la aritmetica funciona (`1 failed · 1 skipped · 1 passed`, con nombre y guion) **y el motivo NO
+viaja: 0 apariciones**. Declaro el alcance el mismo: **midio el reporter `list`, no
+`rate-limit-reporter.ts` — uno de los dos.**
+
+### AIT-149 r2 · M1 y M2 CERRADOS, y el auditor confiesa
+> *"`customers:update` y `opportunities:createForCustomer` **estaban entre esas 15**. Precisamente
+> por restarlas junto con las otras trece **obtuve artificialmente las 19 recibidas**."*
+
+**Universo real 21.** Y la lectura de T1, que es la que se queda: *"dos instrumentos distintos, el
+mismo numero, **falso en los dos**. Coincidir no es corroborar cuando lo que coincide es un
+cardinal — **un cardinal no tiene sujeto, asi que no puede desmentirte**."*
+Audito ademas la retirada de las seis y la dio por correcta **una a una**: *"la absolucion no
+descansa unicamente en que el patron se repita"*.
+
+⏸️ **r3 de T1 CONGELADA Y SIN DISPARAR: le pregunte por `34 = 22 + 12`**, que no cuadra con el
+`21` del titular ni con el `34 = 13 + 21` acordado. **Tres particiones del mismo 34.** No disparo
+hasta que diga que cuenta `22 directas`.
+✅ Y arreglo suyo que va a los ocho: pego el detector dentro del export **y lo extrajo de ahi para
+ejecutarlo**. *«Esta aqui» es una afirmacion sobre el mundo, no una nota de metodo — y nadie la
+comprueba porque quien la lee asume que el que la escribio acaba de venir de ahi.*
+
+### Ocupacion 21:48Z
+    T1 ... AIT-149 r3 congelada, ESPERANDO su respuesta sobre el 22 antes de disparar
+    T2 ... AIT-145 r5 contra (B)
+    T3 ... AIT-143(A) r11: un observable de `skipped` en la fila de C4b
+    Plaza LIBRE
+
+## 21:57Z — el primer GO, y la convencion se acredita discriminando
+
+### 🟢 AIT-149 primera mitad: GO. "Blockers: ninguno. Majors: ninguno."
+`VEREDICTO_T1_AIT-149_lectura-loop3b.txt`, 1019 lineas. **Universo real 22** (no 19), sin
+clasificar 0, reparto 10A+6B+3C+1D+2E. El auditor **derivo el conjunto por su cuenta y coincide
+POR NOMBRES**, y reconcilio el desajuste **nombrando la funcion**: `opportunities:reopen` es la
+que convierte 13+21 en 12+22.
+✅ **T1 la dejo DECLARADA y sin explicar, y por eso se pudo cerrar.** Si le hubiera puesto una
+causa plausible, el auditor habria auditado la causa en vez de buscar la funcion.
+✅ Y su cautela de no cerrar el universo: *"es HONESTA, no una coartada"* — mi corazonada
+declarada contestada a su favor.
+⚠️ **La ficha NO se cierra**: la segunda mitad (ejercitar las 22, denegaciones, filtrabilidad) es
+alcance del PM. T1 parado hasta que conteste.
+
+> **UN FILTRO TE ENSEÑA EL COMPLEMENTO Y TE ESCONDE EL CONJUNTO. Y lo escondido no parece
+> ausente: parece que no existe.** (T1) `reopen` no estaba mal clasificada: estaba BIEN
+> clasificada en el lado que el nunca imprimia, y por eso sobrevivio a tres auditorias.
+
+### ⛔ LA CONVENCION SE ACREDITO SOLA, EN SU PRIMER USO REAL (export de T2)
+
+    md5 ENTERO ......  68bce3c6…  contra el declarado b7962714…   ✗ DISTINTO
+    md5 SIN LA ULTIMA  fc304e61…  contra el declarado fc304e61…   ✓ IDENTICO
+    conteo ..........  215 -> 214 (baja en 1)                      ✓
+
+**Con el hash del fichero entero habria parado la ronda por un cambio LEGITIMO** —T2 escribio la
+linea de cierre despues de calcular el hash del cuerpo, que es el orden correcto—. **El hash del
+cuerpo dice "intacto" y el conteo confirma que quito una y solo una.**
+> **No basta con que un detector salte: tiene que NO saltar con su propia excepcion.** Hace dos
+> horas pare una ronda por una discrepancia que resulto benigna; ahora la misma clase de
+> discrepancia sale bien clasificada sin preguntar nada.
+
+**Y el fallo de T2 al estrenarlo es la leccion del formato:** calculo el hash del cuerpo ANTES de
+añadir el separador `====`, asi que `sed '$d'` devolvia cuerpo+separador. *El hash se calcula
+sobre **el fichero exactamente como quedara menos su ultima linea**, no sobre "el cuerpo" en
+abstracto.* Lo cazo **verificando por EFECTO con el comando que usara el auditor**, no releyendo
+— y el daño habria caido en el auditor, que habria concluido que el fichero cambio.
+
+### AIT-143(A) r11 · NO-GO, y mi corazonada era el M1 palabra por palabra
+> **"RENOMBRAR EL JUICIO COMO OBSERVABLE NO GARANTIZA QUE PROCEDA DEL SISTEMA OBSERVADO."**
+
+`estado runner` era un campo que **rellenaba el mismo autor**: la equivalencia ataba dos columnas
+de la misma tabla y **la pareja cuadraba consigo misma**. Cuarta mudanza del mismo defecto en
+esta ficha: `extra` -> `cadenas` -> el `test.skip` en la prosa -> el valor del campo 13.
+✅ T3 lo cierra leyendo `testInfo.status` en un `afterEach` que pone el test en ROJO si no cuadra
+con lo declarado, **medido antes de escribirlo** (`afterEach CORRIO` con status skipped/passed/
+failed). *La fila sigue declarando una expectativa; lo que se acaba es que se compare consigo
+misma.*
+✅ Y el rastreo r10->r11 salio **aditivo**: primera ronda de la ficha en la que se formaliza algo
+y no se cae nada.
+
+### ⚠️ MI PROPIO METODO DE LEER VEREDICTOS, DECLARADO
+El veredicto **incluye el encargo, y el encargo cita el veredicto anterior entero**: hoy hay
+cuatro lineas `Veredicto del auditor:` y tres bloques `### M1` en el mismo fichero. Yo leo con
+`tail -1` y la ultima posicion, **que es correcto por casualidad**: lo es mientras el veredicto
+real siga siendo lo ultimo, **y eso no lo garantiza nada, lo garantiza la costumbre**.
+Lo que lo ataria de verdad: **que el auditor escriba SU hash del fichero que leyo** — entonces no
+hay que elegir bloque, *el que lleva tu hash es el tuyo*. Ya esta pedido en la convencion.
+⚠️ Y a T3 le salvo **el numero absurdo** ("once campos" cuando su r11 tenia trece), no el metodo.
+**Tercera vez hoy.**
+
+### Falso positivo de mi propio barrido, declarado
+Mi check de "veredictos sin relayar" grito **61 de 79**. Son veredictos **anteriores a la
+convencion de la marca, que nacio hoy**: el check no distingue "relayado antes" de "sin relayar".
+Acotado por tiempo (`-mmin -60`) da **1 pendiente real**, que era el correcto.
+**Un instrumento se juzga por sus aciertos, no por su volumen** — y uno que grita 61 veces se
+ignora la 62.
+
+### Ocupacion 21:57Z
+    T1 ... AIT-149 primera mitad CERRADA con GO. Parado esperando alcance del PM.
+    T2 ... AIT-145 plan-loop5 EN AUDITORIA desde 21:56:13Z
+    T3 ... AIT-143(A) plan-loop12 congelada 21:55:45Z (a5950ec0 entero / b33f2fec cuerpo, 815 lineas)
+
+## 22:10Z — la premisa que nadie midio, y el falso verde en el sustituto
+
+### 🔴 AIT-152 · EL ARREGLO NO SERVIA, Y LO MATO UNA MEDICION DE T1
+El auditor de AIT-149 y el PM habian coincidido en **exigir que `p256dh`/`auth` coincidan** como
+prueba de posesion. Yo lo relaye como **"convergencia independiente desde dos sitios"**.
+
+> **Era una convergencia de dos LECTURAS, y las dos leyeron lo mismo. Dos personas de acuerdo
+> sobre una premisa que ninguna midio NO SON DOS FUENTES.**
+
+**Lo midio T1 y la premisa era falsa:** el `endpoint` sale de `subscription.toJSON()` — **es
+propiedad del NAVEGADOR, no del usuario** — y `p256dh`/`auth` salen del mismo objeto. Dos
+personas en el mismo navegador los comparten **por construccion**.
+> **"Defiende la puerta que nadie puede alcanzar y deja abierta la que si."**
+
+**Y lo cerro con la spec del W3C, sin ejercitar nada:** `subscribe()` devuelve LA MISMA
+suscripcion si no cambian las opciones; y tras `unsubscribe()` el endpoint **MUST NOT** reusarse
+y las claves **MUST** ser distintas. **Endpoint y claves se emiten juntos y rotan juntos: la
+plataforma NUNCA produce el estado "tengo el endpoint y no las claves"**, que es el unico contra
+el que defendia el arreglo. Mas el dato de codigo: **el cierre de sesion NO llama a
+`subscription.unsubscribe()`** (con control positivo que si encuentra los dos que existen).
+**AIT-152 queda con EL RASTRO como unico remedio, Low por precondicion medida.**
+🔴 Y el PM cruzo algo que no vio nadie: esa rama **solo se recorre si la limpieza del cierre
+falla**, y **el ha recortado hoy ese limite dos veces (750 -> 616 -> 544 ms)**. *Decidio las dos
+cosas el mismo dia sin ver que la segunda alimenta a la primera.*
+📌 Y la mitad de T1: **"un mecanismo descrito con fichero y linea se lee como medido aunque solo
+este leido"** — las coordenadas parecen evidencia.
+
+### ⛔ EL FALSO VERDE EN EL SUSTITUTO (T1, y decidio el instrumento del tramo 1)
+> **`convex-test` es una REIMPLEMENTACION del runtime. La clase E existe para comprobar una
+> premisa SOBRE LA PLATAFORMA. Si sale verde ahi, he demostrado que EL ARNES propaga la
+> identidad, no que Convex lo haga. Y el arnes lo escribio alguien que leyo la misma
+> documentacion que yo.**
+
+**Verde en el sustituto, en la unica clase que existe porque no nos fiabamos del original.**
+Decision del PM: **deployment dev real y camino real**; los dos candados del arnes de vitest se
+quedan. **Ventana concedida a T1 sobre el dev compartido** (anuncio de inicio/fin con `date -u`,
+captura del estado antes, y medir que quedo restaurado).
+
+### AIT-145 r5 y r6
+**r5:** cuatro majors. **M9 no era un defecto del plan sino un HECHO DEL CODIGO**: `proxy.ts:78`
+instancia `convexAuthNextjsMiddleware` **sin `shouldHandleCode`**, y los tipos instalados dicen
+*"If not provided, Convex Auth will handle ALL code parameters"* — o sea que **el middleware se
+queda el `code` de Google y la ruta de Gmail no recibe nada**. Con el remate: *"los tests que
+invoquen directamente el handler pueden dar verde mientras produccion falla"*.
+Criterio nuevo del PM: **se atraviesa el proxy real o no cuenta; y cada criterio declara su
+camino, marcando los directos como NO ACREDITADOS PARA PRODUCCION.** *No prohibe el camino
+directo: lo obliga a etiquetarse.*
+**r6: M10 CERRADO** (los cuatro impostores muertos; el control del **segundo code valido
+distinto** separa "rechazo por state" de "rechazo por code gastado"). Siguen M9 (matriz C1-C15 +
+**secuencia y responsable del despliegue**), M11 (**C13 exige un observable IMPOSIBLE**: el
+`state` se crea antes de ir a Google y nadie lo consume si Google rechaza) y M12 (**el control
+positivo del lector de cookies no prueba que sepa leer las DE GOOGLE**).
+✅ Y T2 se ataco a si mismo antes que nadie: *"«los fallos de origen no comparten observable con
+el ataque» es FALSO; lo cierto es que el NO REGISTRADO no lo comparte. Escribi la version general
+porque sonaba mas limpia."* **El auditor habia llegado a lo mismo.** Y su separacion:
+**"era una comodidad de diagnostico, no una defensa: si la tumba, tumba una frase de mas."**
+
+### 🔴 UN FALLO MIO EN EL ENCARGO
+Dispare la r6 de T2 con el fichero correcto **y el encargo citando un hash MUERTO** (`cc512a88`,
+el que T2 retiro). **Remedi el fichero y no remedi el texto**, porque el texto ya estaba
+redactado. *Un campo se contamina en la REDACCION, no en la comprobacion* — de T1, esta mañana,
+sobre exactamente esto. **Desde ahora el encargo cita el hash de MI medicion pegada al disparo.**
+El fichero y su cierre cuadraban, asi que no mate la ronda.
+
+### AIT-143(A) r13, en auditoria desde 22:09:09Z
+M1 cerrado **por estructura**: el `test` sale de `e2e/gate.ts` envuelto con el `afterEach`
+dentro, asi que **un spec que no importe el gate no tiene `test`: no compila**. Mas C12 (0
+importaciones directas **y N desde el gate, con N = numero de specs** — *sin el segundo numero,
+borrar todos los specs daria verde*) y C13 (**el mundo de fallo del propio comprobador**).
+> **Un hook ausente no da error, da silencio — y un comprobador que no sabe mirar produce el
+> mismo silencio.**
+
+### Ocupacion 22:10Z
+    T1 ... AIT-149 tramo 1, ventana concedida sobre dev. AIT-139 aparcada (rama sin commits).
+    T2 ... AIT-145 r7: matriz C1-C15, secuencia de despliegue, observable de C13, lector de cookies.
+    T3 ... AIT-143(A) r13 EN AUDITORIA desde 22:09:09Z.
+
+## 22:16Z — la premisa de plataforma EJECUTADA, y el quinto sello sin foto
+
+### 🟢 AIT-149 · E1 ACREDITADA POR EJECUCION (T1, en el dev compartido)
+La premisa que abrio la ficha —*"Convex propaga la identidad de la action al internal"*— era
+**documentacion del proveedor**. Ahora esta **ejecutada**, y el par discrimina:
+
+    sales -> setUserActive  "Solo la duena puede ver esto."      <- mensaje de requireOwner,
+                                                                    que vive DENTRO del internal
+    owner -> setUserActive  "No se puede desactivar a la duena." <- atraviesa el guard y muere
+                                                                    en el paso siguiente
+    sin token               "No autenticado."                    <- lo que HABRIA salido si la
+                                                                    identidad no se propagara
+
+**Control positivo, negativo y discriminante en la misma tirada.** Y **cero escrituras**: eligio
+como sujeto del control positivo a la **propia dueña**, a quien el codigo prohibe desactivar.
+*El mundo no se restaura: no se toca.* Verificacion de estado con **control al comparador** (con
+dos entradas distintas da exit 1): *un diff que sale limpio sin haber demostrado que puede salir
+sucio no dice nada.*
+🔴 **E2 (`setLogo`) NO acreditada y bien declarada:** `_storage` vacio, las dos llamadas murieron
+en `ArgumentValidationError` **sin llegar al guard** — *el rojo que dio no vale*. Autorizado el
+gasto de subir y borrar un fichero, con el `storageId` anotado y medicion de que `_storage`
+vuelve a estar vacio. Autorizada tambien la clase C (escribe por definicion), con nombre
+inconfundible, recuento por tabla y **crear con LAS DOS identidades**: *crear una vez y ver tu
+propio id no descarta que la funcion ignore al llamante y ponga siempre el mismo.*
+
+### 🔴 EL QUINTO SELLO SIN FOTO, y cierra el patron del dia
+T1 escribio *"empiezo 19:26:04Z (`date -u`)"* **sin ejecutar `date -u`** — hora local con una Z
+detras; la ventana real empezo a las **22:11:20Z**. Lo cazo el y lo corrigio en dos minutos.
+
+> **La etiqueta que dice COMO se midio un dato es mas facil de escribir que la medicion, y viaja
+> pegada al dato dandole autoridad. PUSE EL SELLO Y NO HICE LA FOTO.**
+
+**SON CUATRO, NO CINCO, y la correccion es del FA** (ver abajo): mi `%SB` con Z literal; mi
+`head -n -1` repartido sin ejecutar; la del Integrador a las 18:24; y esta.
+
+⛔ **YO HABIA CONTADO CINCO metiendo el *"comprobado con grep"* de T3, y no encaja: ALLI EL GREP
+SI CORRIO.** Su afirmacion era CIERTA; lo que estaba mal era el orden en que la escribio — otra
+familia, la del razonamiento redactado despues de actuar. **Meterla en el monton hacia el patron
+mas redondo y menos verdadero.** Palabras del FA: *"cinco casos convencen mas que cuatro, y ese
+quinto lo iba a firmar yo sin mirarlo, como firme tus «doce»"*.
+> **Contar fuentes es mas rapido que comprobarlas, y EL RECUENTO SE LEE COMO CORROBORACION.**
+Es la misma operacion que mi falsa convergencia de AIT-152, el mismo dia: **agrupar cinco casos
+que no son cinco y contar dos lecturas como dos fuentes.**
+📌 **Y por que no le protegio su propia disciplina** —el ya genera `worktree`/`rama`/`punta` con
+comandos—: *"no lo aplique aqui porque un mensaje de chat no parecia un export"*.
+> **La regla protege el artefacto con formato y no protege el mismo dato viajando por
+> conversacion.**
+Y la hermana de T3, media hora despues: corrigio cuatro referencias falsas de cobertura y
+**cometio la quinta en la linea que añadio en esa misma ronda**. *La disciplina se aplica a lo
+que uno cree estar revisando y se cae en lo que esta escribiendo.*
+⚠️ **Hoy hemos exigido control positivo al DATO cuatro veces y ninguna al ROTULO del dato.**
+
+⛔ **Y EL ARREGLO DEL FA NO ES UNA REGLA: ES UNA RESTA.** Su razon para no escribir la numero 71:
+*"llevamos ~70 y los fallos de hoy son reglas INCUMPLIDAS, no ausentes"*.
+> **El rotulo de procedencia es OPCIONAL; el dato no.** En las cuatro, borrar el parentesis
+> —`(date -u)`, la `Z`— no habria quitado nada mas que **autoridad falsa**. Nadie pidio el aval:
+> **lo puso el autor solo.**
+> **SI VAS A ESCRIBIR COMO LO MEDISTE, PEGA LA SALIDA. SI NO VAS A PEGAR LA SALIDA, NO ESCRIBAS
+> COMO LO MEDISTE.** Una de las dos, nunca el rotulo solo.
+*No es una regla que aprender: es un gesto que se elimina* — y funciona sin disciplina porque
+**pegar dos lineas de salida cuesta menos que acordarse de una norma a las tres de la mañana.**
+
+### AIT-143(A) r13 -> r14 · la ficha CAMBIA DE PREGUNTA
+La r13 murio por una evasion que le pedi buscar: **`import type` del gate + re-export** cuenta
+para el recuento N **y no carga nada en ejecucion** (TypeScript lo borra). *El comprobador media
+la forma del texto, no la carga efectiva* — la clase de T3 cometida DENTRO del comprobador que
+escribio para cerrarla. Y su I13 **documentaba mas cobertura de la que tenia**.
+
+> **"Dejo de preguntar «¿como obtuviste `test`?» —una lista de vias que nunca estara completa— y
+> pregunto «¿CORRIO EL HOOK PARA ESTE TEST?». Una lista de puertas se queda corta; preguntar por
+> el EFECTO no."**
+
+El `afterEach` anota una entrada por test y el reporter exige {ejecutados} − {con entrada} = ∅
+**y cardinales iguales** (*sin eso, cero tests daria verde*). **Cuatro rondas bajando de nivel y
+esta es la primera que se da la vuelta: mide el efecto en vez de enumerar causas.**
+
+### AIT-145 · r7 en auditoria desde 22:14:22Z
+Matriz C1-C15 escrita **fila a fila**, y al escribirla salieron **cinco casos que no cuentan como
+verde**: C2/C3/C14/C15 SIN EVALUAR y C9 `HANDLER DIRECTO — NO ACREDITADO PARA PRODUCCION`.
+Secuencia con responsable (**Aitor registra -> Integrador publica ruta -> Integrador despliega
+retirando**), con los dos ordenes malos y que rompe cada uno.
+🔴 **C13 pedia DOS imposibles y T2 solo habia visto uno:** el `state`, y ademas *"el mensaje dice
+que origen se uso"* — **mensaje que escribe GOOGLE en su pagina**. Ahora mide lo que si controla.
+📌 Y el plan B con su nombre: **de configuracion, no de servicio** — *una URI registrada sin
+servicio conserva el permiso, no la capacidad.*
+
+### Regalo para AIT-139, salido sin buscarlo
+`npx convex data _storage` -> `exit=0 · stdout=0 · stderr=220` — **el colapso de la ficha en
+vivo**. Y el dato nuevo: **en stderr vienen DOS avisos y uno es un `ExperimentalWarning` de
+Node**, ajeno a Convex. *Una lista de avisos admisibles escrita mirando solo el proceso que te
+interesa se rompe con el ruido del que no te interesa — y ese ruido cambia con la version de
+Node, asi que la lista caduca sola.*
+
+## 22:30Z — la premisa que se quita de en medio, y una deuda mia
+
+### ⛔ MI DEUDA, declarada antes que nada
+T1 me levanto **hace media hora** que la ficha AIT-139 cita el convenio de codigos `4/5/6`
+**anterior a la D63.1**. Le dije "es del CEO/FA" y **escribi que lo subia. No lo subi.** Se quedo
+en mi mensaje. **El ha estado esperando una respuesta que nunca llego a pedirse**, y ha tenido
+que volver a levantarlo.
+> *Una parada que nadie ha pedido no es una parada: es trabajo detenido sin dueño* — y esta la
+> cree yo con la frase "ya lo subo". **Ya esta en el CEO, con la deuda declarada delante.**
+
+### AIT-145 r8 · M12 CERRADO. Y DOS CONVERGENCIAS EN LA MISMA FICHA
+El auditor listo entre los supervivientes **"atomicidad sin camino alternativo"** y pidio para la
+r9 **"rama ejecutable si Convex no es atomico"** — **mientras T2 diseñaba exactamente eso sin
+verlo.** Segunda vez hoy en esta ficha (la primera fue el `redirect_uri`).
+
+🔑 **Y LA SALIDA DE T2 ES MEJOR QUE CUALQUIER MEDICION:**
+> **"Una premisa incomprobable no se declara con mas cuidado: SE QUITA DE EN MEDIO."**
+
+Midio `convex 1.42.1`: **14 apariciones de "atomic", 0 sobre despliegue** (control del
+instrumento: el cero no es que no sepa mirar). Y el razonamiento que casi nadie hace:
+> *"La estructura de tres fases SUGIERE un cambio unico al final, pero yo estoy leyendo el
+> CLIENTE, y la atomicidad es una propiedad del SERVIDOR."*
+**Tenia un dato a su favor y dijo que no acreditaba lo que necesitaba.** Es *verde en el
+sustituto* otra vez, en su version de lectura.
+⛔ Y lo que de verdad estaba mal, que no habiamos visto ni el auditor ni yo: *"no es «aun no la
+he medido»: es que **no puedo medirla desde aqui sin romper una regla**. Dejarlo como «se mide
+antes del paso 2» era escribir un paso que nadie puede ejecutar."*
+> **UN LIMITE CUYO LEVANTAMIENTO ES IMPOSIBLE NO ES UN LIMITE: ES UN BLOQUEO CON BUENA LETRA.**
+**Arreglo: partir el paso 2 en 2a (muere la ruta vieja, SOLA) -> 2b (entra la accion nueva).**
+No existe version intermedia con las dos vivas, **sea atomico o no**. *Cambia una propiedad que
+no controla por un orden que si.*
+
+### 🔴 DOS CRITERIOS VUELTOS DEL REVES POR EL MISMO CAMBIO DE ALREDEDOR
+    C10 · exigia diff de docs/02 VACIO   -> con el campo nuevo, vacio significa "se me olvido"
+    C11 · mira api.d.ts uno a uno        -> el tipo vive en dataModel.d.ts: sin regenerar, VERDE
+> **"Con el schema quieto era completo; dejo de serlo SIN QUE NADIE LO TOCARA."**
+> **"Las dos veces la señal fue la misma: EL CRITERIO SEGUIA SONANDO BIEN."**
+**Un criterio roto por un cambio de contexto no tiene diff, ni autor, ni fecha** — nadie lo revisa
+porque nadie lo ha tocado. Y **los dos fallaban hacia el verde.**
+✅ Y T2 **enumero lo que se apoyaba en la premisa que tumbaba** (huella, C10, C11) y **acoto su
+propio barrido**: *"un barrido mio sobre mi propio texto, que es justo el lector peor colocado"*.
+
+**Siguen M9** (el paso 0 *"infiere consumidores desde datos que no acreditan uso ACTUAL"*;
+C13bis-B colgado de Google sin declararlo; C14pre con el eje CAMINO mal) **y M11** (los cuatro
+eslabones del residuo *enunciados y sin todos sus rojos*; C13bis-A sin **aserción del destino**
+del diagnostico). ⚠️ Y una que no esperaba: **C1/C4 se quedaron con el observable de FILA cuando
+M10 se cerro con el GLOBAL** — *el cierre viaja, el texto no.*
+
+### AIT-143 r15 en auditoria desde 22:28:29Z
+T3 restituyo las cuatro garantias y **corrigio un reparto suyo YA APROBADO POR TODOS**:
+> **"Heredar un riesgo no autoriza a heredar el que uno acaba de crear encima."**
+Habia mandado a AIT-151 **todo** el riesgo de corridas simultaneas —el auditor lo llamo
+"explicito y honesto"— y era falso para el falso verde que **introduce su propio mecanismo**.
+Y aprendio cuando enumerar y cuando medir el efecto: *"enumerar vale cuando la enumeracion es
+EXHAUSTIVA POR CONSTRUCCION"* (C15, la lista de reporters la hace el framework).
+
+### AIT-149 tramo 1 congelado · y la convencion mordio por tercera vez
+T1 declaro un hash y `sed '$d'` daba otro: **calculo el cuerpo y luego añadio una linea en
+blanco.** Lo cazo la propia comprobacion.
+> **"Un hash del cuerpo no es «el hash de lo que escribi»: es el hash de LO QUE QUEDE AL QUITAR
+> LA ULTIMA LINEA."** Y el resultado sigue siendo 32 hex validos.
+**Van tres, y las tres son la misma: el hash se calculo y LUEGO el fichero cambio** (T2 con el
+separador, T1 con el `\n`, yo citando en un encargo un hash de antes de recongelar). **La
+convencion no falla por el algoritmo: falla por el ORDEN.** Arreglo de T1: **definir el sujeto
+con el mismo comando que lo verifica.**
+
+### 🔴 UNA CORRECCION EN EL SITIO EQUIVOCADO (T1, sobre la ficha AIT-139)
+El PM retiro la exigencia imposible **en un apendice al final**, y el bullet original **sigue
+intacto y sin marca en `## Criterios de aceptacion`**.
+> **"Una correccion puesta AL LADO del original no lo corrige: lo DUPLICA. Y el que gana es el
+> que esta en la seccion que lleva el nombre de la decision."**
+> **"Una afirmacion superada que sobrevive no rompe nada — DEJA DE IMPEDIR COSAS."**
+⛔ Y no se arregla tachando: **el criterio retirado y el convenio `4/5/6` viven EN LA MISMA
+FRASE.** Es una reescritura y **depende de la respuesta del CEO.**
+
+### Ocupacion 22:30Z
+    T1 ... tramo 1 congelado (212 lineas, cuerpo c4c00de0), TERCERO en cola. AIT-139 esperando al CEO.
+    T2 ... r9 en su scratchpad, FUERA de `codigo para auditar/` a proposito, sin cierre ni hash.
+    T3 ... AIT-143 r15 EN AUDITORIA desde 22:28:29Z.
