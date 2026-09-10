@@ -137,7 +137,17 @@ cat <<'PEND'
       La clave es el TTY (raiz) y el worktree (desarrolladores), NUNCA el nombre ni el
       [ref]: los dos caducan sin relanzamiento.
   (b) Terminales paradas: medir el ultimo evento `assistant` del TRANSCRIPT, con control
-      positivo. NUNCA por ausencia en ListAgents.
+      positivo CONSTRUIDO POR OTRA VIA (p.ej. tu propio transcript, del que sabes por fuente
+      independiente que esta vivo). NUNCA por ausencia en ListAgents.
+      🔴 Y NO LO HAGAS ORDENANDO TODOS LOS TRANSCRIPTS POR mtime. Medido 2026-09-10 05:39Z:
+      hay **119 transcripts y 12 sesiones vivas**. Los otros ~107 son fabricas anteriores,
+      muertas, con mtimes de horas o semanas. Consecuencias, las dos silenciosas:
+        - `sort -n | head` te ensena los mas RECIENTES, no los parados. Buscar ahi una
+          terminal atascada es mirar donde el fallo no puede estar.
+        - **Una sesion VIVA y parada 90 min es indistinguible por mtime de una MUERTA hace
+          90 min.** El numero es identico; lo que cambia es si hay alguien detras.
+      EL METODO CORRECTO: parte de `ListAgents` (quien esta vivo), resuelve CADA sesion viva
+      a su transcript, y mide SOLO esos. El universo lo define quien esta vivo, no el disco.
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
       viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
       CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
