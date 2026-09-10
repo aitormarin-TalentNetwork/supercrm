@@ -1271,3 +1271,88 @@ sesion, mandar la URL, consentir desde otra) **y ver que el vinculo no se crea.*
 **Un estado de Linear no es una prueba; el rojo que se vuelve verde si.**
 Restriccion de producto para el rediseno: **la conexion se arranca DESDE DENTRO de la app, ya
 identificado — nunca abriendo un enlace que alguien te pasa.**
+
+---
+
+## UN CONJUNTO DE CRITERIOS SE VALIDA CONTRA UN IMPOSTOR (regla de T3, 19:07Z — la mejor del dia)
+
+> **Un criterio se valida contra su MUNDO DE FALLO. Un conjunto se valida contra un IMPOSTOR.**
+> **La pregunta no es "¿puede fallar cada uno?" sino "¿QUE IMPLEMENTACION ROTA LOS PASA TODOS?"**
+> **Si consigues construir el impostor, tienes el test que falta. Si no lo consigues, esa es la
+> prueba de cobertura** — y es la primera del dia que NO DEPENDE DE CONTAR NADA.
+
+⛔ **Lo que la hace de proceso: NINGUN criterio individual era flojo en ninguno de los casos.**
+Todos discriminaban uno a uno. **El hueco esta ENTRE los criterios, y por construccion no lo ve
+quien los revisa de uno en uno** — ni el autor, ni el auditor, ni yo. **Es la primera cosa de hoy
+que "revisar mejor" no habria cazado nunca.**
+
+**CUATRO IMPOSTORES EN CUARENTA MINUTOS, en cuatro conjuntos independientes:**
+
+    T3 · AIT-134   const confirmado = rutaLocalOk        pasa los SEIS criterios
+       los 4 tests que tocan /api/cerrar-sesion-local la fuerzan a 500 (932·1017·1129·1366)
+       -> el mundo "responde 200 Y la sesion sigue viva" NO EXISTE en ningun test
+       DIRECCION: navega a /login afirmando un cierre que nadie comprobo
+                  = AIT-127 REINTRODUCIDO por la puerta que AIT-134 abrio, con la suite VERDE
+
+    T2 · AIT-145   una implementacion donde la cookie se consigue reenviando un enlace
+       su C1 llamaba al callback SIN cookie: valido su criterio contra su mundo de fallo
+       CORRECTAMENTE, y aun asi el conjunto lo pasa el impostor. Es el B1 del auditor.
+
+    T1 · AIT-142   una TABLA con los 17 pares. No calcula nada y pasa los 17.
+       fuera del corpus: "Lucia Fernandez"->undefined · "[X] Ana"->undefined · "7Up Cola"->undefined
+       Y NO es rebuscado: es lo que produce "hacer que los tests pasen" sin entender la regla,
+       o sea EL FALLO QUE EL CORPUS EXISTE PARA IMPEDIR.
+
+    QA         un gate de RUTAS QUE VIVA SOLO EN EL CLIENTE
+       todas sus comprobaciones de gating entran por la UI
+       -> SU CONJUNTO NO DISTINGUE "el servidor lo impide" de "la pantalla no te lleva"
+       Su nota del 2026-09-09 decia "el gating por rol real sigue sin probar". 21 HORAS DESPUES
+       sigue sin probarse, y ahora se sabe por que no chirriaba: SU RONDA DABA VERDE IGUAL.
+       **Un hueco asi no produce inquietud: produce rondas limpias.**
+
+### EL OLFATO QUE LO ANTICIPA ANTES DE ESCRIBIR TESTS (tambien de T3)
+
+> **Un artefacto que hace DOS TRABAJOS no puede fallar en uno solo, asi que ningun test puede
+> distinguirlos.**
+
+Su autodiagnostico: *"van dos veces hoy que junto dos cosas en una y alguien me las separa"* — una
+constante que era **registro Y bloqueo**, una variable que era **"respondio" Y "se cerro"**. Y lo
+uso EN PROSPECTIVA sobre otra ficha: **el `state` de AIT-145 es identificador del flujo Y decision
+de a quien se vincula el buzon**, que es literalmente B1. El QA se lo aplico a si mismo:
+**`real === '/hoy'` acredita "me negaron /panel" Y "me llevaron a mi sitio", y la primera no tiene
+testigo propio.**
+
+### FORMATO DEL APARTADO (decision del FA, que resuelve mi objecion)
+
+Yo objete: *un apartado que se puede rellenar con una frase se rellena con una frase* — "no se me
+ocurre ninguno" pasaria como cumplimiento. **Su solucion no es exigir mas, es hacerlo REFUTABLE:**
+
+    ⛔ Describe una implementacion que pase TODOS los criterios, y di QUE TEST LA TUMBA.
+       Si no puedes nombrar el test que la tumba, HAS ENCONTRADO EL HUECO: ese es el test que falta.
+
+> **El auditor lo tumba PROPONIENDO UN IMPOSTOR. "No se me ocurre ninguna" deja de ser una salida
+> barata: es la afirmacion de que el conjunto esta completo, y cualquiera la derriba en un renglon.**
+> **Un apartado autocertificado se rellena con una frase; uno que invita a que te refuten, no.**
+
+**ALCANCE: OBLIGATORIO en fichas que existen para CERRAR UN DEFECTO** (ahi el conjunto de criterios
+ES la garantia: si tiene hueco, el defecto vuelve con la suite en verde). **Recomendado en fichas
+de funcionalidad.**
+
+### LA FUENTE UNICA ES TAMBIEN EL MATERIAL CON EL QUE SE FALSIFICA (de T1)
+
+Su corpus vive en `casos-iniciales.ts`, **asi que el impostor se genera IMPORTANDOLO.**
+
+> **Cualquier fuente unica de verdad compartida entre lo verificado y el verificador le da al
+> verificado el MAPA EXACTO de lo que se le va a preguntar.**
+
+No es que la fuente unica este mal —evita la divergencia, que era el problema real—: **resuelve la
+divergencia y crea la posibilidad del examen filtrado.** El arreglo es comparar contra el oraculo
+**FUERA del corpus**, con casos FIJOS elegidos por clase y no aleatorios, *porque un test que falla
+distinto cada dia se aprende a reintentar, y entonces no protege: informa*.
+
+## EL PASO QUE FALTA EN EL CHECKLIST DEL INTEGRADOR (aceptado por el FA)
+
+*"Mi checklist tiene suite, merge, push, Railway, Linear, archivar. **No tiene «¿que documento
+promete algo sobre lo que acabo de publicar?»**"* — y `docs/02` promete ser el schema literal.
+**La regla existe en CLAUDE.md y no esta en su ruta obligatoria.** Va como PASO, no como
+recordatorio: *un paso esta en la ruta; un recordatorio no*.
