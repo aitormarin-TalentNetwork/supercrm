@@ -234,3 +234,31 @@ Medido con `git ls-remote --heads origin "*ait-92*"` (la autoridad es ls-remote,
 
 La de nombre largo **parece huerfana sin serlo**. Y si alguien hace checkout con el nombre
 que da Linear, se crea una rama vacia y cree estar donde no esta. Es el defecto de AIT-124.
+
+### Hipotesis escrita para el PROXIMO reparto (CEO + Directora, 12:33Z)
+
+**La suite E2E NO mata la mitad de las corridas.** Con el denominador del Integrador:
+
+    03:53Z  corrida completa del Integrador  -> TERMINO
+    07:42Z  corrida completa del Integrador  -> TERMINO
+    ------- ventana sin medir ---------------
+    11:13Z  T3 corrida 1 -> MATADA (test 42)     11:21Z  corrida 2 -> termino
+    11:33Z  T3 corrida 3 -> termino              11:47Z  corrida 4 -> MATADA (test 50)
+
+O sea: **algo se degrado entre las 07:42 y las 11:13**, no es una propiedad de la suite.
+El "2 de 4" describia esa ventana, no el gate en general.
+
+⚠️ **SITIO DONDE MIRAR SI SE REPITE, y NO es una causa:** en esa misma ventana arrancaron
+las **tres terminales nuevas del reparto de las 10:31Z**. No se afirma que sea eso. Se
+escribe ahora para que, **si vuelve a ocurrir tras el proximo reparto**, exista la
+hipotesis por adelantado Y una ventana anterior sana con la que comparar — que es
+justamente lo que no teniamos esta madrugada.
+
+**Alcance del modo de muerte, medido por T1:** afecta a quien corre la **E2E completa**
+(Integrador, y quien mida la suite), NO a los desarrolladores. `test:unit` usa
+`playwright.unit.config.ts`, sin `webServer`, sin `globalSetup` y sin navegador, y corre
+en menos de un segundo: no es el mismo sujeto. Lo que si queda expuesto en una ficha
+normal es `npm run build`.
+
+**Regla en vigor del CEO:** si la suite muere dos veces, no se da por pasada ni se llama
+intermitente — se publica declarando que no se pudo correr, EN LA FICHA.
