@@ -1136,8 +1136,18 @@ test("AIT-134 · momento (3) · si la recuperación TAMPOCO se confirma, no se n
     ruta.fulfill({ status: 500, body: "" }),
   );
 
+  // ⚠️ LA LÍNEA BASE SE TOMA DESPUÉS DE `prepararCierre`, Y ES UN DEFECTO MÍO
+  // CORREGIDO: antes la tomaba con `pagina.url()` ANTES de pulsar, pero
+  // `prepararCierre(…, "ajustes")` hace un `goto("/ajustes")` — o sea que mi
+  // "antes" era `/hoy` y el test fallaba comparando contra una URL anterior a
+  // una navegación que causaba YO. La app se había quedado en `/ajustes`, que es
+  // lo correcto.
+  //
+  // 🔑 El "antes" de un criterio de no-navegación tiene que ser el instante
+  // inmediatamente anterior AL GESTO, no al principio del test.
+  const control = await prepararCierre(pagina, "ajustes");
   const urlAntes = pagina.url();
-  await pulsarCerrarSesion(pagina, "ajustes");
+  await control.click();
   // ⚠️ FILTRADO POR TEXTO A PROPÓSITO: `getByRole("alert")` a secas casa
   // TAMBIÉN con `__next-route-announcer__`, el anunciador de rutas de Next, que
   // también lleva `role="alert"`. Sin el filtro, strict mode falla por
