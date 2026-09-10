@@ -284,10 +284,30 @@ distinguido nada. No fallaban — CONTESTABAN.**
    fecha de una muerta hace 90 minutos.** El número es idéntico; lo único que cambia es si hay
    alguien detrás. **El instrumento no podía responder la pregunta que se le hacía.**
 
-📌 **Lo que los cinco tienen en común, y es lo que hay que arreglar: a NINGUNO lo cazó su
-propio control.** Los cazaron un tercero, un señuelo, o que un número chirriara y alguien
-fuera a mirarlo. **Un control positivo demuestra que el instrumento mide; no demuestra que
-mida lo que se le está preguntando.**
+📌 **Lo que los cinco tienen en común: a NINGUNO lo cazó su propio control.** **Un control
+positivo demuestra que el instrumento mide; no demuestra que mida lo que se le está
+preguntando.**
+
+### Y esto es lo que SÍ los cazó, que es la parte accionable
+La Directora lo precisó y cambia la lección entera. **Al vigilante que se contaba a sí mismo
+no lo destapó una sospecha ni un control: lo destapó que dos instrumentos con filtros
+DISTINTOS dieran números distintos.** Ella tenía 1 proceso, T2 tenía 5, y **una discrepancia
+de números no se puede ignorar**. Sus palabras:
+
+> *"Si su vigilante hubiera usado mi mismo filtro, los dos habríamos visto el mismo número
+> plausible y nadie habría mirado."*
+
+**La consecuencia de diseño es concreta y es lo que yo me llevo de la noche: la redundancia
+sólo protege si los instrumentos redundantes están CONSTRUIDOS DE FORMA DISTINTA.** Dos
+comprobaciones que comparten método no son dos comprobaciones — **son la misma, contada dos
+veces, y su coincidencia se lee como confirmación.** Esta noche nos pasó también con el
+relay: un dato que llegó por dos bocas sonó a dos confirmaciones independientes siendo **una
+sola medición repetida**.
+
+Los cinco se cazaron por: un señuelo, una discrepancia entre dos filtros, un tercero que leyó
+el fichero, y dos veces porque **un número chirrió y alguien fue a mirarlo en vez de
+descartarlo**. Nada de eso escala. **Lo que sí escala es construir el segundo instrumento por
+otra vía a propósito**, para que la discrepancia aparezca sola cuando uno de los dos miente.
 
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
