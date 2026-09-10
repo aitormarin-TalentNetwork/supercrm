@@ -174,17 +174,27 @@ describe("el callback de OAuth, recorrido entero", () => {
     expect(await filas(t)).toHaveLength(0);
   });
 
-  test("M1 · un payload en `error` NO llega interpretado a la respuesta", async () => {
+  // ⚠️ ESTE CASO SE LLAMABA «M1 · un payload en `error` NO llega interpretado» y
+  // ESE NOMBRE ERA FALSO. Mide la CAPA 1 —que el código de error se traduce por
+  // una lista cerrada en vez de reflejarse—, y por eso da verde aunque el
+  // escapado (capa 2) esté roto: el payload no llega a la página, lo corta la
+  // capa 1 antes. Se conserva porque prueba algo real; lo único que se cambia es
+  // su nombre. Quien quiera ver la capa 2 en rojo, el caso de abajo.
+  test("capa 1 · el código de error de Google se traduce, no se refleja", async () => {
     const { t } = await montar();
     entorno();
     const payload = encodeURIComponent('</p><script>alert(1)</script><p x="');
     const r = await t.fetch(`/gmail/oauth/callback?error=${payload}`);
     const html = await r.text();
+    // Ni interpretado ni escapado: es que no está. Se comprueban las dos cosas
+    // para que el caso distinga «traducido» de «escapado».
     expect(html).not.toContain("<script>");
+    expect(html).not.toContain("&lt;script&gt;");
+    expect(html).toContain("Google no ha concedido el permiso");
     expect(await filas(t)).toHaveLength(0);
   });
 
-  test("M1 · una dirección hostil de Google tampoco llega interpretada", async () => {
+  test("capa 2 · una dirección hostil de Google sale escapada (M1)", async () => {
     // 🔴 ESTE CASO EXISTE PORQUE EL ANTERIOR NO SERVÍA. Al fabricarle el rojo a
     // `paginaHtml` (romper el escapado a propósito), el spec seguía en verde: el
     // camino de `error` NO pasa texto del solicitante a la página —lo traduce por
