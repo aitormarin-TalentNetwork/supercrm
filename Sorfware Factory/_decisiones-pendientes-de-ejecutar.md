@@ -1925,3 +1925,76 @@ demostrarlo: buscar discrepancias entre dos medidas puede estar rindiendo mas qu
 y los controles fallan por motivos catalogables (signo equivocado, degenerado, no independiente).
 **Convertirlo en dato costaria enumerar los ocho con su causa. Hasta entonces es una hipotesis
 util.**
+
+## D55 — un criterio con verbo de observacion declara QUIEN observa, CON QUE, y QUE LO HARIA FALLAR
+
+**Propuesto por T2 como condicion transversal, medido por la Directora: TRES criterios de aceptacion
+de esta noche pedian observar algo que el producto no expone, y los tres pasaron rondas de
+auditoria.** Pasaron **porque juzgabamos si el criterio era COHERENTE, no si era EJECUTABLE.**
+
+**ACEPTADA, y con una casilla mas que la propuesta**, porque la propuesta cubre una de sus dos caras
+y no la otra:
+- **Cara A — el criterio pide observar lo inobservable:** nunca se ejecuta, **y su no-ejecucion no
+  deja rastro**. La lo tapan las dos casillas de T2: **quien observa** y **con que instrumento**.
+- **Cara B — el criterio se ejecuta y su verde se produce igual si el control no llego a correr.**
+  Caso cerrado por T3 en AIT-127: un verde que **no distingue *"se abandono bien"* de *"nunca hubo
+  segunda peticion que colgar"*.** **Nombrar al observador y el instrumento NO arregla esto** — es
+  el control degenerado de la D54 §2 dentro de un criterio.
+  **Tercera casilla: QUE RESULTADO HARIA FALLAR ESTE CRITERIO.** Un `PASA si` sin mundo en el que
+  falle **se cumple con la cosa rota**.
+
+**Las tres casillas son de FORMA: las verifica quien audita sin entender el dominio.** Eso es lo que
+la hace barata y lo que la salva de convertirse en criterio.
+
+**Sobre su contrapeso, que agradezco y contesto en vez de esquivar** —*"esto anade friccion a todos
+los planes para cazar una clase que aparecio tres veces en una noche"*—: **la acepto igual, y por la
+frecuencia, no por la gravedad.** Se paga **una vez por criterio, al escribirlo, por su autor**; no
+es un detector que grita en cada corrida ni una espera. **El coste es plano y acotado, y lo paga
+quien tiene el contexto para pagarlo barato.** Si fuera un control periodico la habria rechazado.
+
+## D56 — una coordenada de linea es un PUNTERO: se re-deriva, no se copia
+
+**Medido por T2 sobre su propia AIT-114, contra `origin/main`:**
+```
+su plan dice   authState.ts:164  ->  COOKIE_JWT = "__convexAuthJWT"
+en su base 629440f   linea 164  ✔
+en origin/main       linea 170  ⚠️
+```
+**El valor no cambio. La linea si.** Y su analisis sigue siendo valido palabra por palabra.
+
+🔑 **Lo que lo hace peligroso: la coordenada es JUSTO la parte que otro ejecuta.** Quien va a la 164
+**no encuentra un error, encuentra otra linea** — y si hay algo plausible ahi, **se lo cree**. Un
+diagnostico correcto colando sus coordenadas sin verificar. Causa: **un plan se escribe contra una
+base y se implementa contra otra**, y T2 paso de 22 a **113 commits por detras en cuatro horas y
+media**.
+
+**REGLA:** *cada cita por linea se re-deriva contra la base sobre la que se construye; nunca se copia
+del plan.* **Un hallazgo es un hecho; una coordenada es un puntero, y los punteros se resuelven en el
+momento de usarlos.**
+
+**Con la distincion de T2, que es la parte fina y evita el exceso:** **los veredictos cerrados son
+documentos historicos y sus coordenadas son validas EN SU FECHA** — lo que no puede es **heredarlas
+el export de codigo**.
+
+## D57 — todo runner declara un MINIMO ESPERADO y falla por debajo
+
+**La Directora trae el dato sin propuesta y con dos candidatas. Elijo la segunda: la que mata la
+clase, no el caso.**
+
+**El dato:** un `Total: 0 tests in 0 files` de Playwright **es un cero que dice "no supe mirar" y se
+lee como "no hay nada roto"**. En AIT-109 la causa estaba a dos saltos: `authState.ts` importaba
+`playwright.config` de forma *eager* **solo por una constante**, y con `E2E_PORT` invalido **moria la
+suite pura entera por una constante que ninguna prueba pura usa** — **invisible mirando
+`playwright.unit.config.ts`, que es donde uno la busca.**
+
+**Por que la regla sobre imports NO, y la del minimo SI:** una regla sobre imports arregla **este
+camino**; el proximo cero vendra por otro. **El minimo esperado es una expectativa POSITIVA sobre un
+conteo**, y esa es la unica forma de verificar un enunciado negativo: *"no deberia estar roto"* no se
+comprueba — **se cuenta y se exige un suelo.**
+
+**Y no hace falta artefacto nuevo: el suelo ya existe.** `_cobertura-comandos.txt` guarda la foto
+commiteada (`test:e2e` 38/9, `test:unit` 91/8) y `_cobertura-de-los-comandos.sh` ya trata
+`Total: 0 tests` como **INDETERMINADO y nunca como dato**. **Lo que falta es que el RUNNER falle**,
+no solo que el detector lo note: **si un comando de test devuelve menos tests de los que su foto
+dice, sale distinto de cero.** El coste de mantenimiento es el que ya pagamos — actualizar la foto
+en el mismo commit que cambia la cobertura, con su motivo, que es la D30.
