@@ -940,16 +940,23 @@ una vez que el trabajo pasa auditoría.
 
 - ⛔ TERCERA CASILLA OBLIGATORIA: LA HUELLA — a cuantos ficheros alcanza QUE (2026-09-10)
 
-      Huella: <el MECANISMO, nombrado> alcanza a N ficheros
-      Contado con:  <el comando exacto>
-      Salida:       <lo que imprimio>
-      Complemento:  <los que NO>   <- si acotas un conjunto; vacio se imprime vacio
+      HUELLA — dos preguntas, se dan las DOS:
 
-  ⛔ **NO PIDE UN NUMERO: PIDE UN NUMERO CON SU SUJETO.** No *"cuantos ficheros toca este
-  plan"*, sino ***"cuantos ficheros alcanza <el mecanismo, nombrado>"***.
+        1) ¿a cuantos ficheros alcanza EL CAMBIO?    -> lo dice el diff previsto
+        2) ¿a cuantos alcanza EL MECANISMO?          -> lo dice el config / la ligadura
 
-  🔴 CASO QUE LO OBLIGA, del mismo dia y CON LA CASILLA YA PUESTA: el primer numero de
-  AIT-143 decia **24 specs**. Son **11**. Medido:
+        Cada una con SU COMANDO y SU SALIDA. Complemento impreso si acotan un conjunto.
+        Para REPARTIR sirve la (1). Para el coste del mecanismo, la (2).
+
+  🔑 **EL CAMBIO VA PRIMERO, y el orden no es corazonada: la casilla existe para que el
+  reparto sepa lo que cuesta, y EL REPARTO LO DECIDE EL DIFF.** *La magnitud que decide es la
+  del cambio; la del mecanismo informa.* **Se pide primero lo que decide.**
+
+  ⛔ **NO PIDE UN NUMERO: PIDE UN NUMERO CON SU SUJETO** — y hacen falta **dos sujetos**,
+  porque la pregunta del reparto y la del coste **no son la misma**.
+
+  🔴 CASO QUE LO OBLIGA, del mismo dia y CON LA CASILLA YA PUESTA — **tres numeros ciertos,
+  y solo uno servia:**
 
       e2e/*.spec.ts ................................ 24
       playwright.config.ts:127  testIgnore: PATRON_PRUEBAS_PURAS  -> e2e IGNORA las puras

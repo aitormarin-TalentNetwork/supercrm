@@ -923,16 +923,31 @@ antes ni de después. Una medición es una afirmación sobre un estado **pasado*
 ### ⛔ TERCERA CASILLA OBLIGATORIA DEL EXPORT: LA HUELLA (2026-09-10)
 
 ```
-Huella: <el MECANISMO, nombrado> alcanza a N ficheros
-Contado con:  <el comando exacto>
-Salida:       <lo que imprimio>
-Complemento:  <los que NO>
+HUELLA — dos preguntas, se dan las DOS:
+  1) ¿a cuantos ficheros alcanza EL CAMBIO?   -> lo dice el diff previsto
+  2) ¿a cuantos alcanza EL MECANISMO?         -> lo dice el config / la ligadura
+  Cada una con su comando y su salida. Complemento impreso si acotan un conjunto.
 ```
+**Para REPARTIR sirve la (1); la (2) informa del coste del mecanismo.** 🔑 **El cambio va
+primero porque la casilla existe para que el reparto sepa lo que cuesta, y el reparto lo
+decide el diff.**
 
-⛔ **EXIGE EL SUJETO, no solo el número.** Caso del mismo día: el primer número de AIT-143
-decía **24 specs** y son **11** — los dos configs parten la suite con el mismo patrón
-(`testIgnore` en uno, `testMatch` en el otro), y **las 13 puras no levantan navegador: no
-tienen el sujeto del gate.**
+⛔ **EXIGE LOS DOS SUJETOS, no solo el número.**
+
+**AIT-143: veinte rondas sin que nadie dijera a cuántos ficheros obliga. Cuando se contó,
+salieron TRES NÚMEROS CORRECTOS DE TRES PREGUNTAS DISTINTAS:**
+
+    24  specs que importan `test`      correcto — no era la pregunta
+    11  las que alcanza EL GATE        correcto — tampoco era
+    12  las que toca EL CAMBIO         <- el unico que sirve para REPARTIR
+
+**Cada uno se midió bien; dos respondían a otra pregunta.** *(El duodécimo es
+`e2e/00-instantanea-sesion.spec.ts`: es **pura**, así que el gate no la alcanza, **y el cambio
+sí la toca** porque llama a `readState` directamente.)*
+
+> 📌 **La moraleja operativa, y por eso el sujeto va escrito y por eso van las dos:**
+> ***un control positivo valida el instrumento DENTRO de tu pregunta; no te dice que la
+> pregunta sea la correcta.***
 🔑 **Y el 24 estaba BIEN MEDIDO**, con control positivo y complemento impreso. **Las dos
 salvaguardas puestas, y el número era el correcto de OTRA pregunta.** *Un control positivo
 valida el instrumento dentro de tu pregunta; no te dice que la pregunta sea la correcta.*
