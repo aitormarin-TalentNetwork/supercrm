@@ -200,3 +200,41 @@ test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /
 
   await pagina.context().close();
 });
+
+test("M2 · la PRIMERA llamada de cierre se queda colgada: aviso visible, sin navegar y sin mentir", async ({
+  browser,
+}) => {
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // El tercer camino. C7 aborta la primera —rechazo INMEDIATO— y el de M1 cuelga
+  // la segunda. Aquí la PRIMERA se queda PENDIENTE: no rechaza ni responde, así
+  // que sin límite no se clasifica como fallo NI tiene duración máxima, y el
+  // hook no retornaba nunca.
+  let peticionesDeCierre = 0;
+  await pagina.route("**/api/auth", async (route) => {
+    const cuerpo = route.request().postData() ?? "";
+    if (!cuerpo.includes("signOut")) return route.fallback();
+    peticionesDeCierre++;
+    return new Promise(() => {}); // no se resuelve NUNCA
+  });
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+
+  // Al vencer el plazo se clasifica como NO CONFIRMADO, que es lo único que se
+  // sabe: abortar no dice si el servidor llegó a cerrar. Así que se avisa y no
+  // se navega — falla hacia el rojo, no hacia la mentira.
+  await expect(
+    pagina.getByRole("alert").filter({ hasText: "No se ha podido cerrar la sesión" }),
+  ).toBeVisible({ timeout: 5000 });
+  expect(pagina.url()).not.toContain("/login");
+
+  // CONTROL, sin el cual esto no prueba nada: que la primera llamada se alcanzó
+  // de verdad. Un verde sin esto no distingue "se abortó y se avisó" de "nunca
+  // hubo petición que colgar".
+  expect(
+    peticionesDeCierre,
+    "no se llegó a la primera llamada de cierre: el test no ejercita M2",
+  ).toBeGreaterThanOrEqual(1);
+
+  await pagina.context().close();
+});

@@ -33,12 +33,34 @@ const LIMITE_LIMPIEZA_MS = 1000;
 // es que la librería tire su copia local. Retener el cierre por eso sería pagar
 // con lo importante por lo accesorio.
 //
-// Y el criterio C3 lo acota por arriba: `/login` en ≤3 s. Con 1000 ms de
-// limpieza push + una ida y vuelta de cierre + estos 500 ms, el peor caso sigue
-// dentro con margen.
+// Y el criterio C3 lo acota por arriba: `/login` en ≤3 s — pero C3 solo aplica
+// al camino en que el cierre SE CONFIRMA, que es el único en que se navega. En
+// ese camino el peor caso es 1000 ms de limpieza push + la ida y vuelta real del
+// cierre + estos 500 ms.
+// ⚠️ NO se afirma un máximo end-to-end para los demás caminos: con el cierre
+// acotado a `LIMITE_CIERRE_MS` el peor caso está acotado, pero ahí NO se navega,
+// así que C3 no es el criterio que aplica.
 const LIMITE_LIMPIEZA_CLIENTE_MS = 500;
 
-/** AIT-127: lo único que detiene el cierre es que el cierre falle. */
+// AIT-127 (hallazgo de auditoría de código, M2) — Límite de la petición que SÍ
+// cierra la sesión. Es la importante, así que es el más generoso de los tres.
+//
+// De dónde sale, y no de una corazonada: una ida y vuelta comparable medida
+// contra este deployment da mediana 162 ms y peor caso observado 485 ms
+// (arranque en frío). 2000 ms es ~12x la mediana y ~4x la peor observada, así
+// que una llamada sana no lo alcanza nunca.
+//
+// ⚠️ Y al vencer NO se asume nada: se clasifica como NO CONFIRMADO. Abortar una
+// petición no dice si el servidor llegó a cerrar; decir "cerrado" ahí sería la
+// mentira que esta ficha persigue, y decir "no cerrado" también sería afirmar de
+// más. Se dice lo único que se sabe: no se pudo confirmar.
+const LIMITE_CIERRE_MS = 2000;
+
+/** AIT-127: lo único que detiene la NAVEGACIÓN es que el cierre no se confirme.
+ *  ⚠️ "No confirmado" incluye tres cosas distintas y a propósito: que responda
+ *  mal, que rechace, y que **venza el plazo sin responder**. Las tres se tratan
+ *  igual porque en las tres **no sabemos** si la sesión se cerró — y esta ficha
+ *  prohíbe reportar éxito sin confirmación. */
 export type ResultadoCierre = { ok: true } | { ok: false; motivo: "cierre" };
 
 // AIT-57 (hallazgo de auditoría NO-GO ronda 3): la mutation
@@ -106,16 +128,34 @@ export function useSignOutAndUnlinkPush() {
     // Así que se llama al MISMO endpoint del proxy —no se reimplementa nada, él
     // sigue borrando las cookies— y lo único que cambia es que **el resultado
     // deja de tirarse**.
+    // 🔴 Y VA ACOTADA CON `AbortController`, NO SOLO ABANDONADA (hallazgo M2 de
+    //    la auditoría de código). Sin límite, una petición PENDIENTE no rechaza
+    //    ni responde: **no se clasifica como fallo y tampoco tiene duración
+    //    máxima**, así que el hook no retornaba nunca y la pantalla autenticada
+    //    se quedaba indefinidamente. Es la tercera vez en esta ficha que quito
+    //    una espera y aparece la siguiente: primero `unsubscribe`, luego la
+    //    segunda llamada de cierre, y ahora la primera.
+    //    Se ABORTA en vez de solo dejar de esperar, porque `Promise.race` no
+    //    cancela la promesa perdedora: abortando, la petición se corta de verdad.
     let cierreConfirmado = false;
+    const control = new AbortController();
+    const corte = setTimeout(() => control.abort(), LIMITE_CIERRE_MS);
     try {
       const respuesta = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "auth:signOut", args: {} }),
+        signal: control.signal,
       });
       cierreConfirmado = respuesta.ok;
     } catch {
+      // Incluye el abortado por límite. ⚠️ Y el resultado seguro es NO
+      // CONFIRMADO: al vencer el plazo **no sabemos** si el servidor cerró o no,
+      // y ante esa duda esta ficha manda no reportar éxito. Falla hacia el rojo
+      // —el usuario ve el aviso y puede reintentar— en vez de hacia la mentira.
       cierreConfirmado = false;
+    } finally {
+      clearTimeout(corte);
     }
 
     if (!cierreConfirmado) {
