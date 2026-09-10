@@ -12,12 +12,23 @@ de quien tiene que pedirlo, o sea mía. Por eso cada línea dice **cuándo se le
 solo que le toca a él. *Una ficha con dueño nombrado se siente atendida y por eso deja de
 mirarse.*
 
-**Estado hoy: NINGUNA se le ha pedido todavía — no ha estado en toda la jornada.** Las
-nueve son parada, no espera.
+**Estado a las 2026-09-10 23:50 UTC — y con la fuente de cada cosa, porque "pedido" es
+justo el campo que no se puede rellenar de oídas:**
+
+* **La lista entera se le habría entregado por el canal directo del Integrador** (~20:2xZ).
+  ⚠️ **Me lo dice la Directora; yo NO lo he verificado con el Integrador.** *Queda como
+  relayado, no como hecho: hoy ya nos ha costado una parada inventada dar por hecho lo que
+  otro dijo que había hecho.*
+* **AIT-120** lleva además **notificación de terminal a las 20:23Z**, ⚠️ **con Remote Control
+  inactivo: NO llegó al móvil.** *O sea que depende de que vuelva a la silla.*
+* **El resto siguen sin confirmación de lectura.**
+
+📌 **Y sin ese paréntesis, un `SÍ` se lee como "avisado" y mañana nadie sabría que dependía
+de que volviera a sentarse.**
 
 ---
 
-## 1 · AIT-120 — pagar o reducir el plan de Convex · `pedido: NO`
+## 1 · AIT-120 — pagar o reducir el plan de Convex · `pedido: SÍ (20:23Z, notificación de terminal SIN Remote Control: no llegó al móvil)`
 
 **Es la primera porque su peor caso para las nueve sesiones a la vez y nadie de aquí lo
 controla.** Decisión suya: subir de plan o recortar consumo.
@@ -122,6 +133,23 @@ visto bueno al PROCEDIMIENTO.**
 *"ya está en su lista"* **y no estaba en ninguna lista suya** — vivía en el fichero de
 reparto de la Directora. *Una parada que nadie le ha pedido no es una parada: es trabajo
 detenido sin dueño.* Lo cazamos cruzando las dos listas.
+
+## 11 · AIT-145 — AÑADIR las URIs de redirección de la app en la consola de Google · `pedido: NO`
+
+**Qué hay que hacer:** en el cliente OAuth `SuperCRM Gmail`, **añadir** las URIs de retorno
+que apuntan **a la app** (no a `.convex.site`), una por entorno.
+
+⛔ **AÑADIR, NUNCA SUSTITUIR.** Las cinco de `.convex.site` **se quedan**: así nada de lo que
+funciona hoy se rompe, y el plan B sigue disponible entero si esto se cae.
+
+**Por qué:** es lo que cierra el ataque de vinculación **sin cobrarle un clic a cada usuario
+en cada conexión**. Con el retorno en el mismo origen que la sesión del CRM, **en una sola
+petición se ve quién consintió y quién está identificado**. El token de refresco **sigue sin
+tocar el navegador**.
+
+⚠️ **Límite declarado:** el diseño ha sobrevivido a **cinco ataques de su propio autor, dos de
+los cuales rompieron y se arreglaron. Eso NO es una auditoría** — es lo que su autor supo
+imaginar. **Se pide igualmente porque equivocarse aquí es barato: las URIs se añaden.**
 
 ---
 
