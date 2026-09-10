@@ -723,7 +723,14 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
   // Ahora se observa el consumo EFECTIVO de cada etapa por separado, con su
   // propio suelo. Un techo sin suelo mide que no te pasaste; no mide que
   // llegaras.
-  const etapaPush = tPrimeraPeticion - t0;
+  // ⚠️ MISMA FAMILIA QUE EL RESIDUO DE ABAJO, Y LO ENCONTRÉ AUDITANDO ESTE
+  // FICHERO DESPUÉS DE QUE EL OTRO NOS ENGAÑARA A DOS. Esto NO es "la etapa de
+  // limpieza push": va del GESTO a la primera petición, así que contiene la
+  // carrera (acotada a LIMITE_LIMPIEZA_MS) **más el despacho del clic y la
+  // lógica síncrona**. Medido: 769 y 782 contra un límite de 750.
+  // Se conserva como suelo —tiene que contener la carrera entera— pero se
+  // publica con su nombre, no como si se comparara con el límite.
+  const restoHastaLaPrimeraPeticion = tPrimeraPeticion - t0;
   const etapaCierre = tRespuesta - tPrimeraPeticion;
   // 🔴 ESTO NO ES "LA ETAPA DE LIMPIEZA", Y SE LLAMABA ASÍ. Es un RESIDUO: todo
   // lo que queda entre la respuesta del cierre y `/login`. Contiene la carrera de
@@ -746,7 +753,8 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
   console.log(
     `[AIT-127 · C3] gesto → /login = ${total} ms · forzado = ${forzado} ms · ` +
       `sobrecarga = ${total - forzado} ms (margen reservado ${MARGEN_SOBRECARGA_MS} ms)\n` +
-      `[AIT-127 · C3] etapas medidas: push ${etapaPush} ms (límite ${LIMITE_LIMPIEZA_MS}) · ` +
+      `[AIT-127 · C3] tramos medidos: gesto→1ª petición ${restoHastaLaPrimeraPeticion} ms ` +
+      `(contiene la carrera de ${LIMITE_LIMPIEZA_MS} + el despacho) · ` +
       `cierre ${etapaCierre} ms (retenido ${RETARDO_CIERRE_MS}) · ` +
       `resto hasta /login ${restoHastaLogin} ms = carrera ${LIMITE_LIMPIEZA_CLIENTE_MS} ` +
       `+ cola ${sobrecargaDeLaCola} ms · margen reservado ${MARGEN_SOBRECARGA_MS}`,
@@ -761,8 +769,8 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
 
   // SUELO POR ETAPA — cada una tuvo que consumir su límite de verdad.
   expect(
-    etapaPush,
-    `la limpieza push consumió ${etapaPush} ms y su límite es ${LIMITE_LIMPIEZA_MS} ms: ` +
+    restoHastaLaPrimeraPeticion,
+    `la limpieza push consumió ${restoHastaLaPrimeraPeticion} ms y su límite es ${LIMITE_LIMPIEZA_MS} ms: ` +
       `no se agotó, así que el peor camino NO se ejercitó`,
   ).toBeGreaterThanOrEqual(LIMITE_LIMPIEZA_MS - TOLERANCIA_ETAPA_MS);
 
@@ -791,6 +799,30 @@ test("C3 · con las TRES etapas cerca de su máximo, del gesto a /login en ≤3 
       `este test fuerza: alguna etapa no se consumió y el techo de abajo daría ` +
       `verde sin haber medido el peor camino`,
   ).toBeGreaterThanOrEqual(forzado - TOLERANCIA_ETAPA_MS);
+
+  // 🔴 LA GUARDA QUE CAMBIA DE PREGUNTA (decisión del PM, 2026-09-10).
+  //
+  // ANTES la sobrecarga sólo se vigilaba con una prueba PURA que comparaba
+  // `MARGEN_SOBRECARGA_MS` contra un literal escrito a mano (`278`). Eso medía
+  // **si alguien había bajado el margen**, no **si el margen seguía bastando**:
+  // con 445 ms observados hoy, aquella guarda seguía VERDE porque el 278 no se
+  // entera solo. Un peor caso guardado como literal deja de ser el peor en
+  // cuanto mides otra vez.
+  //
+  // Ahora la pregunta la contesta la corrida: **si la sobrecarga observada AQUÍ
+  // supera el margen, esta corrida falla**, aunque el total todavía quepa.
+  //
+  // ⚠️ Y falla aunque C3 pase: es a propósito. Un total que cabe con la
+  // sobrecarga comiéndose el margen es un verde que descansa en la holgura de
+  // otras etapas — o sea **un fallo con margen**, que es lo que esto persigue.
+  const sobrecargaObservada = total - forzado;
+  expect(
+    sobrecargaObservada,
+    `la sobrecarga observada en ESTA corrida (${sobrecargaObservada} ms) supera ` +
+      `el margen reservado (${MARGEN_SOBRECARGA_MS} ms). No subas el presupuesto ` +
+      `ni bajes el margen: el margen se cubre recortando un límite, y cuál se ` +
+      `recorta lo decide el PM.`,
+  ).toBeLessThanOrEqual(MARGEN_SOBRECARGA_MS);
 
   // TECHO: el criterio C3 propiamente dicho.
   expect(

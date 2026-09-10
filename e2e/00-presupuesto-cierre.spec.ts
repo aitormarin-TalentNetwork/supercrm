@@ -55,7 +55,19 @@ test("C3 · el margen de sobrecarga no puede quedarse por debajo de lo medido", 
   // recortando el margen en vez de los límites, y la sobrecarga real —que no
   // depende de nosotros— se queda fuera del presupuesto otra vez.
   // 278 ms es el PEOR de los tres valores medidos, no un redondeo.
-  const PEOR_SOBRECARGA_MEDIDA_MS = 278;
+  // ⚠️ ACTUALIZADO 278 -> 445, Y ES EL APAÑO, NO EL ARREGLO. El 445 se midió el
+  // 2026-09-10 en la corrida de AIT-134 que fallaba C3. Este literal **nunca
+  // baja**: sólo sube cuando se mide algo peor.
+  //
+  // ⛔ PERO SUBIR EL NÚMERO Y DEJAR LA GUARDA IGUAL SERÍA REPETIR EL MECANISMO
+  // CON OTRO NÚMERO (palabras del PM). Esta prueba pura sigue midiendo **si
+  // alguien bajó el margen**, no **si el margen basta** — y no puede saber lo
+  // segundo, porque no observa ninguna corrida.
+  // Lo que sí contesta esa pregunta vive en el test de C3 de
+  // `08-cierre-de-sesion.spec.ts`: la corrida falla si la sobrecarga observada
+  // EN ELLA supera el margen. Esta se queda como cinturón contra el recorte
+  // silencioso del margen, que es lo único que sí puede medir.
+  const PEOR_SOBRECARGA_MEDIDA_MS = 445;
   expect(
     MARGEN_SOBRECARGA_MS,
     `el margen (${MARGEN_SOBRECARGA_MS} ms) es menor que la peor sobrecarga ` +
