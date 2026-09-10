@@ -217,6 +217,29 @@ veredictos de esta noche .......  49    (control: 46 mas son de noches anteriore
   NO-GO ........................  45
 fichas cerradas ................   2
 ```
+### ¿Quedaba alguna a punto de cerrar? No. Y la respuesta es de la Directora, medida
+Le pedí el número antes de escribir "dos fichas" para no quedarme con el mío. **Ninguna de
+AIT-122 a AIT-126 cierra esta noche, y ninguna está a un GO de distancia.**
+
+```
+ficha     rondas    majors por ronda (plan)              tendencia
+AIT-122     10      4·3·0·3·7·4·4·2·4·3                  PLANA
+AIT-114     16      0·0·2·3·1·1·2·4·2·2                  PLANA
+AIT-136      4      6·3·3·5                              PLANA
+AIT-127     11      plan cerró en GO · código: 3 NO-GO
+
+seis horas de ciclo (03:58:58Z → 09:59:58Z) · 51 disparos · 0 GO de código
+```
+
+**Y AIT-124, 125 y 126 ni siquiera están abiertas:** cero exports, cero veredictos, ninguna
+asignada. **No es que no lleguen — es que no han empezado.**
+
+> 🔑 **Su lectura, y me la quedo porque es más honesta que la mía:** las tres de plan **no
+> están atascadas, están convergiendo despacio y por abajo.** Los majors no bajan porque
+> **cada corrección abre superficie nueva que se audita por primera vez** — el major que T1
+> recibió esta ronda está *dentro del script que escribió para cerrar el de la anterior*.
+> **"El bucle produce trabajo verificado, no cierres"**, que no es lo mismo que "va lento".
+
 **Los cuatro GO:** AIT-109 (03:42), el plan de AIT-123 (05:48), el plan de AIT-127 (06:22) y
 **el código de AIT-123 (07:27)** — el único GO de implementación de la noche.
 
