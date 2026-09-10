@@ -309,6 +309,50 @@ el fichero, y dos veces porque **un número chirrió y alguien fue a mirarlo en 
 descartarlo**. Nada de eso escala. **Lo que sí escala es construir el segundo instrumento por
 otra vía a propósito**, para que la discrepancia aparezca sola cuando uno de los dos miente.
 
+### Cuatro falsos ceros por tipografía, y el cero se lee como ausencia
+**Cuatro veces esta noche, en cuatro sitios y cuatro sesiones distintas, un patrón devolvió
+CERO y el cero se leyó como "no está".** Los tres primeros los agrupó la Directora; el cuarto
+es mío, de hace ocho minutos:
+
+```
+el `$` anclado del patron canonico  -> 0 en 2 de 4 veredictos (dos espacios finales de markdown)
+comillas rectas contra tipograficas -> 0 al buscar la cita de cierre de un veredicto
+guion `-` contra raya `–`           -> 0 al buscar los rangos de linea que cita el auditor
+`find -newermt "-40 minutes"`       -> 0 transcritos frescos... con 12 sesiones vivas (mio)
+```
+
+**Los tres primeros comparten causa: el auditor escribe en markdown con tipografía, y nosotros
+buscamos con teclado.** No es un defecto suyo ni de quien busca — **el canal tiene una
+tipografía y los patrones no la contemplan.** El arreglo es uno solo: **normalizar antes de
+comparar** (espacios finales, comillas, guiones) en cualquier patrón que se aplique a un
+veredicto.
+
+📌 **Y la contrapartida operativa, que dijo T1 mejor que nadie: ante un cero, sospechar del
+INSTRUMENTO antes que del SUJETO.** Los tres se cerraron **cambiando el patrón, no dudando del
+auditor**. Si se hubiera dudado del auditor, habríamos "arreglado" algo que funcionaba.
+
+✅ **El cuarto es el único que se cazó solo, y por eso lo incluyo:** mi conteo dijo *"0
+transcripts tocados en 40 minutos"* mientras **el control positivo que había puesto delante
+decía que el mío se había tocado hace 0 minutos.** La contradicción interna lo delató antes de
+que actuara. **Sin ese control, habría escrito a once terminales diciéndoles que estaban
+paradas.** Es el único de los seis instrumentos rotos de esta noche **que detectó su propio
+fallo** — y lo detectó porque el control se puso ANTES de mirar el resultado, no después.
+
+### Dos formas de fallo que las terminales han sabido nombrar sobre sí mismas
+Las dos salieron de que una terminal describiera **su propio modo de fallo característico**,
+no de que alguien las pillara:
+
+- **T3, sobre AIT-127 (quinta aparición de la misma clase):** el error no es *"afirmar una
+  propiedad sin escribir el mecanismo"* — es **"parar de escribir en cuanto el mecanismo
+  empieza a existir"**. Puso una frase, luego la convirtió en una llamada real y la llamó
+  observable… **y el estado se actualiza mientras ningún componente lo consume.** Lo
+  peligroso de ese punto exacto es que **el texto ya no parece una frase vacía: parece
+  código.**
+- **T2, sobre su lista "completa":** clasificó las 15 tablas del esquema y el export trae 22 —
+  le faltaba una tabla que la suite escribe **en cada login**. **No falló la clasificación,
+  falló el universo.** Su conclusión sobre sí misma: *"mi modo de fallo característico es
+  acotar el universo antes de mirarlo."*
+
 ### Y una regla que nos apunta a todos
 Reformulé un gate que desbloqueaba **mi propio entregable comprometido**. Lo declaré y lo mandé
 fuera a revisar; el Factory Architect **lo tumbó**. La lectura correcta no es mía:
