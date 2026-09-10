@@ -2585,3 +2585,43 @@ la etiqueta de «el mejor de la vuelta» y sin medirlo, porque venia con dos num
 que ya sabiamos."* ***Una historia coherente no necesita que el dato aguante.***
 **Yo le anado la mia: lo publique en un documento de proceso, que es el peor sitio posible para una
 propiedad del entorno falsa** — precisamente porque **ahi se lee como comprobada.**
+
+## D67.2 — PRECISION MEDIDA POR MI: un SCRIPT no hereda la funcion. El riesgo esta en los comandos que ESCRIBIMOS
+
+**Fui a aplicarme la correccion de la D67 a mi propio vigilante y medi primero cual era el alcance
+real. El resultado cambia a quien aplica la regla, asi que va como precision y no como nota:**
+```
+DENTRO de un script (#!/bin/bash, no interactivo)
+  type -t grep .................... file            <- el BINARIO, no la funcion
+  grep sobre un DIRECTORIO ........ exit 2 · stderr 31 B   ✅ falla bien
+
+En la shell de sesion (control, mismo comando)
+  type -t grep .................... function
+  grep sobre un DIRECTORIO ........ exit 0 · stderr  0 B   🔴 silencio
+```
+
+🔑 **Y la consecuencia esta invertida respecto a donde uno la buscaria: los SCRIPTS COMMITEADOS ESTAN
+A SALVO** —reciben el binario— **y lo expuesto son los COMANDOS AD HOC que escribimos en sesion.**
+O sea: **exactamente donde medimos, verificamos y ponemos los controles positivos.**
+
+⚠️ **Eso es peor que al reves, no mejor: el fallo no esta en lo medido, esta en el que mide.** Un
+script defectuoso se audita, se versiona y alguien acaba leyendolo; **un comando que escribes una vez
+para comprobar algo y del que te fias no lo revisa nadie, jamas.** Toda la verificacion de esta noche
+—la mia incluida— se ha hecho en la shell donde `grep` calla.
+
+**Ajuste de la regla, que sigue siendo la misma con el sujeto bien puesto:**
+- **En comandos de sesion —los de medir, verificar y controlar— la herramienta va con RUTA ABSOLUTA.**
+  Ahi es donde vive el riesgo.
+- **En scripts, la ruta absoluta es buena higiene y NO es lo que salva.** Lo que los salva es que no
+  heredan el entorno interactivo. *(Y no conviene apoyarse en eso: depende de como se invoquen.)*
+
+📌 **Y anoto lo que casi hago mal: iba a "corregir" mi vigilante anadiendole rutas absolutas y a
+declararlo arreglado.** Habria sido un cambio inocuo **presentado como un arreglo**, sobre un fichero
+que no tenia el defecto — **y me habria hecho creer que la clase estaba cerrada mientras el hueco
+real seguia abierto en el sitio contrario.** *Medir el alcance antes de arreglar evito un arreglo
+correcto en el sitio equivocado.*
+
+**Correcciones pendientes de verdad en mi vigilante, que son OTRAS y no las de la ruta:**
+- **`grep ... 2>/dev/null` en la linea 38 descarta el stderr en una invocacion de medicion**, contra
+  la regla que adopte del Integrador (*jamas se descarta el stderr en una invocacion de control*).
+  **Ese si es un defecto real y es mio.**
