@@ -1218,3 +1218,56 @@ busca — y falla hacia "SI esta", que en una comprobacion de precondiciones es 
 Orden POR HORA DE CONGELACION. T1 cedio el turno por cortesia y NO se acepta:
 **si el orden lo decide la cortesia deja de ser un orden y pasa a ser quien insiste menos —
 y el que insiste menos siempre es el mismo.**
+
+---
+
+## MI BARRIDO DEL CODEGEN TENIA EL PUNTO DE REFERENCIA EQUIVOCADO (corregido 19:03Z, lo caza T3)
+
+Barri las cuatro puntas cruzando los ficheros fuente de `convex/` contra su `api.d.ts`, y compare
+**contra `main`**. T3 lo midio desde su lado:
+
+    su rama esta 68 commits DETRAS de origin/main · base de fusion f2f0c51, de las 10:04
+    los 4 ficheros de diferencia NO faltan en su rama: SOBRAN en main (son de AIT-92)
+
+> **Comparar el codegen contra `main` contesta "¿esta tu rama al dia con lo publicado?".
+> La pregunta es otra: "¿TU cambio deja el codegen coherente con lo que TU cambio toca?" —
+> y esa se contesta contra la BASE DE FUSION.**
+
+Es el error del rango corto en el otro eje: **el rango largo con el punto de referencia
+equivocado**. Y falla hacia acusar a ramas que no han hecho nada, porque `main` se mueve debajo.
+
+⚠️ **Y la otra mitad, que es de T3 y no la tenia:** si el auditor corre esa rama, corre **sin**
+las funciones que solo existen en main. **Que no herede el estado de despliegue de una maquina
+que corrio `main`.** Es el defecto de AIT-92 visto del reves: alli el auditor tenia de MAS en su
+caja y su verde valia solo dentro de ella. **La caja del que mide es parte del resultado en las
+dos direcciones.**
+
+## TRES CONTROLES DADOS POR ROTOS SIN MEDIRLOS, EN UN DIA (y el tercero fue el AUDITOR)
+
+    mi detector de veredictos ..... nueve rojos -> iba a retirarlo -> eran VERDADEROS
+    el comando de docs/02 ......... da salida   -> "esta roto"     -> es CORRECTO (48 lineas
+                                                   de desincronizacion REAL: falta gmailAccounts)
+    un patron del FA por la manana  ............................... igual
+
+⛔ **El tercero lo dio por roto el AUDITOR, que es nuestra unica voz externa.** Formulacion del
+FA: **si el reflejo de "grita, luego esta roto" ha llegado hasta el, no es la costumbre de un rol,
+es del sistema entero.** Y la direccion es la mala: retirar un control que grita con razon deja
+el hueco **y** la sensacion de haberlo cerrado.
+
+**Diagnostico de clase, de T2:** *el instrumento existia, estaba publicado, y ningun criterio de
+la ficha lo invocaba*. **No fallo el comando: fallo que nadie lo ejecuta.**
+**Un comprobador publicado sin un criterio que lo invoque es documentacion, no control.**
+
+## LA PREGUNTA BUENA PARA UN CONJUNTO DE CRITERIOS (de T3, auditando a T2)
+
+No *"¿puede fallar cada uno?"* sino **"¿QUE IMPLEMENTACION ROTA LOS PASA TODOS?"**. Los seis
+criterios de T2 eran todos "no se navega, avisa, sesion viva" — **un producto que NUNCA navegue
+los pasa los seis**. Lo que lo impide es el REVERSO, que fabrica el flujo completo.
+
+## EL ENCLAVAMIENTO DE AIT-145 SUBE DE RANGO (decision del PM)
+
+Ya no se levanta viendo un `Done`: **hay que haber FABRICADO el ataque** (iniciar el flujo con una
+sesion, mandar la URL, consentir desde otra) **y ver que el vinculo no se crea.**
+**Un estado de Linear no es una prueba; el rojo que se vuelve verde si.**
+Restriccion de producto para el rediseno: **la conexion se arranca DESDE DENTRO de la app, ya
+identificado — nunca abriendo un enlace que alguien te pasa.**
