@@ -22,16 +22,27 @@ trabajo que sigue vivo.**
 sincronizador = corrupción de git". **El disco no está lleno: 484 GiB disponibles, 46% de
 uso, medido.** La premisa era falsa y era mía. **El riesgo es iCloud y solo iCloud.**
 
-### 🥉 AIT-99 — dos autorizaciones. Es lo más caro que tenemos parado.
-**No cierra, y no es cuestión de tiempo.** Ronda 2 de código NO-GO, y sus `SIN:` de las
-rondas 1 y 2 **coinciden en tres de cuatro**. Los tres huecos solo los quitas tú:
-- crear cuentas en el Convex compartido está **vetado** (ya hay una credencial expuesta),
-- retirar las cinco cuentas sembradas es **AIT-131**, y la siembra **no tiene inversa**,
-- falta un **deployment virgen**.
+### 🥉 AIT-99 — CUATRO PERMISOS CONCRETOS. Es lo más caro que tenemos parado.
+**No cierra, y no es cuestión de tiempo ni de trabajo.** Estado medido en la carpeta, no leído
+de un registro: **dos rondas de código auditadas, las dos NO-GO**; M1, M2 y M5 **cerrados**;
+rama respaldada en `origin`, árbol limpio, cero commits sin subir. **Está parada desde las
+01:56Z en el mismo punto.**
+
+**Lo que falta es literalmente el `SIN:` del auditor, y son cuatro cosas que solo puedes
+autorizar tú porque se ejecutan con tu identidad y sobre infraestructura que pagas:**
+1. **Operaciones sobre el deployment compartido de dev.**
+2. **Retirar las cinco cuentas `ait99-*` y comprobar que pierden acceso** — destructivo, y hoy
+   imposible de deshacer: la siembra **no tiene inversa** (AIT-131, congelada).
+3. **Control positivo de `authRateLimits`.**
+4. **Ejecución sobre un deployment virgen** — que no existe: hay que crearlo.
+
+**Te lo doy como cuatro permisos y no como "AIT-99 necesita atención" a propósito:** lo primero
+se decide en dos minutos; lo segundo obliga a reconstruir el contexto entero. **Y el permiso 2
+es el mismo que desbloquea la credencial expuesta del punto 6.**
 
 **Dos salidas, y no elegí ninguna a propósito:**
 - **(a)** autorizar lo mínimo para medir — descongelar AIT-131, o permitir N cuentas acotadas.
-- **(b)** cerrarla aceptando los tres huecos con nombre en la ficha.
+- **(b)** cerrarla aceptando los cuatro huecos con nombre en la ficha.
 
 **Por qué no la cerré yo:** cerrar **falla hacia el verde**, y sus criterios dicen *"un
 deployment nuevo puede entrar por contraseña"* — cerrarla sin haberlo verificado deja escrito
