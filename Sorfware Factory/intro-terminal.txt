@@ -351,7 +351,9 @@ una vez que el trabajo pasa auditoría.
    Y si quieres una segunda confirmación por el BINARIO, **tiene que ser sobre el
    proceso PADRE**:
      ps -o ppid= -p <PID>                      # el padre
-     ps -axo pid,command | grep <PPID>         # su línea de comando completa
+     ps -axo pid,command | grep <PPID>         # su línea completa — ⚠️ VER EL AVISO DE
+                                               # FUGA MAS ABAJO: no la saques CRUDA a la
+                                               # terminal; mandala a fichero y filtra alli.
    El proceso que escucha **se retitula `next-server (v16.x)` y no lleva ruta**, así que
    sobre él este método no dice nada; y `ps -p <pid> -o comm=` da solo el nombre corto.
    La ruta del padre sí distingue: `…/_worktrees/T2/node_modules/.bin/next` es de T2;
@@ -380,8 +382,43 @@ una vez que el trabajo pasa auditoría.
    LO ÚNICO QUE DISTINGUE ES EL COMANDO COMPLETO:
      …@playwright/mcp…   → SERVIDOR de una sesión. NO SE TOCA.
      …playwright test…   → corrida de la suite. Eso sí es matable.
-   Comprueba SIEMPRE con `ps -axo pid,command` antes de matar nada, y mata por PID
-   concreto, nunca por patrón.
+   Comprueba SIEMPRE antes de matar nada, y mata por PID concreto, nunca por patrón.
+
+   🔴🔴 PERO **NO** CON `ps -axo pid,command` A LA TERMINAL. ESTE DOCUMENTO LO MANDABA Y
+   ERA UNA FUGA DE SECRETOS (2026-09-10 12:5xZ, medido por T1 y confirmado por el Factory
+   Architect contando coincidencias sin volcar valores):
+
+     ps -axo pid,command   ->  3 lineas con TOKEN=/SECRET=/KEY=   🔴 FUGA
+     ps -axo pid,comm      ->  0                                   ✅ seguro
+     pgrep -f <patron>     ->  solo PIDs                           ✅ seguro
+
+   **`ps -axo command` y `pgrep -fl` imprimen el ENTORNO HEREDADO del proceso, no solo su
+   linea de comando.** T1 volco un token en claro a su transcript **obedeciendo esta misma
+   instruccion**, mientras comprobaba que no tenia procesos pesados.
+
+   🔑 LA CLASE, Y ES PEOR QUE LAS DEMAS DE ESE DIA (formulacion de T1):
+     **«El comando canonico para ver que procesos hay es el mismo una fuga.»**
+   Lo grave es que **el gesto es OBLIGATORIO**: la alternativa a inspeccionar antes de
+   matar **es matar a ciegas**, que es justo lo que esta regla existe para impedir.
+   **Obedecer y filtrar eran el mismo acto.**
+
+   ⚠️ Y NO BASTA CON «no uses ps» — esa prohibicion se incumple sola, porque quien
+   necesite el dato volvera a `ps` recordando solo la prohibicion y no el filtro.
+   **La regla que funciona es: NUNCA imprimas su salida CRUDA.** Filtra siempre
+   (`| md5`, `| wc -c`, `grep -c`, `-o comm=`). `cual.sh` usa `ps eww` a proposito y es
+   correcto **porque pasa el valor por md5 y solo ensena el nombre de la cuenta.**
+
+   TRES PREGUNTAS, TRES COMANDOS — y la instruccion vieja mandaba el mas peligroso para
+   el caso mas comun:
+     «¿existe este proceso?»      ->  pgrep -f <patron>       (solo PIDs)
+     «¿que binario es este PID?»  ->  ps -p <pid> -o comm=    (sin argv ni entorno)
+     «necesito la linea entera»   ->  CASO RARO Y PELIGROSO: a FICHERO, filtrar alli,
+                                      y **NUNCA a la terminal**. Es la excepcion, no la norma.
+
+   ⚠️ UN CERO AQUI NO ABSUELVE AL COMANDO: el Factory Architect midio `pgrep -fl claude` -> 0
+   coincidencias, y **eso NO lo hace seguro** — imprime la linea completa igual, asi que
+   filtra solo cuando existe un proceso con secretos en su entorno. **Su cero significa "no
+   habia uno ahora", no "es seguro".** Es justo el cero que nos habria enganado a los dos.
 
    ⚠️ **Y el `cwd` NO protege aquí**: seis de esos servidores tienen su `cwd` en la raíz.
    El `cwd` sirve para saber si algo es de otro, **no para distinguir dos cosas distintas
