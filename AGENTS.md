@@ -161,6 +161,28 @@ nadie leyo entero, y nada lo registra.**
 ⚠️ **No lo recalcules tu ni lo verifiques:** copialo tal cual. **Quien compara eres tu no, es
 quien recibe el veredicto.**
 
+⛔ **Y NO BASTA CON COPIARLO: COPIAR NO ES VERIFICAR.** Si te limitas a transportar el numero
+que escribio el worker, **el veredicto transporta una DECLARACION**: un export alterado entre
+la escritura y tu lectura llega **con su propio hash correcto copiado encima**, y el dictamen
+sale coherente con un numero de aspecto criptografico dentro. **Ese numero certificaria a
+quien lo escribio, no a lo que tu leiste.**
+
+> ✅ **RECALCULALO TU sobre el fichero que vas a leer, compara, y escribe EL QUE TU
+> CALCULASTE, diciendo si coincidia:**
+>
+>     wc -l < F           # y luego:
+>     sed '$d' F | wc -l  # tiene que ser EXACTAMENTE uno menos
+>     sed '$d' F | md5
+>
+> **El conteo NO es ceremonia:** si el comando falla, la tuberia devuelve
+> `d41d8cd98f00b204e9800998ecf8427e` —el md5 de la cadena vacia— **que es un hash
+> perfectamente formado y da VERDE UNIVERSAL para cualquier fichero.**
+
+⚠️ **SI NO PUEDES RECALCULARLO en tu entorno, DILO EN EL VEREDICTO con esta frase:** *"esto ata
+la version que el WORKER declaro; entre su declaracion y mi lectura no hay comprobacion"*.
+**Sigue siendo mejor que nada, pero es LA MITAD, y la mitad tiene que ir escrita.** *Un limite
+declarado no rompe el control: lo que lo rompe es que alguien lo lea como entero.*
+
 📌 **Limite: esto ata el veredicto a la VERSION que auditaste. NO dice que esa version sea la
 punta de la rama** — esa es otra comprobacion, y son dos.
 

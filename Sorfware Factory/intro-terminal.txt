@@ -263,7 +263,17 @@ una vez que el trabajo pasa auditoría.
 
   ✅ **PERO EMPUJAR TU RAMA SÍ ENTRA EN TU TRABAJO, Y NO ES PUBLICAR** (2026-09-10):
   `git push origin <tu-rama>` **desde TU worktree**. Hazlo **al congelar el export para el
-  auditor**. Publicar es mover `main`, y eso sigue siendo del Integrador.
+  auditor, SI TIENES COMMITS QUE EMPUJAR**. Publicar es mover `main`, y eso sigue siendo del
+  Integrador.
+
+  ⛔ **"SI TIENES COMMITS" ES PARTE DE LA REGLA, no una obviedad** (añadido por T1 el mismo
+  día): en una ficha de **solo lectura** —analizar, inventariar, medir sin tocar código— el
+  entregable es un fichero fuera del repo y **`origin/main..HEAD` da CERO**. Empujar ahí
+  **crea en `origin` una rama idéntica a `main` sin un solo commit**, y quien la vea en GitHub
+  **va a buscar un cambio que no existe.**
+  📌 *Es el mismo defecto que esta misma regla vino a arreglar: decía CUÁNDO empujar y no
+  SOBRE QUÉ, así que en una ficha sin commits se leía como "empuja de todas formas".*
+  **Comprueba antes:** `git rev-list --count origin/main..HEAD`.
   **Si te ves escribiendo `main` en un `push`, para.**
 
   📊 **Y no es una excepción nueva: es lo que esta fábrica hace desde hace semanas.** Medido
@@ -1047,6 +1057,31 @@ es una persona.**
 ⚠️ **CON ESE COMANDO Y NO OTRO.** `head -n -1` **NO CORRE AQUÍ** —`head: illegal line count`—
 porque es una extensión de GNU y este `head` es BSD. *Se propuso, se midió, y por poco se
 reparte a cuatro terminales una receta que nadie había ejecutado.*
+
+🔴🔴 **Y AL MEDIR QUÉ DEVUELVE LA TUBERÍA ENTERA CUANDO FALLA, T3 ENCONTRÓ ALGO PEOR QUE UN
+ERROR — reproducido:**
+
+    head -n -1 fichero | md5   ->  d41d8cd98f00b204e9800998ecf8427e
+    md5 de la cadena VACIA     ->  d41d8cd98f00b204e9800998ecf8427e   <- son el MISMO
+    dos ficheros DISTINTOS     ->  los dos dan d41d8cd9…              <- VERDE UNIVERSAL
+
+**Un hash perfectamente formado, de 32 caracteres, que significa "no había nada".** En un
+sistema donde el comando falle así, **todos los exports dan el mismo hash de cierre y la
+comparación siempre cuadra.**
+
+📌 **Y es la peor versión de una forma que se repite:** *un comando que falla puede devolver un
+valor con la FORMA EXACTA del bueno.* **Un número raro se mira; un hash no se mira nunca,
+porque todos parecen iguales.**
+
+> ✅ **POR ESO LA CONVENCIÓN LLEVA SU CONTROL POSITIVO DENTRO, y no es opcional: comprueba que
+> el conteo baja en EXACTAMENTE UNO.**
+>
+>     wc -l < F              # p.ej. 718
+>     sed '$d' F | wc -l     # tiene que dar 717 — diferencia EXACTA de 1
+>
+> Con el `head` roto la diferencia sale **4 sobre un fichero de 4 líneas**, y salta. **Sin este
+> paso, el día que alguien corra la convención en otro sistema tendrá un verde perfecto sobre
+> nada.**
 
 **Acreditado en los DOS sentidos, que es lo que le faltaba:**
 
