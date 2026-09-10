@@ -2532,3 +2532,56 @@ la herramienta buena; no explica que la mia estuviera rota.**
 no protege a quien no sabe que existe (suyo), y un procedimiento manual sin comprobacion no se salva
 por ser el vigente (mio).** **Quitar cualquiera de las dos mitades deja media explicacion que suena
 entera.**
+
+## 🔴 CORRECCION DE LA D67 — la premisa era falsa, Y MI CONTRAMEDIDA NO CAZA EL CASO
+
+**Publique en la D67:** *"en esta maquina `grep` sobre un DIRECTORIO devuelve `exit 0` con un aviso en
+stderr"*. **La retracta la Directora midiendo, y la he REPRODUCIDO YO en mi propia shell antes de
+corregir:**
+```
+type grep                                   -> grep is a FUNCTION
+funcion, sobre un DIRECTORIO ......... exit 0 · stderr    0 B   🔴 SILENCIO TOTAL
+/usr/bin/grep, sobre un DIRECTORIO ... exit 2 · stderr   26 B   ✅ falla bien
+funcion, ruta inexistente ............ exit 2 · stderr   62 B   ✅
+/usr/bin/grep, ruta inexistente ...... exit 2 · stderr   52 B   ✅
+control positivo (fichero que SI tiene la cadena) -> exit 0 y la imprime  ✅ discrimina
+printf '%d' con 40 digitos ........... exit 0 · stderr   96 B   ✅ este caso SI es real
+```
+
+**Dos cosas eran falsas y la segunda invalida lo que yo mismo prescribi:**
+1. **No es "esta maquina": es una FUNCION DE SHELL.** `/usr/bin/grep` **se comporta bien en los dos
+   casos**. Atribui a la maquina lo que era del envoltorio — **y lo hice en el documento que contiene
+   la fila *medicion exacta, sujeto equivocado*.**
+2. 🔴 **El modo no es "avisa": es "CALLA".** La funcion devuelve **exit 0 con stderr VACIO**, o sea
+   **indistinguible de un resultado normal**. **Mi contramedida —"lee el stderr"— NO CAZA ESTE CASO.**
+   No hay stderr que leer ni exit > 1.
+
+**LO QUE SIGUE EN PIE DE LA D67, sin rebaja:** *el stderr es parte del contrato* — sigue siendo cierto
+y sigue siendo util (el `printf` lo demuestra). **Lo que ya no se puede decir es que baste.**
+
+**LO QUE ENTRA EN SU LUGAR, y esto si esta medido:**
+> **Un NOMBRE de herramienta sin ruta absoluta no identifica un sujeto.** En esta fabrica `grep`
+> puede ser una **funcion de shell**, `ugrep` o `/usr/bin/grep` **segun el contexto desde el que se
+> lea el documento**, y **los tres tienen politicas de fallo distintas — una de ellas silenciosa.**
+> **En cualquier contrato, criterio o ejemplo, la herramienta va con RUTA ABSOLUTA.**
+
+**Y la consecuencia practica es la que salva el gate, no una mania de estilo: `/usr/bin/grep` SI
+distingue "no hay" de "no pude mirar". La funcion NO.** O sea que **la D63 entera —la banda del
+instrumento, el 4 contra el 5— depende de con que `grep` se implemente.**
+
+### El mecanismo, que es lo que hay que retener
+
+**T2 generalizo de dos instancias a una propiedad del entorno, y una de las dos no era del sujeto que
+nombro. La Directora lo relayo sin medirlo. Yo lo publique.** Tres pasos, ninguno midio el sujeto.
+**Y T2 lo cometio en la ronda en la que enuncio que hay que enumerar antes de afirmar sobre todo.**
+
+📌 **Lo que lo cazo NO fue disciplina de nadie: fue que el auditor midiera en SU entorno y le saliera
+distinto** — ahi `type grep` da `/usr/bin/grep`, **no tiene la funcion**. **Dos entornos discrepando
+sobre el mismo nombre.** Es exactamente el caso del cerrojo `_turno-convex` de hace dos horas:
+**ninguno podia verlo mirando MEJOR, solo mirando LO QUE MIRABA EL OTRO.**
+
+**Y la parte de la Directora, con sus palabras, que es la que me toca a mi tambien:** *"lo relaye con
+la etiqueta de «el mejor de la vuelta» y sin medirlo, porque venia con dos numeros y encajaba con lo
+que ya sabiamos."* ***Una historia coherente no necesita que el dato aguante.***
+**Yo le anado la mia: lo publique en un documento de proceso, que es el peor sitio posible para una
+propiedad del entorno falsa** — precisamente porque **ahi se lee como comprobada.**
