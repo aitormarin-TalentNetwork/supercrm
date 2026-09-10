@@ -801,7 +801,7 @@ test("C3 y C4 · con el cierre correcto, se llega a /login en ≤3 s y no se que
 // roles y los dos botones: 4 combinaciones, no 1.
 for (const role of ["owner", "sales"] as Role[]) {
   for (const boton of ["ajustes", "menu"] as const) {
-    test(`C7 · ${role} · botón de ${boton} · con el cierre forzado a fallar: alerta visible, NO se navega, y la sesión sigue viva contra el servidor`, async ({
+    test(`C7' · ${role} · botón de ${boton} · con el cierre Y LA RECUPERACIÓN forzados a fallar: alerta visible, NO se navega, y la sesión sigue viva`, async ({
       browser,
     }) => {
       const pagina = await abrirSesionPropia(browser, role);
@@ -817,6 +817,20 @@ for (const role of ["owner", "sales"] as Role[]) {
         if (cuerpo.includes("signOut")) return route.abort("failed");
         return route.fallback();
       });
+
+      // 🔴 AIT-134 ESTRECHA ESTE CRITERIO, Y SIN ESTA SEGUNDA LÍNEA EL TEST YA NO
+      // MIDE NADA. C7 exigía "alerta, no se navega, sesión viva" tras un cierre
+      // fallido — y AIT-134 mata las tres A PROPÓSITO: ahora el cierre fallido se
+      // RECUPERA, la sesión deja de estar viva y se navega.
+      //
+      // ⚠️ C7 NO ESTABA ROTO: ESTABA SUPERADO. Lo que sigue siendo cierto es el
+      // mundo en que NADIE puede cerrar la sesión — ni el cierre normal ni la
+      // recuperación. Ése es el que se fabrica aquí, y por eso el criterio se
+      // ESTRECHA en vez de retirarse: las tres condiciones son las mismas, cambia
+      // el mundo en que se exigen. (Decisión del PM, 2026-09-10.)
+      await pagina.route(`**${RUTA_CIERRE_LOCAL}`, (ruta) =>
+        ruta.fulfill({ status: 500, body: "" }),
+      );
 
       await pulsarCerrarSesion(pagina, boton);
 
@@ -838,7 +852,9 @@ for (const role of ["owner", "sales"] as Role[]) {
       //     almacenamiento.
       expect(
         await clasificarAcceso(pagina),
-        "C7: la sesion tiene que seguir VIVA tras un cierre fallido, y se acredita\n         con el observable POSITIVo (ACCESO_CONFIRMADO), no negando la denegacion",
+        "C7': la sesión tiene que seguir VIVA cuando NADIE ha podido cerrarla, y " +
+          "se acredita con el observable POSITIVO (ACCESO_CONFIRMADO), no negando " +
+          "la denegación",
       ).toBe("ACCESO_CONFIRMADO");
 
       await pagina.context().close();
@@ -886,7 +902,7 @@ test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /
   await pagina.context().close();
 });
 
-test("M2 · la PRIMERA llamada de cierre se queda colgada: sigue pendiente hasta el límite, se aborta, y solo entonces avisa", async ({
+test("M2' · la PRIMERA llamada se queda colgada y la recuperación TAMPOCO cierra: sigue pendiente hasta el límite, se aborta, y sólo entonces avisa", async ({
   browser,
 }) => {
   const pagina = await abrirSesionPropia(browser, "sales");
@@ -917,6 +933,15 @@ test("M2 · la PRIMERA llamada de cierre se queda colgada: sigue pendiente hasta
     peticionesDeCierre++;
     return new Promise(() => {}); // no se resuelve NUNCA
   });
+
+  // 🔴 AIT-134 ESTRECHA TAMBIÉN ESTE. Su última condición —"y sólo entonces
+  // avisa"— presupone que tras el abortado no hay nada más que intentar, y eso
+  // dejó de ser cierto: ahora se intenta la recuperación y, si funciona, NO
+  // avisa porque no hay nada que avisar. Se fabrica el mundo en que tampoco la
+  // recuperación puede cerrar, que es donde el aviso sigue siendo lo correcto.
+  await pagina.route(`**${RUTA_CIERRE_LOCAL}`, (ruta) =>
+    ruta.fulfill({ status: 500, body: "" }),
+  );
 
   const control = await prepararCierre(pagina, "ajustes");
   const t0 = Date.now();
@@ -1148,3 +1173,56 @@ test("AIT-134 · momento (3) · si la recuperación TAMPOCO se confirma, no se n
 // Se rehace como prueba PURA sobre `clasificarRespuesta` en
 // `e2e/00-clasificar-acceso.spec.ts`: sin servidor no hay dos canales que
 // confundir, y el señuelo se construye a mano.
+
+test("C7' · el reverso: si la recuperación SÍ cierra, NO se avisa y SÍ se navega", async ({
+  browser,
+}) => {
+  // ⛔ ESTE ES EL `FALLA si` EXPLÍCITO QUE PIDE EL PM, y no es simetría bonita:
+  // sin él, C7' se cumpliría con una implementación que **avisa siempre**, y esa
+  // implementación pasaría los cuatro C7' sin que nada se pusiera rojo.
+  //
+  // 🔑 Y la razón de producto, que es más fuerte que la de método: conservar el
+  // aviso "por si acaso" **es peor que quitarlo**. Decirle al usuario que no se
+  // pudo cerrar cuando SÍ se cerró **le enseña a ignorar el aviso** — y entonces
+  // tampoco lo leerá el día que sea cierto. Un aviso que miente a veces vale
+  // menos que ninguno.
+  test.slow();
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  // El cierre normal falla, la recuperación NO se toca: tiene que funcionar.
+  await pagina.route("**/api/auth", async (ruta) => {
+    if (!(ruta.request().postData() ?? "").includes("signOut")) {
+      return ruta.fallback();
+    }
+    return ruta.abort("failed");
+  });
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+  await pagina.waitForURL("**/login", {
+    timeout: PRESUPUESTO_C3_FALLO_MS + 2000,
+  });
+
+  // (1) SE NAVEGA. No navegar con la sesión cerrada de verdad sería la mentira
+  //     nueva: dejar al usuario en una pantalla autenticada diciéndole que no se
+  //     cerró, cuando sí se cerró.
+  expect(pagina.url()).toContain("/login");
+
+  // (2) NO aparece el aviso de fallo.
+  await expect(
+    pagina
+      .getByRole("alert")
+      .filter({ hasText: "No se ha podido confirmar el cierre de sesión" }),
+    "se avisó de un fallo que no ocurrió: la recuperación cerró la sesión",
+  ).toHaveCount(0);
+
+  // (3) Y la sesión está cerrada DE VERDAD, contra el servidor. Sin esto, (1) y
+  //     (2) los cumpliría una implementación que navega sin cerrar nada — que es
+  //     exactamente el defecto original de AIT-127.
+  expect(
+    await clasificarAcceso(pagina),
+    "se navegó y no se avisó, pero el servidor sigue dejando entrar: eso es " +
+      "navegar afirmando un cierre que no ocurrió",
+  ).toBe("DENEGACION_ESPERADA");
+
+  await pagina.context().close();
+});
