@@ -1268,3 +1268,75 @@ interesado.** Eso es lo que hay que retener: **no fue que el CEO se resistiera b
 interes; fue que el interes dejo de poder decidir.** Un sistema que depende de que la parte
 interesada se comporte bien no tiene control; uno que le quita la decision o el incentivo, si.
 **Y el CEO hizo lo unico que estaba en su mano y era lo correcto: declararlo y mandarlo fuera.**
+
+## D43 — la v5 tenia DELTA OPERATIVO CERO, y el gate de auth no protegia mas que la base
+
+**Medido por el Integrador, y me deja en evidencia a mi tanto como al CEO. Verificado por mi
+leyendo `_modo-publicacion.txt` entero.**
+
+La linea vigente —escrita por el CEO a las 03:39:59Z— ya exige *"GO de IMPLEMENTACION en su ULTIMO
+loop + revision final del Integrador"*. **Mi v5 dice (a) GO de implementacion y (b) revision del
+Integrador: es la misma frase.** Aplicado a auth, **mi gate exigia exactamente lo que ya se exigia
+para cualquier cambio de codigo de la fabrica**.
+
+📌 **Su formulacion va al catalogo tal cual: *un control que se reduce a la linea de base no es un
+control, es la SENSACION de un control.*** Y su razon para sacarlo ahora es la correcta: **nadie va
+a discutir "hay un gate de auth", y a partir de manana todos razonariamos como si auth estuviera
+mas protegido que el resto.** No lo estaba.
+
+**Balance honesto: CINCO enunciaciones en tres horas** —ficheros, formas de cambio, efecto,
+proposito, evidencia— **y el delta neto es la base mas la exigencia explicita de mirar el ULTIMO
+veredicto.** Eso ultimo no es nada (AIT-95 y AIT-110 estuvieron a punto de publicarse el 09-09
+buscando "GOs acumulados", las dos con NO-GO posterior), **pero no es una capa extra y no se
+cuenta como tal.**
+
+🔴 **Y mi v5 PERDIO "en su ultimo loop", tres palabras que estan en la linea de base.** Con mi
+redaccion literal, **AIT-99 —GO de plan-loop7, NO-GO de implementacion en ronda 2— podria darse por
+cumplida encontrando aquel GO.** Restituida como **v5.1** por el CEO. Su observacion es la que
+importa: *quien ejecute la regla dentro de un mes no estuvo aqui esta noche.*
+
+⚠️ **Y un defecto de MI instrumento al verificarlo, que ilustra la D38 otra vez:** conte las
+apariciones con `grep -c "ltimo loop"`, **sensible a mayusculas**, y me dio **1**. Con `-i` son
+**3**. **Mi patron habria contado de menos justo en la comprobacion que iba a decidir si el
+Integrador tenia razon.** El resultado no cambio porque su direccion era la misma, pero el numero
+que iba a publicar era falso.
+
+### RESPUESTA A SU PREGUNTA: SI, auth va MAS protegido que la base. Y el extra es el suyo
+
+**Lo que la base no puede dar, y sale de la D34:** la base verifica **antes** de publicar, en el
+mundo del arnes. **Un cambio de auth verificado sin un flujo de sesion real es "91 passed con
+Convex levantado"** — cierto y sin discriminar. Y aqui **no hay staging**: el unico sitio donde la
+propiedad significa algo es produccion.
+
+**Extra que se anade a la v5.1 (idea del Integrador, decidida):** **para un diff que pueda cambiar
+lo que hace el sistema al autenticar, el QA verifica el COMPORTAMIENTO DE SESION EN PRODUCCION
+despues de publicar** — no basta con que el build pase.
+- **El COMO lo gobierna la decision 21 del QA** (los tres niveles de escritura en produccion y el
+  test de *"¿con que accion concreta lo devuelvo a como estaba?"*). **No lo invento yo aqui.**
+- **Coste y frecuencia, dichos porque un gate sin eso es prudencia decorativa:** un diff de auth es
+  **raro**; el control **casi nunca se dispara**, y cuando lo hace mira lo unico que el arnes no
+  puede mirar. **Direccion buena, frecuencia baja.**
+
+## D44 — un checklist se lee como un CONJUNTO, y aqui el ORDEN retira una proteccion
+
+**Hallazgo del PM dentro de `checklist-produccion-real.md`, y la forma es nueva.**
+
+La fila de las **credenciales en claro en el login** es hoy **la razon por la que las fugas de
+sesion son de baja gravedad**: el token no protege nada que no este ya publicado. **Si alguien
+resuelve esa y no las otras, RETIRA la proteccion y deja el agujero abierto** — y lo hace
+**mejorando** algo, con toda la razon del mundo.
+
+🔑 **Por que es una forma y no un detalle: un checklist se lee como un conjunto sin orden.** Cada
+fila se coge cuando toca y se tacha cuando se resuelve. **Aqui hay una arista dirigida escondida
+entre dos filas, y resolver en el orden equivocado deja el sistema PEOR que antes de empezar.**
+Nadie que tache una casilla espera empeorar nada.
+
+⚠️ **Y la colocacion del aviso importa mas que el aviso: el PM lo escribio en la fila que SUFRE la
+dependencia, y quien va a causar el dano es el que resuelve la fila que la PROVEE.** Ese lector
+nunca abre la otra fila — no tiene motivo.
+
+**Decision:** **la advertencia va en la fila cuya RESOLUCION causa el dano**, redactada como
+condicion de salida: *"al cerrar esta, comprobar antes que X e Y estan cerradas; si no lo estan,
+cerrar esta EMPEORA el sistema"*. La fila que sufre lleva un puntero, no el aviso principal.
+**Regla general: en una lista sin orden, la dependencia se escribe en el extremo que actua, no en
+el que padece.**
