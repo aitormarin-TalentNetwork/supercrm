@@ -131,8 +131,12 @@ test("C7 · si el cierre FALLA: alerta visible, NO se navega, y la sesión sigue
 }) => {
   const pagina = await abrirSesionPropia(browser, "sales");
 
-  // Se fuerza el rechazo de `signOut()` cortando su petición. La limpieza push
-  // NO se toca: su fallo no debe detener nada, y aquí queremos aislar el otro.
+  // Se corta la petición de cierre. ⚠️ Lo que falla NO es `signOut()`: esa
+  // función NO PUEDE fallar — `@convex-dev/auth/dist/react/client.js:164-174`
+  // se traga todos los errores. Lo que falla es la petición al proxy cuyo
+  // resultado el código SÍ mira, que es justo el arreglo que esto comprueba.
+  // La limpieza push no se toca: su fallo no debe detener nada, y aquí se
+  // aísla el otro camino.
   await pagina.route("**/api/auth", async (route) => {
     const cuerpo = route.request().postData() ?? "";
     if (cuerpo.includes("signOut")) return route.abort("failed");
