@@ -234,6 +234,14 @@ https://healthy-mammoth-850.convex.site/gmail/oauth/callback  T2
 https://colorful-crane-322.convex.site/gmail/oauth/callback   QA
 ```
 
+⚠️ **MEDIDO 2026-09-10:** T1 apunta hoy a `third-goldfinch-805` (su `.env.local`),
+NO a `uncommon-puffin-303`. La URI de `uncommon-puffin-303` sigue registrada y
+no estorba, pero **HOY NO LA USA NADIE**.
+
+🔑 **Esta tabla es POR DEPLOYMENT DE CONVEX, no por worktree ni por puerto:** el
+callback de Google nunca pasa por `localhost`. Y **un worktree puede cambiar de
+deployment sin que esta tabla se entere**.
+
 ⚠️ **Esta lista caduca sola: cada deployment de Convex nuevo necesita la suya.** Si creas
 uno y el flujo de conexión de Gmail te falla, el error lo da Google y **no señala a
 nuestro código** — mira aquí antes de depurar nada. Añadir una URI es gratis y no hace

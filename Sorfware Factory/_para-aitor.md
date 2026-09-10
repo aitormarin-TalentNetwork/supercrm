@@ -134,7 +134,8 @@ visto bueno al PROCEDIMIENTO.**
 reparto de la Directora. *Una parada que nadie le ha pedido no es una parada: es trabajo
 detenido sin dueño.* Lo cazamos cruzando las dos listas.
 
-## 11 · AIT-145 — AÑADIR las URIs de redirección de la app en la consola de Google · `pedido: NO`
+## 11 · AIT-145 — AÑADIR las URIs de redirección de la app en la consola de Google
+   `pedido: NO — ⛔ NO PEDIR HASTA QUE LA r5 DE AIT-145 FIJE LA RUTA`
 
 **Qué hay que hacer:** en el cliente OAuth `SuperCRM Gmail`, **añadir** las URIs de retorno
 que apuntan **a la app** (no a `.convex.site`), una por entorno.
