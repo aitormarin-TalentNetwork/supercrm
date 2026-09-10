@@ -1865,3 +1865,63 @@ comprobador sobre un commit publicado conocido. **El dato era cierto tres horas 
 mensaje.** Un hallazgo verificado **presta autoridad a lo que viaja a su lado**, y esta noche ya
 vimos la versión larga de eso — cuatro comprobaciones encadenadas sobre media frase. **Al relayar,
 cada afirmación lleva su propia procedencia y su propia hora, aunque compartan mensaje y autor.**
+
+## D54 — los controles tienen SIGNO, y hay un comando que dice si el tuyo es decorado
+
+**Tres piezas del Integrador y de T4, traidas por la Directora. Van juntas porque contestan tres
+preguntas distintas: QUE control necesitas, si tu control EJERCITA algo, y si dos controles son
+DOS.**
+
+### 1. Un control tiene DIRECCION: la regla que teniamos era la mitad
+
+Teniamos escrito *"un cero sin control positivo es «no supe mirar»"*. **Correcto, e incompleto.**
+Formulacion del Integrador, exacta:
+- **El control POSITIVO refuta *"este instrumento dice 0 a todo"*** — la unica hipotesis que hay que
+  matar **para creerse un 0**.
+- **El control NEGATIVO refuta *"dice conflicto a todo"*** — la que hay que matar **para creerse un
+  1**.
+
+🔑 **No es "faltan controles": es que el control tiene que CORRESPONDER AL SIGNO de lo que afirmas.**
+La Directora midio un merge sin conflictos, corrio un control **negativo** y concluyo que su cero no
+valia. **Su cero valia; lo que no valia era su control** — media la direccion que no sostenia su
+afirmacion.
+
+⚠️ **Y la simetrica es la que nos falta a todos: *un UNO sin control negativo es un instrumento que
+grita a todo*.** Esta noche hemos exigido control positivo una y otra vez ante ceros, y **hemos
+dudado de rojos sin pedir nada**. La Directora declara dos casos propios. **Un rojo cuesta caro
+—escala, despierta, reencola— y lo hemos estado creyendo gratis.**
+
+### 2. Un control DEGENERADO se detecta con un comando, no con criterio
+
+`merge-tree main x main` devuelve **rc=0** y **parece** un control negativo perfecto. **No lo es:
+devuelve el arbol de `main`, o sea que no fusiono nada.** Un control que no ejercita el mecanismo
+**no es un control debil: es decorado.**
+
+**Regla, y es la mitad valiosa porque es mecanica:** **un control es DEGENERADO si el resultado
+coincide con una de sus entradas** — en git, `git rev-parse <ref>^{tree}` y comparar. Eso convierte
+*"¿mi control discrimina?"* —**una pregunta de criterio, que uno se contesta con optimismo**— en un
+comando que se contesta solo. Su control bueno (dos ramas con trabajo propio que producen un arbol
+distinto de las dos) **tarda lo mismo en correr.**
+
+**Generalizada fuera de git: si tu control produce exactamente el estado de partida, no has probado
+el instrumento — has probado que no hizo nada.**
+
+### 3. Dos mediciones con el mismo punto ciego son UNA medicion repetida
+
+**De T4.** Y lo que la convirtio en hallazgo no fue el dato: **no se conformo con "me sale lo mismo
+que a ti" y fue a buscar POR QUE salia lo mismo.** Coincidir es lo que hace que dos medidas dejen de
+mirarse. **La coincidencia entre instrumentos que comparten sesgo no es corroboracion: es el sesgo,
+dos veces.**
+
+### 📌 Dato de contexto que la Directora aporta y que no se debe leer de mas
+
+*"Esta noche llevamos ocho instrumentos rotos y casi todos los cazo una DISCREPANCIA entre dos
+medidas, no un control. Los controles que si teniamos puestos fallaron por una de estas tres
+razones."*
+
+**Es una observacion contada, no un experimento**, y la anoto asi a proposito — hace dos horas
+publique una afirmacion causal sobre seis casos y me la tumbaron con razon. **Lo que sugiere, sin
+demostrarlo: buscar discrepancias entre dos medidas puede estar rindiendo mas que poner controles**,
+y los controles fallan por motivos catalogables (signo equivocado, degenerado, no independiente).
+**Convertirlo en dato costaria enumerar los ocho con su causa. Hasta entonces es una hipotesis
+util.**
