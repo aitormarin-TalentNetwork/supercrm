@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "../convex/schema";
-import { internal } from "../convex/_generated/api";
+import { api, internal } from "../convex/_generated/api";
 
 // AIT-92 ronda 3 · M2 — EL CALLBACK, EJERCITADO DE VERDAD.
 //
@@ -212,6 +212,203 @@ describe("el callback de OAuth, recorrido entero", () => {
     const html = await r.text();
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // C13 · las ramas del `state` que faltaban por RECORRER
+  // Las decisiones ya estaban probadas en `e2e/00-gmail.spec.ts` sobre
+  // `validarState`. Aquí se recorren por el callback, que es donde una rama no
+  // cubierta deja pasar una implementación permisiva sin que nadie lo note.
+  // ───────────────────────────────────────────────────────────────────────────
+
+  test("C13 · state AUSENTE: no se escribe", async () => {
+    const { t } = await montar();
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    const r = await t.fetch("/gmail/oauth/callback?code=a");
+    expect(r.status).toBe(400);
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  test("C13 · state ALTERADO en un carácter: no se escribe", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    const bueno = await nuevoState(t, userId);
+    const alterado = (bueno[0] === "a" ? "b" : "a") + bueno.slice(1);
+    const r = await t.fetch(`/gmail/oauth/callback?code=a&state=${alterado}`);
+    expect(r.status).toBe(400);
+    expect(await filas(t)).toHaveLength(0);
+    // CONTROL POSITIVO: el original, intacto, SÍ completa. Sin esto, «no
+    // escribió» no distingue «rechazó el alterado» de «no escribe nunca».
+    const ok = await t.fetch(`/gmail/oauth/callback?code=a&state=${bueno}`);
+    expect(ok.status).toBe(200);
+    expect(await filas(t)).toHaveLength(1);
+  });
+
+  test("C13 · state CADUCADO: no se escribe", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    const state = await nuevoState(t, userId);
+    // Se caduca la fila en vez de esperar: el caso se fabrica, no se espera.
+    await t.run(async (ctx) => {
+      const fila = await ctx.db
+        .query("gmailOauthStates")
+        .withIndex("by_state", (q) => q.eq("state", state))
+        .unique();
+      await ctx.db.patch(fila!._id, { expiresAt: Date.now() - 1 });
+    });
+    const r = await t.fetch(`/gmail/oauth/callback?code=a&state=${state}`);
+    expect(r.status).toBe(400);
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  test("C13 · la conexión se crea para el DUEÑO del state, no para otro", async () => {
+    // ⚠️ El caso «state de otro usuario» no existe como RECHAZO en este diseño:
+    // el usuario se deriva de la fila del `state`, nunca de la petición, así que
+    // no hay parámetro que manipular. Lo que sí se puede comprobar —y es lo que
+    // importa— es que la fila acaba en el usuario correcto.
+    // 🔴 Esto NO cubre AIT-145: que un atacante inicie el flujo y la víctima
+    // consienta sigue vinculando el buzón de la víctima al CRM del atacante.
+    // Ese ataque tiene ficha propia y no se cierra aquí.
+    const { t, userId } = await montar();
+    const otro = await t.run(async (ctx) => {
+      const storeId = await ctx.db.insert("stores", { name: "Otra tienda" });
+      return await ctx.db.insert("users", {
+        email: "otra@supercrm.es",
+        role: "sales",
+        storeId,
+        active: true,
+      });
+    });
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    await t.fetch(`/gmail/oauth/callback?code=a&state=${await nuevoState(t, otro)}`);
+    const f = await filas(t);
+    expect(f).toHaveLength(1);
+    expect(f[0].userId).toBe(otro);
+    expect(f[0].userId).not.toBe(userId);
+  });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // C14 · las ramas fail-closed que faltaban por RECORRER
+  // ───────────────────────────────────────────────────────────────────────────
+
+  test("C14 · petición incompleta (sin code): no se escribe", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    const r = await t.fetch(
+      `/gmail/oauth/callback?state=${await nuevoState(t, userId)}`,
+    );
+    expect(r.status).toBe(400);
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  test("C14 · el canje falla: no se escribe", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      if (String(input).includes("oauth2.googleapis.com/token"))
+        return new Response("no", { status: 400 });
+      throw new Error("no debería llegar aquí");
+    }) as Fetch;
+    const r = await t.fetch(
+      `/gmail/oauth/callback?code=a&state=${await nuevoState(t, userId)}`,
+    );
+    expect(r.status).toBe(502);
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  test("C14 · el perfil falla: no se escribe aunque el token sea bueno", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("oauth2.googleapis.com/token"))
+        return new Response(
+          JSON.stringify({ access_token: "a", refresh_token: TOKEN }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      return new Response("no", { status: 500 });
+    }) as Fetch;
+    const r = await t.fetch(
+      `/gmail/oauth/callback?code=a&state=${await nuevoState(t, userId)}`,
+    );
+    expect(r.status).toBe(502);
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  test("C14 · el perfil no trae dirección: no se escribe", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("oauth2.googleapis.com/token"))
+        return new Response(
+          JSON.stringify({ access_token: "a", refresh_token: TOKEN }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      return new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as Fetch;
+    const r = await t.fetch(
+      `/gmail/oauth/callback?code=a&state=${await nuevoState(t, userId)}`,
+    );
+    expect(r.status).toBe(502);
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // C5 · desconectar, con la fila creada POR EL CALLBACK
+  // ───────────────────────────────────────────────────────────────────────────
+
+  test("C5 · desconectar borra la fila, con control positivo de que estaba", async () => {
+    const { t, userId } = await montar();
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    await t.fetch(`/gmail/oauth/callback?code=a&state=${await nuevoState(t, userId)}`);
+
+    const antes = await filas(t);
+    expect(antes).toHaveLength(1);
+    // CONTROL POSITIVO: el campo SÍ estaba. Sin esto, «está vacío» no distingue
+    // borrado de nunca escrito.
+    expect(antes[0].refreshTokenCipher.length).toBeGreaterThan(0);
+
+    await t
+      .withIdentity({ subject: userId })
+      .mutation(api.gmail.disconnect, { accountId: antes[0]._id });
+
+    expect(await filas(t)).toHaveLength(0);
+  });
+
+  test("C5 · nadie desconecta la conexión de otro", async () => {
+    const { t, userId } = await montar();
+    const otro = await t.run(async (ctx) => {
+      const storeId = await ctx.db.insert("stores", { name: "Otra" });
+      return await ctx.db.insert("users", {
+        email: "otro@supercrm.es",
+        role: "owner",
+        storeId,
+        active: true,
+      });
+    });
+    entorno();
+    globalThis.fetch = googleFalso(true);
+    await t.fetch(`/gmail/oauth/callback?code=a&state=${await nuevoState(t, userId)}`);
+    const f = await filas(t);
+
+    // Ni siquiera un `owner`: el PRD (CU6) dice que nadie desconecta la de otro.
+    await expect(
+      t.withIdentity({ subject: otro }).mutation(api.gmail.disconnect, {
+        accountId: f[0]._id,
+      }),
+    ).rejects.toThrow();
+    expect(await filas(t)).toHaveLength(1);
   });
 
   test("sin clave de cifrado no se escribe, aunque Google conceda", async () => {
