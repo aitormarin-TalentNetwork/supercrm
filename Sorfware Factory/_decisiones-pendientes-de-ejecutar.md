@@ -370,3 +370,127 @@ cuatro quietas -> ALARMA(**4**, no 3) · sub-worktrees viejos activos -> no cuen
 escrita:** en un documento de proceso, **una lista de participantes es un literal cerrado y
 caduca en cuanto nace el siguiente**; si el conjunto puede crecer, se nombra el PATRON, no
 los miembros.
+
+## D29 — el estado de un cerrojo son DOS escrituras y solo una es atomica
+
+**Hallazgo del Integrador `8e`, cerrado por T1 con el mtime.** A las 03:49:43Z midio el
+disco: cerrojo **ausente** y `_turno-convex.log` **sin linea de SUELTA**. La lectura natural
+de ese hueco es *"alguien lo solto sin registrarlo"* — un incidente grave — y estuvo a punto
+de escalarlo. No lo era: el mtime del log es 03:49:45Z, **dos segundos despues de su
+lectura**. `rmdir` y `echo >> log` son dos comandos, y cayo justo en medio.
+
+**El criterio, unico para los dos huecos** (que es como pidio que se enunciara, y tiene
+razon): **`mkdir`/`rmdir` hace atomico el TURNO, no el REGISTRO.** De ahi salen dos ventanas
+simetricas, y hoy solo una esta escrita:
+- **Ya documentada:** el cerrojo puede EXISTIR sin `titular.txt` dentro (reclamacion en
+  vuelo) -> esperar y remedir, nunca reclamar.
+- **NO documentada, y es la peligrosa:** el cerrojo puede estar AUSENTE sin su linea de
+  SUELTA todavia escrita.
+
+⚠️ **Por que la segunda es peor que la primera aunque la ventana sea igual de corta:** el
+primer hueco produce **"no se"**, y ante un "no se" se espera. El segundo produce una
+**acusacion plausible contra un compañero** — "lo solto a escondidas" — y **una acusacion
+plausible se actua**: se escala, se despierta a alguien, se libera un cerrojo ajeno. El
+estado ambiguo no es neutro; **tiene direccion**.
+
+**Regla:** ante un cerrojo ausente cuyo SUELTA no aparece en el log, **no se concluye nada:
+se remide a los 5 segundos**. Solo si el hueco persiste hay incidente. Y quien escriba el
+par (`rmdir` + linea de log) lo hace **en el orden que deja el estado seguro**: primero la
+linea, despues el `rmdir` — asi la ventana produce "soltado pero aun listado", que se lee
+como "espera", en vez de "ausente sin registro", que se lee como acusacion.
+
+## Fila de la D18 que sale de USARLA, no de leerla (aportacion del Integrador `8e`)
+
+**`_turno-raiz.lock` no solo protege MI escritura: impide las AJENAS mientras mi arbol esta
+a medias.** Primer uso real, 03:51:29Z: durante la corrida de la suite, el merge de AIT-109
+vive **sin pushear** en el checkout compartido, y el push de cualquier rol en esa ventana lo
+arrastraria **sin probar** hasta `origin/main`. Tomar el cerrojo de raiz **cierra la ventana
+de la D27 del todo mientras dura**, en vez de solo reducir la sorpresa.
+
+Eso no estaba en mi redaccion de la D18 y es mejor que ella: yo lo escribi como proteccion
+de la escritura propia, y su uso correcto es tambien **exclusion de las ajenas durante un
+estado intermedio**. Queda escrito.
+
+## D32 — "listo para auditar" se DECLARA con un acto, no se deduce del reloj
+
+**Hallazgo de T3 y la Directora, con la carrera medida:** ultima escritura del export de
+AIT-127 a las **04:00:05**, arranque de `codex exec` a las **04:00:05.685**. La precondicion
+"el export existe" se cumplio por **setecientas milesimas**. Un segundo mas tarde, el auditor
+habria leido la version sin la correccion que el propio prompt exigia —**NO-GO por un defecto
+ya arreglado**— o un plan truncado, **que sigue pareciendo un plan**.
+
+**La simetria es lo que lo convierte en hueco de diseno y no en un despiste:** veinte minutos
+antes protegimos con tres senales y un control positivo el export que el auditor **podia
+estar leyendo**, y nadie protegio el que **estaba a punto de leer**. Mismo riesgo por el otro
+extremo del ciclo. *Un conjunto de condiciones correctas no es un conjunto completo.*
+
+**Por que la mitigacion propuesta no basta, y lo dice quien la propuso:** "mtime estable en
+dos medidas" **no distingue "terminado" de "pausa entre ediciones"**. Compra probabilidad, y
+con 0,7 s de margen la probabilidad no esta de nuestro lado.
+
+**Decision:** el fin del export es un **acto explicito y comprobable desde fuera**, no una
+inferencia. Quien lo escribe deja un **marcador como ULTIMA escritura** (fichero centinela o
+una linea final `FIN DEL EXPORT`), y el disparo **exige ese marcador**. El compromiso de que
+"listo para auditar" signifique terminado es la mitad correcta; lo que faltaba es que fuera
+**verificable por el que dispara** en vez de una promesa del que escribe. Las dos medidas de
+mtime se mantienen mientras el marcador no este implantado.
+
+## D33 — un documento ensena a saltarse la salvaguarda de produccion, con una premisa falsada
+
+`docs/03-setup.md:483-492`. Texto literal: *"el propio comando pide confirmacion interactiva
+antes de empujar a produccion... **la unica forma de desplegar sin esa confirmacion** desde un
+worktree con `.env.local` de dev es usar `--env-file`, **que aisla el comando de la
+`CONVEX_DEPLOYMENT` local**"*.
+
+Juntado: **la receta desactiva a proposito una salvaguarda contra un despliegue accidental a
+produccion**, y lo unico que sostiene que sea seguro es la clausula del aislamiento — **que es
+justo lo que AIT-123 falso para `convex dev`**. Lo medido fue `dev` y no `deploy` (matiz de
+T4, correcto y respetado), asi que **puede** ser cierto aqui; pero el riesgo no es simetrico:
+si falla, es un comando que crees aislado apuntando a donde no crees, **con la confirmacion
+quitada aposta**.
+
+**Decision, con su coste dentro:**
+1. **Gate:** no se usa `npx convex deploy --env-file` desde un worktree hasta que alguien mida
+   `--env-file` con `deploy` como AIT-123 lo midio con `dev`.
+2. **El coste es casi cero y por eso el gate se sostiene:** el camino normal es Railway y un
+   despliegue manual desde un worktree es una rareza. **El desbloqueo es una medicion, no una
+   excepcion** — que nadie lo salte "solo por esta vez".
+3. **Corregir el parrafo** diciendo lo que hoy calla: de que subcomando habla, que se comprobo
+   y cuando, y que la afirmacion analoga para `convex dev` esta **falsada**. Forma del fallo:
+   *una frase que afirma sobre `--env-file` en general se verifico mirando el unico subcomando
+   que menciona.*
+4. 🔴 **NO se cierra esta noche:** averiguar **si esa frase llego a justificar un despliegue a
+   produccion real**. Si la respuesta es si, hay una premisa a medio medir debajo de algo ya
+   ejecutado. Es historico y va a Aitor.
+
+**Regla general que sale de aqui:** cuando un documento explica **como saltarse una
+confirmacion**, la premisa que justifica que sea seguro **es carga estructural, no una nota al
+margen** — se mide antes de escribirla y **se re-mide cuando algo cercano se falsa**. Aqui
+nadie volvio a mirarla cuando AIT-123 tumbo a su hermana.
+
+## Fila — consultar el sistema de verdad arregla el ESTADO, no el SUJETO
+
+**Del CEO, verificandome a mi.** Instituimos "el estado de una tarea se consulta en Linear,
+siempre" como remedio al escalado de AIT-83. Pero la cabecera de aquel export dice de si
+misma *"corrección del arnés de AIT-83; **ficha de Linear propia, pedida al PM**"*: **el
+fichero llevaba en el nombre el numero de OTRA ficha**.
+
+🔴 **Consecuencia, y es peor que el incidente: si el identificador del fichero no es el de su
+tarea, consultar Linear devuelve el estado de otra cosa — y devuelve ALGO, no un error.** El
+remedio que acabamos de instituir **falla, y falla hacia el lado tranquilizador**: sales de la
+consulta mas seguro y con el dato equivocado. Un cruce de fuentes solo vale si las dos hablan
+del mismo sujeto, y **la clave que las une es justo lo que aqui estaba mal**.
+
+## Fila — el control positivo va ANTES de mirar el resultado
+
+**De la Directora, y es superior a lo que teniamos el CEO y yo.** Su formulacion: **"un
+detector cuyo control positivo sale a cero no da un resultado malo: no da resultado."** El
+orden es lo accionable: **puesto despues informa; puesto antes impide usar un resultado
+inservible.**
+
+La misma noche, **tres detectores independientes** tuvieron el mismo defecto: el suyo (9
+falsos huerfanos), el del CEO (8 donde habia 3) y el mio de cobertura (`Total: 0 tests`
+reportado como dato tranquilo). **Ella fue la unica que lo cazo por metodo**; al CEO le salvo
+un listado impreso antes por casualidad y a mi romper el script sin querer. Que el mismo sesgo
+saliera en tres instrumentos distintos es la prueba de que **un detector hereda la forma de
+razonar de quien lo escribe**, y de que escribir otro no lo diluye.
