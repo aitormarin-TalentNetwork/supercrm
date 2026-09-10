@@ -530,3 +530,83 @@ control. Aqui: `PRESUPUESTO_C3_MS` para los digitos, `86_400_000` para el guion 
 sin relayar** (serie 11 -> 153 -> 192 -> 12 -> 18). Causa: dispare **sin armar el vigilante**. Los
 dos mecanismos no son alternativos — un vigilante muerto avisa (el harness lo notifica) y un
 barrido tardio no avisa de nada. **Se arman LOS DOS, siempre, en el mismo gesto que el disparo.**
+
+---
+
+## 2026-09-10 16:20Z — LA COLA ES UN RECURSO, NO UNA LISTA (y la tasa base de rondas)
+
+**AIT-141 tiene GO de codigo y esta entregada al Integrador.** Punta
+`e86e488466545e0181b2e98c8699c9a10c5ec56b`. Cero blockers, cero majors, C0..C7 todos en PASA con
+el comando de cada uno. Consumio **6 ranuras: 5 de plan + 1 de codigo**.
+
+**AIT-92 paso su gate de plan en la ronda 8.** T2 en implementacion.
+
+### LA TASA BASE, medida (21 fichas, veredictos en disco)
+
+    1 2 2 3 3 3 4 5 5 6 6 6 6 7 8 8 8 11 11 14 19
+    mediana 6 · media 6,6 · 138 ranuras totales
+    <=2 rondas: 3 de 21 (14%)   ·   >=8 rondas: 7 de 21 (33%)
+
+⚠️ **Sesgo declarado:** cuenta veredictos EN DISCO. Una ronda cuyo veredicto se borrara al
+archivar no aparece, asi que **el real es este o peor, nunca mejor.** Y "ranuras" no es "tiempo":
+una ronda de plan tarda 2-3 min y una de codigo bastante mas.
+
+Sirvio para corregir una estimacion del PM ("1 o 2 pases" para una ficha pequena, sacada de UN
+vecino que cerro en 2). *Un caso adyacente exitoso no es una tasa base: es el MEJOR caso, y se
+recuerda precisamente porque salio bien.*
+
+### EL REPARTO CUANDO EL GATE VA EN SERIE
+
+**Las auditorias van de una en una por cupo de Codex.** Formulacion del PM:
+
+> **La cola no es una lista: es un recurso compartido con un dueno externo.** Mandar trabajo a dos
+> celulas no dobla el ritmo: dobla la cola del gate.
+
+Asi que al priorizar la pregunta deja de ser *"¿quien esta libre?"* y pasa a ser **"¿cuantos pases
+de gate se come esta ficha?"**. Reparto acordado: **el PM ordena el VALOR, la Directora estima las
+RANURAS**, y solo se le avisa si la estimacion invierte su orden.
+
+Y su correccion, que es mas precisa que "recortar rondas":
+
+> **Lo que hay que recortar no son las rondas: es la incertidumbre que se resuelve en el artefacto
+> CARO.** Ocho de plan y una de codigo es BARATO para la cola. Tres de codigo, no.
+
+AIT-141 es ese perfil exacto: 5 de plan (barato) + 1 de codigo a la primera.
+
+🔑 **Y el aviso que el propio PM se puso, que hay que respetar al comunicar plazos:**
+
+> **Si el que prioriza dice "esto son dos rondas" y va por la cuarta, alguien se siente atrasado —
+> y la salida barata de sentirse atrasado es cerrar antes de tiempo.**
+
+La version que se publica es **"si a la tercera sigue abierta, eso es lo normal"**. Misma
+aritmetica; una protege el trabajo y la otra lo aprieta.
+
+### ⚠️ UNA VIA POR LA QUE EL GATE CRECE Y QUE NO ESTABA VIGILADA
+
+La detecto T3, no yo. Yo vigilaba que no crecieran los criterios **del encargo que escribo yo**.
+Pero el auditor carga ademas `Sorfware Factory/auditor_prompt.txt`, **un fichero del repositorio
+que otros roles editan y que se publica en `main` mientras una ficha esta a mitad de sus rondas**.
+Hoy gano 26 lineas. Si hubiera ganado la D55, la ronda 8 se habria juzgado contra una regla que no
+existia en las rondas 1-7 — **el criterio que crece durante la revision, sin que nadie lo insertara
+a mano.** No fue el caso; que saliera bien no arregla que no estuviera mirando.
+
+**REGLA:** antes de disparar una ronda N>1, mirar si ese fichero cambio desde la ronda 1
+(`git log` acotado a la ventana de la ficha) y, si cambio, decirlo en el encargo para que el
+veredicto declare contra que version juzga. **Enumerar TODAS las entradas del juicio, no solo la
+que escribes tu.**
+
+### MI ERROR DE ESTA TANDA: BASE DE OTRO, PREGUNTA DE ESTE
+
+Le avise a T1 de que dos de sus ficheros estaban "en los dos lados" con `main`. **Falso.** Compare
+lo entrado desde `f2f0c51` —la base de la rama de T3— contra la huella de T1, cuya base real es
+`b1cdbf2`. Medido bien: **ningun fichero entrado en main desde la base de T1 lo toca su rama.**
+Numero exacto, sujeto equivocado, y con la agravante de que llego como aviso operativo: el
+desarrollador lo habria tratado como restriccion al publicar.
+
+### COLA AL ESCRIBIR ESTO (16:20Z)
+
+    CORRIENDO  T3 AIT-134 plan-loop8   (arranco 16:19:18Z)
+    LIBRE      T1 -> AIT-142 (decidido por el PM; ojo: AIT-129 la hizo T2, NO hay ventaja de terreno)
+    IMPLEMENTA T2 AIT-92 (GO de plan en la r8)
+    AL INTEGRADOR  AIT-141, con las tres comprobaciones de publicacion a las 16:17:13Z
+                   — CADUCAN si `main` se mueve antes del merge; se repiten, no se heredan.
