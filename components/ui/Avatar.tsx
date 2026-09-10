@@ -1,3 +1,5 @@
+import { initials } from "@/lib/initials";
+
 const TINTS = [
   { bg: "#EFF4FF", fg: "#1D4ED8" },
   { bg: "#ECFDF5", fg: "#0F766E" },
@@ -12,13 +14,6 @@ const SIZES = { xs: 22, sm: 28, md: 36, lg: 48 } as const;
 interface AvatarProps {
   name?: string;
   size?: keyof typeof SIZES;
-}
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 function pick(name: string) {
