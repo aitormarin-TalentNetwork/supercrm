@@ -248,3 +248,70 @@ test.describe("AIT-128 · el detector de rótulos desconectados se pone rojo", (
     ]);
   });
 });
+
+// AIT-128 ronda 4. El auditor reprodujo un verde falso: una referencia COMENTADA
+// contaba como renderizada, porque el detector hacía `includes` sobre el fuente
+// crudo. Mi mundo de fallo era *borrar* la línea; *comentarla* es otra puerta a lo
+// mismo y no la había mirado.
+//
+// LAS FORMAS DE QUE EL RÓTULO NO LLEGUE A LA PANTALLA, y cuáles cubre esto:
+//   1. borrado                       -> CUBIERTO
+//   2. sustituido por otra constante -> CUBIERTO
+//   3. comentado (bloque, JSX, línea)-> CUBIERTO desde esta ronda
+//   4. dentro de una rama muerta o tras un `return` temprano  -> NO CUBIERTO
+//   5. renderizado pero oculto por CSS                        -> NO CUBIERTO
+// Las dos últimas NO las puede ver un análisis del TEXTO del fichero: harían falta
+// render y árbol de accesibilidad. Se declaran en vez de dejarlas implícitas —
+// un límite escrito se puede refutar; uno omitido se lee como cobertura.
+test.describe("AIT-128 · una referencia comentada NO cuenta como renderizada", () => {
+  const SANA = `
+    <KpiCard label={METRICAS.comerciales.etiqueta} />
+    <KpiCard label={METRICAS.abiertas.etiqueta} />
+    <KpiCard label={METRICAS.valor.etiqueta} />
+    <KpiCard label={METRICAS.atrasados.etiqueta} />
+    <span title={METRICAS.abiertas.etiqueta} />
+    <span title={METRICAS.interacciones.etiqueta} />
+    <span title={METRICAS.atrasados.etiqueta} />`;
+
+  const FALTA_LABEL =
+    "atrasados: falta label={METRICAS.atrasados.etiqueta} en la página";
+
+  test("comentario JSX  {/* … */}", () => {
+    const f = SANA.replace(
+      "<KpiCard label={METRICAS.atrasados.etiqueta} />",
+      "{/* <KpiCard label={METRICAS.atrasados.etiqueta} /> */}",
+    );
+    expect(rotulosDesconectados(f)).toEqual([FALTA_LABEL]);
+  });
+
+  test("comentario de bloque  /* … */", () => {
+    const f = SANA.replace(
+      "<KpiCard label={METRICAS.atrasados.etiqueta} />",
+      "/* <KpiCard label={METRICAS.atrasados.etiqueta} /> */",
+    );
+    expect(rotulosDesconectados(f)).toEqual([FALTA_LABEL]);
+  });
+
+  test("comentario de línea  //", () => {
+    const f = SANA.replace(
+      "<KpiCard label={METRICAS.atrasados.etiqueta} />",
+      "// <KpiCard label={METRICAS.atrasados.etiqueta} />",
+    );
+    expect(rotulosDesconectados(f)).toEqual([FALTA_LABEL]);
+  });
+
+  // CONTROL DE QUE NO SOBRE-ELIMINA: el filtrado se sesga a quitar de más, y de
+  // más significa borrar código real y gritar por un rótulo que sí está. Una URL
+  // lleva `//` y no abre un comentario.
+  test("una URL con // no hace desaparecer el código que va detrás", () => {
+    const f = `${SANA}\n    <a href="https://ejemplo.test/x">ver</a>`;
+    expect(rotulosDesconectados(f)).toEqual([]);
+  });
+
+  // Y el control negativo del propio filtrado: un comentario que NO tapa nada no
+  // debe cambiar el resultado.
+  test("un comentario inocente no pone nada en rojo", () => {
+    const f = `${SANA}\n    {/* esto es un comentario cualquiera */}\n    // y otro`;
+    expect(rotulosDesconectados(f)).toEqual([]);
+  });
+});

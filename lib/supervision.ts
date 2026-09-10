@@ -167,14 +167,32 @@ type Metrica = { etiqueta: string; unidad: string; atributos: readonly string[] 
  *
  *  Lo usan la prueba real y su control positivo: un verificador distinto del
  *  verificado sería una segunda opinión peor informada. */
+/** Quita comentarios antes de buscar. AIT-128 ronda 4: el detector usaba
+ *  `includes` sobre el fuente crudo, así que una referencia COMENTADA contaba
+ *  como renderizada — `{/* label={METRICAS.atrasados.etiqueta} *' + '/}` daba verde con
+ *  el rótulo sin pintar. Es el mismo verde falso que el detector existe para cerrar.
+ *
+ *  Cubre las tres formas: bloque, JSX (`{`+bloque+`}`) y línea. El `[^:]` delante
+ *  de `//` evita comerse un `https://`.
+ *
+ *  SESGADO A SOBRE-ELIMINAR A PROPÓSITO: si de más, un rótulo real desaparece y
+ *  el detector dice "falta" -> ROJO, ruidoso y visible. Si de menos, un comentario
+ *  sobrevive y dice "está" -> VERDE FALSO, que es el fallo que no avisa. */
+function sinComentarios(fuente: string): string {
+  return fuente
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+}
+
 export function rotulosDesconectados(
   fuente: string,
   metricas: Record<string, Metrica> = METRICAS,
 ): string[] {
+  const codigo = sinComentarios(fuente);
   const problemas: string[] = [];
   for (const [clave, m] of Object.entries(metricas)) {
     for (const atributo of m.atributos) {
-      if (!fuente.includes(`${atributo}={METRICAS.${clave}.etiqueta}`)) {
+      if (!codigo.includes(`${atributo}={METRICAS.${clave}.etiqueta}`)) {
         problemas.push(
           `${clave}: falta ${atributo}={METRICAS.${clave}.etiqueta} en la página`,
         );
@@ -185,7 +203,7 @@ export function rotulosDesconectados(
       `title="${m.etiqueta}"`,
       `>${m.etiqueta}<`,
     ]) {
-      if (fuente.includes(patron)) {
+      if (codigo.includes(patron)) {
         problemas.push(`${clave}: rótulo escrito a mano (${patron})`);
       }
     }
