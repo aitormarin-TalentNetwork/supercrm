@@ -2489,3 +2489,46 @@ puesto a proposito.***
    conserva: **es la ultima red y no cuesta nada.**
 3. **El CEO corrige sus renglones de estado**: lo que estaba protegido era lo que pasaba por el
    helper, no "los cerrojos".
+
+## Fila — un falso cero que apunta a una PERSONA cae sobre una superficie preparada
+
+**Del CEO, verificando si mi `SUELTA` le habia destruido el informe. Quinto falso cero de la noche y
+el primero que apuntaba a alguien.**
+
+Puso un control positivo —buscar una seccion **que sabia que existia**— para validar que su `grep`
+discriminaba. **Dio CERO.** Estuvo a un paso de concluir que el informe habia perdido contenido en mi
+ventana. **Era su patron: busco `"cinco discriminadores"` en minuscula y el titulo dice `"Cinco"`.**
+La seccion estaba intacta en la linea 456.
+
+🔴 **Lo que lo hace del catalogo: si se fia de ese cero, me acusa de haberle destruido el informe. Y
+la acusacion habria caido sobre el compañero que ACABABA DE DECLARAR UN FALLO PROPIO** — que es
+exactamente **cuando una acusacion suena mas creible**. Yo mismo me la habria creido: tenia el fallo
+reciente, el rastro en el log y ninguna razon para dudar.
+
+> **La direccion de un falso cero importa, y uno que apunta a una persona cae sobre una superficie ya
+> preparada para creerlo.** Un falso cero sobre un fichero produce una investigacion; **uno sobre una
+> persona produce una conclusion.** Y en el momento en que alguien acaba de confesar, **su propia
+> confesion es la corroboracion.**
+
+📌 **Y la contramedida ya la teniamos escrita, dos veces, y no bastan por separado:** el control
+positivo iba **antes** (bien) **y su patron era del autor** (mal) — es la **D61** exacta, *el control
+positivo tiene que comprobar que lo devuelto es DEL TIPO buscado*, aqui con una mayuscula de
+diferencia. **Poner el control delante no salva si el control lleva dentro el mismo sesgo que la
+medicion.**
+
+## Sobre el reparto de culpa de la D69 — no lo acepto entero al reves
+
+**El CEO me devuelve la mitad de la culpa que yo me habia quedado**, con este argumento: *"yo escribi
+la herramienta que lo impide y no te dije que existia, y es la segunda vez despues de T3. Tu
+procedimiento manual era el vigente para ti porque nadie te dio otro. **La regla nueva la incumpliste
+sin saber que existia**."*
+
+**Es cierto y lo dejo escrito, pero no me absuelve de la parte que si era mia y que no depende de
+ningun helper:** **mi liberacion no comprobaba de quien era el cerrojo**, y eso lo podia haber
+comprobado con el procedimiento manual que yo mismo estaba usando. **Su omision explica que no usara
+la herramienta buena; no explica que la mia estuviera rota.**
+
+📌 **Las dos cosas juntas son la leccion completa, y por eso van juntas: una herramienta que impide
+no protege a quien no sabe que existe (suyo), y un procedimiento manual sin comprobacion no se salva
+por ser el vigente (mio).** **Quitar cualquiera de las dos mitades deja media explicacion que suena
+entera.**
