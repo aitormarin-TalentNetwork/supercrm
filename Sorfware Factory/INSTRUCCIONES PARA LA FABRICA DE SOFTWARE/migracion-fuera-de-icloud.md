@@ -115,8 +115,31 @@ git worktree list --porcelain | grep '^worktree ' | cut -d' ' -f2- | while read 
   git -C "$w" worktree repair --relative-paths
 done
 
+# 2bis. 🔴 COMPROBAR POR EFECTO, NO POR CONFIGURACION. El paso 3 PARECE YA HECHO.
+#
+#    `git config --get worktree.useRelativePaths` dice **lo que se PIDIO**, no **lo que HAY**.
+#    Medido el 2026-09-10 con la config ya en `true`: CUATRO DE LOS CINCO worktrees tenian
+#    ruta ABSOLUTA. La config solo aplica a los worktrees creados DESPUES de ponerla, y
+#    solo T4 nacio despues.
+#
+#    🔴 EL RIESGO NO ES EL PASO 2 —esta escrito y es correcto— ES QUE EL 3 PARECE HECHO,
+#    Y ESO HACE QUE EL 2 PAREZCA INNECESARIO. Quien ejecute lee el `--get`, ve `true`,
+#    concluye que estan protegidos y SE SALTA LA REPARACION. Y esto se corre con la
+#    fabrica parada: el fallo aparece cuando ya no hay nadie mirando.
+for w in "$PWD" "Sorfware Factory/_worktrees"/*/; do
+  f="$w/.git"; [ -f "$f" ] || continue
+  case "$(cut -c1-9 "$f")" in
+    "gitdir: /") echo "🔴 ABSOLUTA: $w  -> el repair del paso 2 NO se ha aplicado aqui" ;;
+    *)           echo "✅ relativa: $w" ;;
+  esac
+done
+#    ⚠️ CONTROL: fabrica un `.git` de cada tipo y pasalos por esa comprobacion antes de
+#    fiarte de su verde. Un comprobador que no ha dicho nunca que no, no esta validado.
+
 # 3. Que los worktrees FUTUROS nazcan ya con rutas relativas (Factory Architect, dec. 81)
 #    El repair de arriba arregla los que existen; esto evita tener que acordarse nunca mas.
+#    ⛔ Y NO PROTEGE A LOS QUE YA EXISTIAN. La config no esta mal puesta: esta bien puesta
+#    y su alcance son los FUTUROS. Ver 2bis.
 git config worktree.useRelativePaths true
 
 # 4. Borrar cachés que guardan rutas absolutas
