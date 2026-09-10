@@ -910,6 +910,36 @@ a quitar?"*. **Esta noche habría acertado tres de tres.**
 
 ---
 
+## 4ter. 🔴 Lo que el QA NO probó — y hace falta leerlo junto a sus ocho ciclos verdes
+
+El QA cerró la noche con **ocho ciclos seguidos sin hallazgos**. Ese dato, solo, se lee como
+*"la app está bien probada"*. **No lo está**, y lo declara él mismo sin que nadie se lo
+preguntara:
+
+**NO se probó en toda la noche:**
+- **Toda la escritura.** Alta rápida, interacciones, etapas, presupuestos, eliminar, usuarios,
+  Contactado/Posponer. **Ni una.**
+- **Google login.**
+- **Recuperación de contraseña.**
+- **Viewport móvil** — y el MVP es *web responsive* por PRD.
+
+**Por qué los ocho verdes no dicen nada sobre esto:** los ciclos corrieron **en solo lectura y
+sobre rebuilds de documentación**, que es la política vigente porque *la app de Railway apunta
+al Convex de producción y no hay staging*. **La restricción es correcta; lo que no puede pasar
+es que su consecuencia quede sin escribir.**
+
+> 🔑 **Y ésta es la forma que más veces nos ha mordido esta noche, aplicada al informe mismo:**
+> un "no verifiqué X" **no es una nota defensiva — es el mapa de dónde sobrevive el error.**
+> Ocho verdes sobre lectura y cero pruebas sobre escritura significa que **todo el riesgo está
+> concentrado exactamente donde nadie miró.**
+
+📌 **Lo que esto te pide decidir, Aitor** (y enlaza con el gate 1 de la sección 1): si quieres
+cobertura real de escritura, hace falta **o un entorno de staging, o autorizarle al QA escribir
+en producción con un alcance acotado**. Hoy no tiene ninguna de las dos, así que **no es que el
+QA no haya querido: es que no puede.**
+
+---
+
 ## 5. Estado de la fábrica — remedido a las 09:47 UTC
 
 > ⚠️ **Esta sección decía "al cierre del informe (05:05 UTC)" y llevaba casi cinco horas
