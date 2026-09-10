@@ -452,17 +452,51 @@ tu ficha qué commits ajenos arrastras.
 
   **Falla hacia el verde por el peor lado: los merges son justamente los commits
   que traen el código de una rama entera**, así que un merge sin auditar se
-  clasifica como "documentación, no hace falta parar". Para un commit suelto:
+  clasifica como "documentación, no hace falta parar".
 
-  ```bash
-  git diff --name-only <sha>~1 <sha> | grep -E '^(app|convex|components|lib|hooks|e2e)/'
+  ⛔ **PERO EL ARREGLO NO ES `~1`, Y ESTO CORRIGE LO QUE ESTE MISMO DOCUMENTO DIJO
+  DURANTE VEINTE MINUTOS** (retirado el 2026-09-10, medido por el QA). `<sha>~1` es
+  **el primer padre**, que significa *"la rama en la que estabas al mergear"* — y eso
+  **depende de quién mergeó hacia dónde**, un dato que el gate no tiene:
+
+  ```
+  ec34cda ("Merge origin/main INTO aitormarin/corregir-comentario-falso-authstate")
+    ~1 (la rama) -> 15 ficheros,  2 de código
+    ~2 (main)    -> 16 ficheros,  3 de código
   ```
 
+  **Dos respuestas distintas, y ninguna es "lo que este commit metió en `main`".**
+
+  ⚠️ **Y por qué el arreglo malo parecía bueno — esto es lo que hay que retener:** en
+  los merges *hacia* `main` **los dos padres coinciden** (`e379117`: `~1` → 5, `~2` → 5).
+  Como los controles se hicieron sobre las publicaciones de producto, **el control
+  positivo no podía discriminar**: validaba el instrumento en los casos donde el
+  defecto no se manifiesta. *Un control positivo prueba el instrumento dentro de tu
+  pregunta, no que hayas elegido bien el caso.*
+
+  ✅ **LA PREGUNTA ESTABA MAL PLANTEADA.** Lo que decide si paras no es *"¿este COMMIT
+  trae código?"* sino **"¿ha entrado código en `main` desde el último punto que
+  verifiqué?"** — y eso es un **rango**, que no elige padre, ve el contenido de todos
+  los merges porque compara extremos, y no depende de la dirección del merge:
+
+  ```bash
+  git diff --name-only <punta_anterior>..origin/main | grep -E '^(app|convex|components|lib|hooks|e2e)/'
+  ```
+
+  **El examen por commit se queda sólo para ATRIBUIR** (*"¿de quién fue esto?"*), y ahí
+  **el padre se nombra explícitamente, nunca por ordinal**.
+
   **Y el control positivo va en la misma tirada, por el mismo método**, sobre un
-  ancla FIJA que sepas que lleva código (`e847ad8~1 e847ad8` → 5). *Si el control
-  da 0, la medida no se cuenta.* Aquel día no coló únicamente porque el control
-  dio 0 donde toda la tarde daba 5 — **lo cazó un testigo puesto antes, no leer
+  ancla FIJA que sepas que lleva código (`e847ad8~1..e847ad8` → 5). *Si el control
+  da 0, la medida no se cuenta.* Aquel día el `git show` no coló únicamente porque el
+  control dio 0 donde toda la tarde daba 5 — **lo cazó un testigo puesto antes, no leer
   con más atención**.
+
+  📌 **Y la lección del episodio completo, que vale más que el comando: fueron DOS
+  arreglos seguidos y el segundo contradice al primero.** El primero cambiaba el
+  comando y **dejaba la pregunta intacta**, por eso duró veinte minutos. **La ronda que
+  corrige es la peligrosa**: un arreglo recién escrito es código sin auditar, y llega
+  envuelto en el prestigio de haber cazado un fallo real.
 
   📌 **Y el punto ciego no cae en cualquier sitio: cae sobre CADA ENTREGA DE
   CÓDIGO.** Medido por el QA el mismo día — los merges más recientes del repo son
@@ -477,13 +511,6 @@ tu ficha qué commits ajenos arrastras.
   merges**, porque compara extremos — comprobado, 6 ficheros en `7fe3c94..c4aa030`.
   **El agujero era sólo del examen por commit**, así que el comando canónico de
   arriba y las medidas de ronda nunca lo tuvieron.
-
-  ⚠️ **Declara la semántica de `~1` en vez de asumirla: `~1` es el PRIMER PADRE.**
-  Para un merge *hacia* `main` eso es la punta anterior de `main`, que es la
-  comparación que quieres. **Pero si alguien mergea `main` DENTRO de una rama, ese
-  `~1` es la rama y el diff te cuenta lo contrario de lo que crees.** No es
-  hipotético: `ec34cda` ("Merge remote-tracking branch 'origin/main' into
-  aitormarin/corregir-comentario-falso-authstate") ya está en este repo.
 
   🔎 **Y para saber si un commit ES un merge, cuenta PADRES.** `git log --merges
   <sha>` lista los merges **alcanzables desde** ese commit, no si el commit lo es:
