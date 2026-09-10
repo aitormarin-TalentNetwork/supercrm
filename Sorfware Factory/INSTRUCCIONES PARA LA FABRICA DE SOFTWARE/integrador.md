@@ -422,7 +422,34 @@ tu ficha qué commits ajenos arrastras.
   ```bash
   git diff --name-only origin/main..main | grep -E '^(app|convex|components|lib|hooks|e2e)/'
   ```
-  Si eso sale con algo, es tuyo decidir; si sale vacío, no te molestan. *Por qué se
+  Si eso sale con algo, es tuyo decidir; si sale vacío, no te molestan.
+
+  ⛔ **Y el cero de ese filtro solo vale con control positivo, porque la variante
+  POR COMMIT que todos improvisamos está rota.** El comando de arriba usa un RANGO
+  (`origin/main..main`) y es correcto. Pero para declarar **un commit suelto** —lo
+  que se hace al avisar de un commit ajeno— sale natural escribir
+  `git show --name-only <sha>`, **y eso da 0 ficheros SIEMPRE si `<sha>` es un
+  merge**: `git show` compara contra todos los padres a la vez y no lista nada.
+  Medido el 2026-09-10 sobre `e847ad8` (un merge real):
+
+  ```
+  git show --name-only --format='' e847ad8   ->  1 línea    ← CIEGO
+  git diff --name-only e847ad8~1 e847ad8     -> 10 líneas, 5 de código
+  ```
+
+  **Falla hacia el verde por el peor lado: los merges son justamente los commits
+  que traen el código de una rama entera**, así que un merge sin auditar se
+  clasifica como "documentación, no hace falta parar". Para un commit suelto:
+
+  ```bash
+  git diff --name-only <sha>~1 <sha> | grep -E '^(app|convex|components|lib|hooks|e2e)/'
+  ```
+
+  **Y el control positivo va en la misma tirada, por el mismo método**, sobre un
+  ancla FIJA que sepas que lleva código (`e847ad8~1 e847ad8` → 5). *Si el control
+  da 0, la medida no se cuenta.* Aquel día no coló únicamente porque el control
+  dio 0 donde toda la tarde daba 5 — **lo cazó un testigo puesto antes, no leer
+  con más atención**. *Por qué se
   estrechó así:* la primera redacción decía "para si `main` lleva commits que no son
   tuyos", y como aquí commitean seis roles, eso te convertía en cuello de botella de todo
   — el 2026-09-08 las once decisiones de proceso del día se quedaron media tarde sin subir
