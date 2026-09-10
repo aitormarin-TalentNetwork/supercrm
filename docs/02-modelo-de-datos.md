@@ -296,6 +296,24 @@ diff <(sed -n '/^```ts$/,/^```$/p' docs/02-modelo-de-datos.md | sed '1d;$d') con
 > `schema.ts`. Por eso ahora va literal — y con el `diff` de arriba, la próxima
 > divergencia se detecta en un comando en vez de en una auditoría.
 
+> **Y volvió a pasar el 2026-09-10, con AIT-92, por una vía que la nota de arriba
+> no cubre: el documento SÍ se editó en el mismo commit — y se editó a medias.**
+> Medido sobre `0ccb693`, que toca `convex/schema.ts` y este fichero a la vez:
+> **23 líneas añadidas y CERO con `defineTable`.** Se añadió la descripción en
+> prosa de `gmailAccounts` y `gmailOauthStates`, y **no** el bloque literal.
+> El comando de arriba dio **48 líneas** durante horas, y no lo ejecutó nadie:
+> ni el autor, ni el auditor, ni la Directora, ni el Integrador.
+>
+> **La regla de la casa —"si cambia una decisión técnica, actualiza el doc en el
+> mismo cambio"— se cumplió, y no bastó.** Este documento tiene **dos partes que
+> hay que cambiar juntas**: la prosa, que se lee como documentación y por eso se
+> acuerda uno de ella, y el bloque literal, que es el que tiene comprobación
+> mecánica. **Se actualizó la que no se puede verificar y se olvidó la que sí.**
+>
+> **Así que quien toque `convex/schema.ts` no ha terminado hasta que el `diff` de
+> arriba salga vacío**, y quien lo publique lo ejecuta antes de dar la ficha por
+> cerrada. *Un comando que nadie corre no es una salvaguarda: es una promesa.*
+
 ```ts
 import { defineSchema, defineTable } from "convex/server";
 import { authTables } from "@convex-dev/auth/server";
