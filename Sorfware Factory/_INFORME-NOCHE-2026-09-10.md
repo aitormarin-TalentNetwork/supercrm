@@ -55,9 +55,30 @@ Hay **dos vías** y sólo una necesita tu permiso:
 frase que merece quedarse: *"eso no lo vuelve autorizado, sólo invisible"*. La fábrica se paró
 sola donde tenía que pararse.
 
-### 6. Cinco identidades `ait99-*` en el Convex compartido
-Declaradas, inertes (T1 borró su credencial) y **sin forma de retirarlas hasta AIT-131**. No
-urge: es para que las veas en el dashboard sin sorprenderte.
+### 6. 🔴 UNA CREDENCIAL VIVA CON LA CONTRASEÑA EXPUESTA — y no podemos rotarla sin ti
+**Esto cambió de categoría a las 08:15 y ya no es "cinco identidades sembradas".**
+
+De las cinco cuentas `ait99-*` que quedaron vivas en el Convex **compartido de desarrollo**,
+**una tiene su contraseña en claro**: `ait99-verify-bce772@supercrm.es`. Se escribió para hacer
+logins por UI durante la verificación, y quedó en el transcript de esa sesión. **Lo declaró T1
+por su cuenta**, sin que nadie se lo pidiera, y está anotado en `_turno-convex.log` con esa
+marca para que quien la borre sepa por cuál empezar.
+
+**ALCANCE EXACTO, medido, para que no se lea ni más grave ni más leve de lo que es:**
+- Está en **transcripts de sesión locales** y en los ficheros de auditoría de esta máquina.
+- **NO ha viajado al repositorio:** esos ficheros están **ignorados por git** (comprobado con
+  `git check-ignore`, con control positivo). **No está en GitHub ni en ningún commit.**
+- Es una cuenta del **deployment compartido de DEV**, no de producción.
+
+⚠️ **Y LO QUE TE TOCA SABER, PORQUE ES UNA REGLA TUYA QUE NO ESTAMOS CUMPLIENDO:** `CLAUDE.md`
+dice que **un secreto expuesto se rota de inmediato, no se deja "total, ya se vio"** — con el
+precedente del 2026-08-21. **No lo hemos rotado**, y no por descuido: **retirar o rotar esas
+cuentas es exactamente lo que no podemos hacer sin tu autorización**, porque la siembra **no
+tiene inversa** (AIT-131, congelada) y crear/tocar credenciales en el compartido está vetado.
+
+**O sea: sabemos cuál es la regla, sabemos que la estamos incumpliendo, y el desbloqueo es
+tuyo.** Prefiero decírtelo así que dejarlo en una línea que parezca informativa. **Va con la
+decisión de AIT-99 (punto 3): la misma autorización resuelve las dos.**
 
 ### 7. AIT-113 — las dos cuentas reales solo entran por Google
 Abierta desde antes de esta noche, y **bloquea implícitamente parte de AIT-99**.
