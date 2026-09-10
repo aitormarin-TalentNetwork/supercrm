@@ -59,10 +59,13 @@ case "$ACCION" in
       printf '%s | TOMA %s\nAlcance: %s\nQue hago: %s\n' "$QUIEN" "$TS" "$ALCANCE" "$QUEHAGO" > "$LOCK/titular.txt"
       printf '%s | %s | RECLAMA | ALCANCE: %s | %s\n' "$TS" "$QUIEN" "$ALCANCE" "$QUEHAGO" >> "$LOG"
       # VERIFICACION POR EFECTO, no por exit code del mkdir:
-      if [ -f "$LOCK/titular.txt" ] && grep -q "$QUIEN" "$LOCK/titular.txt"; then
+      if [ -f "$LOCK/titular.txt" ] && grep -qF "$QUIEN" "$LOCK/titular.txt"; then
         echo "RECLAMADO $TS — es tuyo"; exit 0
       fi
-      echo "🔴 INDETERMINADO: el mkdir dijo que si, pero el titular no me devuelve mi nombre. NO lo uses."; exit 2
+      # Limpio lo que acabo de crear: si me niego a usarlo, no puedo dejarlo bloqueando a todos.
+      rm -f "$LOCK/titular.txt"; rmdir "$LOCK" 2>/dev/null
+      if [ -d "$LOCK" ]; then echo "🔴 INDETERMINADO Y ADEMAS NO PUDE LIMPIARLO: hay un cerrojo mio colgado. AVISA."; else echo "🔴 INDETERMINADO: el titular no me devuelve mi nombre. NO lo uses. Cerrojo retirado, no queda colgado."; fi
+      exit 2
     fi
     echo "OCUPADO — NO es tuyo. Titular:"; cat "$LOCK/titular.txt" 2>/dev/null | sed 's/^/  /'; exit 1 ;;
 
@@ -70,7 +73,7 @@ case "$ACCION" in
     [ -n "$QUIEN" ] || { echo "INDETERMINADO: falta quien libera."; exit 2; }
     if [ ! -d "$LOCK" ]; then echo "🔴 INDETERMINADO: el cerrojo NO existe. O ya lo soltaste, o lo solto otro. NO cuenta como liberacion tuya."; exit 2; fi
     if [ ! -f "$LOCK/titular.txt" ]; then echo "🔴 NO LIBERO: hay cerrojo sin titular.txt. Puede ser una reclamacion en vuelo de otro. Avisa en vez de borrar."; exit 1; fi
-    if ! grep -q "$QUIEN" "$LOCK/titular.txt"; then
+    if ! grep -qF "$QUIEN" "$LOCK/titular.txt"; then
       echo "🔴 NO LIBERO: el cerrojo NO ES TUYO. Titular:"; sed 's/^/  /' "$LOCK/titular.txt"; exit 1
     fi
     rm -f "$LOCK/titular.txt"; rmdir "$LOCK" 2>/dev/null
