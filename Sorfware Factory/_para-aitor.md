@@ -41,9 +41,20 @@ contra uno silencioso y sin límite (`fetch` y `push` caídos para todos).
 **Puede matar la Ola 2 entera y cuesta minutos.** Abrir la pantalla de consentimiento de
 `gmail.readonly` con una cuenta del dominio y mirar si Google exige verificación.
 
-⛔ **NO poner `GMAIL_CLIENT_ID`/`SECRET` en producción todavía** — eso activaría el ataque de
-AIT-145, que hoy no es explotable precisamente porque no están. El gate se hace contra el
-deployment de desarrollo, que las tiene desde el 09-09.
+🔴 **NO poner `GMAIL_CLIENT_ID`/`SECRET` en producción todavía. Y desde las 22:35 UTC esto ya
+no es una precaución prudente: es LO ÚNICO que impide el ataque de AIT-145.**
+
+El auditor tumbó el arreglo propuesto (NO-GO, confianza alta): **la URL de inicio fabrica su
+propia prueba de posesión**, así que el atacante puede mandársela a la víctima y el vínculo
+se crea igual. **Mientras esas variables no estén en producción, el ataque no existe; el día
+que estén, existe.**
+
+⛔ **Y no basta con que AIT-145 ponga `Done` para levantarlo:** hay que haber **fabricado el
+ataque** —iniciar el flujo con una sesión, mandar la URL, consentir desde otra— y ver que
+**el vínculo NO se crea**. *Un estado de Linear no es una prueba.*
+
+✅ El gate del consentimiento **no necesita producción**: se hace contra el deployment de
+desarrollo, que tiene las credenciales desde el 09-09.
 
 ✅ **En la MISMA sentada y DESPUÉS del gate: la premisa 1 de AIT-91** — abrir Gmail en un
 hilo real por URL, en escritorio y en móvil. *Si Google exige verificación, esa premisa deja
