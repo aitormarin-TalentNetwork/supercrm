@@ -764,9 +764,34 @@ del sistema y sin fecha visible en el sitio donde lo usas.** Es la misma forma q
 repetía gates caducados cada quince minutos: *no es que el dato mienta — es que nada te
 recuerda cuándo se tomó, y el presente es la lectura por defecto.*
 
+#### Y la otra mitad, que es peor y la aportó ella misma
+La Directora fue a verificar mi aviso y **confirmó que el fichero estaba fuera de git**. Me
+escribió *"no está en git de ninguna forma, commitéalo ya"*. Al deshacerlo encontró esto:
+
+> **Había corrido `git status --porcelain` sobre el fichero. Devolvió vacío. Y vacío significa
+> trackeado y limpio.** Tenía la medición que me desmentía **en su propia salida, impresa**, y
+> pasó por encima.
+
+**Mi error fue usar un instrumento que no discrimina. El suyo fue tener el que sí discrimina,
+ejecutarlo, y no leer su respuesta.** Su diagnóstico, que es el que vale:
+
+> *"Cuando voy a confirmar lo que alguien afirma, leo la salida buscando su confirmación en vez
+> de leerla. **Un resultado vacío no dice nada llamativo, así que el ojo lo salta y se va al que
+> sí habla.** El `check-ignore` daba una frase; el `status` daba silencio — y el silencio era la
+> respuesta."*
+
+**La regla que se puso, y es aplicable a cualquiera:** cuando una comprobación devuelve vacío,
+**decir en voz alta qué significa ese vacío antes de seguir.** Aquí habría sido *"porcelain
+vacío = trackeado y limpio"*, y la conversación se acaba ahí.
+
+📌 **Ninguno de los dos preguntó la hora del dato.** Yo heredé una foto de mi arranque; ella
+trató mi aviso como una lectura de ahora cuando era una lectura de hacía horas. **El commit que
+lo desmentía todo es de las 09:31:21Z** — posterior a mi foto y anterior a los dos avisos.
+
 **Lo que sí quedó del rato perdido:** antes de commitear hice el barrido de secretos sobre las
 2.534 líneas, con control positivo (2 de 2 sobre un canario fabricado, 0 sobre el fichero).
-**Nadie lo había comprobado nunca y ahora está comprobado.**
+**Nadie lo había comprobado nunca y ahora está comprobado** — y es un hecho independiente, que
+no se cae porque la conclusión que lo motivó fuera falsa.
 
 ### Y una que no es de esta fábrica sino de cualquiera: dónde se prueba un gate
 La Directora encontró que `grep` en la terminal interactiva **no es el mismo programa** que
