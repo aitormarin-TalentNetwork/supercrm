@@ -1340,3 +1340,70 @@ condicion de salida: *"al cerrar esta, comprobar antes que X e Y estan cerradas;
 cerrar esta EMPEORA el sistema"*. La fila que sufre lleva un puntero, no el aviso principal.
 **Regla general: en una lista sin orden, la dependencia se escribe en el extremo que actua, no en
 el que padece.**
+
+## D45 — la COMPLETITUD del artefacto no es trabajo del auditor: es precondicion mecanica del disparo
+
+**Caso medido por T1 y traido por la Directora: `§<PENDIENTE>` en la linea 221 del export de codigo
+de AIT-99 loop2.** Escrito en la ronda 1, **nunca rellenado**, y **sobrevivio a la ronda 2 y a las
+dos auditorias completas. Ningun auditor lo marco.**
+
+**El diagnostico de la Directora es correcto y es el hallazgo, no el puntero:** *nuestras auditorias
+miran si el razonamiento se sostiene, si los controles discriminan y si los criterios pueden fallar.
+**NO miran si el artefacto esta COMPLETO.*** Y un `§<PENDIENTE>` **es de las cosas mas faciles de
+detectar que existen** —es un literal— **y paso dos veces**: no es un defecto de un fichero, es que
+**nadie tiene asignado mirar eso**, y por eso no falla ruidosamente.
+
+⚠️ **Y la ironia lo hace didactico: aparecio dentro del trabajo de AIT-122, la ficha que existe para
+construir el comprobador de punteros.** El caso real que ese comprobador necesitaba **estaba en un
+artefacto que ya habiamos dado por bueno.**
+
+**DECISION, y no cuesta una ronda: la completitud NO se le pide al auditor — se comprueba ANTES de
+disparar, con un literal.** Se fusiona con la **D32**: el marcador de fin de export (`FIN DEL
+EXPORT`) **deja de ser solo "he terminado de escribir" y pasa a certificar tambien "no quedan
+marcadores de hueco sin resolver"**, comprobado por `grep` sobre el propio export.
+- **Por que ahi y no en la auditoria:** una ronda de auditoria es el recurso mas caro de la fabrica
+  y **es juicio**; esto es un `grep`. **Gastar juicio en lo que detecta un literal es tirar el
+  recurso caro**, y ademas no funciono: dos auditores lo tuvieron delante.
+- **Por que no lo arregla T1 ahora:** correcto, y su razon es la buena — **es su unico caso real,
+  o sea su control positivo**, y arreglarlo le obligaria a fabricar uno sintetico. **Un control
+  estrenado contra un caso fabricado por uno mismo no discrimina.**
+
+## D46 — el puntero historico existe, pero tiene que decir A QUE RONDA apunta
+
+**Clasificacion que me sube la Directora, con el trabajo de T1: de los 6 punteros que no resuelven
+salieron TRES categorias donde todos esperabamos dos** — 1 roto de verdad, 2 falsos positivos de su
+prototipo (solo capturaba etiquetas numericas), y **3 que apuntan a secciones de una RONDA ANTERIOR
+del mismo plan, que una ronda posterior reescribio**. No estan rotos: **su documento destino dejo de
+existir.**
+
+**Confirmo su provisional y lo hago firme, con un refinamiento que disuelve el dilema:**
+- ✅ **"Puntero historico" es una categoria legitima**, listada aparte y **sin tocar el exit code**.
+  Marcarlos en rojo mandaria el comprobador al mueble: citar una ronda anterior es algo que **le
+  pedimos** a los autores, y un control que grita en cada corrida se apaga en la cabeza del lector.
+- 🔑 **PERO un `§M8` a secas no es un puntero historico correcto: es un puntero AMBIGUO.** Si una
+  ronda futura vuelve a numerar `§M8`, esa cita **resuelve sola, en silencio, a la seccion
+  equivocada** — y entonces no hay ni rojo ni hueco: hay un puntero verde que apunta a otra cosa.
+  **Es el peor de los tres estados y hoy no lo cubre nadie.**
+- **Regla: una cita a otra ronda lleva la ronda dentro** (`§M8 de plan-loop2`). El comprobador:
+  **rojo** solo si no resuelve **y** no nombra ronda; **listado aparte** si nombra ronda y esa ronda
+  ya no existe; **verde** si resuelve.
+- **Coste: una palabra al escribir la cita.** A cambio se cierra una clase entera de falso verde.
+
+**Su test de frecuencia esta medido antes de pedir nada y pasa el mio:** 158 punteros en 6 exports,
+6 no resuelven, **96,2% de silencio**, ruido esperado **1 de 158**. Y se puso el mismo la condicion
+vinculante: *"si al implementarlo el ruido sube de ahi, el comprobador no se acepta aunque
+funcione"*. **Esa es la forma correcta de proponer un control.**
+
+📌 **Y su diagnostico del comprobador viejo es mejor que el caso: no tenia un problema de precision,
+tenia el UNIVERSO equivocado.** Preguntaba *"¿existe §N en ESTE fichero?"* cuando la pregunta es
+*"¿resuelve §N en ALGUNO de los documentos a los que puede apuntar legitimamente?"*. **De ahi sale
+el 100% de rojos falsos que la ficha declaraba, y NO era un bug:** con un universo de un solo
+documento, **todos los punteros externos salen rojo por construccion**. El comprobador **no estaba
+roto: contestaba otra pregunta.** *Antes de afinar un instrumento que falla entero, comprobar sobre
+que universo esta preguntando.*
+
+📌 **Y el segundo defecto, que el pesa mas y yo tambien:** el auditor habia dejado escrito *"no pude
+reproducir el comprobador: su comando o script no forma parte del export"*. **No existia como
+artefacto** — era un comando de una sesion y murio con ella. Ahora va a `scripts/`, versionado.
+***Una medicion no es una herramienta hasta que alguien mas puede correrla.*** Es el mismo fallo de
+la decision 78 (el vigilante que vivia solo en la sesion que lo monto) en otro sitio.
