@@ -938,42 +938,60 @@ una vez que el trabajo pasa auditoría.
      Una medicion es una afirmacion sobre un estado PASADO. **Exclusion y validez son dos
      problemas distintos: el cerrojo resuelve el primero; el segundo necesita REGISTRO.**
 
-- ⛔ TERCERA CASILLA OBLIGATORIA: LA HUELLA — a cuantos ficheros obliga tu plan (2026-09-10)
+- ⛔ TERCERA CASILLA OBLIGATORIA: LA HUELLA — a cuantos ficheros alcanza QUE (2026-09-10)
 
-      Huella del plan: N ficheros
-      Contado con:     <el comando exacto>
-      Salida:          <lo que imprimio>
-      Complemento:     <los que NO toca>   <- si el plan acota un conjunto
+      Huella: <el MECANISMO, nombrado> alcanza a N ficheros
+      Contado con:  <el comando exacto>
+      Salida:       <lo que imprimio>
+      Complemento:  <los que NO>   <- si acotas un conjunto; vacio se imprime vacio
 
-  **Va el NUMERO, el COMANDO y su SALIDA. No una frase.** Y si tu plan acota un conjunto,
-  imprime tambien **el complemento** —los que NO— porque es **lo que demuestra que tu conteo
-  no le da el mismo numero a todo**. Un complemento vacio se imprime vacio, no se omite.
+  ⛔ **NO PIDE UN NUMERO: PIDE UN NUMERO CON SU SUJETO.** No *"cuantos ficheros toca este
+  plan"*, sino ***"cuantos ficheros alcanza <el mecanismo, nombrado>"***.
 
-  🔑 POR QUE (hallazgo de T3): **un plan declara su MECANISMO y calla su HUELLA, y la huella
-  es lo que paga otro.** Caso medido: AIT-143 lleva **veinte rondas de plan**; el mecanismo se
-  audito veinte veces y **ninguna dijo que obliga a tocar los 24 specs de la suite.**
-  *"¿Es correcto este mecanismo?" se contesta DENTRO del documento; "¿a cuantos ficheros
-  obliga?" hay que SALIR a contarlos* — **y un auditor que lee el plan veinte veces no se
-  cruza nunca con esa pregunta, porque la respuesta no esta ahi.**
+  🔴 CASO QUE LO OBLIGA, del mismo dia y CON LA CASILLA YA PUESTA: el primer numero de
+  AIT-143 decia **24 specs**. Son **11**. Medido:
 
-  ⚠️ LIMITES, y van dentro de la casilla porque sin ellos se lee como mas de lo que es:
-    1. **INFORMA, NO IMPIDE.** No bloquea el export ni decide si la huella es aceptable:
-       **eso es alcance y lo decide el PM.**
-    2. **Un numero mal contado pasa igual.** Lo que gana la casilla es que es REFUTABLE:
-       pasamos de invisible a comprobable, **no de falso a cierto.**
-    3. ⛔ **CADUCA CON EL PLAN.** Se cuenta sobre el plan DE ESA RONDA. **Un numero declarado
-       en la r1 y copiado a la r7 es correcto y esta caducado sin avisar.** Por eso va CON SU
-       COMANDO: para que quien dispare pueda reejecutarlo. *Sin el comando, la casilla se
-       convierte en una cifra heredada.*
+      e2e/*.spec.ts ................................ 24
+      playwright.config.ts:127  testIgnore: PATRON_PRUEBAS_PURAS  -> e2e IGNORA las puras
+      playwright.unit.config.ts:25 testMatch: el MISMO patron     -> unit corre SOLO esas
+      puras (00-*) 13  ·  de flujo 11  ·  disjuntos POR CONSTRUCCION
+      (el patron sale de UN modulo compartido: e2e/pruebas-puras.ts:22)
 
-  📌 **Y EL CRITERIO DE POR QUE ESTAS TRES Y NO OTRAS**, que hoy no existia y por eso se
-  anadian por impulso:
-  > **Las casillas obligatorias del export son exactamente las preguntas cuya respuesta NO
-  > ESTA en el documento que el auditor va a leer** — en que backend escribe · cuando se
-  > midio · cuantos ficheros toca. **Lo que se contesta leyendo el plan no es casilla: es
-  > trabajo del auditor.**
-  > **Ser externa es condicion para ser CANDIDATA, no para entrar.** Para entrar hace falta
-  > ademas que **su ausencia haya costado algo real** — la huella se lo gano con veinte rondas.
+  El gate vigila precondiciones de la corrida de navegador; **las 13 puras no levantan
+  servidor ni hacen login: no tienen ese sujeto.**
+
+  🔑 **Y LO QUE HAY QUE LEER DOS VECES: EL 24 SE MIDIO BIEN.** Llevaba **control positivo**
+  (otro patron daba 0) **y el complemento impreso**. **Las dos salvaguardas que exigimos,
+  puestas — y el numero era el correcto DE OTRA PREGUNTA.**
+  > *"¿Quien importa `test`?"* y *"¿a quien alcanza el gate?"* **son preguntas distintas, y la
+  > segunda la contesta EL CONFIG, no el import.**
+  > ⛔ **Un control positivo valida el instrumento DENTRO de tu pregunta. No te dice que la
+  > pregunta sea la correcta.** *Por eso el sujeto va escrito: es lo unico que otro puede
+  > refutar.*
+
+  ✅ **Y esto acredita la casilla, no la desmiente: el numero falso se refuto en VEINTE
+  MINUTOS porque estaba escrito con su comando al lado.** Si hubiera ido como frase —*"toca
+  casi toda la suite"*— seguiria en pie.
+
+  🔑 POR QUE EXISTE (hallazgo de T3): **un plan declara su MECANISMO y calla su HUELLA, y la
+  huella es lo que paga otro.** AIT-143 lleva **veinte rondas de plan** y ninguna dijo a
+  cuantos ficheros obliga. *"¿Es correcto este mecanismo?" se contesta DENTRO del documento;
+  "¿a cuantos alcanza?" hay que SALIR a contarlo* — **y el auditor que lee el plan veinte
+  veces no se cruza nunca con esa pregunta.**
+
+  ⚠️ LIMITES, dentro de la casilla porque sin ellos se lee como mas de lo que es:
+    1. **INFORMA, NO IMPIDE.** Si la huella es aceptable **lo decide el PM.**
+    2. **Un numero mal contado pasa igual.** Lo que gana es ser **REFUTABLE**: de invisible a
+       comprobable, **no de falso a cierto.** *(El 24 es la prueba: paso, y se refuto.)*
+    3. ⛔ **CADUCA CON EL PLAN.** Un numero de la r1 copiado a la r7 **es correcto y esta
+       caducado sin avisar.** Por eso va CON SU COMANDO — sin el, es una cifra heredada.
+
+  📌 **Y EL CRITERIO DE POR QUE ESTAS TRES Y NO OTRAS**, que hoy no existia:
+  > **Son exactamente las preguntas cuya respuesta NO ESTA en el documento que el auditor va a
+  > leer** — en que backend escribe · cuando se midio · a cuantos ficheros alcanza. **Lo que se
+  > contesta leyendo el plan no es casilla: es trabajo del auditor.**
+  > **Ser externa es condicion para ser CANDIDATA, no para entrar:** hace falta ademas que su
+  > ausencia **haya costado algo real** — la huella se lo gano con veinte rondas.
 
 - ⛔ EN EL EXPORT, JUNTO A LA CASILLA DEL BACKEND: di CUANDO mediste (decision 88)
       Medido contra <recurso compartido> a las <hora CON HUSO>: <valores>

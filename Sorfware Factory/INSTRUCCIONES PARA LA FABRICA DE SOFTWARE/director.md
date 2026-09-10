@@ -923,11 +923,21 @@ antes ni de después. Una medición es una afirmación sobre un estado **pasado*
 ### ⛔ TERCERA CASILLA OBLIGATORIA DEL EXPORT: LA HUELLA (2026-09-10)
 
 ```
-Huella del plan: N ficheros
-Contado con:     <el comando exacto>
-Salida:          <lo que imprimio>
-Complemento:     <los que NO toca>
+Huella: <el MECANISMO, nombrado> alcanza a N ficheros
+Contado con:  <el comando exacto>
+Salida:       <lo que imprimio>
+Complemento:  <los que NO>
 ```
+
+⛔ **EXIGE EL SUJETO, no solo el número.** Caso del mismo día: el primer número de AIT-143
+decía **24 specs** y son **11** — los dos configs parten la suite con el mismo patrón
+(`testIgnore` en uno, `testMatch` en el otro), y **las 13 puras no levantan navegador: no
+tienen el sujeto del gate.**
+🔑 **Y el 24 estaba BIEN MEDIDO**, con control positivo y complemento impreso. **Las dos
+salvaguardas puestas, y el número era el correcto de OTRA pregunta.** *Un control positivo
+valida el instrumento dentro de tu pregunta; no te dice que la pregunta sea la correcta.*
+✅ **Se refutó en veinte minutos porque iba con su comando al lado.** Como frase —*"toca casi
+toda la suite"*— seguiría en pie.
 
 **Al recibir un export, comprueba que está** — y si acota un conjunto, que **el complemento
 esté impreso**, aunque salga vacío: es lo que demuestra que el conteo no le da el mismo número
