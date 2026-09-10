@@ -88,23 +88,35 @@ Las cuatro tienen la misma forma: **no puede desempatarlas quien está dentro.**
 
 ## 2. Lo que se entregó, sin maquillar
 
-**Comprometí dos tareas cerradas. Entrego una, y no es ninguna de las dos.**
+**Comprometí dos tareas cerradas. Entrego CERO de las dos.**
+
+La única ficha que se cerró esta noche —AIT-109— ya estaba en marcha antes de que se fijara el
+compromiso. **Así que el compromiso de la noche se cumplió en un 0%, y lo digo con ese número
+antes de dar ninguna explicación.**
 
 | | |
 |---|---|
 | **CERRADO** | **1** — AIT-109 (publicada, servida en 99 s, suites en verde, `npm run build` verificado) |
 | **NO LLEGA, decisión tuya** | **1** — AIT-99 |
-| **NO LLEGA, aún en el bucle** | **1** — AIT-127. Ronda 4 **NO-GO**, con **un solo major** vivo |
+| **NO LLEGA, aún en el bucle** | **1** — AIT-127. Ronda 5 **NO-GO** (verificado por mí: línea 871, `SIN:` en la 872, mtime 05:16:10Z). Dos majors, ningún blocker |
 | **EN VUELO al cierre** | AIT-123 (ronda 6 auditándose, **la primera sin el `SIN:` repetido**), AIT-114 y AIT-122 encoladas |
 | **DEUDA DESCUBIERTA** | **10 fichas** — AIT-124 a AIT-133. **Ninguna es ruido.** |
 
-**Sobre AIT-127, que era la que más cerca estuvo:** llegó a ronda 4 con M1, M2 y M3 cerrados y
-**un único major restante**. Y ahí saltó una condición de reversión **que el PM había escrito
-por adelantado, antes de saber cómo saldría**: guardar el endpoint quita una espera, **pero
-borrar la fila sigue siendo una mutación que exige sesión válida** — si no se espera, compite
-contra el propio `signOut()` y la fila se queda. **T3 no ha escrito la ronda 5 y hace bien:
-está esperando que el PM elija entre dos opciones que ya tiene con números.** Bifurcar sin esa
-respuesta habría sido la tercera vez que se rehace el mismo plan.
+**Sobre AIT-127, que era la que más cerca estuvo:** llegó a la ronda 5 con dos majors y ningún
+blocker. El defecto que la frena es de manual y merece leerse: **T3 escribió el requisito duro
+de que el cierre de sesión siga adelante aunque falle `unsubscribe`, pero su secuencia no tiene
+`catch` ni `finally`.** O sea: **el requisito está en el texto y no en el diseño.** Eso es
+exactamente lo que un plan tiene que atrapar antes de que llegue a código, y lo atrapó.
+
+**Y la Directora dejó una señal armada antes de que hiciera falta:** el mismo hallazgo (M4) ha
+vuelto **dos rondas seguidas**. No lo cuenta como bucle **y explica por qué con precisión** —
+en la ronda 4 el auditor tumbaba el razonamiento de T3; en ésta dice que **el razonamiento es
+correcto** y lo que falta es convertirlo en flujo ejecutable. Mismo punto, contenido distinto.
+Si vuelve en la ronda 6, escala en el momento.
+
+> **Su frase, que es el argumento entero de por qué no la cerré:**
+> *"Prefiero eso a un Done que no aguanta la primera pregunta, y en particular prefiero no
+> cerrar AIT-127 antes que cerrar un 'cerrar sesión' que no cierra la sesión."*
 
 **Las dos líneas de arriba nunca se restan.** Lo intenté —presenté "10 creadas, 1 cerrada,
 balance −9"— y el PM me lo tumbó con el argumento que lo cierra: **con esa métrica, una noche
