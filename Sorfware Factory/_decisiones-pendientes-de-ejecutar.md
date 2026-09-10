@@ -796,3 +796,71 @@ descarta el "mas cuidado" como remedio.
 ⚠️ **Y la ironia va en la direccion exacta de la regla:** el ejemplo que ilustra *"el instrumento
 que las encuentra no sabe distinguirlas"* **llego con un conteo mal hecho por el instrumento que
 las encontro** — el `grep` de T4 cubria menos ficheros de los que debia.
+
+## D37 — RETIRAR una afirmacion falsa no es lo mismo que SUSTITUIRLA. Solo lo primero tiene carril rapido
+
+**Pregunta de la Directora, bien planteada y con los argumentos de las dos direcciones.
+Respuesta decidida, y queda escrita porque ella pidio expresamente que si la respuesta era "pues
+dos rondas y ya esta", fuera una decision y no el resultado de que nadie se lo preguntara.**
+
+**El caso:** `e2e/authState.ts:165-169` afirmaba que *"el `localStorage` solo guarda un
+marcador"*. Es **falso** — `@convex-dev/auth` guarda ahi un JWT real — y **no era inocuo: dirigio
+lecturas**. Se cito esa misma noche como prueba de que la sesion vivia solo en cookies, y con eso
+**se descarto mirar el `localStorage`** en el diagnostico de AIT-127.
+
+**Su diagnostico del hueco es correcto y es lo que hace falta arreglar:** *los dos gates protegen
+contra publicar algo malo; **ninguno protege contra tardar en retirar algo malo que ya esta
+publicado***. Y la asimetria que senala tambien: **el comentario falso entro en `main` sin que
+nadie lo auditara como afirmacion, y retirarlo cuesta mas que haberlo puesto.**
+
+**LA DECISION, y el corte NO es por importancia ni por "es solo texto" — es por lo que el diff
+ANADE:**
+
+1. 🟢 **RETIRAR tiene carril rapido, sin ciclo.** Retirar es **marcar la afirmacion como no
+   fiable sin poner otra en su lugar**: tacharla, o anotar `⚠️ NO VERIFICADO / DEMOSTRADO FALSO
+   el <fecha>, se cito para <X>`. **Se hace en el momento en que se detecta.**
+2. 🔴 **SUSTITUIR va al ciclo completo, plan y codigo, sin excepcion.** Escribir *"en realidad
+   guarda un JWT"* es **una afirmacion nueva** y entra por donde entran todas.
+
+**Por que este corte no es la puerta que ella teme, y esto es lo que sostiene la decision:** el
+carril rapido **no puede introducir una creencia falsa, porque no anade ninguna creencia — resta
+una**. Su peor caso es marcar como dudoso algo que era cierto, y eso cuesta **una
+re-verificacion**, nunca una decision tomada sobre un dato falso. **El gate existe para lo que
+puede meter algo malo en `main`; una retirada, por construccion, no puede.** Y es comprobable
+**desde fuera**, que es lo que "es solo texto" nunca fue: **¿este diff anade alguna afirmacion?
+Si anade, ciclo completo. Si solo quita confianza, carril rapido.** No depende del juicio del
+autor sobre su propia importancia.
+
+**Esto ademas generaliza el precedente que ella misma encontro:** el PM se autoriza a corregir
+instrucciones falsas *"porque quito una trampa, no pongo un deber"*. **Es el mismo corte**, dicho
+para instrucciones; aqui queda escrito para cualquier fichero del repo.
+
+**Coste que se paga y hay que decirlo:** durante un rato el fichero tiene un aviso feo y ninguna
+respuesta. **Es el precio correcto:** un lector que encuentra `⚠️ DEMOSTRADO FALSO` va a mirar la
+realidad; uno que encuentra la frase falsa **no mira nada**, que es exactamente lo que paso con
+el `localStorage` de AIT-127.
+
+**Y sus dos errores quedan como parte del caso, porque son la forma del riesgo y los tres son
+suyos de la misma noche:** *"es solo un comentario"*, *"es solo un cambio suelto"*, *"es solo
+texto"* — **tres veces la misma forma**. Las dos primeras las pararon el Integrador y T3 con la
+misma frase invertida: ***"«es solo X» es exactamente la forma que tiene un gate de volverse
+opcional."*** Por eso el corte de esta decision **no usa la palabra "solo"** para nada.
+
+## Fila — el texto VIEJO que sobrevive dentro de una correccion hereda su credibilidad renovada
+
+**Del Integrador, y es el reverso exacto de una fila que ya teniamos.** Tenemos escrito que *la
+correccion es texto nuevo sin auditar*, que llega con el prestigio de venir a arreglar algo.
+Faltaba su simetrico.
+
+**El caso:** la correccion de T3 **conservaba intacta** la frase *"Medido: sembrar SOLO las
+cookies autentica igual que sembrar cookies + localStorage"*. **Esa frase y la frase falsa decian
+lo mismo con dos redacciones**, y de una de las dos ya sabemos que era falsa — o sea que **la
+razon por la que se creia la superviviente puede ser justo la que se acaba de tumbar**.
+
+🔑 **Lo que lo hace invisible: NO SALE EN EL DIFF.** Una revision mira lo que cambio; **lo que se
+quedo igual no lo mira nadie**, y el parrafo entero **se lee como recien verificado** porque
+acaba de pasar por una correccion.
+
+**Mitigacion adoptada, y encaja exactamente en el carril rapido de la D37: no se borra —puede ser
+cierta y es util— se MARCA:** de donde viene, que **no se re-verifico en este cambio**, y que
+haria falta para comprobarla. Es una retirada de confianza, no una afirmacion nueva.
