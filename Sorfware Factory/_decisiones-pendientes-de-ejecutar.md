@@ -2684,3 +2684,48 @@ MEDICION**. Eso **borra justo la señal que distingue "no hay" de "no pude mirar
 que ese vigilante mide. **Quitado**, y las dos invocaciones pasan a `/usr/bin/grep` por higiene.
 **Reprobado: caso real -> OK con las cuatro terminales; control negativo (ruta sin terminales) ->
 INDETERMINADO, nunca OK.**
+
+## D67.3 — el caso mas duro: el ENVOLTORIO excluye EXACTAMENTE el sujeto de la tarea
+
+**Lo trae T1 (`t1-a3`) desde AIT-116 —*"iCloud duplica ficheros dentro de `.git`"*— y lo he
+REPRODUCIDO YO con el sujeto delante:**
+```
+/usr/bin/grep -rl "ref" .git --include='HEAD'   -> 3 ficheros
+   .git/HEAD · .git/logs/HEAD · .git/worktrees/QA/logs/HEAD
+la FUNCION de la shell, MISMO comando ...........-> SIN SALIDA, exit 0
+control positivo (muestra: un fichero FUERA de .git) -> las dos lo encuentran  ✅ discrimina
+```
+**La funcion lleva `--exclude-dir=.git` incorporado.**
+
+🔴 **Esto es peor que el caso del directorio y por dos motivos distintos:**
+1. **La exclusion no es generica: es SEMANTICA y apunta justo al sujeto.** T1 tiene una ficha **que va
+   literalmente de ficheros dentro de `.git`**, y la herramienta que iba a usar para investigarla
+   **tiene esa carpeta excluida de fabrica**. *No es que el instrumento sea impreciso: es que esta
+   configurado para no ver exactamente lo que se le pregunta.*
+2. **Devuelve `exit 0` sin salida.** No es `exit 1` ("no hay coincidencias") ni `exit 2` ("no pude
+   mirar"): **afirma exito y no devuelve nada.** Ninguna de nuestras contramedidas lo caza — ni leer
+   el stderr (vacio), ni exigir `exit > 1`, ni la banda de la D63.
+
+**Es la instancia mas fuerte de la regla y la deja fuera de discusion: en cualquier comando que
+DECIDA, la herramienta va con RUTA ABSOLUTA.** Y T1 lo hizo bien **antes de que nadie se lo dijera**:
+uso `/usr/bin/grep` y `/usr/bin/find` **en todo lo que decide**, porque leyo la version publicada del
+proceso. **Es el primer caso de la noche en que la documentacion evita el fallo en vez de explicarlo
+despues.**
+
+📌 **Y refina la D61 en la direccion que faltaba: nuestro "control positivo de TIPO" comprueba que lo
+devuelto es del tipo buscado — pero aqui NO SE DEVUELVE NADA.** Un control de tipo sobre un conjunto
+vacio pasa vacio. **Lo unico que lo caza es un control positivo cuya MUESTRA ESTE DENTRO DEL SUJETO**
+—un fichero que sabes que esta en `.git`—, no una muestra cualquiera. *Un control positivo tomado
+fuera del alcance del filtro no prueba nada sobre lo que el filtro excluye.*
+
+## Aviso de T1 a la Directora (registrado, no decidido por mi)
+
+`migracion-fuera-de-icloud.md`, **precondicion 3**: `find .git -path '*/refs/*' -name '* [0-9]*'`
+**tambien casa con `logs/refs/` (reflogs), que son INERTES** — o sea **puede dar ROJO por algo que no
+bloquea**. **Hoy da 0 en las dos lecturas, asi que no ha mordido a nadie**, y lo dice **antes** de que
+un rojo falso pare una migracion correcta.
+
+**Direccion del fallo: hacia PARAR algo correcto.** Es de la familia *"la prudencia tambien tiene
+coste"* — y **el momento de arreglarlo es ahora, mientras da 0**, porque **un rojo falso en una
+migracion se lee como "menos mal que lo comprobamos" y nadie vuelve a mirar el patron.** Decide la
+Directora; lo registro porque el aviso llego con el defecto todavia sin morder, que es lo raro.
