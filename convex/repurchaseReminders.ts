@@ -36,7 +36,11 @@ async function loadOwnReminderOrThrow(
 // pendientes de TODAS las tiendas antes de filtrar los propios en
 // memoria. El filtro por ownerId (solo para sales) sí sigue en memoria
 // tras el índice — no hay un índice de 3 columnas para eso, mismo patrón
-// que el resto del proyecto (p.ej. dashboard.ts:getWorkloadByOwner).
+// que el resto del proyecto (p.ej. opportunities.ts:listOpen, que usa el
+// mismo `by_store_status` y filtra `ownerId` en memoria igual que aquí).
+// AIT-141: antes citaba `dashboard.ts:getWorkloadByOwner`, que NO hace este
+// patrón — agrupa por ownerId, no filtra visibilidad por él. La cita era
+// falsa desde que se escribió, no por haber envejecido.
 export const listToReactivate = query({
   args: {},
   handler: async (ctx) => {

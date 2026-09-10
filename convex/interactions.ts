@@ -8,7 +8,7 @@ import type { Id } from "./_generated/dataModel";
 // AIT-20: nombre del autor de una interacción para el historial. Mismo
 // chequeo de tienda cruzada que el resto de relaciones expuestas en
 // listados (cliente en opportunities.listOpen, comercial en
-// dashboard.getWorkloadByOwner...): en uso normal authorId siempre es
+// dashboard.listOpenOpportunitiesForSupervision...): en uso normal authorId siempre es
 // quien registró la interacción (interactions.create fija authorId =
 // usuario autenticado, ya validado contra esta misma tienda en ese
 // momento), pero el schema no obliga a que siga siéndolo — se comprueba
