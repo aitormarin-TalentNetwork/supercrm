@@ -1441,3 +1441,64 @@ Mi caso va como evidencia **y tiene que ir entero** —regla escrita, repartida 
 con su ejemplo, incumplida a los 34 minutos por quien la repartio— porque **sin esos detalles
 parece un despiste y con ellos es un dato sobre el mecanismo.** El FA no lo decide el mismo:
 **ha escrito casi todas las reglas, y el que las cuenta no puede ser el que decide si sobran.**
+
+---
+
+## EL METODO DEL IMPOSTOR SOBREVIVE A SU SEGUNDA PASADA (19:33Z, AIT-134 codigo-loop1)
+
+**NO-GO, y es el mejor del dia: el auditor aplico el metodo de T3 y encontro un SEGUNDO impostor
+donde T3 ya habia cerrado el primero.**
+
+    const confirmado = rutaLocalOk
+      ? (await clasificarAccesoProtegido(...)) !== "ACCESO_CONFIRMADO"
+      : false;
+    -> acepta ANOMALO como cierre confirmado
+
+    lo que los tests fabrican:
+       ruta local 200 + ACCESO_CONFIRMADO ....... cubierto
+       ruta local real + DENEGACION_ESPERADA .... cubierto
+       ruta local 500, sin clasificar ........... cubierto
+       ruta local 200 + ANOMALO ................. NADIE lo fabrica   <- el hueco
+
+**Contrato: solo `DENEGACION_ESPERADA` puede producir `ok:true`; `ANOMALO` debe fallar cerrado.**
+Impacto: reintroduce la senal falsa que AIT-134 existe para eliminar. Confianza alta.
+Blockers: **ninguno**. Un solo major. `useSignOutAndUnlinkPush.ts:412`.
+
+🔑 **T3 tapo el hueco entre "respondio" y "se cerro"; el auditor encontro el hueco entre "no esta
+confirmado" y "esta cerrado".** Es el MISMO artefacto haciendo dos trabajos, un nivel mas adentro
+— y **el propio olfato de T3 lo predecia sin que el lo aplicara a esa linea.**
+
+🟢 **Y ENUMERO SEIS IMPOSTORES, no dijo "no se me ocurre":** cinco discriminados por criterios
+existentes y uno que pasa. **Eso es una prueba de cobertura de verdad.** Su juicio: *"el metodo es
+valido y encontro un defecto real de cobertura. **Aplicandolo de nuevo aparecio M1**."*
+
+⛔ **Y LA RECLASIFICACION PROCEDE**, confirmada por quien tenia que confirmarla: *"M1 era cerrable
+con texto en el plan, pero su discriminacion solo podia verificarse ejecutando codigo"*. Ademas
+leyo bien la distincion de §0: *"la autorizacion pendiente de Aitor debe seguir bloqueando el
+merge, NO esta auditoria"*.
+
+> **Que una pasada del impostor no encuentre nada NO cierra la pregunta.** La segunda encontro lo
+> que la primera no vio, con el mismo metodo y sobre el mismo codigo.
+
+## UN CONTADOR QUE CUADRA UNA VEZ NO ESTA ACREDITADO: ESTA DE ACUERDO
+
+El Integrador predijo 176 tests, lo retiro y dio 175 **con el contador validado antes de fiarse**
+(suma de `test(` en los `00-*` de main = 168 = lo que midio la suite). Y quedo una discrepancia de
+1: su prediccion sobre la rama de T1 daba 151 y T1 midio 152.
+
+**Medido por mi, independiente:** main = 168, punta de T1 = **151**. Coincido con el. Y el
+candidato al +1: **cinco ficheros `00-*` de esa rama tienen `.each` / `for(` / `forEach` / `.map(`.**
+
+> **El patron mide DECLARACIONES y la suite mide EJECUCIONES. En `main` coincidian por casualidad;
+> en la rama de T1, una generacion dinamica las separa.**
+
+📌 **Y la trampa de mundos otra vez:** su 175 es el arbol MERGEADO y mi 151 es la rama. **La rama de
+T1 no tiene `00-gmail.spec.ts` (24 tests) porque salio antes de AIT-92.** Los dos numeros son
+correctos y son mundos distintos — como el codegen contra main y como el deployment.
+
+🔑 **Su diagnostico, que cierra algo que yo tenia a medias:**
+> *"Las dos veces el criterio estaba bien escrito y la premisa mal. **Lo que hay que declarar de
+> antemano no es solo el criterio: es DE DONDE SALE CADA NUMERO que lo compone.**"*
+
+Su `176` estaba declarado antes de medir **y era falso**: no por sesgo, sino porque `168 + 8` era
+una resta que nadie habia hecho.
