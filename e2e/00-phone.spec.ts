@@ -2,11 +2,17 @@ import { test, expect } from "@playwright/test";
 import { normalizePhone, formatPhone } from "../lib/phone";
 
 // AIT-80 — casos frontera de lib/phone.ts. Son pruebas UNITARIAS de dos
-// funciones puras: no abren navegador ni tocan Convex. Van aquí porque el
-// proyecto no tiene runner de tests unitarios (package.json solo declara
-// `test:e2e`), y montar uno para dos funciones sería añadir una dependencia y
-// una configuración que nadie ha pedido. El runner de Playwright las ejecuta
-// igual de bien.
+// funciones puras: no abren navegador ni tocan Convex. Las ejecuta
+// `npm run test:unit` (Playwright, AIT-109), que es el runner de lo puro.
+//
+// ⚠️ CORREGIDO EN AIT-92: esta nota decía que «el proyecto no tiene runner de
+// tests unitarios (package.json solo declara `test:e2e`)». **Esa premisa dejó de
+// ser cierta**: `test:unit` existe desde AIT-109. Lo que NO se cae es su buen
+// juicio — montar un runner nuevo PARA DOS FUNCIONES PURAS sigue siendo añadir
+// una dependencia que nadie ha pedido, y estas dos siguen aquí por eso.
+// (AIT-92 sí añadió un tercer runner, `test:callback`, y no para funciones
+// puras: para recorrer un callback de OAuth con cifrado, que ningún runner
+// existente podía cargar. Está acotado a un solo fichero.)
 //
 // Importan porque `normalizePhone` es la MISMA regla en los tres caminos que
 // tienen que coincidir: lo que se escribe, lo que se busca y lo que migra el

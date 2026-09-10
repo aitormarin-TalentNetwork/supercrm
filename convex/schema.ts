@@ -346,4 +346,51 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_endpoint", ["endpoint"]),
+
+  // AIT-92 (Ola 2) · Cuentas de Gmail conectadas. Una fila por (usuario,
+  // buzón): el MISMO usuario no conecta dos veces el mismo buzón, pero dos
+  // usuarios distintos SÍ pueden conectar el mismo (PRD §21 — el caso de la
+  // tienda con buzón compartido, para el que existe `mailboxUserIds`).
+  // 🚫 Por eso NO hay índice único por `emailAddress` a secas: lo prohibiría.
+  // ⚠️ Y `by_user_email` es un mecanismo de BÚSQUEDA, no una garantía: Convex
+  // admite varias filas con la misma clave de índice. La unicidad la impone la
+  // escritura (`convex/gmail.ts`), consultando por él dentro de la misma
+  // mutation y reutilizando la fila si existe.
+  gmailAccounts: defineTable({
+    userId: v.id("users"),
+    storeId: v.id("stores"),
+    // La dirección del buzón no es decorativa: sin ella no se puede saber
+    // después si el remitente de un correo es una cuenta conectada.
+    emailAddress: v.string(),
+    // Token de refresco CIFRADO (AES-GCM con nonce por escritura y versión de
+    // formato dentro del dato — convex/model/gmailCrypto.ts). Nunca en claro,
+    // nunca devuelto al cliente: no hay función que lo exponga.
+    refreshTokenCipher: v.string(),
+    connectedAt: v.number(),
+    // Contador de escrituras con éxito. Es el observable que acredita que un
+    // segundo flujo de OAuth llegó a ESCRIBIR y no solo a ser rechazado — y se
+    // puede leer con el cifrado roto, a diferencia de mirar si el cipher
+    // cambió (AIT-92, M8).
+    writeCount: v.number(),
+    status: v.union(v.literal("connected"), v.literal("disconnected")),
+    // Campos que el PRD fija para la sincronización (AIT-98). Se declaran
+    // ahora y NO se usan aquí: esta ficha acaba en "hay un token guardado".
+    lastSyncAt: v.optional(v.number()),
+    historyId: v.optional(v.string()),
+    watchExpiration: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_email", ["userId", "emailAddress"]),
+
+  // AIT-92 · `state` de OAuth, de un solo uso. Vive en tabla y no en una firma
+  // porque las cuatro propiedades que hacen falta —impredecible, con
+  // caducidad, ligado a su usuario y CONSUMIBLE— no las da una firma: un
+  // `state` firmado pero reutilizable permite vincular un buzón ajeno
+  // reenviando el flujo. Firmado y no reutilizable son cosas distintas.
+  gmailOauthStates: defineTable({
+    state: v.string(),
+    userId: v.id("users"),
+    expiresAt: v.number(),
+    consumedAt: v.optional(v.number()),
+  }).index("by_state", ["state"]),
 });

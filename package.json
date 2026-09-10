@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:e2e": "node scripts/check-e2e-preconditions.mjs && playwright test",
-    "test:unit": "playwright test --config playwright.unit.config.ts"
+    "test:unit": "playwright test --config playwright.unit.config.ts",
+    "test:callback": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
     "@auth/core": "0.41.3",
@@ -34,9 +35,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
+    "convex-test": "0.0.54",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.2.4"
   }
 }

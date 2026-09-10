@@ -9,10 +9,12 @@ import {
 } from "../lib/customerValidation";
 
 // AIT-82 — pruebas UNITARIAS de lib/customerValidation.ts. No abren navegador ni
-// tocan Convex. Van aquí por la misma razón que las de 00-phone.spec.ts: el
-// proyecto no tiene runner de tests unitarios (package.json solo declara
-// `test:e2e`), y montar uno para unas funciones puras sería añadir una
-// dependencia y una configuración que nadie ha pedido.
+// tocan Convex. Las ejecuta `npm run test:unit`, igual que las de
+// 00-phone.spec.ts.
+//
+// ⚠️ CORREGIDO EN AIT-92, misma corrección que allí: la premisa «el proyecto no
+// tiene runner de tests unitarios» ya no es cierta (`test:unit`, AIT-109). Su
+// conclusión —no montar un runner para unas funciones puras— sigue en pie.
 //
 // Importan porque estas funciones son la MISMA regla en las cuatro puertas de
 // escritura a `customers`: las dos mutations y los dos formularios. Antes de

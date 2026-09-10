@@ -402,6 +402,78 @@ Cuatro causas distintas producen "el login falla" y **ninguna lo dice**. Se dist
 **La cuenta no existe** es otra cosa distinta: da `InvalidAccountId`, no `InvalidSecret`.
 Si es eso, no es esta sección — es la siembra de un deployment nuevo (AIT-99).
 
+### 6quinquies. Cliente OAuth de Gmail y cifrado del token (AIT-92, Ola 2)
+
+**Es un cliente OAuth DISTINTO del de §6bis**, que es el del login. Comparten
+proyecto de Google Cloud y pantalla de consentimiento —así que lo de §6bis sobre
+la app Interna aplica también aquí— pero **ni las credenciales ni las URIs de
+redirección se pueden cruzar**. Si has llegado buscando "las variables de Gmail",
+las de §6bis **no** son tuyas.
+
+> ⚠️ **Va como §6quinquies y no como §6quater a propósito.** El §6quater ya
+> existe y trata de *rehacer la contraseña de una cuenta que ya existe*, y hay
+> **dos remisiones a él** (líneas de `SEED_*` y del bootstrap) que hablan de
+> contraseñas. Numerar esto como §6quater mandaría a quien busca cómo rehacer
+> una contraseña a leer sobre OAuth — sin romper nada, sin dar error, y sin que
+> nadie vuelva a comprobar un número de sección.
+
+**Los tres nombres canónicos, y no hay más:**
+
+| Variable | Dónde | Para qué |
+| -- | -- | -- |
+| `GMAIL_CLIENT_ID` | Deployment de Convex | Cliente OAuth «SuperCRM Gmail» |
+| `GMAIL_CLIENT_SECRET` | Deployment de Convex | idem |
+| `GMAIL_TOKEN_ENCRYPTION_KEY` | Deployment de Convex | Cifra el token de refresco guardado en `gmailAccounts` |
+
+⚠️ **`GMAIL_OAUTH_CLIENT_ID` y `GMAIL_OAUTH_CLIENT_SECRET` no existen.** Aparecían
+en una rama previa de esta tarea y **estaban equivocados**, no desincronizados:
+medido con `npx convex env list --names-only` contra el deployment compartido, los
+nombres reales son los de la tabla. Se corrigen aquí y no se deja el nombre viejo
+"por contexto" — dos nombres a la vista es cómo el siguiente no sabe cuál vale.
+
+**Se necesitan TRES cosas por deployment, y son independientes entre sí:**
+
+```
+EJE 1  la URI de redireccion de ESE deployment, registrada en el cliente OAuth
+       https://<deployment>.convex.site/gmail/oauth/callback
+EJE 2  GMAIL_CLIENT_ID y GMAIL_CLIENT_SECRET puestas en ESE deployment
+EJE 3  GMAIL_TOKEN_ENCRYPTION_KEY puesta en ESE deployment
+```
+
+**Los tres se comprueban ANTES de mandar a nadie a Google** (`convex/gmail.ts`),
+y el aviso nombra la variable y el deployment. La razón no es comodidad: el eje 3
+falla **al guardar**, o sea *después* del consentimiento — en el único punto del
+recorrido donde el usuario ya ha hecho su parte. Comprobar antes convierte el
+fallo más caro en el más barato.
+
+⚠️ **El eje 1 NO es comprobable desde el servidor**: si esa URI está registrada
+vive en la consola de Google. El CRM enseña **cuál va a usar**, y no afirma ni
+que falta ni que está. Lo que distingue registrada de no registrada es que la
+pantalla de consentimiento aparezca de verdad.
+⚠️ **Y la lista de URIs caduca:** cada deployment nuevo añade la suya. Quien cree
+un deployment de Convex tiene que registrarla, o verá un error **emitido por
+Google** que no menciona ni a SuperCRM ni a Convex.
+
+**La clave de cifrado la genera Aitor, va a Bitwarden, y es DISTINTA por
+deployment.** No la genera ninguna función del sistema, y el motivo es la
+amenaza, no la comodidad: una función solo podría guardarla **en la base de
+datos, que es justo donde viven los tokens que cifra** — la clave al lado del
+dato que protege no protege de nada, y cifrar pasaría a ser un adorno con coste.
+Que sea distinta por deployment es deliberado: un token cifrado en dev no debe
+poder leerse en producción, porque son buzones de personas distintas.
+
+Se genera así (32 bytes en base64, que es lo que espera `AES-256-GCM`):
+
+```bash
+openssl rand -base64 32
+npx convex env set GMAIL_TOKEN_ENCRYPTION_KEY '<lo anterior>' --deployment <nombre>
+```
+
+🔴 **CONSECUENCIA QUE HAY QUE SABER ANTES, NO EL DÍA QUE PASE:** si esa clave se
+pierde o se rota, **los tokens ya guardados dejan de poder descifrarse y los
+usuarios tienen que reconectar su Gmail**. No se pierde correo — se pierde la
+conexión. Es asumible, y por eso está escrito aquí en vez de descubrirse.
+
 ## 7. Web Push (AIT-57, Post-MVP)
 
 Avisos push reales (pasos vencidos y oportunidades en riesgo, con la app cerrada) — ver `convex/webPush.ts` (envío), `convex/pushInternal.ts` (candidatos), `convex/pushSubscriptions.ts` (alta/baja desde el cliente) y `convex/crons.ts` (dispara el envío cada hora).
@@ -548,6 +620,7 @@ Las escribe Convex solo. **Nunca se commitean.**
 | `SEED_OWNER_PASSWORD`, `SEED_SALES_PASSWORD` | Deployment de Convex (`npx convex env`) | Contraseñas de `marta@supercrm.es`/`carlos@supercrm.es`. **Hoy no las lee ningún código** (AIT-99): sirvieron para crear esas cuentas y la credencial quedó congelada en `authAccounts` desde entonces. **Cambiar estas variables NO cambia la contraseña de una cuenta que ya existe** — para eso, ver §6quater. Y **tienen que llevar el mismo valor que `NEXT_PUBLIC_DEMO_*`**: nada obliga a que coincidan, y descuadrarlas rompe el login. |
 | `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | Deployment de Convex (`npx convex env`) | Credenciales OAuth de Google Cloud Console (AIT-60, añadido en paralelo a lo de arriba) — `@auth/core` las lee por convención, nombre fijo. Ver §6bis. |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Deployment de Convex (`npx convex env`) | Envío del código de reseteo de contraseña (AIT-62) — `convex/ResendOTPPasswordReset.ts` las lee. `RESEND_FROM_EMAIL` necesita un dominio verificado en Resend para entregar a cuentas reales, no el de prueba. Ver §6ter. |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_TOKEN_ENCRYPTION_KEY` | Deployment de Convex (`npx convex env`) | Conexión de Gmail (AIT-92, Ola 2) — cliente OAuth **distinto** del del login (§6bis), y la clave que cifra el token de refresco. Ver §6quinquies. **`GMAIL_OAUTH_*` no existe**: era un nombre equivocado de una rama previa. |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `.env.local` | Clave pública VAPID (AIT-57, Web Push) — pública, sin secretos. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Deployment de Convex (`npx convex env`) | Firma y envío de Web Push (`convex/webPush.ts`). La privada nunca sale del deployment de Convex — ver §7. |
 | `CONVEX_DEPLOY_KEY` | Railway (variable del servicio, **nunca** `.env.local`) | Contraseña de servicio para que `npx convex deploy` publique a `stoic-impala-857` sin sesión interactiva (AIT-59, ver §8 y ADR-004). Se genera fresco por CLI justo antes de usarse. |
