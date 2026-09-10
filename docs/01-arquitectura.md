@@ -525,6 +525,55 @@ Ese script declara su propio alcance: detecta el patrón directo `setAlgoError(�
 
 **Estado:** 🟢 Cerrada.
 
+### ADR-0xx · Qué puede guardarse en `localStorage`, y por qué pasa por un helper — 2026-09-10 (AIT-127)
+
+**Contexto.** Hasta AIT-127 el código propio del proyecto **no tocaba
+`localStorage` ni una sola vez** — medido: cero ocurrencias en `app/`,
+`components/`, `lib/` y `convex/`. Lo único que lo usaba era la librería de
+autenticación, dentro de `node_modules`. AIT-127 necesita leer el `endpoint` de
+la suscripción push **de forma síncrona en el clic de "Cerrar sesión"**, porque
+obtenerlo de la Push API pasa por `navigator.serviceWorker.ready`, una promesa
+que puede no resolverse nunca y que era el origen de la ventana de 3 s del
+defecto.
+
+**Decisión.** Se estrena `localStorage` **con frontera y con helper**.
+
+**La frontera — qué puede vivir ahí:**
+
+| | |
+| -- | -- |
+| ✅ Sí | Datos **no sensibles**, **por dispositivo**, que hagan falta de forma **síncrona**. |
+| ⛔ Nunca | **Credenciales ni tokens**, de ningún tipo. |
+
+⚠️ **Que la librería de auth guarde ahí el JWT no es un precedente que nos
+autorice.** Es una decisión suya, y además es justo lo que estamos investigando
+en AIT-133 — no algo que estemos imitando.
+
+**El helper es obligatorio, y la razón es de forma, no de estilo:** todo acceso
+pasa por `lib/deviceStorage.ts`. **`localStorage` no devuelve `null` donde está
+bloqueado: LANZA** (modo privado, almacenamiento particionado, cookies de
+terceros desactivadas). Si cada llamante tuviera que acordarse del `try/catch`,
+alguien se olvidaría — y en AIT-127 ese olvido **tumbaría el cierre de sesión**.
+Las **tres** operaciones lo envuelven, no solo la lectura: lanza en las tres.
+
+> **Imposible por la forma es mejor que una puerta que lo comprueba.**
+
+**Por qué se escribe esto aquí y no se deja como uso puntual.** Un patrón nuevo
+introducido de pasada dentro de otra tarea es como se cuelan las convenciones que
+nadie decidió — **y la segunda vez ya no es una decisión, es una coherencia**. Sin
+esta entrada, el siguiente uso sería implícito.
+
+**Alternativas descartadas, con su motivo medido:**
+
+* **Cookie propia** — viaja en cada petición al servidor para nada.
+* **Solo en el servidor** — no es síncrono, que es justo lo que se necesita.
+* **`sessionStorage`** — muere al cerrar la pestaña, y la suscripción push le
+  sobrevive.
+* **IndexedDB** — **asíncrono**, o sea que reintroduce la promesa que puede
+  colgarse: exactamente el defecto que AIT-127 viene a quitar.
+
+**Estado:** 🟢 Cerrada.
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:
