@@ -356,3 +356,13 @@ del fallo, el control de entrada es la unica defensa — y solo cubre lo que ima
 `Sorfware Factory/_detector-exports-sin-veredicto.sh`. Usa la clave ANTIGUA
 (`VEREDICTO_<term>_<ait>_<loop>.txt`, sin la clase), que es justo la que hoy me dio 12
 huerfanos falsos. Antes de volver a escribir el detector a mano: arreglar ese.
+
+**⛔ CORRECCION AL ORDEN: EL LECTOR NO PUEDE PONER EL ORDEN SI EL TEXTO LLEGA JUNTO.**
+Fijamos que el Integrador clasificaria primero a ciegas y luego leeria mi lectura — y se la
+mande **en el mismo mensaje**, asi que al llegar a ese parrafo ya no habia vuelta atras. Su
+clasificacion NO fue independiente y no cuenta como segunda opinion.
+
+**Van en DOS MENSAJES: (1) veredicto + correccion. (2) mi lectura, solo DESPUES de que el
+me haya dado la suya.** Es la misma forma que la tabla de valores esperados que el le mando
+al QA: un valor esperado a la vista invita a comparar, y no hay disciplina de lectura que lo
+deshaga. **La independencia se protege con el canal, no con el proposito del lector.**
