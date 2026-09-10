@@ -390,42 +390,59 @@ test("C3 y C4 · con el cierre correcto, se llega a /login en ≤3 s y no se que
   await pagina.context().close();
 });
 
-test("C7 · si el cierre FALLA: alerta visible, NO se navega, y la sesión sigue viva", async ({
-  browser,
-}) => {
-  const pagina = await abrirSesionPropia(browser, "sales");
+// C7, textual del veredicto de plan (loop5:296-306): "forzado el fallo del
+// cierre: alerta visible POR ROL + NO SE NAVEGA + LA SESION SIGUE VIVA,
+// comprobada contra el servidor".
+//
+// ⚠️ "POR ROL" SON LOS ROLES DE USUARIO, y lo leí mal una vez: mi rótulo
+// decía "alerta visible ... por su ROL, no por un testid", que es el rol
+// ARIA. Las dos lecturas son gramaticalmente válidas, y elegí la que mi
+// código YA cumplía — el test corría solo con `sales`. La otra pedía dos
+// roles y una de las dos condiciones no estaba medida. Ahora van los dos
+// roles y los dos botones: 4 combinaciones, no 1.
+for (const role of ["owner", "sales"] as Role[]) {
+  for (const boton of ["ajustes", "menu"] as const) {
+    test(`C7 · ${role} · botón de ${boton} · con el cierre forzado a fallar: alerta visible, NO se navega, y la sesión sigue viva contra el servidor`, async ({
+      browser,
+    }) => {
+      const pagina = await abrirSesionPropia(browser, role);
 
-  // Se corta la petición de cierre. ⚠️ Lo que falla NO es `signOut()`: esa
-  // función NO PUEDE fallar — `@convex-dev/auth/dist/react/client.js:164-174`
-  // se traga todos los errores. Lo que falla es la petición al proxy cuyo
-  // resultado el código SÍ mira, que es justo el arreglo que esto comprueba.
-  // La limpieza push no se toca: su fallo no debe detener nada, y aquí se
-  // aísla el otro camino.
-  await pagina.route("**/api/auth", async (route) => {
-    const cuerpo = route.request().postData() ?? "";
-    if (cuerpo.includes("signOut")) return route.abort("failed");
-    return route.fallback();
-  });
+      // Se corta la petición de cierre. ⚠️ Lo que falla NO es `signOut()`: esa
+      // función NO PUEDE fallar — `@convex-dev/auth/dist/react/client.js:164-174`
+      // se traga todos los errores. Lo que falla es la petición al proxy cuyo
+      // resultado el código SÍ mira, que es justo el arreglo que esto comprueba.
+      // La limpieza push no se toca: su fallo no debe detener nada, y aquí se
+      // aísla el otro camino.
+      await pagina.route("**/api/auth", async (route) => {
+        const cuerpo = route.request().postData() ?? "";
+        if (cuerpo.includes("signOut")) return route.abort("failed");
+        return route.fallback();
+      });
 
-  await pulsarCerrarSesion(pagina, "ajustes");
+      await pulsarCerrarSesion(pagina, boton);
 
-  // (1) el aviso existe y se puede afirmar por su ROL, no por un testid
-  await expect(
-    pagina
-      .getByRole("alert")
-      .filter({ hasText: "No se ha podido cerrar la sesión" }),
-  ).toBeVisible();
+      // (1) el aviso existe y se localiza por su rol ARIA, no por un testid
+      await expect(
+        pagina
+          .getByRole("alert")
+          .filter({ hasText: "No se ha podido cerrar la sesión" }),
+      ).toBeVisible();
 
-  // (2) NO se ha navegado
-  expect(pagina.url()).not.toContain("/login");
+      // (2) NO se ha navegado
+      expect(pagina.url()).not.toContain("/login");
 
-  // (3) ⚠️ Y AQUÍ LO VERDE ES LO RARO: la sesión SIGUE VIVA, y es lo correcto.
-  //     Redirigir a /login sin haber cerrado sería la señal falsa que esta
-  //     ficha persigue. Si alguien "arregla" esto, reintroduce el defecto.
-  expect(await elServidorDejaEntrar(pagina)).toBe(true);
+      // (3) ⚠️ Y AQUÍ LO VERDE ES LO RARO: la sesión SIGUE VIVA, y es lo
+      //     correcto. Redirigir a /login sin haber cerrado sería la señal
+      //     falsa que esta ficha persigue. Si alguien "arregla" esto,
+      //     reintroduce el defecto. Y se comprueba CONTRA EL SERVIDOR: es la
+      //     única condición de C7 que no se puede sustituir por leer un
+      //     almacenamiento.
+      expect(await elServidorDejaEntrar(pagina)).toBe(true);
 
-  await pagina.context().close();
-});
+      await pagina.context().close();
+    });
+  }
+}
 
 test("M1 · la SEGUNDA llamada de cierre se queda colgada: aun así se llega a /login en ≤3 s", async ({
   browser,
