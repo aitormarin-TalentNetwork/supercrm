@@ -57,10 +57,16 @@ Además de `users`, Convex Auth gestiona **6 tablas propias** (`authSessions`, `
 ### `appConfig` (interna, no es una de las 7 entidades del PRD)
 | Campo | Tipo | Notas |
 |---|---|---|
-| `key` | string | `"default_store"` (la tienda por defecto) y `"bootstrap_claim:<email>"` — reservas **atómicas y efímeras** de `users:seedPasswordAccounts` (AIT-99), para que dos siembras concurrentes no creen la misma cuenta dos veces; se borran al terminar |
+| `key` | string | `"default_store"` (la tienda por defecto) y `"bootstrap_claim:<email>"` — reservas **atómicas y efímeras** de `users:seedPasswordAccounts` (AIT-99), para que dos siembras concurrentes no creen la misma cuenta dos veces; se borran al terminar, **en éxito y en fallo** (antes de AIT-99 solo en fallo — ver abajo antes de interpretar una fila suelta) |
 | `storeId` | id(`stores`)? | La tienda por defecto del MVP |
 
-La fila `default_store` existe para que "la tienda por defecto" tenga un identificador explícito (un documento con clave conocida) en vez de asumir "la primera fila de `stores`". La rellena una sola vez `convex/users.ts:ensureDefaultStore`; no se administra a mano — un alta manual duplicada rompería el `.unique()` que la consulta. Las filas `bootstrap_claim:<email>` son de otra naturaleza: **no son configuración, son un cerrojo** que se crea y se borra dentro de una siembra (AIT-99). Si encuentras una suelta, es que una siembra murió a medias — se puede borrar.
+La fila `default_store` existe para que "la tienda por defecto" tenga un identificador explícito (un documento con clave conocida) en vez de asumir "la primera fila de `stores`". La rellena una sola vez `convex/users.ts:ensureDefaultStore`; no se administra a mano — un alta manual duplicada rompería el `.unique()` que la consulta. Las filas `bootstrap_claim:<email>` son de otra naturaleza: **no son configuración, son un cerrojo** que se crea y se borra dentro de una siembra (AIT-99).
+
+**Si encuentras una suelta, mira la fecha antes de concluir nada.** Hay dos causas y solo una es un fallo:
+- **Anterior a AIT-99:** la siembra de entonces solo liberaba el cerrojo si `createAccount` fallaba, así que **toda siembra con éxito dejaba el suyo puesto**. Una fila suelta de esa época es el rastro normal de una siembra que funcionó, no de una que murió. Medidas el 2026-09-10 en el deployment compartido de desarrollo: tres (`marta@supercrm.es`, `responsable-test@supercrm.es`, `vendedor-test2@supercrm.es`, del 1 y 14 de agosto de 2026), todas con su cuenta viva en `authAccounts`.
+- **Posterior a AIT-99:** el cerrojo se libera en éxito **y** en fallo, así que una fila suelta sí significa que el proceso murió en seco a mitad (caso que la función no cubre, y no pretende: es un script manual de un solo operador).
+
+En los dos casos se puede borrar sin consecuencias: con la cuenta ya creada, el guardia de idempotencia es la consulta a `users`, no el cerrojo. Lo que NO hay que hacer es leer una fila suelta antigua como prueba de una siembra fallida y salir a buscar el fallo — **no hubo ninguno**.
 
 **Alta de usuarios — nunca registro público:** como el PRD no contempla registro público ("los accesos los crea la dueña de tu empresa"), no hay formulario de alta abierto. Dos caminos, según cómo entra cada cuenta (AIT-60, Google en paralelo a Password — ver ADR-003 en [`01-arquitectura.md`](01-arquitectura.md)):
 - **Password:** `convex/auth.ts` usa `createAccount` (provider `Password`) — así se crearon las 2 cuentas de prueba originales (AIT-8), `marta@supercrm.es`/`carlos@supercrm.es`, que siguen entrando por contraseña exactamente igual que siempre.
