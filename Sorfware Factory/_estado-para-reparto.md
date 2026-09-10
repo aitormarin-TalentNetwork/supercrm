@@ -2722,3 +2722,97 @@ y arreglar `readTable` no cambia nada por la via del reporter. **Y ningun spec e
 - ⚠️ **Y UN COMMIT SIN EMPUJAR EN `main` CUELGA DEL SIGUIENTE QUE PUBLIQUE.** Este diario
   estuvo 195 lineas sin commitear; lo commitee **y lo empuje** (`8c155ea`), porque era el unico
   commit por delante de `origin/main` y se lo habria llevado dentro cualquier otro push.
+
+---
+
+## 2026-09-10, ~23:55Z — CASILLA NUEVA EN EL EXPORT, y el numero que la justificaba estaba mal
+
+### LA CASILLA DE LA HUELLA (decidida por el FA, ya en manos del CEO para ejecutar)
+
+Junto a la del backend (`intro-terminal.txt:941`, `director.md:923`):
+
+> **HUELLA: cuantos ficheros obliga a tocar este plan, CON EL COMANDO QUE LOS CONTO Y SU SALIDA.**
+
+**Un export sin ella no se encola.** *Una casilla vacia se ve; un parrafo que no menciona la
+huella, no.* Limites declarados por el FA, dentro y no al lado: **informa, no impide** (si la
+huella es aceptable lo decide el PM); **un numero mal contado pasa igual** —pero es
+refutable—; **y caduca con el plan**, por eso exige el comando.
+
+🔑 **EL PRINCIPIO QUE ORDENA LAS TRES CASILLAS** (formulacion del FA sobre la frase de T3):
+> **Las casillas obligatorias del export no son "datos importantes": son EXACTAMENTE las
+> preguntas cuya respuesta NO ESTA en el documento que el auditor va a leer.**
+
+    en que backend escribe  -> no esta en el plan. Hay que salir a mirarlo.
+    cuando lo mediste       -> no esta en el plan. Hay que salir a mirarlo.
+    cuantos ficheros toca   -> no esta en el plan. Hay que salir a contarlos.
+
+**Si se contesta leyendo el plan, no es casilla: es trabajo del auditor. Si hay que salir del
+documento, es casilla o no la hace nadie.** ⚠️ Con su freno: **solo lo externo es CANDIDATO**;
+para entrar sigue haciendo falta que **su ausencia haya costado algo real**.
+
+### ⛔ Y EL NUMERO CON EL QUE YO JUSTIFIQUE LA CASILLA ESTABA MAL: 24 ERAN 11
+
+    playwright.config.ts:127       testIgnore: PATRON_PRUEBAS_PURAS  -> test:e2e IGNORA los 00-*
+    playwright.unit.config.ts:25   testMatch:  PATRON_PRUEBAS_PURAS  -> test:unit corre SOLO los 00-*
+      puras (00-*) .... 13      de flujo .... 11      DISJUNTOS, no solapan
+
+Yo medi *"specs que importan de `@playwright/test`"* -> **24**, **con control positivo**
+(`authRateLimits` -> 0) **y con el complemento impreso** (los que no lo importan: ninguno).
+**Las dos salvaguardas que exigimos, puestas.**
+
+> ⛔ **UN NUMERO BIEN MEDIDO SOBRE EL SUJETO EQUIVOCADO NO LO CAZA UN CONTROL POSITIVO: EL
+> INSTRUMENTO FUNCIONABA PERFECTAMENTE.** La pregunta no era *"quien importa `test`"* sino
+> *"a quien ALCANZA el gate"*, y esa la contesta **el CONFIG, no el import**.
+
+✅ **Lo que si lo cazo, en veinte minutos: que el numero iba CON SU COMANDO al lado.** Si lo
+hubiera escrito como frase —*"toca casi toda la suite"*— seguiria en pie.
+📌 **Consecuencia para la casilla, propuesta al FA:** que pida **el comando Y EL SUJETO en la
+misma linea** — *no "cuantos ficheros", sino "cuantos ficheros ALCANZA X, contados asi"*.
+**El sujeto es donde se cae, y es lo unico que el control positivo no protege.**
+
+### DECISION DE ALCANCE DEL PM SOBRE AIT-143: (A), pero no hoy
+
+**(A) barrer los imports es el destino** — *"un gate que se puede esquivar por olvido no es un
+gate: es una costumbre"*. **(B) comprobar por texto queda descartado**: un spec que se salte el
+gate produce una corrida que **parece normal** — falla hacia el verde **en silencio**, y un
+agujero declarado solo es tolerable si lo que se cuela **hace ruido**.
+
+⛔ **Pero el barrido no se aplica hoy, y la razon no la habia visto nadie:**
+> **"El coste de (A) se ha presentado como semanas de colision. Eso no es una propiedad de (A):
+> es una propiedad de CUANDO aterriza (A). La colision dura lo que esta ficha tarde en
+> publicarse — y con el gate caido, esa duracion NO ESTA ACOTADA."**
+
+**El barrido es lo ULTIMO que se aplica, con todo lo demas construido, pero DENTRO del rango
+auditado y nunca despues del veredicto** (*codigo que llega despues del GO hereda un GO que no
+lo miro*). **Mientras tanto la suite NO esta en la huella de AIT-143: cualquier otra ficha puede
+tocar specs.**
+⚠️ Y una correccion del PM que conviene no perder: **el auditor de la r13 no tumbo "comprobar
+por texto" — tumbo UN comprobador ESTRECHO**, al que se le escapaba `import type`. Uno que
+prohiba la cadena entera, import de tipo incluido, no tiene esa evasion. **No esta mandado
+implementar: se mide primero.** Evasion residual dicha: *un spec que importe de un tercer
+modulo que reexporte `@playwright/test` no contiene la cadena.*
+
+### ARBITRAJE: `playwright.config.ts:139`
+
+T3 resolvio solo el choque del reporter (*el plan pedia "el reporter del gate", no "ese
+reporter"*): crea `e2e/gate-reporter.ts` nuevo y **T1 se queda `e2e/rate-limit-reporter.ts`
+entero**. Queda **una linea compartida**, la del array de reporters. **Arbitrado: siguen los dos
+sin turno** —los cambios son aditivos y un conflicto ahi **falla ruidosamente**—, ⛔ **con la
+condicion de que el segundo que publique compruebe que el array tiene LOS TRES y no dos.**
+
+### LECCIONES DE ESTA VUELTA
+
+- ⛔ **UN CONTROL POSITIVO Y UN COMPLEMENTO IMPRESO NO PROTEGEN DEL SUJETO EQUIVOCADO** (arriba).
+  Lo unico que protegio fue **publicar el comando**, que permite a otro llegar a otro numero.
+- ⛔ **DECIR "YA VA CAMINO DE X" MIENTRAS LO PIENSAS NO ES IMPRECISION: CIERRA EL ASUNTO**
+  (el FA se lo apunta; yo lo hice dos veces hoy). **El coste no lo paga quien lo dice: lo paga
+  el que deja de mirar.** ✅ **Y lo cazo una pregunta de LOGISTICA —"¿quien lo edita?"—, no la
+  desconfianza.** *Las preguntas rutinarias de reparto cazan lo que el escepticismo no, porque
+  se hacen igual cuando no sospechas nada.*
+- ⚠️ **PEDIR QUE TE REFUTEN ES UN HABITO BUENO Y NO ES UN CONTROL:** solo se puede pedir cuando
+  notas que el resultado te favorece, **y lo que no notas no lo vas a marcar.**
+- ⛔ **SEXTA VEZ: UN `echo` COLGADO DEL COMANDO Y NO DEL RESULTADO.** Dos en esta misma vuelta:
+  *"(vacio aqui = ningun veredicto tocado)"* impreso debajo de 26 veredictos, y *"(vacio arriba
+  = no hay ninguno fuera de e2e/)"* impreso debajo de 110 rutas. **La frase que explica un vacio
+  se imprime igual cuando no hay vacio, y se lee como si lo hubiera.** El arreglo no es acordarse:
+  es **que el texto salga del resultado** (`test -z "$OUT" && echo ...`), no del guion.
