@@ -148,6 +148,23 @@ cat <<'PEND'
           90 min.** El numero es identico; lo que cambia es si hay alguien detras.
       EL METODO CORRECTO: parte de `ListAgents` (quien esta vivo), resuelve CADA sesion viva
       a su transcript, y mide SOLO esos. El universo lo define quien esta vivo, no el disco.
+      En la practica funciona asi: cuenta transcripts tocados en los ultimos N minutos y
+      comparalo con el numero de sesiones vivas. Si sobran sesiones, hay silenciosas.
+      ⚠️ DOS EJES, Y HAY QUE COMPROBAR LOS DOS ANTES DE MIRAR EL RESULTADO:
+        eje 1 - ¿el instrumento sabe leer fechas? (tu propio transcript debe dar 0-1 min)
+        eje 2 - ¿el universo es el correcto? (frescos vs sesiones vivas)
+      El 2026-09-10 06:09Z el eje 1 daba verde y el eje 2 disparo. **Un control sobre el eje
+      equivocado da luz verde con la misma cara.**
+      🔴 Y EL LIMITE, QUE ES LO QUE MAS SE OLVIDA: ESTE CONTEO DICE **CUANTAS** ESTAN
+      SILENCIOSAS, NUNCA **CUALES**. No intentes desempatar por el directorio del transcript:
+        - el directorio primario de una sesion CAMBIA SOLO (ver D25 mas arriba), asi que una
+          sesion de worktree puede estar escribiendo en el transcript de la raiz;
+        - y hay varios transcripts por directorio, de fabricas muertas.
+        **Usar el directorio como identidad es usar como clave un campo que se mueve.** Lo
+        hice el 2026-09-10 06:10Z y me corrigio la propia sesion que yo habia "identificado".
+      PARA SABER CUALES: preguntarles. Un `SendMessage` pidiendo `pwd -P` y si su silencio es
+      elegido o por atasco. **Silencio elegido y silencio por atasco se ven identicos desde
+      fuera** — y esa es justo la pregunta que ningun instrumento de disco puede responder.
   (c) 🔴 ESTADO DE LAS TAREAS EN LINEAR. El punto 5 mide FICHEROS, no TAREAS. Un export
       viejo sin veredicto puede ser (1) olvidado, (2) fuera de alcance, (3) de una tarea YA
       CERRADA, o (4) de una tarea que AVANZA en Linear sin que el export se mueva, porque su
