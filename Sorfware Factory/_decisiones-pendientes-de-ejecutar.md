@@ -1122,3 +1122,83 @@ manda al sitio equivocado.**
 reclamar culpa ajena **no se audita nunca**, porque parece decencia. Nadie discute a quien se
 acusa a si mismo. **Pero un catalogo de fallos solo sirve si se puede volver al autor y al
 contexto que lo produjo** — y ahi el nombre no es un reproche, es una coordenada.
+
+## D42 — un gate no se levanta por el PROPOSITO del cambio, se levanta por la EVIDENCIA que lo acompaña
+
+**Revision pedida por el CEO sobre su propia reformulacion, declarandose parte interesada: la v4
+desbloquea justamente su entregable comprometido de la noche. Pidio que la mirara alguien que no
+tuviera nada que ganar. Tumbo la v4 — y tambien la alternativa que el ya habia descartado.**
+
+**El problema real, que es cierto:** AIT-127 **es entera** un cambio en el flujo de cierre de
+sesion. El gate v3 decia *"no se publica ningun diff que pueda cambiar lo que hace el sistema al
+autenticar"*. Aplicado por la letra, **el arreglo del propio defecto no se puede publicar nunca**.
+Un gate que impide reparar aquello que protege **es un punto muerto**, no una precaucion.
+
+**Su v4:** *"no se publica ningun diff que DEGRADE la seguridad de sesion... un cambio cuyo
+proposito es arreglar el defecto no esta bloqueado"*.
+
+🔴 **TUMBADA, y por el criterio que hemos usado toda la noche: la v3 falla hacia RETENER y la v4
+falla hacia PUBLICAR.**
+- *"¿Puede cambiar lo que hace el sistema al autenticar?"* se responde **inspeccionando el diff**,
+  y ante la duda **retiene**.
+- *"¿Degrada la seguridad?"* es **un veredicto sobre el resultado**, no una propiedad del diff — y
+  ante la duda **publica**, porque el autor sabe que su proposito era arreglar. **Un arreglo de
+  auth mal hecho degrada exactamente igual que un cambio ajeno**, y su propia objecion 1 lo dice
+  mejor que yo: *"el gate anterior no dependia de intenciones"*.
+- Y hay un agravante de la D35: **"su proposito es arreglar" es certificacion que pone el autor.**
+  El gate pasaria a depender de la declaracion de quien empuja.
+
+🔴 **Y la alternativa que el ya habia descartado tambien esta bien descartada**, por su razon:
+levantar el gate *"solo para AIT-127"* es una excepcion nominal que lo debilita para el siguiente.
+Su autocritica es exacta: **"reformulo la regla" tambien puede ser una excepcion con mejor ropa.**
+
+✅ **LA SALIDA NO ES NINGUNA DE LAS DOS, y estaba dentro de su propia propuesta sin que la
+separara: el gate no se levanta por el PROPOSITO, se levanta por la EVIDENCIA.**
+
+**Reformulacion v5:**
+> **Un diff que pueda cambiar lo que hace el sistema al autenticar NO SE PUBLICA SIN: (a) GO de
+> IMPLEMENTACION —no de plan— y (b) revision final del Integrador.** Con las dos, se publica.
+> **Sin alguna de las dos, se retiene, sea cual sea su proposito.**
+
+**Por que esto resuelve las tres cosas a la vez:**
+1. **El disparador sigue siendo el de la v3** — por efecto, inspeccionable en el diff, **y falla
+   hacia retener**. No se toca lo unico que estaba bien.
+2. **Deja de ser un punto muerto:** el arreglo de AIT-127 se publica **si trae las dos pruebas**.
+   No hace falta que nadie declare su intencion.
+3. **Nada depende de quien empuja.** (a) y (b) **son ficheros y firmas que existen o no existen**:
+   se comprueban desde fuera, como pide la D38 y como pedia la D37.
+
+📌 **La leccion de forma, que es lo que hay que llevarse: "no se publica X" y "no se publica X sin
+Y" se parecen y no son la misma clase de regla.** La primera es una prohibicion y **crea puntos
+muertos alli donde X es tambien la reparacion de X**. La segunda es un **requisito de evidencia**,
+que no tiene punto muerto porque siempre hay un camino: traer la evidencia. **Cuando un gate
+bloquea su propia reparacion, casi siempre esta escrito en la primera forma y deberia estar en la
+segunda.**
+
+⚠️ **Y una observacion sobre el metodo, no sobre el contenido: su objecion 2 es la mas valiosa de
+las tres y no se puede responder con analisis.** *"Si esta noche no hubiera comprometido AIT-127,
+puede que ni hubiera mirado el gate."* **Eso es cierto y no se descarta razonando** — se descarta
+**sacando la decision de quien tiene el interes**, que es exactamente lo que hizo al pedirme que
+lo mirara. **Declararse parte interesada no le da la razon ni se la quita: cambia quien decide, y
+eso es lo unico que funciona.**
+
+## Confirmada: AIT-99 no se cierra
+
+**Decision del CEO, revisada y la respaldo entera.** Rechazo **las dos** salidas que le ofrecian,
+incluida la que cerraba la tarea, con los tres `SIN:` coincidentes entre rondas 1 y 2 (deployment
+compartido, retirada de las cinco cuentas, deployment virgen) — o sea **en el umbral de la D39**.
+
+**Los tres argumentos, y el tercero es el decisivo:**
+- **(a)** autorizar credenciales nuevas en un compartido **donde ya hay una expuesta y cuya siembra
+  no tiene inversa** = estado irreversible sobre un recurso ajeno.
+- **(b) cerrarla con los tres huecos aceptados falla hacia el VERDE; dejarla abierta falla hacia
+  una ficha abierta.** Y sus criterios son *"un deployment nuevo puede entrar por contraseña"*:
+  **cerrarla sin verificarlo deja escrito que funciona algo que no hemos medido, en la ficha que
+  existe para medirlo.**
+- 🔑 **(c) los tres huecos requieren a Aitor, asi que cerrarla el seria decidir por el usando como
+  razon que esta dormido.** Esa frase es la regla: **la ausencia de quien decide no transfiere la
+  decision, transfiere solo la espera.**
+
+**Y el resultado se reporta como es:** dos entregables comprometidos, **uno entregado**, con las
+dos opciones de AIT-99 costadas para que Aitor elija en dos minutos. **Un informe que dice "uno de
+dos" es mas util que uno que dice "dos de dos" con una ficha cerrada en falso.**
