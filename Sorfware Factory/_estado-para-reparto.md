@@ -199,3 +199,38 @@ evidencia que desmentiria la afirmacion.
 **Y el test barato para el tercero:** antes de decir *"viene de aqui"*, preguntar **¿que
 existio primero?**. Casi siempre hay una marca de tiempo a mano. Un origen equivocado
 manda el arreglo al sitio equivocado y deja el hueco real abierto con sensacion de cerrado.
+
+### PENDIENTE DE AITOR — actualizado 12:26Z, ahora son TRES
+
+1. **Los cuatro permisos de AIT-99** (desbloquean tambien AIT-125).
+2. **`~/.claude.json`** — sin el, AIT-97 no arregla las seis sesiones de raiz. Es fichero
+   personal suyo y NADIE de la fabrica lo toca.
+3. **NUEVO: generar `GMAIL_TOKEN_ENCRYPTION_KEY`** y ponerla en el deployment. Medido por
+   T2 con `convex env list --names-only`: **no existe en ningun sitio**, y el plan de
+   AIT-92 dice que el refresh token se guarda cifrado con ella. Decidido por el PM que la
+   genera Aitor, va a **Bitwarden**, y es **distinta por deployment a proposito** (un
+   token cifrado en dev no debe poder leerse en produccion). El motivo no es de gusto:
+   una funcion del sistema solo podria guardarla EN LA BASE DE DATOS, que es donde viven
+   los tokens que cifra — la clave al lado del dato que protege no protege de nada.
+   ⚠️ Consecuencia declarada: si la clave se pierde o se rota, **los usuarios tienen que
+   reconectar su Gmail**. No se pierde correo, se pierde la conexion. Va a `docs/`.
+
+**AIT-92 partida** (PM, 12:2xZ): AIT-92 = lo construible sin la identidad de Aitor, cierra
+hoy. **AIT-144** = la prueba de consentimiento real, Urgent, solo Aitor — sale aparte
+porque NO ES UNA TAREA, ES UNA DECISION: si Google exige verificacion ahi, se para la Ola 2
+entera, y un gate que puede matar una ola no puede vivir como ultimo paso de una
+implementacion.
+
+### 🔴 TRES NOMBRES DE RAMA PARA AIT-92 — que nadie borre nada
+
+Medido con `git ls-remote --heads origin "*ait-92*"` (la autoridad es ls-remote, no el disco):
+
+    EN ORIGIN, una sola:
+      aitormarin/ait-92-ola-2-conectar-una-cuenta-de-gmail-desde-el-crm   (2 commits por delante de main)
+    EN LOCAL:
+      aitormarin/ait-92-conexion-gmail    <- donde trabaja T2, y NO esta publicada
+    LO QUE DICE LINEAR:
+      un tercer nombre que NO EXISTE en ningun sitio (derivado al renombrar la ficha)
+
+La de nombre largo **parece huerfana sin serlo**. Y si alguien hace checkout con el nombre
+que da Linear, se crea una rama vacia y cree estar donde no esta. Es el defecto de AIT-124.
