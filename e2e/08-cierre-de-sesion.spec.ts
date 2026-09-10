@@ -1120,10 +1120,14 @@ test("AIT-134 · la ruta local responde 200 pero NO cerró nada: no se fía, avi
 
   // (1) SE ESPERA AL DESENLACE ANTES DE JUZGARLO, y esto no es cosmético:
   // mirar `pagina.url()` justo después del clic lo lee ANTES de que la
-  // navegación ocurra, así que con el impostor —que sí navega— la aserción de
-  // la URL pasaba y saltaba la de la alerta. El test se ponía rojo, pero
-  // señalando "no hay alerta" cuando el defecto es "navegó afirmando un cierre
-  // falso". Un error desplazado hace cavar en el sitio equivocado con confianza.
+  // navegación pudiera ocurrir, así que la aserción de la URL pasaba y saltaba
+  // la de la alerta: el test se ponía rojo señalando "no hay alerta" cuando el
+  // defecto era otro. Un error desplazado hace cavar en el sitio equivocado con
+  // confianza.
+  // ⚠️ Aquí decía "con el impostor —que sí navega—", y era MI PREDICCIÓN, no lo
+  // medido: ejecutado, el impostor NO navega (acaba en "Algo ha ido mal").
+  // La corregí en el bloque de arriba y la dejé viva aquí, tres líneas más
+  // abajo. Corregir en un sitio no corrige el de al lado.
   const alerta = pagina
     .getByRole("alert")
     .filter({ hasText: "No se ha podido confirmar el cierre de sesión" });
@@ -1173,6 +1177,118 @@ test("AIT-134 · la ruta local responde 200 pero NO cerró nada: no se fía, avi
     await clasificarAcceso(pagina),
     "si esto no es ACCESO_CONFIRMADO, el mundo que este test dice fabricar no se " +
       "fabricó: la sesión tenía que seguir viva, porque nadie borró la cookie",
+  ).toBe("ACCESO_CONFIRMADO");
+
+  await pagina.context().close();
+});
+
+// ══ M1 (ronda 2) · RUTA LOCAL 200 + CONFIRMACIÓN «ANOMALO» ═════════════════
+//
+// 🔴 EL SEGUNDO IMPOSTOR, Y ES PRIMO HERMANO DEL PRIMERO. Lo encontró el auditor
+// aplicando el mismo método al conjunto que ya incluía mi test nuevo:
+//
+//     const confirmado = rutaLocalOk
+//       ? (await clasificarAccesoProtegido(...)) !== "ACCESO_CONFIRMADO"
+//       : false;
+//
+// **Acepta `ANOMALO` como cierre confirmado.** El contrato dice lo contrario:
+// sólo `DENEGACION_ESPERADA` puede producir `ok:true`, y `ANOMALO` falla cerrado.
+//
+// LO QUE FABRICABAN MIS TESTS, ENUMERADO — y el hueco se ve solo:
+//     ruta local 200  + ACCESO_CONFIRMADO    -> cubierto
+//     ruta local real + DENEGACION_ESPERADA  -> cubierto
+//     ruta local 500, donde ni se clasifica  -> cubierto
+//     ruta local 200  + ANOMALO              -> NADIE LO FABRICABA
+//
+// 🔑 Y LA LECCIÓN ES SOBRE MÍ, NO SOBRE EL TEST: yo tapé el hueco entre
+// "respondió" y "se cerró"; éste es el hueco entre "no está confirmado" y "está
+// cerrado". **El mismo artefacto haciendo dos trabajos, un nivel más adentro.**
+// Mi propio olfato lo predecía —"cuando algo hace dos trabajos, pregunta cuál de
+// los dos no tiene test propio"— y no se lo apliqué a esta línea. Un método sólo
+// protege donde se vuelve a pasar.
+//
+// CÓMO SE FABRICA `ANOMALO` DE VERDAD: se intercepta la petición de confirmación
+// —que sale DE LA PÁGINA, así que `page.route` sí la ve— y se responde 500. Sin
+// redirección y sin `ok`, el clasificador no puede llamarlo ni acceso ni
+// denegación: es exactamente el tercer estado.
+// ⚠️ Y la comprobación de la sesión la hace el test por `pagina.request`, que es
+// OTRO CANAL y **no pasa por esta intercepción**: así la interceptación no
+// contamina lo que se mide.
+test("AIT-134 · M1 · la confirmación sale ANOMALA: eso NO es un cierre, avisa y NO navega", async ({
+  browser,
+}) => {
+  const pagina = await abrirSesionPropia(browser, "sales");
+
+  await pagina.route("**/api/auth", async (ruta) => {
+    if (!((ruta.request().postData() ?? "").includes("signOut"))) {
+      return ruta.fallback();
+    }
+    return ruta.abort("failed");
+  });
+
+  // La ruta local dice 200 sin borrar nada (fulfill no ejecuta el handler).
+  await pagina.route(`**${RUTA_CIERRE_LOCAL}`, (ruta) =>
+    ruta.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ cerrado: true }),
+    }),
+  );
+
+  // Y la confirmación por efecto sale ANOMALA: 500, ni redirección ni ok.
+  let confirmacionesInterceptadas = 0;
+  await pagina.route(`**${RUTA_PROTEGIDA}`, (ruta) => {
+    confirmacionesInterceptadas++;
+    return ruta.fulfill({ status: 500, body: "" });
+  });
+
+  await pulsarCerrarSesion(pagina, "ajustes");
+
+  const alerta = pagina
+    .getByRole("alert")
+    .filter({ hasText: "No se ha podido confirmar el cierre de sesión" });
+  const nuncaTermina = () => new Promise<never>(() => {});
+  const desenlace = await Promise.race([
+    alerta
+      .waitFor({ state: "visible", timeout: PRESUPUESTO_C3_FALLO_MS })
+      .then(() => "AVISA" as const)
+      .catch(nuncaTermina),
+    pagina
+      .waitForURL("**/login", { timeout: PRESUPUESTO_C3_FALLO_MS })
+      .then(() => "NAVEGA" as const)
+      .catch(nuncaTermina),
+    new Promise<"NI_UNA_COSA_NI_LA_OTRA">((r) =>
+      setTimeout(() => r("NI_UNA_COSA_NI_LA_OTRA"), PRESUPUESTO_C3_FALLO_MS + 750),
+    ),
+  ]);
+
+  // ⬅ CONTROL AL INSTRUMENTO, Y AQUÍ NO ES OPCIONAL: si la interceptación no
+  // casara, la confirmación saldría ACCESO_CONFIRMADO (las cookies siguen vivas)
+  // y el código correcto AVISARÍA IGUAL. O sea que el test pasaría **por el
+  // motivo equivocado**, midiendo el mundo del test anterior y creyendo medir
+  // éste. Es el mismo verde por la puerta de al lado que ya me costó una ronda.
+  expect(
+    confirmacionesInterceptadas,
+    `la confirmación a ${RUTA_PROTEGIDA} no se interceptó ni una vez: este test ` +
+      `no ha fabricado ANOMALO, así que su verde no acredita nada`,
+  ).toBeGreaterThanOrEqual(1);
+
+  expect(
+    desenlace,
+    "con la confirmación saliendo ANOMALA, la app tiene que AVISAR: no se ha " +
+      "acreditado que la sesión deje de servir.\n" +
+      "Si sale NAVEGA, alguien ha escrito `!== \"ACCESO_CONFIRMADO\"` donde el " +
+      "contrato exige `=== \"DENEGACION_ESPERADA\"`, y entonces un 500, una " +
+      "respuesta corrupta o un plazo vencido se cuentan como cierre. `ANOMALO` " +
+      "FALLA CERRADO: no es acceso, pero tampoco es denegación.",
+  ).toBe("AVISA");
+
+  expect(pagina.url()).not.toContain("/login");
+
+  // Y la prueba de que no se cerró nada: por el OTRO canal, sin interceptar.
+  expect(
+    await clasificarAcceso(pagina),
+    "la sesión tenía que seguir viva: nadie borró la cookie",
   ).toBe("ACCESO_CONFIRMADO");
 
   await pagina.context().close();
@@ -1454,12 +1570,18 @@ test("AIT-134 · FASE B · tras un cierre abortado, el servidor DEJA DE DEJAR EN
   // confusión que hundiría la fase B: el control positivo dice ACCESO_CONFIRMADO
   // y, si la segunda llamada devolviera ESA respuesta, el estado final también
   // — pero al revés (leyendo la vieja como nueva) el verde sería el peligroso.
+  // ⚠️ SE COMPARAN LAS URL DE LAS RESPUESTAS, NO LAS MARCAS. Escribí primero
+  // `evidencia.marca !== evidenciaAntes.marca` y el auditor tenía razón: eso
+  // comprueba sobre todo que **el generador produjo dos marcas distintas**, que
+  // es una propiedad de `Math.random`, no de las respuestas. La URL SÍ es de la
+  // respuesta (`respuesta.url()`), así que si algo devolviera la primera otra
+  // vez —caché, memoización, una normalización que quite el query— las dos URL
+  // coincidirían y esto se pondría rojo.
   expect(
-    evidencia.marca,
-    "las dos clasificaciones de esta prueba comparten respuesta: la del control " +
-      "positivo y la final no pueden ser la misma, o el 'estado final' no es " +
-      "final, es la foto de antes de cerrar",
-  ).not.toBe(evidenciaAntes.marca);
+    evidencia.url,
+    "las dos clasificaciones de esta prueba devuelven la MISMA respuesta: " +
+      "entonces el 'estado final' no es final, es la foto de antes de cerrar",
+  ).not.toBe(evidenciaAntes.url);
   // Y el contador del producto, ahora con su nombre: acredita la recuperación.
   expect(
     peticionesDelProductoALaRutaProtegida,

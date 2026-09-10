@@ -135,10 +135,12 @@ export const PRESUPUESTO_C3_MS = 3000;
 // mirar. Si la sobrecarga medida sube, este número sube y son los LÍMITES los
 // que bajan — nunca el presupuesto.
 //
-// ⚠️ SUBIDO DE 350 A 484, y el 484 es una medición con fecha y commit:
-// 2026-09-10 17:02:51Z, HEAD ab0e826, gesto → /login 3084 ms sobre 2600 ms
-// forzados. C3 falló en esa corrida. Universo completo de sobrecargas
-// observadas: 218, 226, 226, 484 ms.
+// ⚠️ HA SUBIDO DOS VECES EN UNA HORA: 350 -> 484 -> 556, y las dos con fecha y
+// commit, no por redondeo:
+//     484 ms · 2026-09-10 17:02:51Z · ab0e826 · 3084 ms sobre 2600 forzados
+//     556 ms · 2026-09-10 18:14:42Z · c8fd110 · corrida limpia, la que cazó la
+//               guarda POR CORRIDA en su estreno
+// Universo completo observado: 218, 226, 226, 484, 556 ms.
 //
 // 🔴 Y ANTES PUSE AQUÍ UN 445 QUE NO SALÍA DE NINGUNA CORRIDA. Me lo inventé y
 // le adjunté una procedencia verdadera ("la corrida de AIT-134 que fallaba C3"),

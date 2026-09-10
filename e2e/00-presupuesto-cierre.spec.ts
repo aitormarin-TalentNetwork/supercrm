@@ -119,9 +119,12 @@ test("C3-fallo · el camino de recuperación cabe en su presupuesto", () => {
   //     544 + 1400 + 500 + 556 = 3000
   // — o sea CERO hueco para la ruta local y la confirmación.
   //
-  // ⚠️ Y el número que hay que usar en esa cuenta es el MARGEN DECLARADO (350),
-  // no la mejor sobrecarga medida (278). Con la medición quedaban 72 ms y con la
-  // constante quedan 0: usar el número favorable inventa margen que no existe.
+  // ⚠️ Y el número que hay que usar en esa cuenta es el MARGEN DECLARADO
+  // (`MARGEN_SOBRECARGA_MS`, hoy 556), no la mejor sobrecarga que se haya medido
+  // nunca. Elegir el valor favorable inventa margen que no existe.
+  // Se cita la CONSTANTE y no su valor a propósito: este comentario ya se quedó
+  // viejo una vez —decía "(350)" cuando la constante iba por 556— y un número
+  // escrito a mano al lado de la variable que lo contiene sólo puede envejecer.
   const total =
     LIMITE_LIMPIEZA_MS +
     LIMITE_CIERRE_MS +
