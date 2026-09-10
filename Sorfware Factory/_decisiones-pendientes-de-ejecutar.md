@@ -494,3 +494,64 @@ reportado como dato tranquilo). **Ella fue la unica que lo cazo por metodo**; al
 un listado impreso antes por casualidad y a mi romper el script sin querer. Que el mismo sesgo
 saliera en tres instrumentos distintos es la prueba de que **un detector hereda la forma de
 razonar de quien lo escribe**, y de que escribir otro no lo diluye.
+
+## D27-bis — una regla que hay que LEER no cubre a un agente programado; el cerrojo si
+
+**Medido por el QA y traido por el Integrador, y es el caso duro de la D27.** En el checkout
+del QA, `git log --oneline origin/main..HEAD` devolvia **su commit encima de los tres de
+AIT-109 sin probar**. Su `/loop` periodico dispara cada 30 minutos **con `commit+push`
+dentro**. Si ese ciclo llega a caer diez minutos antes: `origin/main` con un merge sin probar,
+publicado por el, Railway construyendo, y **ninguno de los dos enterandose**.
+
+**La formulacion es suya y es mejor que la mia, asi que entra literal:** *una regla que depende
+de que alguien lea un mensaje no cubre a un agente programado; el cerrojo si, porque es una
+condicion en disco y no un aviso.*
+
+**Consecuencia para la D27, y la corrige:** "enumerar y declarar antes de empujar" protege
+contra **una persona distraida**. **No protege contra un `/loop`**, que no lee mensajes, no
+tiene juicio sobre lo que arrastra y dispara a su hora pase lo que pase. La D27 no estaba mal;
+estaba **incompleta en el unico actor que no puede obedecerla**.
+
+**Decision:** **todo `/loop`, cron o disparo programado que contenga un `push` comprueba el
+cerrojo de raiz como PRIMERA condicion y se salta el ciclo si esta tomado.** No basta con que
+el humano o el agente que lo monto lo sepa: va **dentro del prompt del propio disparo**, que
+es el unico sitio que el ciclo lee. El QA ya lo ha hecho asi en el suyo — pero lo arreglo el
+en su sitio, no el documento, y por eso queda escrito aqui.
+
+## Fila — mi verificacion dio verde PORQUE el comando fallo (auto-cazada, 04:08Z)
+
+Al liberar el cerrojo escribi esto:
+`rmdir X && echo "LIBERADO" && test -d X && echo "ERROR: sigue ahi" || echo "verificado: ya no existe"`
+
+**`rmdir` fallo** (`Directory not empty`: el `titular.txt` seguia dentro). La cadena `&&` se
+corto entera, el `||` final se disparo, **y la terminal imprimio "verificado por efecto: el
+directorio ya no existe" sobre un cerrojo que seguia tomado.** El fallo del comando **produjo
+el mensaje de exito**, y encima con la palabra "verificado" dentro.
+
+🔴 **Por que es peor que un `$?` mal leido:** aqui la comprobacion no estaba ausente ni era
+descuidada — **estaba escrita, decia "verificado por efecto", y era el `||` de la misma cadena
+que la accion**. Una verificacion encadenada al comando que verifica **no es independiente**:
+hereda su exito Y su fracaso, y en un `||` los convierte en la misma salida.
+
+**Regla:** la comprobacion va en **un comando separado**, nunca colgada del `&&`/`||` de la
+accion. Y con su control positivo: al comprobar que algo **no** existe, comprueba en la misma
+tirada que el test **si** ve algo que existe. Lo hice al rehacerlo (`-d _worktrees` -> existe)
+y por eso el segundo verde vale y el primero no.
+
+📌 **Y el motivo por el que salio a la luz merece anotarse: no lo cace mirando el codigo, lo
+cace porque `rmdir` imprimio su error justo encima del verde.** Si `rmdir` llega a fallar en
+silencio, el cerrojo se queda tomado, yo me voy convencido de haberlo soltado, y **el siguiente
+que lo mida encuentra un titular vivo de una sesion que ya declaro haber terminado** — que es
+exactamente el escenario de la D24.
+
+## Fila — el fallo de la herramienta y el hallazgo comparten codigo de salida
+
+**Del Integrador, medido esta noche.** Al revalidar el control positivo de un `merge-tree`, lo
+corrio con un nombre de rama **de memoria** que no existia. `git merge-tree` devuelve **rc=1
+igual** para *"rama inexistente"* que para *"conflicto real"*, y con el stderr descartado **los
+dos son indistinguibles**.
+
+**La forma general: el fallo de la herramienta y el hallazgo que buscas comparten codigo de
+salida.** Lo unico que los separa vive en el **stderr**, que es justo lo que se tira al
+automatizar (`2>/dev/null`). Sustituto que adopto: **el nombre de rama sale de `git ls-remote`,
+nunca de la memoria**, y **jamas se descarta el stderr en una invocacion de control**.
