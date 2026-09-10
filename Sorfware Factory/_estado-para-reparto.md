@@ -1570,3 +1570,49 @@ de un test".**
 
 > **Un contador que cuadra una vez no esta acreditado: esta de acuerdo.** Mide DECLARACIONES; la
 > suite mide EJECUCIONES. En `main` coincidian por casualidad.
+
+---
+
+## EL "6,0% DE LAS DOS MUERTES" ES UN SOLO PUNTO, NO DOS (19:56Z, objecion del QA)
+
+**Medido en este mismo fichero, buscando de donde sale el numero:** hay **UNA sola linea** con el
+861 —`:865  "Solo se que a 861M murieron 2 de 4"`— y **ninguna cifra por muerte**. O sea:
+
+> **Las dos muertes NO son dos observaciones: son UNA cifra reconstruida aplicada a dos eventos.**
+> Nunca se midio el swap de cada una por separado.
+
+**Lo que de verdad hay, con las fracciones y sus totales:**
+
+    ~6,0%  (861/14336)  UNA cifra, ventana donde murieron 2 de 4 corridas   <- reconstruida
+     6,3%  (1089/17408) suite del Integrador                     SOBREVIVIO
+     4,8%  (639/13312)  suite de T3, arranco aqui, 10,9 min      SOBREVIVIO
+    10,3%  (1473/14336) suite del Integrador, AIT-142            en curso al escribir esto
+
+⛔ **Consecuencias, las tres:**
+1. **No hay umbral.** Un punto flojo y tres supervivencias, **una de ellas POR DEBAJO del punto.**
+2. **"El swap explica las dos muertes" no tiene ninguna medicion que la sostenga sola.** No queda
+   refutada: queda **sin apoyo**. La causa de las dos muertes vuelve a estar ABIERTA.
+3. **Retirada la atribucion de causa del aviso de `encolar.sh`** (decia *"han muerto 2 de 4 POR
+   ESTO"*). Ahora dice cuanto queda, en TRIPLE + FRACCION, y que la causa no esta acreditada.
+
+🔑 **Formulacion del Integrador, con el acotado que hay que conservar:** *"mi 10,3% no esta «por
+encima del umbral»: esta por encima de un punto flojo. Lo uso porque es lo unico que hay, y
+porque la DIRECCION de las dos muestras (total quieto, used bajando) si es una medicion limpia."*
+
+⚠️ **Y la forma general, que es la que se repite:** el mismo numero citado en dos sitios **se lee
+como dos datos**. Nadie miente: **el segundo uso hereda la autoridad del primero sin anadir
+informacion.** Es [[la-consistencia-no-es-corroboracion]] con un solo origen en vez de con doce
+mediciones del mismo error.
+
+## AIT-142: LA PREMISA LA FIRMA LA HERRAMIENTA (19:55Z)
+
+    playwright --list sobre el arbol MERGEADO:  unit -> 176   ·   e2e -> 59
+    prediccion: 176 = 175 declaraciones + 1 generado por el `for` sobre SUJETOS (linea 92)
+
+**Cuadra en los dos mundos: 151+1=152 en la rama de T1 y 175+1=176 en el arbol mergeado.** *La
+misma correccion explica el numero ya medido y predice el que faltaba* — eso es lo que la separa
+de una coincidencia. Y **la firma el instrumento, no nuestra aritmetica.**
+
+⚠️ **Y el Integrador declara el limite de su propia ventana:** corre desde la RAIZ, asi que
+**vuelve a acreditar solo la mitad que mi detector ya tenia.** El caso que me falta —una suite de
+**worktree**— no me lo puede dar el.
