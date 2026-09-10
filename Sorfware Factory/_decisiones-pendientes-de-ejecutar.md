@@ -330,3 +330,43 @@ teniendo delante un hook que funcionaba.
 y despues, arbol limpio). **La evidencia buena es el EFECTO, no el codigo de retorno**, y
 con mas motivo cuando el comando pasa por una tuberia. Regla corta: **si canalizas la
 salida, el `$?` que lees no es del comando que te importa.**
+
+## D28 — las terminales se DESCUBREN, no se enumeran a mano ("T1/T2/T3" es un literal cerrado)
+
+**Hallazgo de `t4-bb [b2500b]`, la CUARTA terminal, creada esta noche por la Directora.** Los
+documentos de proceso enumeran las terminales como literal cerrado `T1/T2/T3`, asi que T4
+nace **sin valor valido que escribir** en sitios donde la norma le obliga a escribir uno.
+Sus dos casos, **verificados por mi en `origin/main`, no de palabra**:
+`intro-terminal.txt:555` (campo del `titular.txt` del cerrojo: *"T1 | T2 | T3"*) y
+`intro-terminal.txt:701` (convencion de nombre del export: *"'T1', 'T2' o 'T3'"*).
+
+**No son dos: enumerando la fuente entera en vez de afinar el patron, salen 20+ apariciones
+del literal cerrado en los documentos de proceso.** Ese es el numero que hay que revisar, y
+se dice cuantas se miraron precisamente porque un patron mejor siempre encuentra una mas.
+
+**La forma del fallo, y la enuncia el propio T4 mejor que yo:** *"no es que la regla me
+prohiba algo, es que la enumeracion no me contempla — y una lista que no te nombra se lee
+igual desde fuera que una lista que te excluye"*. Un consumidor legitimo sin valor valido
+**improvisa uno** (T4 escribira `T4`, que es lo razonable) o **se queda fuera en silencio**.
+Es el mismo hueco que ya se parcheo cuando el QA aparecio como consumidor del cerrojo: se
+parcheo **la instancia**, no la forma.
+
+🔴 **Y ME HA MORDIDO A MI, EN LO QUE ARME HACE UNA HORA.** Mi vigilante de la decision 78
+tenia `for d in T1 T2 T3` escrito a pelo. **T4 nacio esta noche y el vigilante no lo habria
+visto nunca** — y lo grave no es que lo ignorara: es que su ALARMA es "todos quietos a la
+vez", asi que **una T4 parada no habria disparado nada y su silencio se lee igual que
+"todo va bien"**. El vigilante escrito para detectar una fabrica quieta se habria quedado
+ciego justo ante la terminal mas nueva.
+
+**Corregido ya** en `_vigilante-fabrica-quieta.sh`: las terminales se **descubren** del
+disco (`T<digitos>` exacto, que descarta los sub-worktrees viejos tipo `T1-ait-14-15`), y el
+script **imprime la lista descubierta** para que se pueda auditar contra la realidad.
+Reprobado con 6 casos: tres quietas -> ALARMA(3) · nace T4 activa -> OK y T4 aparece ·
+cuatro quietas -> ALARMA(**4**, no 3) · sub-worktrees viejos activos -> no cuentan ·
+`T11` de dos digitos -> se descubre · ruta sin terminales -> **INDETERMINADO, nunca OK**.
+
+**Ejecucion para el CEO:** revisar las 20+ apariciones y sustituir el literal cerrado por
+**"tu terminal `T<n>`"** o por descubrimiento, segun el sitio. **Regla general que queda
+escrita:** en un documento de proceso, **una lista de participantes es un literal cerrado y
+caduca en cuanto nace el siguiente**; si el conjunto puede crecer, se nombra el PATRON, no
+los miembros.
