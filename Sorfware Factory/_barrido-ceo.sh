@@ -146,7 +146,24 @@ while IFS= read -r p; do
   else
     echo "  🔴 NI IGNORADO NI TRACKEADO: $p  (un \`git add -A\` lo commitearia sin querer)"
   fi
-done < <(cd "$RAIZ" && ls -d "Sorfware Factory"/_turno* "Sorfware Factory"/_registro* 2>/dev/null)
+done < <(
+  # LOS CANONICOS SIEMPRE, EXISTAN O NO + lo que haya en disco, deduplicado.
+  # ⚠️ HUECO QUE ESTO CIERRA, introducido por el arreglo ANTERIOR y cazado en el
+  # ciclo siguiente: al pasar a enumerar el disco, un artefacto que NO existe en
+  # ese momento deja de comprobarse — y es justo cuando importa, porque su
+  # estado de ignorado hay que saberlo ANTES de que aparezca. `_turno-raiz.lock`
+  # desaparecio de esta comprobacion en cuanto quedo libre.
+  # LA SINTESIS: enumerar lo PERMITIDO (siempre) y ademas lo que HAY (por si
+  # aparece algo no previsto). Ni solo lo esperado, ni solo lo existente.
+  { printf '%s\n' \
+      "Sorfware Factory/_turno-convex.lock" \
+      "Sorfware Factory/_turno-raiz.lock" \
+      "Sorfware Factory/_turno-convex.log" \
+      "Sorfware Factory/_turno-raiz.log" \
+      "Sorfware Factory/_registro-agentes.txt"
+    cd "$RAIZ" && ls -d "Sorfware Factory"/_turno* "Sorfware Factory"/_registro* 2>/dev/null
+  } | sort -u
+)
 
 # --- 5. Exports sin veredicto ------------------------------------------------
 echo
