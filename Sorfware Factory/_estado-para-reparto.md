@@ -909,6 +909,18 @@ Los siete, con su paso nombrado (el test: ¿PASO + QUIEN?):
     6. major que sale de un gate de plan sin cerrarse    decidir              Aitor via FA
     7. sentada AIT-144 + AIT-91                          abrir Gmail, gate    Aitor
        (primero el gate; si Google exige verificacion, la premisa 1 deja de importar)
+       🔴 ENCLAVAMIENTO, y es lo mas importante de los siete: **el dia que se metan
+       `GMAIL_CLIENT_ID` y las credenciales en produccion, AIT-145 se vuelve
+       EXPLOTABLE sin que nadie tome una decision de publicacion.** Un atacante
+       vincula el buzon de la victima a su propio usuario CRM. Hoy no es explotable
+       SOLO porque produccion no tiene esas credenciales.
+       ⛔ **Meter una variable de entorno no se siente como publicar una
+       vulnerabilidad conocida**, y ahi esta el peligro: el estado peligroso lo crea
+       una accion POSTERIOR que nadie conecta con el merge de AIT-92.
+       El Integrador lo pone en `docs/03-setup.md`, que es donde mira quien configura
+       las variables. **Va tambien AQUI porque si solo esta en el fichero depende de
+       que lo abra, y si solo esta en mi lista depende de que yo este delante.**
+       Formulacion del Integrador, 2026-09-10.
 
 **Y el hueco que le quedaba a la regla del PM, que el mismo cerro:** su criterio distinguia
 abandono de espera, pero **no espera de espera indefinida** — una ficha con dueno nombrado sigue
