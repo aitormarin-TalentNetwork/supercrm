@@ -525,6 +525,128 @@ Ese script declara su propio alcance: detecta el patrón directo `setAlgoError(�
 
 **Estado:** 🟢 Cerrada.
 
+### ADR-0xx · Qué puede guardarse en `localStorage`, y por qué pasa por un helper — 2026-09-10 (AIT-127)
+
+**Contexto.** Hasta AIT-127 el código propio del proyecto **no tocaba
+`localStorage` ni una sola vez** — medido: cero ocurrencias en `app/`,
+`components/`, `lib/` y `convex/`. Lo único que lo usaba era la librería de
+autenticación, dentro de `node_modules`. AIT-127 necesita leer el `endpoint` de
+la suscripción push **de forma síncrona en el clic de "Cerrar sesión"**, porque
+obtenerlo de la Push API pasa por `navigator.serviceWorker.ready`, una promesa
+que puede no resolverse nunca y que era el origen de la ventana de 3 s del
+defecto.
+
+**Decisión.** Se estrena `localStorage` **con frontera y con helper**.
+
+**La frontera — qué puede vivir ahí:**
+
+| | |
+| -- | -- |
+| ✅ Sí | Datos **no sensibles**, **por dispositivo**, que hagan falta de forma **síncrona**. |
+| ⛔ Nunca | **Credenciales ni tokens**, de ningún tipo. |
+
+⚠️ **Que la librería de auth guarde ahí el JWT no es un precedente que nos
+autorice.** Es una decisión suya, y además es justo lo que estamos investigando
+en AIT-133 — no algo que estemos imitando.
+
+**El helper es obligatorio, y la razón es de forma, no de estilo:** todo acceso
+pasa por `lib/deviceStorage.ts`. **`localStorage` no devuelve `null` donde está
+bloqueado: LANZA** (modo privado, almacenamiento particionado, cookies de
+terceros desactivadas). Si cada llamante tuviera que acordarse del `try/catch`,
+alguien se olvidaría — y en AIT-127 ese olvido **tumbaría el cierre de sesión**.
+Las **tres** operaciones lo envuelven, no solo la lectura: lanza en las tres.
+
+> **Imposible por la forma es mejor que una puerta que lo comprueba.**
+
+**Por qué se escribe esto aquí y no se deja como uso puntual.** Un patrón nuevo
+introducido de pasada dentro de otra tarea es como se cuelan las convenciones que
+nadie decidió — **y la segunda vez ya no es una decisión, es una coherencia**. Sin
+esta entrada, el siguiente uso sería implícito.
+
+**Alternativas descartadas, con su motivo medido:**
+
+* **Cookie propia** — viaja en cada petición al servidor para nada.
+* **Solo en el servidor** — no es síncrono, que es justo lo que se necesita.
+* **`sessionStorage`** — muere al cerrar la pestaña, y la suscripción push le
+  sobrevive.
+* **IndexedDB** — **asíncrono**, o sea que reintroduce la promesa que puede
+  colgarse: exactamente el defecto que AIT-127 viene a quitar.
+
+**Estado:** 🟢 Cerrada.
+
+### ADR-0xx · Qué hace la app mientras un cierre de sesión está en vuelo — 2026-09-10 (AIT-127)
+
+**Contexto.** Cerrar la sesión no es instantáneo: entre el clic y el momento en
+que el servidor deja de aceptar la credencial pasa un tiempo real. **Medido en
+`dev`, con el gesto cronometrado de verdad: la ventana queda acotada entre 27 y
+364 ms** según la corrida (`e2e/08-cierre-de-sesion.spec.ts`, C2c, que la publica
+en cada ejecución). Concuerda con la latencia de `auth:signOut` medida aparte:
+162 ms de mediana, 485 ms el peor caso. Durante esa ventana, cualquier
+navegación entra.
+
+**Decisión 1 — la app no ofrece navegación durante la ventana.** Al pulsar
+"Cerrar sesión" el control pasa a "Cerrando sesión…" y `disabled`, y **no queda
+NINGÚN control alcanzable** — no sólo los que navegan.
+
+La regla es **lista de permitidos, no de prohibidos**, y está escrita así en
+`app/layout.tsx`: durante el cierre va `inert` **todo lo que cuelga del layout**
+—la pantalla activa, `PushSubscriptionSync` y `NewVersionNotice`, los tres bajo
+`components/nav/AreaBloqueable.tsx`— más el panel de `AppNav`, que lleva su
+propio `inert`. **Lo único que queda fuera es `AvisoCierreSesion`**, que es
+quien tiene que poder hablar, y que a propósito **no ofrece ninguna acción**: ni
+botón de cerrar ni de reintentar. *«Cero salvo los míos» no es cero.*
+
+Se conserva además, redundante y declarado como tal, que los enlaces del panel
+dejen de tener `href` (son `<span>`, no `<a>` apagados) y que `toggle` guarde en
+`NavContext`: no dependen del soporte de `inert`.
+
+> 🔴 **Por qué la lista es de permitidos.** La versión anterior de este ADR
+> decía «la pantalla activa va `inert`», y era cierta y estrecha: enumeraba lo
+> que se bloquea. Con esa forma, `NewVersionNotice` —montado a nivel de layout,
+> hermano y no hijo del área bloqueada— quedaba **fuera del bloqueo con un
+> botón «Recargar» alcanzable**, que recarga la página. **Enumerar lo que hay
+> que bloquear deja fuera al siguiente componente que alguien monte.**
+
+⚠️ **Esto NO cierra la ventana, solo la puerta que abre la app.** La barra de
+direcciones sigue entrando durante esos milisegundos, y **la única mitigación
+real es la revocación en servidor (AIT-133)**. Cualquier redacción futura que dé
+a entender que la ventana desapareció es falsa.
+
+**Decisión 2 — si el cierre falla, NO se redirige a `/login`.** Se suelta el
+bloqueo, el control vuelve a estar vivo y un `role="alert"` dice que **el cierre
+no se ha podido confirmar**, sin afirmar en qué estado quedó el servidor.
+
+> 🔴 **Y esto es una corrección, no una redacción más fina.** Este documento
+> decía «un `role="alert"` dice que **la sesión sigue abierta**», y esa frase
+> era **falsa**: el cierre se abandona con `AbortController` al vencer su
+> límite, y **abortar no informa de si el servidor llegó a procesar la
+> petición** — puede haberse cerrado y no haber llegado la respuesta. Afirmar
+> «sigue abierta» es afirmar un estado del servidor que el propio código
+> declara no conocer.
+>
+> El texto de la UI se corrigió a *«No se ha podido confirmar el cierre de
+> sesión. Puede que se haya cerrado y puede que no.»* y **esta línea del ADR se
+> quedó una versión por detrás**: el mismo defecto sobrevivió en el documento
+> después de morir en la pantalla. Lo peor es la dirección — *un mantenedor
+> toma el ADR como contrato e implementa la rama suponiendo sesión viva*, que
+> es justo el estado falso que la corrección venía a eliminar.
+>
+> **Se corrige aquí y no sólo en la UI porque el ADR es el sitio que se CITA,
+> y la pantalla el que se VE.** Las correcciones caen por gravedad en el
+> extremo que casi nadie vuelve a abrir.
+
+Alternativas descartadas, y las dos por motivos distintos:
+
+| | |
+| -- | -- |
+| ⛔ Limpiar el estado de cliente y redirigir | Es la **señal falsa**: pantalla de login con la sesión **viva en el servidor**. La forma más convincente de no arreglar nada. |
+| ⛔ Redirigir sin limpiar | **No funciona**: `app/login/page.tsx` devuelve a `/` a quien sigue autenticado en cliente — y el estado de cliente es justo lo que el fallo deja intacto. El usuario acabaría **dentro de la app y sin ningún aviso**. |
+| 🟡 Tocar ese rebote de `/login` | No es incorrecta; se descarta **por alcance** (ensancha la ficha a la pantalla de login por una rama de fallo que tiene salida dentro). |
+
+> **Un cierre honesto que no te mueve es mejor que uno que te mueve y miente.**
+
+**Estado:** 🟢 Cerrada.
+
 ## 7. Decisiones abiertas
 
 Ninguna a día de hoy. Las dos que figuraban aquí ya se resolvieron:

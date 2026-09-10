@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   Mail,
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { NavToggleButton } from "@/components/nav/NavToggleButton";
+import { useNav } from "@/components/nav/NavContext";
 import { QuickActions } from "@/components/nav/QuickActions";
 import { ROLE_LABEL } from "@/components/nav/navConfig";
 import { PushNotificationsSection } from "@/components/push/PushNotificationsSection";
@@ -52,9 +54,40 @@ type ManagedUser = {
 // de usuarios necesita más ancho que la tarjeta de perfil; para
 // sales/storeManager la pantalla queda exactamente igual que antes.
 export default function AjustesPage() {
+  const router = useRouter();
   const role = useQuery(api.users.getCurrentUserRole);
   const userInfo = useQuery(api.users.getCurrentUserInfo);
-  const signOut = useSignOutAndUnlinkPush();
+  const cerrarSesion = useSignOutAndUnlinkPush();
+  // AIT-127 (C2a): estado compartido, no local. Lo que hay que apagar durante
+  // el cierre vive fuera de esta pantalla (el ☰ y, tras él, el panel entero), y
+  // el aviso lo pinta <AvisoCierreSesion> desde el layout — porque esta
+  // pantalla va `inert` mientras el cierre está en vuelo y no podría leerse.
+  const { cerrandoSesion, setCerrandoSesion, setErrorCierre } = useNav();
+
+  // AIT-127: la navegación vive aquí y no en el hook — el hook no sabe desde
+  // dónde se le llama, y el aviso tiene que estar en el árbol de este
+  // componente para que exista un `role="alert"` que se pueda afirmar.
+  async function alCerrarSesion() {
+    setErrorCierre(false);
+    setCerrandoSesion("pagina");
+    try {
+      const resultado = await cerrarSesion();
+      if (!resultado.ok) {
+        // Decisión del PM (2026-09-10) trasladada por la Directora: no se
+        // redirige con la sesión viva. Redirigir a /login sin haber cerrado
+        // es la señal falsa que prohíbe M8, y además rebota
+        // (app/login/page.tsx:104 devuelve a "/" a quien sigue autenticado
+        // en cliente, que es justo el estado que el fallo deja intacto).
+        // "Nunca atrapado" se cumple soltando el bloqueo: la app vuelve a
+        // estar entera y usable, con el aviso delante.
+        setErrorCierre(true);
+        return;
+      }
+      router.replace("/login");
+    } finally {
+      setCerrandoSesion(null);
+    }
+  }
 
   const loading = role === undefined || userInfo === undefined;
   const canManageUsers = role === "owner";
@@ -115,8 +148,14 @@ export default function AjustesPage() {
               {canManageUsers && <UsersSection />}
 
               <div className="mx-auto w-full max-w-[480px]">
-                <Button variant="secondary" onClick={() => signOut()}>
-                  Cerrar sesión
+                <Button
+                  variant="secondary"
+                  disabled={cerrandoSesion !== null}
+                  onClick={() => void alCerrarSesion()}
+                >
+                  {cerrandoSesion === "pagina"
+                    ? "Cerrando sesión…"
+                    : "Cerrar sesión"}
                 </Button>
               </div>
 
@@ -352,8 +391,8 @@ function NewUserForm({
         </Button>
       </div>
       <p className="text-xs text-text-muted">
-        Podrá entrar en cuanto inicie sesión con esa cuenta de Google — no
-        hace falta contraseña.
+        Podrá entrar en cuanto inicie sesión con esa cuenta de Google — no hace
+        falta contraseña.
       </p>
     </form>
   );
