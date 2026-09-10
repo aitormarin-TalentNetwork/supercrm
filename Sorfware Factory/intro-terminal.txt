@@ -985,7 +985,17 @@ cita.*
   lista. Contar "procesos con playwright" mezcla las dos cosas.
 
 - **AL CORREGIR UN HALLAZGO, REVISA TU PROPIO DIFF COMPLETO COMO SI FUERA CÓDIGO NUEVO**
-  (decisión 79, 2026-09-09). Lo es: es lo más reciente y lo menos leído de toda la tarea.
+  (decisión 89, 2026-09-10). Lo es: es lo más reciente y lo menos leído de toda la tarea.
+  🔴 **ESTA LÍNEA DECÍA "decisión 79" Y ERA FALSO. Corregido el 2026-09-10.** La 79 real es
+  otra cosa —*"al disparar una ronda N+1, el alcance es el hallazgo corregido MÁS el diff
+  completo de la corrección"*, que es lo que hace la **coordinadora** al escribir el prompt—
+  y esta regla, que es lo que hace **el desarrollador** al corregir, **no tenía número propio
+  en el índice.** Comparten tema, así que **no chirriaba al leerlas**.
+  ⚠️ **Lo cazó T3 auditando sus propias citas, y ya la había propagado a `main` copiándola
+  fielmente de aquí.** *Un número mal copiado desde una fuente publicada es más creíble que
+  uno inventado.* **Y explica por qué "citar por título" no bastaba: el título estaba bien y
+  el número mal EN LA MISMA LÍNEA — quien cita el título correcto arrastra el número malo
+  pegado.**
   ⚠️ **Y mira en particular QUÉ DATOS COMPARTEN las ramas que tocaste.** Los dos defectos
   reales de ese día eran lo mismo: **una rama leyendo un dato preparado para otra** —al
   reordenar, una dejó de calcular lo suyo y reutilizó una variable ajena, y el dato traía

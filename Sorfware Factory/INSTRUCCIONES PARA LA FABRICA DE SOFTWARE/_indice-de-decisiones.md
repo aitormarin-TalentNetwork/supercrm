@@ -136,7 +136,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 70 | Una declaración sobre la INSTRUMENTACIÓN no puede morir en un export — va además a la coordinadora por mensaje directo, y ella no la archiva con la tarea | R §2sexies-bis · IT · D |
 | 71 | **Una medición se enuncia con su MÉTODO, no solo con su resultado** — una línea: el comando, el patrón, el filtro. *(Nació como "el crudo viaja con la conclusión" y se retiró entera: generalizaba mal desde evidencia buena.)* | R §2sexies-bis |
 | 72 | **La procedencia se comprueba contra el registro antes de escribirla** — y con más motivo si te deja mal: *la autocrítica es el envoltorio al que nadie le pide la fuente* | R §2sexies-bis |
-| 73 | *(sin cita localizada en el barrido del 2026-09-10 — no se declara muerta: no se buscó con el método agotador de la cabecera)* | — |
+| 73 | **Se reparte SOLO desde `Todo`:** que una ficha exista no es lo mismo que estar aprobada. Cualquiera crea en `Backlog` y debe; solo el PM mueve a `Todo` | D §REPARTES · PM |
 | 74 | **La huella de la tarea NO se escribe a mano** — se pega la salida de los dos comandos, los dos | IT |
 | 75–76 | *(sin cita localizada en el barrido del 2026-09-10 — no se declaran muertas: no se buscaron con el método agotador de la cabecera)* | — |
 | 77 | ⛔ **INVARIANTE: la fábrica solo está legítimamente parada si hay un motivo técnico escrito y CON DUEÑO. «Ocioso» no es un estado: con backlog disponible es una incidencia.** Los siete roles apuntan a esto; el CEO cuenta *N con tarea · M sin tarea · backlog K* en cada barrido y con `M>0 y K>0` actúa en ESE barrido | R (cabecera) · C · D · IT |
@@ -151,6 +151,7 @@ nadie la cita—. Corre en cada barrido del CEO.
 | 86 | ⛔ **El rótulo se corrige primero, no al final** — el sitio de más tráfico y menos contexto. **Su punto ciego es el PROMPT RECURRENTE de cada rol**: máximo tráfico, mínimo contexto, cero auditabilidad — así que ese rol **declara** que lo ha actualizado | R (cabecera) · C |
 | 87 | ⛔ **El proceso se lee de `origin/main`, no de la copia congelada de tu rama** — al asignar una tarea se le recuerda que su copia está congelada en la fecha de su rama | D · IT |
 | 88 | ⛔ **El turno protege la escritura, no la validez de lo ya medido** — antes de juzgar una medición contra un compartido, mira el registro del turno (`_turno-convex.log`); y al liberar, deja traza ANTES del `rmdir` | D · IT |
+| 89 | **Al corregir un hallazgo, revisa tu propio diff completo como si fuera código nuevo** — y mira qué datos comparten las ramas que tocaste. *(Alta el 2026-09-10: la regla existía en `intro-terminal.txt` desde el 09-09 citando el número 79, que es otra decisión)* | IT §987 |
 
 ---
 
