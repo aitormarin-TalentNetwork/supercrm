@@ -2195,3 +2195,96 @@ ENTRADA, y aplicaselo.** No los que se parecen: **los que leen lo mismo.** El ca
 exactamente eso — dos instrumentos suyos sobre los mismos ficheros, arreglado uno. **La enumeracion
 es corta y se hace mientras tienes el defecto en la cabeza**, que es el unico momento en que es
 gratis.
+
+## D63 — convenio de codigos de salida de la fabrica (adoptado, no inventado aqui)
+
+**Lo piden T2 y T4 a la vez, con el mapeo ya probado por los dos en dos fichas distintas.** T2 los
+invento, T4 se los pidio y los adopto **declarando en su export**: *"mapeo tomado de T2 (AIT-114).
+**NO es un convenio de la fabrica**"*.
+
+🔑 **El hallazgo no es que se los inventara: es que DOS TERMINALES ACABARON USANDO LOS MISMOS NUMEROS
+POR UNA CONVERSACION PRIVADA.** Un convenio se estaba formando **sin que nadie lo decidiera**, y
+hasta que T4 pregunto **nadie mas los habia visto**. Si cada terminal inventa la suya, **quien lea un
+`exit 5` manana tendra que adivinar de quien es** — y **un codigo de salida no es una etiqueta: es
+una instruccion sobre donde mirar.**
+
+**ADOPTADO tal cual, y va donde se lea sin buscarlo (`intro-terminal.txt`):**
+```
+exit 4  SIN CONTENEDOR   la salida del runner no existe o no se lee   <- "no pude mirar"
+exit 5  AUSENTE          ninguna linea con el sujeto buscado          <- "mire y no habia"
+exit 6  MALFORMADA       la hay y su valor no vale (incluye NaN)
+exit 7  BAJO MINIMO      N < minimo
+```
+📌 **Y no es arbitrario, que es lo que lo hace defendible: la distincion 4/5 es exactamente la que
+esta fabrica lleva toda la noche exigiendo** — *un cero sin control positivo no distingue "no hay" de
+"no supe mirar"*. **Este convenio la vuelve legible por una maquina**, que es mas de lo que teniamos.
+
+**Y el `exit 4` salio de un accidente que merece constar:** a T2 se le rompio el arnes mientras
+contestaba a T4, y su gate respondio **AUSENTE sobre un fichero inexistente** — *"no pude mirar"
+colapsado dentro de "mire y no habia"*. **Un error que falla hacia el lado seguro y nombra la causa
+equivocada manda a cavar al sitio que no es, y es peor que uno vago.**
+
+## D64 — la COMPARACION no puede ser la guarda: `NaN < minimo` es FALSO y el gate aprueba
+
+**Medida en dos fichas a la vez (M4b de T4, M1 de T2).** Si un total malformado se convierte en
+`NaN`, **`NaN < minimo` es `false` y el gate PASA**. La guarda que existe para exigir un suelo
+**aprueba precisamente cuando no hay numero**.
+
+> **Hay que AFIRMAR EN POSITIVO que existe un entero ANTES de comparar.**
+
+**Entra en la misma pasada que la D57.1**, y es su forma numerica: *"no deberia estar por debajo" no
+se comprueba — se cuenta, se valida el tipo, y se exige un suelo.* **Afecta a cualquier gate de la
+D57 que compare sin validar primero**, o sea a todos los que se escribieron esta noche.
+
+## D65 — SELECCION, EXISTENCIA y VALIDEZ son TRES pasos, y el primero se olvida
+
+**De T2, y es la mas fina de la tanda.** El ya separaba **existencia** (pregunta laxa) de **validez**
+(pregunta estricta). Lo que faltaba:
+
+> **Si la SELECCION se hace con el patron estricto, lo invalido desaparece del universo antes de que
+> nadie lo juzgue.**
+
+**Su caso:** dos lineas `Total:`, **la ultima malformada**. Un selector por patron numerico **coge la
+penultima —valida—, ignora la mala y APRUEBA**. **La seleccion tiene que ser POSICIONAL, no por
+patron.**
+
+**Su formulacion general, adoptada tal cual:** *la pregunta de EXISTENCIA tiene que ser mas LAXA que
+la de VALIDEZ; con el mismo patron para las dos, **lo invalido es indistinguible de lo inexistente
+por construccion**.*
+
+📌 **Y es la misma clase que el autodiagnostico del propio T2 de hace tres horas** —*"acoto el
+universo antes de mirarlo"*— **pero un nivel mas abajo: aqui el universo lo acota el PATRON, no el
+autor.** Generalizada: **todo filtro aplicado ANTES de una comprobacion retira del universo
+exactamente los casos que la comprobacion existia para cazar.**
+
+## D66 — la huella de ronda se degrada POR SU PROPIO EXITO
+
+**Medido por T4: la cita de cierre del loop16 de T2 aparecio en el veredicto de OTRA tarea**, porque
+el auditor **la habia recogido por util**.
+
+> **Una cita de cierre deja de discriminar exactamente cuando la leccion funciona.**
+
+**La solucion de T2, adoptada, y lo valioso es que separa dos cosas que estaban pegadas: LA HUELLA NO
+PUEDE SER LO QUE QUIERES QUE SE PROPAGUE.**
+```
+RONDA 18 · base 629440f · «38 -> abc» = exit 6 · «abc -> 38» = exit 0
+```
+**Un par asimetrico de RESULTADOS MEDIDOS no lo cita nadie en otro veredicto.** Y **la leccion se
+escribe aparte**, para que pueda viajar **sin llevarse la huella con ella**.
+
+**Regla general: un identificador se elige entre lo que nadie querria copiar.** Si es memorable,
+citable o util, **su exito lo destruye como identificador** — y el fallo es silencioso, porque
+aparece igual de legitimo en los dos sitios.
+
+## Nota operativa — el vigilante es el EJECUTOR, el criterio va escrito FUERA
+
+**De la Directora, tras matarle el sistema otro vigilante** (swap al 83%, ~2,4 GB reclamables).
+**No costo nada, y la razon no es la memoria:** *"el criterio de verificacion estaba escrito, no en
+mi cabeza"* —linea del veredicto, posicion respecto al prompt, cita de cierre, `at capacity`,
+marker— **y lo midio a mano en dos comandos.**
+
+> **Lo que se automatiza es la EJECUCION; el criterio va escrito FUERA del ejecutor.**
+
+**Si el criterio hubiera vivido dentro del script, su muerte se habria llevado la ronda.** Es la misma
+leccion que la D78 con mi vigilante y la que aplique al adelgazar el cron — **pero un paso mas alla:
+no basta con que el criterio este en disco, tiene que poder ejecutarlo un humano a mano.**
