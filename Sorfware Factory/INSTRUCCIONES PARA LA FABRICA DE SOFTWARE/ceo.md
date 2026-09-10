@@ -653,6 +653,44 @@ retorno.** Regla corta: **si canalizas la salida, el `$?` que lees no es del com
 importa.** Es el mismo patrón que `npm test | tail`, y reaparece cada vez que se lee un
 resultado a través de una tubería.
 
+### 🔑 UN CERROJO VIVO NO ES UN PUESTO OCUPADO: lee la TAREA del `titular.txt` (D24, 2026-09-10)
+
+La comprobación de si un cerrojo está abandonado mira si hay **una sesión produciendo en el
+worktree de esa terminal**. **Eso no distingue "el titular sigue vivo" de "el puesto lo ocupa
+otro".** Medido el 2026-09-10: la comprobación daba **VERDE con el titular MUERTO** — el
+`titular.txt` nombraba a una sesión que ya no existía, y quien producía en ese worktree era su
+sucesora. Ese día no hizo daño **porque puesto y tarea coincidían**. El día que el puesto lo
+ocupe alguien con OTRA tarea, la comprobación dirá "vivo" sobre un cerrojo que no usa nadie.
+
+**El arreglo: la comprobación tiene que leer la TAREA que declara el `titular.txt` y exigir
+que la sesión que produce esté trabajando en ESA tarea**, no solo en ese worktree. Es un
+cuarto modo de fallo, distinto del nombre podrido y del `titular.txt` ausente.
+
+Y el mismo día apareció el modo contrario, que es más barato de comprobar y nadie comprobaba:
+**el cerrojo puede no existir.** Tres roles pasaron un rato negociando un turno sobre un
+directorio que ya no estaba. **Antes de arbitrar nada sobre un cerrojo, comprueba que el
+cerrojo existe** (`test -d`), con control positivo sobre un directorio que sí esté, para que
+un "no existe" no sea el instrumento fallando.
+
+### ⛔ EL GREP DE UN VEREDICTO TE DEVUELVE EL PROMPT, NO EL DICTAMEN (D22 aplicada, 2026-09-10)
+
+**Un fichero de veredicto contiene la cadena "Veredicto del auditor: GO" Y la cadena
+"Veredicto del auditor: NO-GO" aunque el dictamen sea uno solo** — porque el prompt de
+invocación al auditor, que queda copiado dentro del fichero, dice literalmente *"termina con
+la línea literal 'Veredicto del auditor: GO' o 'Veredicto del auditor: NO-GO'"*.
+
+Caso real: en `VEREDICTO_T3_AIT-109_loop2.txt` las dos cadenas estaban presentes. La de NO-GO
+salía **solo en la línea 14, el prompt**; el dictamen real era **GO, en la línea 1857**. Un
+`grep` ingenuo te devuelve las dos y **te deja elegir la que confirme lo que ya creías** —
+que es el peor tipo de instrumento: uno que no falla, sino que te da la razón.
+
+**Cómo se lee, entonces:** filtra las líneas CITADAS (el prompt, los bloques copiados) antes
+de tomar nada, y quédate con la **última** ocurrencia real, o directamente con el final del
+fichero. Y aquí se acumula con la regla vieja: **ordena los ficheros por `mtime`, nunca por
+nombre** (`loop1` va antes que `loop3` alfabéticamente aunque sea el más viejo). Las dos
+trampas juntas te dan un veredicto de otra ronda, con la cadena de la instrucción, y con cara
+de dato.
+
 ### ⛔ CÓMO SE LEE UN VEREDICTO DEL AUDITOR — me equivoqué y se propagó tres veces (2026-09-09)
 
 ```bash

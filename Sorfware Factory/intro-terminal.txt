@@ -260,6 +260,32 @@ una vez que el trabajo pasa auditoría.
    NO aplica a `docs/`: esas son decisiones técnicas versionadas con el código a
    propósito, y ahí sí quieres la versión de TU rama.
 
+⚠️ TU DIRECTORIO DE TRABAJO CAMBIA SOLO, Y FALLA EN SILENCIO (D25, 2026-09-10)
+   **El directorio primario de tu sesión sigue al ÚLTIMO COMANDO QUE EJECUTASTE, no a la
+   identidad de tu terminal.** Un `cd` dentro de un comando de Bash lo mueve, y nadie te
+   avisa. Medido dos veces la misma madrugada, por dos sesiones independientes: T1 lo vio
+   cambiar CUATRO veces entre `_worktrees/T1` y la raíz sin pedirlo, y el Factory Architect
+   lo vio moverse dos veces en su propia sesión.
+
+   **Por qué esto es peligroso y no una molestia:** la regla que dice "a un desarrollador se
+   le identifica por su directorio de proyecto" **se apoya en un dato que se mueve solo**.
+   Las dos consecuencias, las dos silenciosas:
+     - puedes **autoidentificarte de buena fe en el sitio equivocado** (decir "estoy en T1"
+       cuando tu proceso ya está en la raíz), y
+     - puedes **editar el checkout raíz creyendo que editas tu worktree**. Ahí no hay error
+       ni aviso: el fichero existe en los dos sitios y la edición funciona.
+
+   **REGLA: ruta absoluta SIEMPRE, y `git -C "$W"` para todo git, nunca ruta relativa.**
+   Define tu worktree una vez en una variable con su ruta absoluta y úsala en todos los
+   comandos. Y cuando declares dónde estás —en un check-in, en un export, al contestar a un
+   censo— **mídelo con `pwd -P` en ese momento**, no lo deduzcas de tu nombre de sesión ni de
+   dónde arrancaste.
+
+   📌 Ojo: esto es un motivo DISTINTO del que da el aviso de arriba. Arriba se piden rutas
+   absolutas para no leer la copia congelada de tu rama; aquí se piden porque **tu propio cwd
+   no es de fiar**. Las dos razones apuntan a la misma disciplina, pero si mañana desaparece
+   una, la otra sigue en pie por su cuenta.
+
 ⚠️ UN TEST INTERMITENTE CONOCIDO NO TE EXIME DE INVESTIGAR
    (decisión 44, 2026-09-08, del Integrador). Si un spec está declarado
    intermitente y vuelve a fallar DESPUÉS de que hayas tocado algo que podría

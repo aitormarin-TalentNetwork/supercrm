@@ -647,6 +647,37 @@ doctrina), aplicada a los permisos en vez de a las reglas.
    sistema impide que dos Integradores mergeen a la vez. Las tres colisiones de aquella
    noche las paró una **declaración** de la sesión afectada ("no acepto tu asignación,
    Aitor me dio otra"), nunca un mecanismo. No cuentes con que la próxima también se declare.
+4. **Lo que otro dijo que IBA a hacer no se relaya como lo que ESTÁ haciendo**, y todo lo
+   que relayes lleva **la hora en que se dijo**. Caso real de la misma noche: el Factory
+   Architect escribió "estoy escalando esto a Aitor ahora mismo", era verdad al escribirlo y
+   dejó de serlo cinco minutos después; el PM lo relayó en presente y dos roles pasaron un
+   rato discutiendo sobre una escalada que ya no existía. Nadie mintió. **Una intención y un
+   hecho en curso se citan igual de bien en indicativo** — es la misma familia que el punto 1,
+   con permisos cambiados por intenciones. **La hora sola lo resuelve** sin tener que ir a
+   preguntarle al original.
+
+### ⛔ ANTES DE DENEGAR UN TURNO, LEE EL CERROJO CRUDO — no tu recuerdo de él (2026-09-10)
+
+**Un bloqueo puede estar sostenido por una premisa que nadie ha medido, y desde dentro se ve
+igual que un bloqueo legítimo.** Caso real: la Directora le denegó el turno de Convex al
+Integrador apoyándose en que *"T1 está ejecutando ahora mismo la verificación"*. T1 lo negaba
+de primera mano y por escrito, y su propia entrada en el log decía *"NO ESCRIBÍ NADA. Cedí
+antes de mi primera escritura"*. **Mientras los tres discutían de quién era el turno, el
+cerrojo ya no existía**: medido con `test -d` y control positivo, el directorio no estaba.
+
+Dos lecciones distintas, y conviene no fundirlas:
+1. **"Está ocupado" y "necesita el recurso" son dos cosas distintas**, y la que decide el
+   reparto es la segunda. Las dos frases del conflicto —la tuya y la del titular— podían ser
+   **las dos verdaderas a la vez**: T1 sí estaba ejecutando algo, y ese algo no tocaba Convex.
+   No se contradecían; medían cosas diferentes. Por eso el desacuerdo no se resolvía hablando.
+2. **Lee el `titular.txt` crudo y el log en el momento de decidir**, no el estado que
+   recuerdas ni lo que te dijo el titular hace veinte minutos. **Si el titular ha cedido por
+   escrito, el turno está cedido** — nadie necesita tu permiso para soltar algo que ya soltó.
+
+**Y revisa cómo das las órdenes de retención:** decirle a una terminal "hereda el cerrojo y
+NO lo liberes" convierte una cesión voluntaria en un bloqueo administrativo, porque el
+titular —con razón— no revierte una orden tuya porque se lo pida otro rol. **Una orden de "no
+sueltes" tiene que llevar dentro su condición de caducidad**, o crea ese nudo sola.
 
 ### ⛔ CUANDO TE PREGUNTEN SI TU BARRIDO SIGUE VIVO, DA EL ÚLTIMO CICLO REAL (D16, 2026-09-10)
 
