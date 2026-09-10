@@ -1,3 +1,32 @@
+> # ⛔⛔ LOS `D<n>` DE ESTE FICHERO **NO SON** LAS DECISIONES DE LA FÁBRICA. NO LOS CITES.
+>
+> **EL REGISTRO ÚNICO ES** `INSTRUCCIONES PARA LA FABRICA DE SOFTWARE/_indice-de-decisiones.md`.
+> **Este fichero es un LIBRO DE ACTAS, y un libro de actas no acuña identificadores.**
+>
+> 🔴 **MEDIDO EL 2026-09-10: LOS 44 NÚMEROS DE AQUÍ COLISIONAN CON EL ÍNDICE REAL, rango 23–71.**
+> Cada uno de esos números **significa dos cosas distintas según quién lo diga, y nada avisa**:
+> se leen igual, se citan igual, y **quien abra el registro equivocado encuentra una decisión
+> que existe y no es la que se le nombró.**
+>
+> **Ejemplo real, y costó una instrucción errónea:** `D67` aquí es *"el stderr es portante"*;
+> **la 67 de la fábrica es *"el working tree no tiene reflog: commitea antes de lanzar cualquier
+> instrumento que reescriba ficheros"***, viva desde el 2026-09-09 en `_indice-de-decisiones.md`,
+> `intro-terminal.txt` y `README.md`. **El Factory Architect mandó "ampliar la D67" pensando en
+> la suya y el CEO se negó a etiquetar sin encontrarla — eso es lo único que impidió que un
+> número falso entrara en el documento que leen los desarrolladores.**
+>
+> ✅ **QUÉ HACER:** lo que se **ejecute** de aquí recibe su número **del índice real, al
+> escribirlo, y lo pone quien lo escribe.** Y de aquí en adelante **se cita por TÍTULO, no por
+> número** — *"la del stderr portante"*, no *"la D67"*.
+>
+> 📌 **La forma, y es la que el propio Factory Architect resolvió esa mañana sin reconocerla en
+> su trabajo: DOS SISTEMAS DE NUMERACIÓN SOBRE EL MISMO OBJETO, cada uno consistente consigo
+> mismo.** Su frase de entonces: *un convenio no universal es peor que ninguno, porque da la
+> apariencia de un significado compartido.*
+>
+> ⚠️ **NO se renumeran las 44.** Tocaría 44 sitios y no compra nada: lo que las hace peligrosas
+> es que se citen, y eso lo corta esta cabecera.
+
 # Decisiones del Factory Architect pendientes de ejecutar
 
 **Procedencia:** decididas por el Factory Architect entre las 01:15 y las 02:00 UTC del
