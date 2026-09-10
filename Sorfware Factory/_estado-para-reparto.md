@@ -1502,3 +1502,71 @@ correctos y son mundos distintos — como el codegen contra main y como el deplo
 
 Su `176` estaba declarado antes de medir **y era falso**: no por sesgo, sino porque `168 + 8` era
 una resta que nadie habia hecho.
+
+---
+
+## AIT-145 plan-loop2: B1 CERRADO, NO-GO por cuatro majors y NINGUNO de diseno (19:37Z)
+
+> *"**B1 queda cerrado.** El vinculo ya no obtiene el propietario del `state`: el callback crea
+> solamente un pendiente y `completeLink` debe usar la sesion que reclama. **Reenviar la URL de
+> consentimiento ya no permite vincular el buzon al atacante.**"*
+
+**Blockers: ninguno.** El rediseno de T2 —*el dueno lo decide quien TERMINA, no quien empieza*—
+aguanta. Y su prueba de cobertura **aguanto SIETE intentos enumerados** del auditor, incluido
+"reenviar la URL inicial de la app" (iniciar exige llamada autenticada; una navegacion no la
+ejecuta). **Enumerar los intentos es lo que la convierte en cobertura.**
+
+    M1  sigue ausente la regeneracion de convex/_generated/  (C10 cerro solo la mitad de docs/02)
+    M2  el consumo unico no cubre reclamaciones CONCURRENTES
+    M3  no hay contrato de caducidad ni de borrado del pendiente
+    M4  C8 contradice el flujo legitimo y no tiene instrumento contable
+
+📌 **M3 salio de una corazonada MIA declarada como tal en el encargo** —*un codigo de un solo uso
+introduce estado nuevo con vida propia: pregunta por su caducidad, por que pasa si se reclama dos
+veces, y por quien lo borra si nadie lo reclama*—. **Las tres eran huecos reales.** Es la primera
+categoria de la regla 17 funcionando: corazonada declarada que hace medir a otro.
+
+⚠️ **M3 es el que mas me preocupa** y no por gravedad inmediata: *un estado sin politica de borrado
+no falla nunca hasta que falla todo a la vez*, y hoy no habria manera de notarlo.
+
+## AIT-134: EL CONTROL AL INSTRUMENTO QUE SALVA EL TEST NUEVO (de T3)
+
+El test que fabrica "ruta local 200 + ANOMALO" tenia una trampa que no se ve:
+
+> **Si la interceptacion de `/pipeline` no casara, la confirmacion saldria `ACCESO_CONFIRMADO`
+> —las cookies siguen vivas— y EL CODIGO CORRECTO AVISARIA IGUAL.**
+
+O sea que **habria pasado midiendo el mundo del test ANTERIOR y creyendo medir el suyo**: el
+resultado esperado y el accidental son el mismo, **sin ninguna senal**. Se cuenta la interceptacion
+y se exige >= 1. Y la sesion se comprueba por `pagina.request`, **otro canal**, para que el
+instrumento no contamine lo que mide.
+
+## CORREGIR EN UN SITIO NO CORRIGE EL DE AL LADO (de T3, y vale una regla)
+
+Corrigio su prediccion falsa del impostor **y la misma frase seguia viva TRES LINEAS MAS ABAJO**.
+No son dos afirmaciones ajenas que chocan: **es el propio autor corrigiendo en el mismo minuto.**
+**El acto de corregir cierra la pregunta, y la sensacion se extiende a lo que no se toco.**
+
+> **Un metodo solo protege donde se vuelve a pasar. Una primera pasada se SIENTE completa.**
+
+Y el argumento mas fuerte a favor de que el apartado del impostor sea OBLIGATORIO Y REFUTABLE:
+**el que invento el metodo no lo aplico dos veces seguidas sobre su propio fichero**, y su olfato
+—*cuando algo hace dos trabajos, pregunta cual no tiene test propio*— **senalaba una linea que
+estaba a cuatro caracteres de la que si miro.**
+
+## EL +1 DEL CONTADOR, CERRADO EN LAS DOS DIRECCIONES
+
+    e2e/00-initials-design-system.spec.ts:92   for (const sujeto of SUJETOS) { test(...) }
+    SUJETOS = 2 entradas (VERIFICADO mirando el bloque, no contando cadenas)
+    rama de T1:      151 estatico +1 = 152   <- lo que midio T1
+    main + AIT-142:  175 estatico +1 = 176   <- lo que medira el Integrador
+
+⚠️ **Mi propio control me dio un susto y por eso lo mire:** `nombre:` daba 2 y `ruta:` daba **3**.
+El tercero era `function cargarInitials(ruta: string)` — **un parametro, no una entrada.** Con 3
+entradas el numero habria sido 177 y el criterio habria nacido mal.
+⚠️ Y descarte **tres falsos positivos mios**: mi barrido marcaba bucles que estan DENTRO del cuerpo
+del test, no alrededor. **El instrumento no distingue "bucle que envuelve un test" de "bucle dentro
+de un test".**
+
+> **Un contador que cuadra una vez no esta acreditado: esta de acuerdo.** Mide DECLARACIONES; la
+> suite mide EJECUCIONES. En `main` coincidian por casualidad.
