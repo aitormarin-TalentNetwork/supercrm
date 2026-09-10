@@ -147,39 +147,21 @@ test.describe("AIT-128 · los rótulos nombran lo que la pantalla mide", () => {
     expect(comprobarEtiquetas()).toEqual([]);
   });
 
-  // Sin esto, `METRICAS` podría ser una constante coherente que la pantalla no
-  // usa: un control sin observable propio. Se comprueba que los textos no están
-  // escritos a mano donde se PINTAN, para que no puedan divergir de su unidad.
+  // AIT-128 ronda 3 (M1). La versión anterior sólo afirmaba una AUSENCIA —"que no
+  // haya literales escritos a mano"— y eso **se cumple con el rótulo borrado**:
+  // alguien quita `label={METRICAS.atrasados.etiqueta}`, no queda ningún literal
+  // prohibido, `comprobarEtiquetas()` sigue validando un METRICAS ya desconectado,
+  // y el control sigue verde con el texto visible desaparecido.
   //
-  // Se busca el patrón del atributo JSX (`label="…"`, `title="…"`) y no el texto
-  // suelto: la primera versión de esta prueba buscaba la cadena entrecomillada en
-  // cualquier parte del fichero y saltaba con un COMENTARIO que mencionaba
-  // «Comerciales» en prosa. Medía el fichero cuando la pregunta era sobre lo
-  // renderizado — y un control que grita por prosa se acaba desactivando.
-  test("la página usa METRICAS y no copias literales en los rótulos", () => {
+  // > Una expectativa negativa no se puede verificar: se exige la cifra positiva.
+  test("cada métrica está renderizada donde dice que está", () => {
     const pagina = readFileSync(
       join(__dirname, "..", "app", "supervision", "page.tsx"),
       "utf8",
     );
-    const literales = Object.entries(METRICAS)
-      .filter(([, m]) =>
-        [`label="${m.etiqueta}"`, `title="${m.etiqueta}"`, `>${m.etiqueta}<`].some(
-          (patron) => pagina.includes(patron),
-        ),
-      )
-      .map(([clave, m]) => `${clave}: "${m.etiqueta}" escrito a mano en page.tsx`);
-    expect(literales).toEqual([]);
+    expect(rotulosDesconectados(pagina)).toEqual([]);
   });
 
-  // Control positivo del control anterior: el patrón TIENE que reconocer un
-  // rótulo escrito a mano. Sin esto, una prueba que no sabe encontrar nada
-  // pasaría siempre en verde y nadie lo notaría.
-  test("control positivo · el patrón sabe reconocer un rótulo a mano", () => {
-    const fuenteFalsa = `<KpiCard label="${METRICAS.atrasados.etiqueta}" />`;
-    expect(fuenteFalsa.includes(`label="${METRICAS.atrasados.etiqueta}"`)).toBe(
-      true,
-    );
-  });
 });
 
 // Control positivo del comprobador de rótulos, y va aquí y no en una salida
