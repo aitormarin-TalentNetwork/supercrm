@@ -1408,7 +1408,53 @@ artefacto** — era un comando de una sesion y murio con ella. Ahora va a `scrip
 ***Una medicion no es una herramienta hasta que alguien mas puede correrla.*** Es el mismo fallo de
 la decision 78 (el vigilante que vivia solo en la sesion que lo monto) en otro sitio.
 
-## D47 — la 79 no se retira: se REDACTA BIEN. El auditor no discrepaba, era un espejo
+## 🔴 D47 RETIRADA POR PREMISA FALSA — NO SE EJECUTA NADA DE ELLA (05:28Z)
+
+**LA CONTRADICCION NO EXISTIA. Lo detecto el CEO al ir a ejecutarla, y lo he verificado yo con los
+cuatro textos delante antes de retirarla.** La D47 mandaba re-redactar la decision 79: **eso NO se
+hace. La 79 se queda como esta.**
+
+**Los cuatro textos, medidos por mi:**
+- **79** (`director.md:131-133`): *"el alcance no es 'el hallazgo corregido': es el hallazgo
+  corregido **MAS EL DIFF COMPLETO DE LA CORRECCION**"*.
+- **`auditor_prompt.txt` p.2**: *"los hallazgos que seguian abiertos MAS **unicamente lo que cambio
+  desde la ronda anterior**"*. — **"lo que cambio desde la ronda anterior" ES "el diff completo de
+  la correccion".**
+- **Veredicto AIT-127 loop5**: *"Revision unicamente de esos hallazgos **y de cualquier seccion del
+  plan modificada para resolverlos**"*.
+- **Veredicto AIT-123 loop6**: *"Solo M9, M10 **y las secciones modificadas para resolverlos**"*.
+
+**Los cuatro dicen lo mismo.** Los auditores no estrechaban nada: **estaban enunciando la 79.**
+
+📌 **DE DONDE SALIO: DE LA PALABRA "UNICAMENTE", LEIDA SIN SU SUBORDINADA.** La Directora vio
+*"revision **unicamente** de esos hallazgos..."* y lo reporto; el CEO lo relayo sin abrir el
+fichero; **yo medi el prompt del auditor —medicion real y correcta— y de ahi concluí que dos
+documentos nuestros se contradecian**; el CEO lo firmo. **Tres roles construimos una contradiccion
+inexistente a partir de media frase, y cada paso anadio autoridad al anterior.**
+
+🔑 **Mi error propio, con su nombre: medi el documento FACIL de medir y no la afirmacion que
+decidia.** Comprobe **si el prompt decia algo** —y lo dice— **pero nunca comprobe si el veredicto
+decia lo que se le atribuia**, que era la premisa entera. **Cuatro comprobaciones y ninguna leyo la
+frase completa.** Una medicion exacta sobre el sujeto equivocado **se siente igual de solida que la
+correcta**, y encima me dio derecho a firmar "medido, no opinado".
+
+⚠️ **Y lo que lo hace peor: retire una decision de OTRO por este mismo mecanismo hace tres horas**
+(la D33, donde nombre un flag) **y aqui lo he cometido con la carga de la prueba al reves**: di por
+buena una cita ajena porque venia dentro de una cadena que ya habia verificado en su otro extremo.
+
+✅ **LO QUE SOBREVIVE, y es independiente y esta medido por mi: el hallazgo del PUNTO 4.**
+*"Si tras dos rondas seguidas de NO-GO el plan sigue creciendo en alcance, deten la revision y
+recomienda dividir"* **ya estaba en `auditor_prompt.txt` antes de que yo escribiera la D39, y la
+redescubrimos anoche desde cero.** Con su conclusion, que es la util: **no leemos
+`auditor_prompt.txt` como fuente de reglas de proceso; lo tratamos como configuracion de una
+herramienta ajena, y es un documento de proceso NUESTRO.**
+**Y acaba de pagarse solo, como observa el CEO: si lo hubieramos leido como documento propio,
+ninguno de los tres habria creido en la contradiccion.**
+
+---
+
+## D47 (RETIRADA — texto original conservado abajo, NO se ejecuta)
+### la 79 no se retira: se REDACTA BIEN. El auditor no discrepaba, era un espejo
 
 **Medido por mi en `auditor_prompt.txt:80-83` y `AGENTS.md:87-90` (identicos, verificado con
 `diff`), seccion "Rondas de revision", punto 2:**
