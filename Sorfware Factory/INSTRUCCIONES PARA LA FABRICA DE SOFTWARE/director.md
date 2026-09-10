@@ -944,10 +944,18 @@ esté impreso**, aunque salga vacío: es lo que demuestra que el conteo no le da
 a todo.
 
 🔑 **Por qué (hallazgo de T3):** *un plan declara su MECANISMO y calla su HUELLA, y la huella
-es lo que paga otro.* **AIT-143 lleva veinte rondas de plan y ninguna dijo que obliga a tocar
-los 24 specs de la suite.** *"¿Es correcto este mecanismo?" se contesta dentro del documento;
-"¿a cuántos ficheros obliga?" hay que salir a contarlos* — **y el auditor que lee el plan
-veinte veces no se cruza nunca con esa pregunta.**
+es lo que paga otro.* *"¿Es correcto este mecanismo?" se contesta dentro del documento; "¿a
+cuántos ficheros alcanza?" hay que salir a contarlo* — **y el auditor que lee el plan veinte
+veces no se cruza nunca con esa pregunta.**
+
+**El caso entero, que demuestra las dos mitades a la vez (redacción del Factory Architect):**
+
+> **Veinte rondas y ninguna dijo a cuántos ficheros obliga. Cuando por fin se contó, el primer
+> número —24, con control positivo y complemento impreso— era el correcto de OTRA pregunta:
+> son 11. Lo que refutó el 24 en veinte minutos fue que iba con su comando al lado.**
+
+**Por qué hace falta la casilla, y por qué la casilla no promete un número cierto sino uno
+refutable.**
 
 ⚠️ **Límites:** **informa, no impide** (si la huella es aceptable lo decide el PM, no tú); un
 número mal contado pasa igual —lo que gana es ser **refutable**—; y **caduca con el plan**: un
