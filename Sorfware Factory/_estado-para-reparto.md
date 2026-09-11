@@ -3209,3 +3209,41 @@ esta lo que no sabemos".**
 ⛔ **Y las tres son del mismo hecho medido —las cinco correcciones vinieron de la contraparte—.
 Lo que cambiaba en cada vuelta no era el dato: era CUANTO afirmabamos encima de el.** *Un dato
 solido aguanta tres capas de conclusion sin quejarse, y las tres suenan igual de bien.*
+
+### ⛔⛔ EL AGUJERO QUE TENIA YO, Y ERA PEOR QUE EL DE T3: LA VIA DE DISPARO VIVIA EN UN DIRECTORIO TEMPORAL
+
+T3 fue a comprobar mi frase de cierre —*"todo lo tuyo esta en el repo y sobrevive a que se
+caigan las dos sesiones"*— y encontro que en SU lado faltaban tres ficheros de traspaso.
+**Me lo apliqué y lo mio era peor:**
+
+    `encolar.sh` · 137 lineas · LA UNICA VIA DE DISPARO DEL GATE, con TODAS las guardas
+    acumuladas hoy (rotacion del tee, cerrojos, guarda de suite, `bash -n`, destino vacio…)
+       -> existia SOLO en el scratchpad de esta sesion, que es temporal
+       -> 106 ficheros .sh en la fabrica y NINGUNO era este
+
+**Copiado a `Sorfware Factory/herramientas/encolar.sh` y COMMITEADO** (no solo copiado: esto no
+es un borrador, es el instrumento). Comprobado antes: **md5 identico al original, `bash -n` OK
+con su control positivo sobre un fichero roto a proposito, y sin una sola cadena de secreto
+dentro** (control positivo del patron: 38 aciertos en `docs/03-setup.md`).
+⚠️ **Si el FA prefiere otra ubicacion, que lo mueva: el fichero ya no depende de que yo siga viva.**
+
+**Y tres rondas abortadas que tambien vivian solo ahi**, rescatadas a `codigo para auditar/`
+con su causa en el nombre y md5 verificado contra el original:
+
+    VEREDICTO_T1_AIT-122_plan-loop4_ABORTADA-VERSION-DESCONOCIDA.txt
+    VEREDICTO_T1_AIT-122_plan-loop5_ABORTADA-VERSION-INTERMEDIA.txt
+    VEREDICTO_T4_AIT-123_codigo-loop1_ABORTADA-FALTABA-EVIDENCIA-GLOBALSETUP.txt
+
+**CONTROL, sobre los 192 ficheros `VEREDICTO_`: ninguno sin dictamen se queda sin su causa en el
+nombre.** Son **seis** en total, no tres como conte hace dos horas — *porque entonces mire solo
+lo que estaba en el repo, y tres estaban en mi scratchpad. El universo lo acotaba el sitio donde
+mire.*
+
+> 🔑 **EL FICHERO QUE EXISTE PARA SOBREVIVIR A LA CAIDA DE UNA SESION ERA EL QUE NO SOBREVIVIA.**
+> *T3 lo dijo de su fichero de traspaso y a mi me valia igual: el scratchpad se llama "scratch"
+> y aun asi es donde acaba lo que se usa todos los dias, porque es donde se trabaja.*
+
+⚠️ **Y cuatro deslices mios en este mismo rescate, todos de la misma forma:** los nombres de los
+tres ficheros salieron duplicados por un `sed` anidado *(el contenido estaba bien: los tres md5
+coincidian; solo el nombre)*, y los reescribi a mano. **Cuarta vez esta noche de coger la forma
+lista en vez de escribir tres lineas.** *El gesto que no era un cambio, otra vez.*
