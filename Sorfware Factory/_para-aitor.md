@@ -51,6 +51,27 @@ de quien tiene que pedirlo, o sea mía. Por eso cada línea dice **cuándo se le
 solo que le toca a él. *Una ficha con dueño nombrado se siente atendida y por eso deja de
 mirarse.*
 
+### 🔴 CORRIJO MI PROPIA LISTA: nueve de once estaban en `pedido: NO` y sólo una decía por qué
+
+**Lo encontró la Directora ensanchando un filtro, y lo condena mi propia cabecera** *(texto del
+PM, aplicado por la Directora porque él tenía el árbol limpio y nadie que publicara)*:
+
+> ⛔ **`pedido: NO` estaba diciendo dos cosas distintas con la misma cara: «decidí no pedirlo, y
+> por esto» y «no se ha pedido».** *Es el tercer estado —el mismo que llevamos el día exigiendo
+> en los tests— dentro del fichero que Aitor lee PRIMERO.*
+
+✅ **A partir de aquí ningún `NO` va solo: o lleva motivo, o no es un `NO`, es un descuido.**
+
+### 📌 Y lo único que hay que leer si tienes cinco minutos
+
+```
+PRIMERO   accion 10 (AIT-134)  -> unica que bloquea trabajo TERMINADO Y AUDITADO
+                                  ⚠️ y su pregunta ha CAMBIADO: leela, no la respondas de memoria
+DESPUES   accion 7 (AIT-97)    -> bloquea la VERIFICACION de AIT-145, que es lo que levanta
+                                  el enclavamiento de Gmail
+EL RESTO  esperan, y cada una dice por que
+```
+
 **Estado con la fuente de cada cosa, porque "pedido" es justo el campo que no se puede
 rellenar de oídas** (la hora del estado, arriba: sale de `git`, no de aquí)**:**
 
@@ -75,7 +96,7 @@ controla.** Decisión suya: subir de plan o recortar consumo.
 📌 Si sube de plan, **AIT-114 vuelve a mí**: la salida del deployment desechable volvería a
 estar sobre la mesa y cerraría AIT-95 y AIT-102 de paso.
 
-## 2 · AIT-116 — migrar el repo fuera de iCloud · `pedido: NO`
+## 2 · AIT-116 — migrar el repo fuera de iCloud · `pedido: NO — ⛔ NO SE PUEDE HOY: el procedimiento exige NINGUNA terminal a mitad de tarea y hay CUATRO worktrees con rama viva. Se pide el día que estén limpias.`
 
 **La pregunta NO es "¿migramos?" —eso lo decidió él el 09-09— sino:**
 
@@ -86,7 +107,7 @@ estar sobre la mesa y cerraría AIT-95 y AIT-102 de paso.
 probable es que deje de estar limpio.** Riesgo acotado y reversible (`mv` en el mismo disco)
 contra uno silencioso y sin límite (`fetch` y `push` caídos para todos).
 
-## 3 · AIT-144 — el GATE del consentimiento de Gmail · `pedido: NO`
+## 3 · AIT-144 — el GATE del consentimiento de Gmail · `pedido: NO — ⛔ LO RETIENE EL ENCLAVAMIENTO, a propósito: pedirlo hoy es invitar a poner credenciales de Gmail antes de que el ataque fabricado de AIT-145 salga en verde.`
 
 **Puede matar la Ola 2 entera y cuesta minutos.** Abrir la pantalla de consentimiento de
 `gmail.readonly` con una cuenta del dominio y mirar si Google exige verificación.
@@ -110,7 +131,7 @@ desarrollo, que tiene las credenciales desde el 09-09.
 hilo real por URL, en escritorio y en móvil. *Si Google exige verificación, esa premisa deja
 de importar ese día.*
 
-## 4 · `GMAIL_TOKEN_ENCRYPTION_KEY` — generarla · `pedido: NO`
+## 4 · `GMAIL_TOKEN_ENCRYPTION_KEY` — generarla · `pedido: NO — no desbloquea nada mientras el enclavamiento esté puesto. Se pide JUNTO con la 3, en la misma sentada. ✅ Ojo: ésta NO está bajo el enclavamiento (que cubre CLIENT_ID/SECRET); se aplaza por utilidad, no por riesgo.`
 
 Es la clave que cifra el token de refresco de Gmail y **hoy no existe en ningún deployment**.
 La genera él, va a Bitwarden, y se da de alta **por deployment** (distinta en cada uno: un
@@ -119,35 +140,35 @@ token cifrado en dev no debe poder leerse en producción).
 ⚠️ **Consecuencia declarada:** si esa clave se pierde o se rota, los usuarios tienen que
 **reconectar** su Gmail. No se pierde correo, se pierde la conexión.
 
-## 5 · AIT-99 — los cuatro permisos · `pedido: NO`
+## 5 · AIT-99 — los cuatro permisos · `pedido: NO — ✅ NADA LA BLOQUEA. Se aplaza sólo para no gastar su primera sentada: no desbloquea ninguna pieza terminada. Si sobra tiempo tras la 10 y la 7, ésta es la siguiente.`
 
 Bloquea AIT-99 y **desbloquea además AIT-125**. Sin ellos no se puede avanzar.
 
-## 6 · AIT-141 — confirmar contra producción · `pedido: NO`
+## 6 · AIT-141 — confirmar contra producción · `pedido: NO — ✅ NADA LA BLOQUEA y cuesta un minuto, pero es una COMPROBACIÓN, no un desbloqueo: si sale mal abre trabajo, si sale bien no libera nada. Va con la 5.`
 
 Comprobar contra **`stoic-impala-857`** que `getWorkloadByOwner` y `getOverdueCountsByOwner`
 **ya no están expuestas**. El código está publicado y verificado por QA; **solo falta esto**.
 
 ⛔ Ninguna terminal puede hacerlo: el gate 2 prohíbe resolver el deployment por URL+admin-key.
 
-## 7 · AIT-97 — el navegador de pruebas · `pedido: NO`
+## 7 · AIT-97 — el navegador de pruebas · `pedido: NO — 🔴 Y ESTO CAMBIA HOY: además del acceso incidental a su identidad, esa sesión heredada de Google FALSEA la verificación de AIT-145 (el ataque no arrancaría limpio). Ha pasado de higiene a bloqueo. SEGUNDA de la mañana.`
 
 **Aplicar la configuración del MCP de cada terminal** (vive en `~/.claude.json`, fichero
 personal suyo: **nadie de la fábrica lo toca**). La decisión ya la tomó él el 09-09 —
 *"cada terminal tiene que tener un acceso separado"*—; lo que falta es aplicarla.
 
-## 8 · Las 12 fichas de fábrica paradas · `pedido: NO`
+## 8 · Las 12 fichas de fábrica paradas · `pedido: NO — es una decisión de ALCANCE, no un desbloqueo. No para nada hoy. Se habla cuando vuelva, en la conversación de qué construimos, no en una lista de acciones.`
 
 `AIT-116, 120, 122, 124, 126, 130, 131, 132, 135, 136, 138, 140`. Paradas a la espera de que
 decida cuánto esfuerzo quiere en la fábrica frente a producto.
 
-## 9 · El major que se escapó del gate de plan · `pedido: NO`
+## 9 · El major que se escapó del gate de plan · `pedido: NO — ⛔ NO ES SUYO: es un hallazgo de PROCESO y va al Factory Architect. Estaba en esta lista por error del PM. Sale de aquí en cuanto se le entregue a él.`
 
 Decisión suya o del Factory Architect. Hoy hay **tres hallazgos que aparecieron
 IMPLEMENTANDO y ninguno en ocho rondas de plan** (AIT-145, el XSS de `convex/http.ts`, y la
 premisa falsa de AIT-134).
 
-## 10 · AIT-134 — autorizar que un `major` se reclasifique de PLAN a CÓDIGO · `pedido: NO`
+## 10 · AIT-134 — autorizar que un `major` se reclasifique de PLAN a CÓDIGO · `pedido: NO — 🔴 PRIMERA DE LA MAÑANA, y la pregunta NO es la que estaba escrita. Ver abajo.`
 
 **Qué hay que autorizar:** el auditor marcó M1 en el **plan** como *cerrable con texto*, lo que
 bloqueaba la ficha. El Factory Architect argumentó que **la discriminación de un instrumento
@@ -165,6 +186,32 @@ gobierna «saltarse la fase» y no «mover un hallazgo dentro de ella» es MÍA"
 **Estado real:** el hallazgo está **cerrado y verificado en código** — GO del auditor a las
 20:13:50Z, con la reclasificación confirmada por segunda vez. **Lo único que falta es el
 visto bueno al PROCEDIMIENTO.**
+
+### 🔴 LA PREGUNTA DE ESTA ACCIÓN ESTABA MAL PLANTEADA, Y SU «SÍ» PRODUCÍA CÓDIGO ROTO
+
+**Tal y como estaba escrita, autorizar la reclasificación se leía como «ya se puede mergear».**
+⛔ **No se puede, y no por la autorización:**
+
+```
+la rama de AIT-134 llama a getWorkloadByOwner (6 ficheros) y getOverdueCountsByOwner (2)
+en origin/main, export de esas dos ............ 0   (las retiraron AIT-128 y AIT-141)
+CONTROL POSITIVO del patron: export const remove -> 5 ficheros   (el patron discrimina)
+```
+
+> ⛔ **Mergearía SIN CONFLICTO y llamando a dos funciones que `main` ya no define.**
+> **Mergeable no es ejecutable**, y lo que falta detrás del «sí» **no es un rebase: es código
+> nuevo que ningún veredicto cubre.**
+
+✅ **Así que lo que se te pide es SÓLO la reclasificación del `major`.** ⛔ **Tu «sí» NO autoriza
+el merge**: después hay trabajo de código y una vuelta de auditoría que hoy no existe. *Un sí
+cuyo efecto real no es el que el lector supone no es una autorización: es una trampa.*
+
+📌 **Medido por el Integrador, y verificado por separado por el PM y por la Directora sobre
+`origin/main`.** ⚠️ *Con una trampa que casi se cuela: buscar el NOMBRE en `main` da 8 ficheros
+y parece que main aún las usa — las cuatro apariciones en código son COMENTARIOS que documentan
+su retirada, y las llamadas reales (`api.<mod>.<fn>`) son **0**, con control positivo de que ese
+patrón sí encuentra llamadas en otras páginas.* **`main` está sano; la que no puede correr es la
+rama.**
 
 **Qué bloquea:** el **merge** de AIT-134. No la auditoría, que ya está hecha.
 
