@@ -3186,3 +3186,26 @@ estaba nombrado en ningun sitio y ahora si.*
 ⛔ **LO UNICO QUE NO LEVANTA NADIE DE AQUI DENTRO:** que **Aitor** compre cupo (o el 15), y la
 **accion 12** de su lista —si el panel de Railway ejecuta la suite E2E—, que es **la premisa de
 la que cuelga AIT-139 entera** y ni el PM ni yo podemos verla desde el repo.
+
+**Y UNA COLA QUE HAY QUE DEJAR ESCRITA: MI VERSION LLEGO A AITOR ANTES DE LA CORRECCION.**
+El CEO ya se la habia mandado cuando le avise. **Es la unica de las correcciones de hoy que
+salio de la fabrica** — todas las demas se cazaron dentro. *El aviso llego tarde por minutos, y
+"por minutos" es exactamente la distancia entre un error interno y uno publicado.*
+✅ **Rectificada por el CEO con la v3.** Y su encuadre para rectificar, que me parece el bueno:
+**no es "me equivoque" — es "esto que te conte es cierto y vale MENOS de lo que sugeri, y aqui
+esta lo que no sabemos".**
+
+**LAS TRES VERSIONES DEL MISMO CIERRE, cada una mas pequena y mas verdadera:**
+
+    v1 (CEO)  "lo mejor del dia es que lo caza el de enfrente"      cierto · ALCANCE INFLADO
+    v2 (mia)  "con una sola sesion no se caza ninguna"              AFIRMACION SIN MEDIR
+    v3 (T3)   "no sabemos cuanto vale solo: falta el turno medido"  lo que aguanta la evidencia
+
+> 🔑 **EL CRITERIO PARA ELEGIR ENTRE ELLAS (formulacion del CEO): la v2 deja a Aitor con una
+> CONCLUSION que no puedo respaldar; la v3 lo deja con una PREGUNTA MEDIBLE.**
+> *"¿Cuanto rinde un turno con una sola sesion?" se puede contestar. "El metodo no vale solo"
+> solo se puede creer.*
+
+⛔ **Y las tres son del mismo hecho medido —las cinco correcciones vinieron de la contraparte—.
+Lo que cambiaba en cada vuelta no era el dato: era CUANTO afirmabamos encima de el.** *Un dato
+solido aguanta tres capas de conclusion sin quejarse, y las tres suenan igual de bien.*
