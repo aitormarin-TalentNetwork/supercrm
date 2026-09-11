@@ -3361,9 +3361,44 @@ con `-F` en vez de razonar que *"el `$` a mitad de patron es literal"*:
 **Mi medicion aguanta.** *Sin ese control, tres "IGUAL" seguidos eran indistinguibles de un `-F`
 que no hiciera nada.*
 
-⛔ **PERO EN SU WORKTREE EL `-F` NO CAMBIA NADA: ese 0 es REAL, no es el patron.** La receta
-genuinamente no esta ahi —su checkout va 36 commits detras—. **Su `0` tenia DOS explicaciones y
-eligio la del instrumento.**
+⛔⛔ **CORRECCION, MEDIA HORA DESPUES: LA MITAD DE ESTE PARRAFO ERA INJUSTA Y LA RETIRO.**
+Yo escribi que *"su 0 tenia dos explicaciones y eligio la del instrumento"*. **Su 0 SI era un
+fallo de instrumento. Acerto la clase y fallo el MECANISMO — y yo le di por equivocado entero.**
+
+**LA CAUSA REAL NO ERA LA BRE: ERA EL SHELL, Y EL PATRON NUNCA LLEGO A `grep`.**
+
+    su forma (comillas DOBLES, $d sin escapar):
+       grep -c  "sed '$d'"   -> 0
+       grep -cF "sed '$d'"   -> 0        ⛔ EL -F NO CAMBIA NADA
+    con la $ escapada (o comillas simples):
+       grep -c  "sed '\$d'"  -> 2   ·   grep -cF -> 2
+    PRUEBA DIRECTA, imprimiendo lo que el shell entrega:
+       "sed '$d'"   ->  [sed '']        <- $d es una VARIABLE VACIA
+       "sed '\$d'"  ->  [sed '$d']
+    CONTROL POSITIVO del mecanismo: con d=XXX  ->  [sed 'XXX']
+    CONTROL de que la BRE no tenia la culpa: patron literal SIN -F -> 2
+
+> ⛔ **UNA `$` DENTRO DE COMILLAS DOBLES SE LA COME EL SHELL ANTES DE QUE EL PROGRAMA EXISTA.**
+> **Ninguna bandera de `grep` protege de esto, porque no es un problema de `grep`.**
+
+**Y de ahi salen tres cosas que importan mas que el caso:**
+1. **Su contramedida (`-F` por defecto) NO cubre el fallo que la motivo.** *Le protege del
+   metacaracter DENTRO de grep; esto paso antes.* **Es una guarda que protege un paso que no es
+   el que fallo — y da confianza: la proxima vez que `$algo` se expanda a nada, el `-F` estara
+   puesto y el cero sera igual de creible.**
+2. **Mi propio separador tampoco lo habria cazado:** *"corre las dos formas; si difieren es el
+   patron, si no es el mundo"* **da 0 y 0 aqui.** *El separador asume que `grep` recibe el patron
+   que escribiste, y esa es justo la premisa que falla.*
+3. ✅ **La defensa que si cubre esto no es una bandera: es IMPRIMIR EL PATRON**
+   (`printf '[%s]\n' "$PAT"`) o usar comillas simples para cualquier cadena con `$`.
+
+📌 **Y la forma del enredo es la que hay que retener:** *el dio con el fallo real y le puso la
+causa equivocada; yo le corregi la causa y le quite tambien el acierto.* **Dos correcciones
+encadenadas y la verdad estaba EN MEDIO, que es donde no mira ninguna de las dos.**
+
+⛔ **Y la NOVENA de la familia del `echo`, en el comando que verificaba todo esto:** escribi
+*"tiene razon: cada fichero da una respuesta distinta"* **debajo de una salida que mostraba 2 y
+2.** **EL ROTULO SE GENERA DEL DATO, NUNCA SE TECLEA JUNTO A EL.**
 
 > 🔑 **Llevabamos catorce horas cazando instrumentos rotos, asi que "mi grep estaba mal" es la
 > explicacion que primero encaja. UN CATALOGO DE FALLOS DE INSTRUMENTO HACE QUE EL MUNDO DEJE DE
