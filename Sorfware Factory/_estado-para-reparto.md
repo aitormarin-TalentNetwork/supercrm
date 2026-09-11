@@ -3489,8 +3489,17 @@ fuerte que la que la puso.** *Y mi hipotesis del `-E` era falsa; la buena es la 
 
 ### ⛔⛔ PERO `find` TAMBIEN ES UNA FUNCION, Y MI REGLA SOLO CUBRIA `grep`
 
-    type find  -> "find is a function"   (envoltorio de Claude Code que despacha al binario)
+    type find  -> "find is a function"
+    find --version        -> bfs 4.1.1        <- ⛔ OTRA IMPLEMENTACION, no /usr/bin/find
+    /usr/bin/find --vers. -> "illegal option" (BSD find no tiene --version)
+    `bfs` NO esta en el PATH: la funcion invoca al binario de Claude Code con `exec -a bfs`
     sed · awk · md5 · date · stat  ->  los cinco, binario directo
+
+⛔ **Y AQUI ESCRIBI "envoltorio que despacha AL BINARIO" SIN COMPROBAR A QUE DESPACHA.**
+*Despacha a **bfs**, que es una REIMPLEMENTACION de `find`, no al `find` del sistema.* **Tercera
+vez esta noche: razon inventada debajo de un resultado correcto** —los recuentos si los compare
+y cuadraban— **y un numero correcto no se audita.** Lo cazo T3 diciendo que el suyo era `bfs`,
+o sea otra vez el de enfrente.
 
 **He usado `find` A SECAS toda la noche:** los barridos de veredictos, el `-mmin -60`, el 189, el
 192, los huerfanos, los `VEREDICTO_` sin dictamen. ✅ **Rehechos los cuatro con las dos palabras:
