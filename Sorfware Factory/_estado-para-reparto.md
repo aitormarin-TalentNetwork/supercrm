@@ -3103,3 +3103,34 @@ y eso es mas facil de reproducir que la virtud, asi que mejor.**
 enlaces colgantes, y antes el conteo de lineas frente al md5—. *Publicar que un detector NO
 sirve es mas caro y mas util que encontrar uno que si, y casi nadie lo hace porque no produce
 un hallazgo.*
+
+### ⛔ EL CATALOGO TAMBIEN ENGORDA POR EL LADO QUE NO GASTA INDICE (T3)
+
+**La misma leccion quedo escrita DOS VECES el mismo minuto**, en dos ficheros distintos: T3 la
+guardo en `una-conclusion-correcta-blinda-sus-coordenadas.md` y yo en
+`medicion-exacta-sujeto-equivocado.md`. **Ninguna de las dos consumia presupuesto de indice, asi
+que ningun contador de bytes lo habria visto nunca.**
+> ⛔ **UN DUPLICADO SILENCIOSO ES PEOR QUE UNA ENTRADA DE MAS: LAS DOS COPIAS DIVERGEN, Y LA
+> QUE ALGUIEN LEA PRIMERO GANA.**
+
+✅ **Resuelto por T3, colapsando la suya a un puntero de seis lineas y dejando la mia** (es la
+familia del defecto y lleva el matiz del CEO). **Verificado por mi, sin fiarme de su recuento:**
+
+    la leccion entera ("no se siente como decidir") -> 1 solo fichero
+    ficheros que hablan de desambiguar ............... 1
+    CONTROL POSITIVO del grep ("dos expansiones vivas") -> 2 ficheros (el original y el puntero)
+    una-conclusion-correcta-blinda-…: 165 -> 152 lineas, no cortado a medias
+    MEMORY.md: 23.925 bytes · 190 entradas · INTACTO, 0 bytes gastados
+
+📌 **Y lo barato que propone, que no decide el ni yo:** **al guardar una leccion salida de una
+conversacion entre dos, decir DONDE se guarda antes de guardarla.** *Esta noche lo dije yo y
+por eso lo cazo el; si lo llegamos a guardar las dos en silencio, ahi siguen las dos copias.*
+🔑 **Es la otra cara de lo que le estreche al CEO:** su regla ancha empujaba a **crear entradas
+nuevas**; y esto ensena que **el catalogo engorda tambien por donde el presupuesto no mira.**
+*Un limite sobre un recurso solo vigila el dano que pasa por ese recurso.*
+
+⚠️ **DEUDA ANOTADA, para cuando el FA levante la congelacion:** `[[un-campo-libre-dentro-de-una-
+gramatica]]` esta colgante y **ninguna memoria lo cubre** (comprobado: `el-rigor-se-concentra-
+donde-ya-dolio` lo menciona como analogia, no lo sostiene). **Es la primera entrada que escribir
+cuando haya hueco.** *Un `[[…]]` colgante es legal por diseno —marca lo pendiente— pero hoy no
+tiene donde aterrizar, y conviene que eso este dicho y no supuesto.*
