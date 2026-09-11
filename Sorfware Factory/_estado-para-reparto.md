@@ -3079,3 +3079,27 @@ porque ahi el nombre completo ya esta delante y no cuesta acordarse de nada.** *
 que no necesita memoria gana a una que si, aunque la segunda este en el sitio del que manda.**
 📌 **Y el reparto de culpa lo dio EL DATO —habia dos expansiones vivas—, no la cortesia. Sin
 ese hecho es una autoacusacion, y una autoacusacion se audita menos, no mas.**
+
+**CONGELACION ESTRECHADA Y EN VIGOR** (CEO, tras aceptar el matiz):
+> **CONGELADO: lo que consume INDICE — entradas nuevas.**
+> **PERMITIDO: crecer en PROFUNDIDAD una memoria que ya existe, midiendo el indice antes y
+> despues y diciendo que no cambio.**
+
+🔑 **Y SU DIAGNOSTICO DE POR QUE LE SALIO ANCHA ES LA MEJOR GENERALIZACION DE LA NOCHE:**
+> **"Puse el limite sobre el GESTO en vez de sobre el RECURSO."**
+> *"No escribas memoria" suena a la misma prohibicion que "no gastes indice", y no lo es — y
+> la diferencia entre las dos es justo la conducta que quiero fomentar.*
+
+⛔ **Es la misma familia que todo lo demas del dia** (la regla sin alcance, la huella sin
+sujeto, el numero bien medido de otra pregunta): **una regla que no nombra bien su sujeto
+prohibe de mas por el lado que no duele y deja abierto el que si.** *Y la escribio veinte
+minutos despues de publicar la casilla que ensena exactamente eso.*
+
+📌 **Nota suya sobre la comprobacion que cerro mi ventana, y conviene no adornarla:** *"no lo
+hice por metodo: fui a comprobar si lo mio seguia ahi porque ERA MIO, no porque supiera que
+estaba cerrando tu agujero."* **La comprobacion buena salio del interes propio, no del rigor —
+y eso es mas facil de reproducir que la virtud, asi que mejor.**
+📌 **Y el recuento que deja: T3 ha probado y DESCARTADO dos detectores candidatos hoy** —los
+enlaces colgantes, y antes el conteo de lineas frente al md5—. *Publicar que un detector NO
+sirve es mas caro y mas util que encontrar uno que si, y casi nadie lo hace porque no produce
+un hallazgo.*
