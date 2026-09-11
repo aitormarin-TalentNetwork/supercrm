@@ -13,8 +13,58 @@ now=$(date +%s)
 
 # Descubrimiento, no enumeracion. Solo T<digitos> exacto: descarta los
 # sub-worktrees viejos tipo "T1-ait-14-15", que no son puestos.
-TERMS=$(ls -d $BASE/$PAT* 2>/dev/null | sed "s#.*--worktrees-##" \
+EN_DISCO=$(ls -d $BASE/$PAT* 2>/dev/null | sed "s#.*--worktrees-##" \
         | /usr/bin/grep -E '^T[0-9]+$' | sort -V | uniq)
+
+# --- EL UNIVERSO SALE DE QUIEN ESTA VIVO, NO DEL DISCO (2026-09-11) -----------
+# 🔴 POR QUE: T4 se cerro el 2026-09-10 y su transcript SIGUE EN DISCO. El
+# vigilante la contaba como "terminal quieta hace 917 min" — un quieto PERMANENTE
+# dentro del recuento.
+# ⛔ Y LA DIRECCION DEL DEFECTO ES LO QUE LO HACE URGENTE: no ciega el vigilante,
+# LO HACE RUIDOSO. Un quieto que nunca despierta BAJA EL UMBRAL EFECTIVO: bastaba
+# con que las tres vivas callaran a la vez para dar "4 de 4".
+# **Y asi mueren los detectores: un rojo raro se investiga; uno frecuente se
+# ignora.** La primera alarma de verdad llegaria con la fabrica ya entrenada para
+# no mirarla.
+# 📌 Y el agravante: el censo del CEO cazo lo de T4 la madrugada anterior y ESTE
+# script se quedo con la version vieja, porque NADIE RELEE UN VIGILANTE QUE NO HA
+# GRITADO NUNCA. **Un instrumento que no ha dado nunca positivo no esta callado:
+# esta sin revisar — y su primer positivo es la primera vez que alguien lee como
+# cuenta.**
+VIVOS=""
+SOCKS=$(ls /tmp/cc-socks/*.sock 2>/dev/null)
+if [ -z "$SOCKS" ]; then
+  echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
+  echo "VEREDICTO: INDETERMINADO (no hay sockets en /tmp/cc-socks: no puedo saber quien vive)"
+  echo "QUE HACER: es un fallo DEL VIGILANTE. **Un cero aqui significaria 'todas muertas' y"
+  echo "  disparia la alarma mas ruidosa posible sobre una fabrica sana.** /tmp/cc-socks es"
+  echo "  detalle de implementacion del harness y puede cambiar sin avisar."
+  exit 2
+fi
+for S in $SOCKS; do
+  PID=$(basename "$S" .sock)
+  CWD=$(lsof -a -p "$PID" -d cwd -Fn 2>/dev/null | /usr/bin/grep '^n' | cut -c2-)
+  T=$(echo "$CWD" | /usr/bin/grep -oE '_worktrees/T[0-9]+' | head -1 | sed 's#_worktrees/##')
+  [ -n "$T" ] && VIVOS="$VIVOS$T\n"
+done
+VIVOS=$(printf "$VIVOS" | sort -V | uniq)
+
+TERMS="$VIVOS"
+
+# LAS DOS LISTAS SE IMPRIMEN: un instrumento que corrige un universo sin decir
+# cual descarto es el mismo problema con mejor resultado.
+echo "universo EN DISCO: $(echo $EN_DISCO | tr '\n' ' ')"
+echo "universo VIVO:     $(echo $VIVOS | tr '\n' ' ')"
+FANT=$(comm -23 <(echo "$EN_DISCO") <(echo "$VIVOS") | /usr/bin/grep . | tr '\n' ' ')
+[ -n "$FANT" ] && echo "  DESCARTADAS (en disco y NO vivas): $FANT"
+
+# ⚠️ LIMITE 1, SUFRIDO: el `cwd` ES VOLATIL. El del Factory Architect cambio
+# CUATRO VECES en un dia — se le metio solo en el worktree de T2 al inspeccionar
+# ficheros. Si una terminal viva esta momentaneamente en otra carpeta, DESAPARECE
+# del universo.
+#   ✅ Pero mira hacia donde falla: un universo MAS PEQUENO hace que "todas
+#   quietas" se alcance ANTES -> **grita de mas, no de menos**. Es la direccion
+#   aceptable, y se deja escrito PARA QUE NADIE LO "ARREGLE" EN LA CONTRARIA.
 
 if [ -z "$TERMS" ]; then
   echo "== vigilante fabrica quieta == $(date -u '+%Y-%m-%d %H:%M UTC')"
