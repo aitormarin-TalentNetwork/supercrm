@@ -3523,3 +3523,35 @@ funcion nueva; la pregunta no.*
 **Y el `3` de "tocados en 60 min" identificado en vez de supuesto: son los tres `ABORTADA` que
 copie yo a las 00:12:47Z.** *Excluyendolos, 0 veredictos con dictamen — ninguna ronda nueva, el
 gate sigue caido.* **Control de ese 0: sin la ventana de tiempo, 186.**
+
+### LAS DOS ULTIMAS DE LA NOCHE, Y LA SEGUNDA CIERRA UN CIRCULO
+
+**1 · LA VERIFICACION SE PRIORIZA POR ALCANCE, NO POR SOSPECHA.** Salio de T3 comprobando, al
+descubrir que su `grep` era otro, **cual de sus numeros YA HABIA SALIDO de su ventana**:
+> *"El hallazgo que mande al PM —el spec corre 0 veces donde el mecanismo existe— NO depende del
+> binario. Si hubiera dependido, habria que haber avisado esta misma noche, porque ya viajo."*
+
+⛔ **La pregunta no es "¿mis numeros aguantan?" sino "¿CUAL DE MIS NUMEROS YA SALIO DE AQUI?".**
+*Los que siguen en el cuaderno se rehacen manana; el que ya esta en la mesa de otro, no.*
+📌 Guardado como profundidad en `dato-que-nunca-ha-decidido-nada.md`, **que es su complemento
+exacto**: esa entrada dice que un dato que nunca fue premisa de nada esta *sin usar*; esta dice
+que **el que YA fue premisa de otro es el primero de la lista.**
+
+**2 · BASTA CON DECIR LO TUYO CON PRECISION.** T3 no reviso nada mio: **publico su dato con su
+nombre —"el mio es bfs 4.1.1"— y el mio no cuadro.** *La version barata del de enfrente: no hace
+falta que nadie audite lo tuyo, basta con que diga lo suyo con exactitud.*
+
+> 🔑 **Y SU COROLARIO, QUE ES LO QUE LA HACE EXIGIBLE Y NO UNA BUENA COSTUMBRE:**
+> **UN NUMERO SIN SU IDENTIFICADOR COMPLETO NO ES SOLO MENOS UTIL — DESACTIVA ESTE MECANISMO,
+> PORQUE NADA PUEDE DEJAR DE CUADRAR CON EL.**
+
+⛔ **Ahi se cierra el circulo con la del NOMBRE ENTERO en las listas** (la de la abreviatura
+`una-correccion-…` que expandi por conjetura): **las dos piden lo mismo y por la misma razon,
+que no es cosmetica.** *Un identificador completo es lo que permite que dos mediciones
+independientes se contradigan; uno abreviado hace que siempre parezcan compatibles.*
+📌 Guardado en `quien-caza-el-error-es-el-de-enfrente.md`.
+
+**Verificado por mi los dos guardados** (1 coincidencia cada uno, **control negativo** del mismo
+patron sobre `direccion-del-fallo.md` -> 0, **y sin duplicados en otro fichero**).
+✅ **MEMORY.md: 23.925 bytes · 190 entradas · holgura 1.061 · INTACTO. Cero bytes de indice, con
+la congelacion del CEO en vigor y diciendo donde antes de guardar.**
