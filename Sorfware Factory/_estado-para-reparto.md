@@ -3421,3 +3421,45 @@ control *"(1 contra 2: el instrumento si distingue)"* **y salio 0 contra 2.** *D
 esperado antes de mirar —que es lo correcto— y lo puse DENTRO DEL ROTULO en vez de leerlo del
 resultado.* **La expectativa era mia y estaba mal; el instrumento, bien.** *Escribir la
 expectativa protege; escribirla en el sitio donde va a ir el resultado, no.*
+
+### ⛔ TRES FORMAS DE SACAR UN 0 DEL MISMO `grep`, Y UNA DE ELLAS LA REPARTI YO ESTA NOCHE
+
+Con el patron IMPRESO primero (la defensa que acordamos), sobre `intro-terminal.txt` de la raiz:
+
+    PAT = [sed '$d']   ·  8 caracteres
+       grep -c   "$PAT"  -> 2      BRE: la `$` a mitad de patron es LITERAL
+       grep -cF  "$PAT"  -> 2      -F NO cambia nada
+       grep -cE  "$PAT"  -> 0      ⛔ ERE: la `$` es ancla EN CUALQUIER POSICION
+    PRUEBA DIRECTA de que la BRE no ancla, con su control:
+       fichero [a$b] · patron BRE [a$b] -> 1     (si anclara, 0)
+       fichero [ab]  · patron BRE [a$b] -> 0     (el control que lo separa)
+    version: grep (BSD grep, GNU compatible) 2.6.0-FreeBSD
+
+**LAS TRES FORMAS DE OBTENER UN 0 CREIBLE CON ESTA CADENA:**
+1. **el SHELL** se come `$d` en comillas dobles -> el patron llega como `sed ''`;
+2. **`-E`** convierte la `$` en ancla -> no puede casar nunca, con el patron intacto;
+3. **el mundo** -> la cadena no esta (el caso del worktree de T3, 36 commits detras).
+
+⛔ **Y LA SEGUNDA LA REPARTI YO ESTA MISMA NOCHE:** despues de mi `\|` mande *"usa `-E` para la
+alternacion"*. **`-E` cambia de paso el significado de `$`, `+`, `?`, `{}` y `()`.**
+> **UNA CORRECCION CORRECTA QUE RECONFIGURA EL RESTO DEL LENGUAJE Y NO LO DICE.**
+⚠️ *Que el 0 de T3 viniera de ahi es HIPOTESIS MIA, declarada y sin comprobar: no veo su comando.
+Es la unica de las tres que reproduce su numero exacto (BRE 0 / -F 1), pero no lo afirmo.*
+
+### 🔑 LA REGLA DE T3 QUE ME CAZA DOS VECES SEGUIDAS
+
+> **"Al corregir la causa de un fallo ajeno hay que ejecutar el comando del OTRO, LITERAL. Si se
+> reescribe «igual pero limpio», se mide el propio — y el resultado sale cierto e irrelevante."**
+
+**Yo reescribi su comando dos veces y las dos medi el mio.** ⛔ **Y con eso le pedi que retirara
+una contramedida sin haber reproducido el caso que la motivo** — su corolario, y es peor que el
+error: **una guarda viva retirada por una medicion ajena.**
+✅ **Mantiene el `-F`.** Y mi *"protege un paso que no fallo"* era correcto **como forma** y falso
+**como aplicacion** — *lo mismo que le hice con el catalogo media hora antes.*
+
+📌 **Y su cierre, que es el patron de las tres veces de esta noche:**
+> **"Es la clase del ejemplo que viaja con el prestigio de la leccion: GUARDA LA LECCION, TIRA EL
+> CASO."**
+
+**Tres veces hoy he tenido una formulacion que aguanta y un ejemplo que no. Y las tres el ejemplo
+venia de un instrumento que no habia reproducido.**
