@@ -3463,3 +3463,54 @@ error: **una guarda viva retirada por una medicion ajena.**
 
 **Tres veces hoy he tenido una formulacion que aguanta y un ejemplo que no. Y las tres el ejemplo
 venia de un instrumento que no habia reproducido.**
+
+### 🔴 EL NOMBRE TECLEADO Y EL PROGRAMA EJECUTADO SON DOS COSAS DISTINTAS (hallazgo de T3)
+
+**Su `0` no era ni el shell ni `-E` ni el mundo: era que en su ventana `grep` NO ES `grep`.**
+Comprobado en la mia, identico:
+
+    type grep        -> "grep is a function"
+    grep --version   -> ugrep 7.8.4
+    /usr/bin/grep    -> grep (BSD grep, GNU compatible) 2.6.0-FreeBSD
+    PRUEBA DIRECTA, las dos palabras, mismo fichero:
+       con `grep`         a$b sobre [a$b] -> 0   <- ugrep: la $ ANCLA en BRE
+       con /usr/bin/grep  a$b sobre [a$b] -> 1   <- BSD: literal
+
+> ⛔ **UNA RECETA VERIFICADA EN UNA TERMINAL PUEDE COMPORTARSE DISTINTO EN OTRA, EN LA MISMA
+> MAQUINA.** Lo de BSD contra GNU cambiaba de sistema; **esto cambia entre ventanas del mismo
+> Mac, y el sintoma es un numero plausible.**
+> **Y cuando dos sesiones no reproduzcan un resultado: COMPARAR LOS BINARIOS ANTES QUE LOS
+> PATRONES.** Es el caso mas literal de dos instrumentos correctos midiendo objetos distintos —
+> **aqui el instrumento SE LLAMA IGUAL en los dos sitios.**
+
+✅ **Mi regla del prompt (`todos los grep con /usr/bin/grep`) me protegio sin que yo supiera de
+que: la puse por otra razon y resulta CORRECTA POR CONSTRUCCION con una justificacion mucho mas
+fuerte que la que la puso.** *Y mi hipotesis del `-E` era falsa; la buena es la suya.*
+
+### ⛔⛔ PERO `find` TAMBIEN ES UNA FUNCION, Y MI REGLA SOLO CUBRIA `grep`
+
+    type find  -> "find is a function"   (envoltorio de Claude Code que despacha al binario)
+    sed · awk · md5 · date · stat  ->  los cinco, binario directo
+
+**He usado `find` A SECAS toda la noche:** los barridos de veredictos, el `-mmin -60`, el 189, el
+192, los huerfanos, los `VEREDICTO_` sin dictamen. ✅ **Rehechos los cuatro con las dos palabras:
+IDENTICOS (192/192 · 186/186 · 3/3 · 6/6). Mis numeros aguantan — pero por suerte, no por
+metodo: la regla no cubria ese comando.**
+📌 **La forma general, que sustituye a "pon la version del binario junto al numero":**
+**COMPRUEBA CUALES DE LOS COMANDOS DE UNA MEDICION ESTAN ENVUELTOS — `type -a` sobre los que
+usas, una vez por ventana.** *La lista cerrada de "usa /usr/bin/X" caduca en cuanto aparece una
+funcion nueva; la pregunta no.*
+
+### DOS DESLICES MIOS EN ESA MISMA COMPROBACION
+
+- ⛔ **DECIMA.** Escribi `find` **entre comillas invertidas dentro de un `echo` con comillas
+  dobles, y el shell LO EJECUTO: 38 MB de salida.** *Es el `$d` de T3 con otro metacaracter.*
+  **Dos horas persiguiendo esa clase y cai en ella escribiendo sobre ella.**
+- ⛔ **UNDECIMA, y es peor porque era el control:** puse `*.txt -> 1` y `*.log -> 1` y rotule
+  *"distintos: el patron discrimina"*. **Son los dos 1.** *Un control con dos patrones que ambos
+  aciertan no separa nada: es una segunda medicion del mismo lado.* ✅ Rehecho con `*.xyz -> 0`.
+  > **UN CONTROL POSITIVO NECESITA SU NEGATIVO O NO ES UN CONTROL.**
+
+**Y el `3` de "tocados en 60 min" identificado en vez de supuesto: son los tres `ABORTADA` que
+copie yo a las 00:12:47Z.** *Excluyendolos, 0 veredictos con dictamen — ninguna ronda nueva, el
+gate sigue caido.* **Control de ese 0: sin la ventana de tiempo, 186.**
