@@ -96,7 +96,11 @@ controla.** Decisión suya: subir de plan o recortar consumo.
 📌 Si sube de plan, **AIT-114 vuelve a mí**: la salida del deployment desechable volvería a
 estar sobre la mesa y cerraría AIT-95 y AIT-102 de paso.
 
-## 2 · AIT-116 — migrar el repo fuera de iCloud · `pedido: NO — ⛔ NO SE PUEDE HOY: el procedimiento exige NINGUNA terminal a mitad de tarea y hay CUATRO worktrees con rama viva. Se pide el día que estén limpias.`
+## 2 · AIT-116 — migrar el repo fuera de iCloud · `pedido: SÍ — ✅ LA VENTANA ESTÁ ABIERTA POR PRIMERA VEZ. La precondición del procedimiento (cero terminales a mitad de tarea) se cumple hoy PORQUE la fábrica está cerrada y no queda nada sin empujar. Con la fábrica en marcha nunca se cumplía.`
+
+> ⚠️ **Mi motivo anterior —«no se puede hoy, hay cuatro worktrees con rama viva»— era cierto > a las 00:40 y FALSO a las 02:00.** *Lo cambió el cierre, no una decisión.* **Un dato correcto > que caduca, en el fichero cuyo campo central es CUÁNDO** — y no lo cazó la prudencia: el PM > fue a medir otra cosa y se cruzó con ello.
+
+⛔ **Y la trampa del procedimiento, medida y que sigue en pie:** `worktree.useRelativePaths` está en `true` **y NO protege a los worktrees que ya existían** — cuatro de los cinco tienen `gitdir` ABSOLUTO. **Quien migre tiene que ejecutar `git worktree repair --relative-paths` aunque la config diga que sí.** *La comprobación que no miente es `cat` del `.git` de cada worktree, no `git config --get`.*
 
 **La pregunta NO es "¿migramos?" —eso lo decidió él el 09-09— sino:**
 
@@ -348,6 +352,8 @@ doce bloquean trabajo; ésta no bloquea nada y por eso es la que se olvida.
 qué alcance tiene ese token ni desde cuándo está expuesto. *Quien decida la urgencia necesita
 eso, y no lo tengo.* **Lo que sí está medido: el nombre de la variable aparece sólo en documentos
 de proceso, y en ninguno de ellos hay un valor.**
+
+⚠️ **UN DATO MÁS QUE MIDO AL ENUMERAR DÓNDE SE NOMBRA ESA VARIABLE, y que no sé interpretar:** el nombre aparece **en unos 180 ficheros de caché de compilación** (`_worktrees/{T1,T2,QA}/.next/dev/cache/turbopack/*.sst`), además del documento del FA. ⛔ **NO he abierto ninguno y no voy a hacerlo**, así que **no sé si ahí hay un valor o sólo el nombre.** *Esas cachés están fuera de git pero SÍ están en disco.* **Quien rote la credencial debería saberlo: si el valor estuviera ahí, rotarla no basta — hay que borrar las cachés también.** *Lo digo como lo que es: un sitio más donde mirar, no un hallazgo.*
 
 📌 **Y el hallazgo de proceso que va con ella, porque explica por qué faltaba:** el punto 8 del
 documento del FA dice *"me recuso: escribí casi todas"*. **Un pendiente que vive sólo en el
