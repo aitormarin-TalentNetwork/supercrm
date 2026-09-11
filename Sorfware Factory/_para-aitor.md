@@ -330,3 +330,27 @@ Playwright (`passed|failed|timedout|interrupted`, medido). No seria dificil: ser
 **No es urgente y no bloquea nada hoy** (el gate esta caido por cupo de todas formas).
 **Va aqui porque es la premisa de la que cuelga todo lo demas, y esta escrita en la ficha
 como tal para que nadie la de por buena sin volver a mirarla.**
+
+## 13 · ⛔ ROTAR `CLAUDE_CODE_MESSAGING_TOKEN` — credencial filtrada en un transcript · `pedido: NO — AÑADIDA AL CIERRE`
+
+**Qué hay que hacer:** rotar esa credencial. **Sólo tú puedes: es tuya.**
+
+**De dónde sale:** lo dejó escrito el Factory Architect en su documento de deuda al cerrar
+(`Sorfware Factory/_deuda-del-factory-architect_2026-09-11.md`, punto 3.4), y **no estaba en
+esta lista** — lo encontré al leer su documento antes de publicarlo.
+
+⛔ **Por qué sube aquí y no espera al 15, aunque la fábrica esté cerrada:** la regla dura del
+proyecto (`CLAUDE.md`) dice que **un secreto expuesto se rota de inmediato, no se deja "total,
+ya se vio"** — y es la única acción de esta lista cuyo coste **crece mientras espera**. Las otras
+doce bloquean trabajo; ésta no bloquea nada y por eso es la que se olvida.
+
+⚠️ **Lo que NO sé y no invento:** **no he buscado el valor filtrado ni voy a buscarlo**, ni sé
+qué alcance tiene ese token ni desde cuándo está expuesto. *Quien decida la urgencia necesita
+eso, y no lo tengo.* **Lo que sí está medido: el nombre de la variable aparece sólo en documentos
+de proceso, y en ninguno de ellos hay un valor.**
+
+📌 **Y el hallazgo de proceso que va con ella, porque explica por qué faltaba:** el punto 8 del
+documento del FA dice *"me recuso: escribí casi todas"*. **Un pendiente que vive sólo en el
+documento de quien lo dejó pendiente no llega a la lista de quien tiene que ejecutarlo.**
+*Su documento es excelente y aun así este item no habría llegado a ti si nadie lo hubiera leído
+entero antes de publicarlo.*
