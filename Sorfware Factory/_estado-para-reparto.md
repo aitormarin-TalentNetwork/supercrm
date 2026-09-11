@@ -3641,3 +3641,62 @@ vez antes de decidir nada.*
 ⚠️ **DOS NUMEROS PARECIDOS Y DISTINTOS, que T3 separa antes de que se mezclen:** la rama de
 **AIT-134 va 68 commits detras** de `main` (lo dice su veredicto); la de **AIT-143 va 36**.
 *Dos sujetos, dos numeros — y a estas horas se confunden solos.*
+
+═══════════════════════════════════════════════════════════════════════════════
+# CIERRE DE LA FÁBRICA — 2026-09-11, ~01:30Z. SE RETOMA EL 15.
+═══════════════════════════════════════════════════════════════════════════════
+
+**Orden de Aitor, textual, relayada por el CEO:** *"sem codex nao podemos seguir, favor fecha
+toda a /factory. Seguiremos no dia 15."* **Tiene plan Plus y no va a subirlo ni comprar
+creditos.** El CEO comprobo con una sonda que el cupo sigue agotado y que **no hay otra IA de
+familia distinta en la maquina** (solo `claude` y `codex`), asi que sin auditor no se cierra nada.
+
+## ESTADO VERIFICADO POR MI AL CERRAR (no es el parte de nadie)
+
+    local 12bd2ca == remoto 12bd2ca      ·  arbol de la raiz: LIMPIO
+    T1  aitormarin/ait-149-lectura                     692853c · 0 sucios · 0 sin subir
+    T2  aitormarin/ait-145-vinculacion-de-buzon        77838c5 · 0 sucios · 0 sin subir
+    T3  aitormarin/ait-143-instantanea-rodada-muere    1ad4090 · 0 sucios · 0 sin subir
+    T4  aitormarin/ait-123-convex-dev-env-file-…       c71caa3 · 0 sucios · 0 sin subir
+    QA  (detached)                                     2cf3f73 · 0 sucios · 0 sin subir
+    _borradores/: 7 ficheros  ·  herramientas/encolar.sh: COMMITEADO  ·  diario: 3.643 lineas
+    `git add -An` en la raiz -> 0   (el exclude tapa los duplicados de iCloud)
+
+⚠️ **Un descuadre menor que declaro en vez de callarme:** el CEO menciona un duplicado nuevo
+`app/supervision/page 3.tsx`; **`find app -name '* [0-9].tsx'` no encuentra NINGUNO ahora mismo.**
+*Un `exclude` no borra ficheros, asi que si existiera en disco `find` lo veria.* **No lo persigo
+—no decide nada— pero que conste que los dos numeros no cuadran.**
+
+## ⛔ LO PRIMERO QUE HAY QUE HACER EL 15, EN ESTE ORDEN
+
+1. **PEDIRLE A AITOR LAS DOS ACCIONES QUE EL PM PRIORIZO** (`_para-aitor.md`, ya con motivo
+   escrito en las doce): **la 10 (AIT-134)** — y ⛔ **su "si" NO autoriza el merge, solo la
+   reclasificacion del major** — y **la 7 (AIT-97)**, que **bloquea la verificacion de AIT-145**,
+   que es lo que levanta el enclavamiento de Gmail.
+2. **AIT-134 NO SE MERGEA AUNQUE LLEGUE EL "SI".** Llama a `getWorkloadByOwner` y
+   `getOverdueCountsByOwner`, que `main` ya no define. **Mergea limpio y no arranca.** Detras hay
+   codigo nuevo y una vuelta de auditoria que **no existe**. La rama estaba a **138 commits** de
+   `main` a las 01:22Z, y sube sola porque las superficies son disjuntas.
+3. **LOS CONTROLES DE MERGE LOS REHACE EL INTEGRADOR PEGADO AL MERGE**, no yo por adelantado:
+   los mios y los suyos (22:22Z) estan caducados y volveran a caducar.
+4. **Las tres fichas siguen a una o dos rondas del GO**, congeladas donde estaban:
+   - **T1 · AIT-139**: plan completo en borrador, huella 3 medida por simbolo. **AIT-149 r5
+     escrita y NO congelada** — al remedir: punta, hashes **Y AUTOCONTROLES** (son punto fijo).
+   - **T2 · AIT-145**: r13 en `_borradores/` con los cuatro pasos en su cabecera. **La r12 tiene
+     el sello verificado y el cuerpo SIN LEER: cero cobertura adquirida.**
+   - **T3 · AIT-143**: r19 intacta, r20 sin congelar, decision A/B del PM sin adelantar, linea
+     base de `test:unit` entregada con coordenadas (176 passed · la 12a aislada 9 passed).
+     ⛔ **Y antes de congelar la r20: su checkout va 36 commits detras y no tiene la convencion
+     que aplica; y mirar que comandos de su ventana estan envueltos.**
+5. **Acciones de proceso que quedaron en la mesa del FA y no se ejecutaron:** la casilla de
+   huella (decidida, en manos del CEO), el techo de 5 rondas (provisional, **se revisa con la
+   tasa medida otra vez, no se queda por inercia**), `build.sh` como herramienta comun, la
+   memoria compartida sin historial, y **que no sabemos cuanto vale el metodo con una sola
+   sesion despierta** — falta el dato, no esta probado que no exista.
+
+## LO QUE NO SE PUEDE RECONSTRUIR SI SE PIERDE ESTE FICHERO
+
+**Nada de lo de arriba esta en ninguna ficha de Linear ni en ningun veredicto.** El razonamiento
+de estas veintidos horas vive **aqui y en las memorias de `~/.claude/…/memory/`** — y esas
+**no tienen historial** (el `backups/` de `~/.claude` no las cubre; medido por T3). *Si alguien
+tiene que elegir que salvar, es este fichero y esa carpeta.*
