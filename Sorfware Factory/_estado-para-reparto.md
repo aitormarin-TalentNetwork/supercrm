@@ -3555,3 +3555,39 @@ independientes se contradigan; uno abreviado hace que siempre parezcan compatibl
 patron sobre `direccion-del-fallo.md` -> 0, **y sin duplicados en otro fichero**).
 ✅ **MEMORY.md: 23.925 bytes · 190 entradas · holgura 1.061 · INTACTO. Cero bytes de indice, con
 la congelacion del CEO en vigor y diciendo donde antes de guardar.**
+
+### 🔴 UN HUECO DE MI BARRIDO: UN GO RELAYADO AL WORKER PASA LA COMPROBACION Y NO PASA A PRODUCCION
+
+**Corrigiendo mi frase de cierre —escribi *"no ha salido ni una linea de codigo"* y es FALSA— sale
+un agujero del instrumento, no un descuido.** Medido:
+
+    GO de codigo sin archivar, TODOS (ensanchando el filtro, no solo el que me nombraron):
+       AIT-134  GO 2026-09-10T20:14:05Z · PENDIENTE · 15 commits · 9 ficheros · hace 4 h
+                su ultima linea: "RELAYADO … a t3-55 (Directora)"  <- relayado AL WORKER
+       AIT-141  GO 2026-09-10T16:15:56Z · YA EN main (0 commits por delante)
+
+> ⛔ **MI BARRIDO BUSCA "VEREDICTOS SIN RELAYAR". ESTE ESTA RELAYADO — AL WORKER. UN GO
+> ENTREGADO AL WORKER Y NO AL INTEGRADOR PASA MI COMPROBACION Y NO PASA A PRODUCCION.**
+> **El tercer estado dentro de mi propio instrumento: "relayado" y "publicado" comparten
+> desenlace, y falla hacia el verde** — el barrido dice *"todo relayado"* y hay una pieza
+> acabada parada cuatro horas.
+
+✅ **CORREGIDO EN EL PROMPT DEL BARRIDO: un GO de codigo no se cierra hasta que esta en `main` o
+hay un MOTIVO ESCRITO de por que no.** *Preguntado al Integrador si esta en su cola o se me quedo
+a mi.* ⚠️ **Y si hay que entregarsela, NO se entrega sin rehacer los controles: caducan cuando
+`main` se mueve, y `main` se ha movido unos quince commits esta noche (mios, del diario).**
+
+⚠️ **Y una premisa que NO doy por buena aunque me la den:** T3 dice que AIT-134 *"espera solo la
+autorizacion de Aitor"*. **No se de donde sale y no lo he medido.** *Si hay razon real —el
+deployment compartido, una decision suya— es una espera correcta; si no, el retraso es de mi
+reparto.* **Lo pregunto en vez de escribirlo.**
+
+📌 **Y DOS COSAS SOBRE MI PROPIA FRASE DE CIERRE:**
+- ⛔ *"No ha salido ni una linea de codigo"* **es falso.** Lo cierto: **no ha salido codigo NUEVO
+  esta noche, y hay una ficha con GO esperando merge.** *La palabra grande otra vez, y otra vez
+  en el cierre de jornada — que es donde mas viaja porque se cita entero.*
+- 🔑 **Y la razon de T3 para exigir la version exacta:** *"dentro de una semana, «una noche sin
+  codigo» se lee distinto que «una noche de metodo con una tarea cerrada esperando merge»."*
+  **Un cierre no describe la noche: la deja descrita para quien no estuvo.**
+- ⛔ **Y ensanchando el filtro salio AIT-141, que el no menciono.** *Si me quedo con su ejemplo
+  escribo algo cierto y con el conjunto equivocado — otra vez el filtro que ensena el complemento.*
