@@ -3247,3 +3247,57 @@ mire.*
 tres ficheros salieron duplicados por un `sed` anidado *(el contenido estaba bien: los tres md5
 coincidian; solo el nombre)*, y los reescribi a mano. **Cuarta vez esta noche de coger la forma
 lista en vez de escribir tres lineas.** *El gesto que no era un cambio, otra vez.*
+
+## 2026-09-11, ~00:15Z — BARRIDO, Y EL DUPLICADO QUE CREE YO VEINTE MINUTOS DESPUES DE CATALOGARLO
+
+**Barrido:** gate caido (`pgrep -f "^codex exec"` -> 0, `/tmp/auditores/` sin `.job`, ningun
+cerrojo `_turno*` puesto). **Cero veredictos con dictamen tocados en 60 minutos** — *y ese vacio
+significa "no hubo rondas", no "no supe mirar": el control positivo del mismo `find` sin el
+`-mmin` da 186.* Arbol limpio, `main` al dia. Los nueve roles en pie.
+
+### ⛔ DOS COPIAS DE `encolar.sh`, Y LAS HICE YO
+
+Al rescatarlo del scratchpad lo **copie** al repo, y me quede con **dos ficheros identicos**.
+**Identicos HOY.** *La proxima guarda se anade a una y la otra diverge en silencio* — **y mi
+propio prompt de barrido sigue diciendo `scratchpad/encolar.sh`, o sea que yo dispararia la del
+temporal y editaria la del repo.**
+> ⛔ **Es exactamente el duplicado silencioso que T3 catalogo hace veinte minutos, y lo cree yo
+> despues de escribirlo en el diario.** *Saber la regla no protege; y "las dos copias son
+> identicas hoy" es la frase con la que empieza toda divergencia.*
+
+✅ **Arreglado dejando UNA sola: el scratchpad pasa a ser un ENLACE al fichero del repo.**
+
+    respaldo previo: encolar.sh.pre-enlace  (md5 identico)
+    CONTROL 1  es enlace y apunta al repo (ls -l)
+    CONTROL 2  md5 igual por las dos rutas y en el respaldo: 7d9974d9...
+    CONTROL 3  `bash -n` OK POR EL ENLACE, y ejecutable por el enlace
+    CONTROL 4  POR EFECTO: toco el fichero del repo -> el enlace lo ve (1);
+               lo deshago con `git checkout --` -> el enlace vuelve a 0. Arbol limpio.
+
+*El control 4 es el unico que prueba que es un enlace y no otra copia: los tres primeros los
+pasaria igual un duplicado.*
+
+### REPARTO PENDIENTE (de T3, y es del FA): `build.sh`
+
+T3 se aplico lo mismo y tenia **dos herramientas** solo en su scratchpad: `T3_build.sh` (148
+lineas) y `T3_corrida-limpia.sh` (16). **Las copio a `_borradores/`, no a `herramientas/`, y la
+razon es del sujeto y no de la prudencia:** *`encolar.sh` es la unica via de disparo del gate,
+compartida; los suyos son personales y llevan rutas y nombres de tarea cableados.*
+⚠️ **Pero `build.sh` es el que construye los exports con la linea de cierre y su `md5`, e
+incluye el `sed '$d'` portable que reemplazo al `head -n -1` que en BSD certificaba el vacio.**
+> **La CONVENCION del export es comun. La herramienta que la implementa vive en el scratchpad de
+> un worker.** *Si el FA decide que merece ser herramienta de fabrica, habria que generalizarla;
+> esa decision no es de T3 ni mia.*
+
+### DOS OBSERVACIONES DE T3 QUE NO QUIERO QUE QUEDEN TAPADAS
+
+- ⛔ **"Contaste tres `VEREDICTO_` sin dictamen y eran seis, porque el universo lo acoto el sitio
+  donde miraste, y lo publicaste como barrido de los 189."** *Eso no es un fichero perdido: es
+  **un barrido con el universo equivocado**, y esos no dan ningun sintoma porque el recuento es
+  correcto sobre lo que se miro.* **El numero sale limpio y el sujeto no es el que dice el rotulo.**
+- 🔑 **Sobre mis cuatro formas listas seguidas** (el `-m` con comillas, el `| tail` sobre un rojo,
+  el walrus en un `assert`, el `sed` anidado): *"las cuatro fallaron ruidosamente, y eso no es
+  suerte del todo: **la forma corta suele romper hacia el ruido porque el interprete la rechaza.
+  La que da miedo es la que NO rompe** — el `| tail` no rompio, y es la unica de las cuatro que
+  casi me hace inventar una causa."*
+  > **Una forma comoda que el interprete acepta es mas peligrosa que una que rechaza.**
