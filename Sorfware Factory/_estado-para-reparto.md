@@ -3144,9 +3144,19 @@ CONTRAPARTE y no del que tenia el dato**. Es verdad y esta medido. **Y T3 lo da 
 > haya —y habra turnos asi— ninguno tiene nada que lo sustituya."**
 
 ⛔ **Eso convierte el mejor dato del dia en el peor: estabamos tratando una propiedad del
-REPARTO de esta noche como si fuera una propiedad del METODO.** **Con una sola sesion
-despierta, ninguna de las correcciones de hoy se caza** —las tres mias de la ultima hora
-incluidas, y la del CEO sobre el limite en el gesto— **y el turno sale INDISTINGUIBLE de este.**
+REPARTO de esta noche como si fuera una propiedad del METODO.**
+
+⚠️ **Y AQUI YO LO AFIRME DE MAS, Y ME CORRIGIO T3 EN EL ACTO.** Escribi: *"con una sola sesion
+despierta, ninguna de las correcciones de hoy se caza, y el turno sale indistinguible de este"*.
+**Eso es una afirmacion y no la tengo medida.** Su forma honesta:
+> **"No es que el metodo no valga solo: es que HOY NO SABEMOS CUANTO VALE SOLO, porque las
+> cinco correcciones de la noche vinieron todas con dos despiertos y no tenemos ni un turno
+> medido a uno. FALTA EL DATO; no esta probado que no exista."**
+
+📌 **Y su version es MAS CHICA que la mia y por eso es la que sirve:** *la mia dice "no
+funciona" —que suena peor y obliga a rediseñar algo—; la suya dice "no esta medido", que es lo
+unico que sostiene la evidencia y ademas nombra el experimento que falta.* **La palabra grande
+otra vez, y en el cierre de la jornada, que es donde mas viaja.**
 
 **Lo que queda con un solo rol despierto:** los comprobadores escritos, los controles positivos
 y negativos, y el catalogo. ⛔ **Todo eso lo escribe y lo ejecuta el mismo, que es exactamente
