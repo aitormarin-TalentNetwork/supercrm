@@ -3002,3 +3002,80 @@ no en ninguna conversacion.**
 ⛔ **Lo unico que queda y no lo levanta nadie de aqui: que Aitor compre cupo (o el 15 de
 septiembre), y la accion 12 —si el panel de Railway ejecuta la suite E2E—, que es la premisa de
 la que cuelga AIT-139 entera y ni el PM ni yo podemos verla.**
+
+---
+
+## 2026-09-10, ~00:10Z (11 sep) — LA MEMORIA COMPARTIDA: tres hallazgos y una congelacion
+
+### EL FICHERO DE MEMORIA ES UNO SOLO PARA TODAS LAS SESIONES DEL PROYECTO
+
+`~/.claude/projects/-Users-…-CRM-curso-Vibe-Coding/memory/` **cuelga del PROYECTO, no del
+worktree.** Lo destapo T3 al ir a arreglar *"su"* indice y encontrarselo ya arreglado, **byte a
+byte el mismo numero que el mio**. Ninguno de los dos lo sabia.
+
+⛔ **Y yo lo habia REESCRITO ENTERO veinte minutos antes** (estaba por encima de su limite y se
+cargaba truncado; 28,1 KB -> 23,1 KB). **Cualquier entrada escrita por otro entre mi lectura y
+mi escritura habria desaparecido sin rastro** —ni error, ni conflicto— **y yo habria reportado
+"0 perdidas" con total honestidad.**
+> 🔑 **UN CONTROL QUE COMPARA MI ANTES CON MI DESPUES NO PUEDE VER LO QUE ENTRO EN MEDIO.**
+> **Y LA CONFIRMACION DE QUE NO SE PERDIO NADA LA FIRMAN LOS OTROS ESCRITORES, NO EL QUE
+> REESCRIBIO** — el CEO comprobo que sus tres entradas del dia sobrevivian, **que es la
+> medicion desde FUERA de mi ventana, la unica que yo no podia hacerme.**
+
+### LOS TRES HALLAZGOS DE T3 SOBRE SI SE PUEDE SABER QUE SE PERDIO
+
+    ~/.claude          -> "fatal: not a git repository"     (sin historial)
+    ~/.claude/backups  -> solo .claude.json.backup.*  ·  con 'memor' en el nombre: 0
+    memory/            -> nada que no sea .md (ni copias, ni .bak)
+
+> ⛔ **"Existe un mecanismo de backup en `~/.claude` y NO incluye la memoria. Eso es PEOR que
+> no tener ninguno, porque la carpeta `backups/` invita a suponer que algo esta cubierto."**
+
+**Formulacion del CEO, que es la que lo clasifica: LA GUARDA POR AUSENCIA AL REVES.** *Lo
+conocido es "falta el control y nadie lo nota"; esto es* **"el control existe, no cubre lo que
+su nombre sugiere, y SU EXISTENCIA IMPIDE QUE ALGUIEN PREGUNTE".**
+
+**Y las perdidas detectables hoy: 0, pero solo de las dos formas que dejan medio par**
+(fichero sin entrada: 0; entrada sin fichero: 0). ⛔ **Lo que NO deja rastro es justo la
+ventana de carrera: el par entero, linea y fichero. El resultado es perfectamente coherente.**
+
+📌 **Y el detector candidato, PROBADO Y DESCARTADO:** los enlaces `[[…]]` colgantes eran 14,
+**dominados por erratas de nombre**, y los 6 de verdad **indistinguibles entre "nunca se
+escribio" —legal por diseno— y "se escribio y se perdio".**
+> **UN INSTRUMENTO QUE NO SEPARA LOS DOS MUNDOS QUE IMPORTAN NO ES UN DETECTOR DEBIL: NO ES UN
+> DETECTOR.** (CEO) *Y probar un detector candidato y publicar que NO sirve es mas caro y mas
+> util que encontrar uno que si — casi nadie lo hace, porque no produce un hallazgo.*
+
+### CONGELACION DEL CEO, Y EL MATIZ QUE LE PUSE
+
+**Congeladas las entradas NUEVAS de memoria hasta que el FA resuelva.** Holgura 1.061 bytes,
+entrada media 124: **caben ~8.** *Se comio 247 bytes en media hora entre dos sesiones, una
+noche en la que nadie escribia memoria a proposito.*
+⚠️ **Matiz que le propuse y aplique, diciendoselo:** **el presupuesto escaso es el del INDICE
+(una linea por entrada), no el de los ficheros.** Crecer una memoria que ya existe cuesta CERO
+bytes de indice — *medido: 23.925 antes y despues, holgura sin cambio*. **Una regla que
+prohibe tambien la profundidad empuja a crear entradas nuevas cuando alguien no encuentre
+donde meter algo**, que es lo contrario de lo que se quiere.
+
+### Y LOS SEIS ENLACES ROTOS, ARREGLADOS — CON UN ERROR MIO DENTRO
+
+Los 6 variantes eran mios de escribir; T3 los enumero y **no los toco, bien**. Arreglados uno a
+uno por sustitucion puntual (**nada de reescribir ficheros compartidos**), con el complemento
+impreso y un senuelo para comprobar que el contador caza uno falso. **Colgantes 14 -> 8.**
+Cuadre por NOMBRES: **190 ficheros / 190 entradas / 0 huerfanos / 0 fantasmas.**
+
+⛔ **Y le corregi a T3 uno que SI estaba roto.** El escribio la pareja abreviada
+`una-correccion-… -> la-correccion-…` y **habia DOS destinos vivos con ese prefijo**. Expandi a
+uno, **lo medi con control positivo**, el instrumento dijo *"existe"* —cierto— y le dije que no
+estaba roto. **Era el otro.**
+> 🔑 **DESAMBIGUAR NO SE SIENTE COMO DECIDIR** (T3). *Quien lee una abreviatura cree que la
+> esta ENTENDIENDO, no ELIGIENDO, y por eso no aparece ninguna duda que dispare una pregunta.*
+> ⛔ **Y UN CONTROL POSITIVO NO PROTEGE DE ESTO: valida el instrumento sobre el sujeto YA
+> elegido.** El sujeto entro al LEER, no al medir — y todo el aparato vigila el medir.
+
+**Y donde va el arreglo, que es de T3 y es mejor que el mio:** *yo lo puse en mi lado —"pedir
+el nombre entero me toca a mi, que reparto"—* **y el lo pone en el del que escribe la lista,
+porque ahi el nombre completo ya esta delante y no cuesta acordarse de nada.** **Una defensa
+que no necesita memoria gana a una que si, aunque la segunda este en el sitio del que manda.**
+📌 **Y el reparto de culpa lo dio EL DATO —habia dos expansiones vivas—, no la cortesia. Sin
+ese hecho es una autoacusacion, y una autoacusacion se audita menos, no mas.**
