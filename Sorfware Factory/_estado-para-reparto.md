@@ -3134,3 +3134,45 @@ gramatica]]` esta colgante y **ninguna memoria lo cubre** (comprobado: `el-rigor
 donde-ya-dolio` lo menciona como analogia, no lo sostiene). **Es la primera entrada que escribir
 cuando haya hueco.** *Un `[[…]]` colgante es legal por diseno —marca lo pendiente— pero hoy no
 tiene donde aterrizar, y conviene que eso este dicho y no supuesto.*
+
+### ⛔⛔ EL AGUJERO QUE DEJA ESTA NOCHE, Y ES EL MEJOR DATO DEL DIA PUESTO DEL REVES (T3)
+
+Llevamos el dia celebrando que **las cinco correcciones que mas valieron vinieron de la
+CONTRAPARTE y no del que tenia el dato**. Es verdad y esta medido. **Y T3 lo da la vuelta:**
+> **"Que lo cace el de enfrente es lo unico que ha funcionado de forma fiable, y es un
+> mecanismo que DEPENDE DE QUE HAYA DOS DESPIERTOS. Esta noche los ha habido. Cuando no los
+> haya —y habra turnos asi— ninguno tiene nada que lo sustituya."**
+
+⛔ **Eso convierte el mejor dato del dia en el peor: estabamos tratando una propiedad del
+REPARTO de esta noche como si fuera una propiedad del METODO.** **Con una sola sesion
+despierta, ninguna de las correcciones de hoy se caza** —las tres mias de la ultima hora
+incluidas, y la del CEO sobre el limite en el gesto— **y el turno sale INDISTINGUIBLE de este.**
+
+**Lo que queda con un solo rol despierto:** los comprobadores escritos, los controles positivos
+y negativos, y el catalogo. ⛔ **Todo eso lo escribe y lo ejecuta el mismo, que es exactamente
+la condicion que llevamos catorce horas diciendo que no vale.** *Esta en la mesa del FA, sin
+propuesta de solucion porque no la tengo. No digo que haya que arreglarlo: digo que hoy no
+estaba nombrado en ningun sitio y ahora si.*
+
+### CIERRE DE LA JORNADA — estado que sobrevive a que se caigan todas las sesiones
+
+    gate de auditoria .... CAIDO hasta el 15 de septiembre, salvo que Aitor suba el plan
+    cola ................. vacia · sin cerrojos `_turno*` · `pgrep -f "^codex exec"` -> 0
+    repo ................. arbol limpio · main al dia · diario y lista de Aitor empujados
+    memoria .............. congelacion ESTRECHADA en vigor (indice congelado, profundidad
+                           permitida midiendo antes y despues); holgura 1.061 bytes;
+                           `[[un-campo-libre-dentro-de-una-gramatica]]` anotado como la
+                           PRIMERA entrada a escribir cuando el FA la levante
+    regla nueva en vigor . "di DONDE guardas antes de guardar", para cualquier artefacto
+                           compartido — con su instancia real de haber funcionado
+    las tres fichas ...... a una o dos rondas del GO, esperando cupo
+    T1 ... AIT-139 plan completo en borrador, huella 3 medida por simbolo; AIT-149 r5 escrita
+           y NO congelada (al remedir: punta, hashes Y AUTOCONTROLES, que son punto fijo)
+    T2 ... AIT-145 r13 en `_borradores/` con los cuatro pasos en su cabecera; r12 con el
+           sello verificado y el cuerpo SIN LEER: cero cobertura adquirida
+    T3 ... AIT-143 r19 intacta, r20 sin congelar, A/B sin adelantar, linea base de `test:unit`
+           entregada con coordenadas (176 passed · la 12a aislada 9 passed)
+
+⛔ **LO UNICO QUE NO LEVANTA NADIE DE AQUI DENTRO:** que **Aitor** compre cupo (o el 15), y la
+**accion 12** de su lista —si el panel de Railway ejecuta la suite E2E—, que es **la premisa de
+la que cuelga AIT-139 entera** y ni el PM ni yo podemos verla desde el repo.
