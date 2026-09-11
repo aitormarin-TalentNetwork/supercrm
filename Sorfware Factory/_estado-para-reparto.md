@@ -3700,3 +3700,65 @@ familia distinta en la maquina** (solo `claude` y `codex`), asi que sin auditor 
 de estas veintidos horas vive **aqui y en las memorias de `~/.claude/…/memory/`** — y esas
 **no tienen historial** (el `backups/` de `~/.claude` no las cubre; medido por T3). *Si alguien
 tiene que elegir que salvar, es este fichero y esa carpeta.*
+
+## ADENDA AL CIERRE — lo que salio DESPUES de dar la fabrica por cerrada
+
+**Los tres workers confirmaron su scratchpad ENUMERANDO, no recordando — y los tres encontraron
+algo.** *Es el mejor argumento que ha producido el dia contra "no tengo nada pendiente".*
+
+- **T3** tenia **un fichero RETIRADO de su worktree en cuarentena** (`useSignOutAndUnlinkPush
+  2.ts`, con manifiesto) **que no se rehace con nada porque no esta en git: lo saco el.** Y su
+  leccion: *dijimos que los logs se rehacen corriendo, y eso era cierto CON CUPO.*
+  > ⛔ **"REPRODUCIBLE" Y "REPRODUCIBLE HOY" COMPARTIAN CASILLA.** *La clasificacion de que es
+  > desechable dependia de un recurso que acaba de desaparecer.*
+- **T1** encontro y borro dos fosiles de codigo, con respaldo: `app/supervision/page 3.tsx` y
+  ⛔ **`lib/supervision 2.ts`, copia de su propio modulo SIN el arreglo que el auditor le hizo
+  poner.** *El `exclude` del CEO lo tapaba de git —**ignorar no es retirar**— y el malo se lee
+  perfectamente bien.* **Y su cierre:** *"al final del dia no fallan los metodos: falla contar.
+  Lo unico que me ha salvado es que el numero de al lado no cuadrara."*
+- **T2** casi manda un aviso de desincronizacion que no existia: su comparador cortaba "6 lineas
+  de cabecera" y **la cabecera ya tenia mas, porque el mismo se las habia anadido 20 minutos
+  antes.** *Un instrumento desafinado por un cambio del propio autor.*
+
+### 🔴 ACCION 13 NUEVA EN LA LISTA DE AITOR: ROTAR UNA CREDENCIAL FILTRADA
+
+**`CLAUDE_CODE_MESSAGING_TOKEN`, filtrado en un transcript.** Lo dejo escrito el FA en su
+documento de deuda (punto 3.4) y **NO estaba en `_para-aitor.md`**:
+
+    grep -ciE 'MESSAGING_TOKEN|rotar' en _para-aitor.md  ->  0
+    CONTROL POSITIVO del mismo grep sobre el mismo fichero ('pedido:')  ->  13
+    -> el 0 significa AUSENTE, no "no supe mirar"
+
+⚠️ **Y al enumerar donde se nombra la variable salio un dato que NO se interpretar y va declarado
+asi:** aparece en **~180 ficheros de cache de compilacion** (`_worktrees/*/.next/dev/cache/
+turbopack/*.sst`). ⛔ **No he abierto ninguno y no lo voy a hacer**, asi que **no se si hay un
+valor o solo el nombre.** *Si lo hubiera, rotar no basta: habria que borrar las caches.*
+
+> 🔑 **UN PENDIENTE QUE VIVE SOLO EN EL DOCUMENTO DE QUIEN LO DEJO PENDIENTE NO LLEGA A LA LISTA
+> DE QUIEN TIENE QUE EJECUTARLO.** *El documento del FA es excelente y este item no habria llegado
+> a Aitor si nadie lo hubiera leido entero antes de publicarlo.* **Y el FA se recusa el mismo en
+> su punto 8 —"escribi casi todas"—, o sea que el sabia que no podia ser su propio lector.**
+
+### AIT-116 SE INVIERTE: EL CIERRE LA HABILITA
+
+El PM escribio a las 00:40 *"no se puede hoy: hay cuatro worktrees con rama viva"* **y a las 02:00
+era falso.** ✅ **La precondicion del procedimiento —cero terminales a mitad de tarea— se cumple
+HOY porque la fabrica cierra, y con la fabrica en marcha NO SE CUMPLIA NUNCA.** Pasa a
+`pedido: SI` y es la unica accion que el cierre abre en vez de cerrar.
+⛔ **Con la trampa que sigue en pie:** `worktree.useRelativePaths` esta en `true` **y no protege a
+los worktrees que ya existian** — cuatro de cinco tienen `gitdir` ABSOLUTO. **Hay que ejecutar
+`git worktree repair --relative-paths` aunque la config diga que si.** *La comprobacion que no
+miente es `cat` del `.git` de cada worktree, no `git config --get`.*
+📌 **Y es "un dato correcto que caduca" en el fichero cuyo campo central es CUANDO.** *No lo cazo
+la prudencia: el PM fue a medir otra cosa y se cruzo con ello.*
+
+### Y DOS FALSOS EN UN SOLO COMANDO DEL PM, QUE CIERRAN EL DIA MEJOR QUE NINGUNA REGLA
+
+`%(upstream:track)` le dijo *"ahead 15 / 2 / 6"* —**falso: tracking sin refrescar; tras `fetch`,
+cero**— y un bucle suyo sobre rutas con espacios le devolvio *"0 sin commitear"* **una vez por
+cada palabra del path.**
+> ⛔ **UNO ALARMANTE Y OTRO TRANQUILIZADOR, LOS DOS BIEN FORMADOS, EN EL MISMO COMANDO.**
+> *"Iba a corregir al CEO con ellos y el que estaba equivocado era yo."*
+
+**ESTADO FINAL: `main` = `05d51dd`, arbol limpio, 13 acciones con motivo escrito, los nueve roles
+cerrados. Se retoma el 15.**
