@@ -3301,3 +3301,45 @@ incluye el `sed '$d'` portable que reemplazo al `head -n -1` que en BSD certific
   La que da miedo es la que NO rompe** — el `| tail` no rompio, y es la unica de las cuatro que
   casi me hace inventar una causa."*
   > **Una forma comoda que el interprete acepta es mas peligrosa que una que rechaza.**
+
+### 🔴 UNA CORAZONADA MIA DECLARADA VOLVIO CONVERTIDA EN HECHO EN QUINCE MINUTOS. MEDIDA: FALSA, Y AL REVES
+
+**Yo escribi, con su etiqueta:** *"CREO que T1 y T2 construyen su linea de cierre con su propia
+receta y ninguna ha pasado por el arreglo del `head -n -1`. **No lo he comprobado.**"*
+**T3 me lo devolvio asi:** *"T1 y T2 construyen su linea de cierre sin haber pasado por el
+arreglo, asi que hoy hay DOS recetas que pueden certificar el vacio. No es deuda de herramienta,
+es un RIESGO DE VEREDICTO."* — **y el siguiente paso era el FA, como premisa de proceso.**
+
+**MEDIDO (uso, no mencion):**
+
+    ficheros con `sed '$d'` (la receta BUENA):   T1 -> 3    T2 -> 4    T3 -> 0
+    ficheros con `head -n -1`:                   T1 -> 1    T2 -> 2    T3 -> 0
+    ⛔ las TRES apariciones son EL AVISO QUE LA PROHIBE:
+       T1/intro-terminal.txt:1057 · T2/intro-terminal.txt:1085 · T2/_estado-…:1967
+    -> USOS DE LA RECETA ROTA: CERO en los tres.
+    T1 y T2 la tienen CORREGIDA en su `intro-terminal.txt` commiteado (entro en `6ba3672`).
+
+⛔ **Y EL RIESGO REAL ES EL INVERSO: el que no la tiene en su checkout es T3**, cuyo worktree
+esta **36 commits por detras** de `main` (T1: 27, T2: 22). *La tiene en `build.sh`, en su
+scratchpad.* **Una convencion publicada hace horas puede no estar en el checkout de quien la
+aplica.**
+
+> 🔑 **UNA CORAZONADA BIEN DECLARADA PIERDE LA ETIQUETA EN EL PRIMER RELAYO QUE LA MEJORA** —
+> porque quien la mejora esta pensando en la **consecuencia**, no en la **procedencia**.
+
+**Y eso deja cortas las tres categorias del respaldo:** *la corazonada declarada vale mucho,
+pero solo hasta que alguien la relaya bien.* **El eslabon que la MEJORA es el que le quita el
+marcador, y es el mismo que le anade autoridad.** *Aqui nadie lo hizo mal: T3 le encontro una
+consecuencia real y un encuadre mejor que el mio, y al escribirla mejor se quedo sin el "creo
+que".*
+
+📌 **Lo que la cazo no fue desconfiar: fue que LA PALABRA SUBIO DE TAMANO** —de *"creo que"* a
+*"riesgo de veredicto"* en un salto—. **Costaba dos comandos y estaba a un paso de ser la
+premisa de una decision del FA.**
+⛔ **Y TERCERA VEZ ESTA NOCHE** que un `grep` de una cadena prohibida devuelve **el aviso que la
+prohibe**: un `head -n -1` -> 1 se lee como *"la usa"* hasta que miras la linea. **EL ANCLA
+PREGUNTA POR EL USO.**
+
+✅ **Lo que sigue en pie para el FA, ya sin la corazonada:** *la convencion del export es comun y
+su implementacion mas completa vive en el scratchpad de un worker cuyo checkout esta 36 commits
+atras.* **Eso basta solo y no necesita el riesgo inventado.**
