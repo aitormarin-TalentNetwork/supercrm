@@ -3591,3 +3591,53 @@ reparto.* **Lo pregunto en vez de escribirlo.**
   **Un cierre no describe la noche: la deja descrita para quien no estuvo.**
 - ⛔ **Y ensanchando el filtro salio AIT-141, que el no menciono.** *Si me quedo con su ejemplo
   escribo algo cierto y con el conjunto equivocado — otra vez el filtro que ensena el complemento.*
+
+### 🔴 NUEVE DE LAS ONCE ACCIONES DE LA LISTA DE AITOR ESTAN EN `pedido: NO`
+
+Encontrado persiguiendo UNA sola y **ensanchando el filtro**:
+
+    /usr/bin/grep -n "pedido: NO" _para-aitor.md  -> 9 lineas (apartados 2..10 y el 11)
+    CONTROL POSITIVO: 11 lineas con "pedido:" en total -> el patron discrimina
+
+⛔ **Y lo dice la propia cabecera del fichero, que es lo que lo hace dato y no queja:**
+> *"Un paso nombrado y NO PEDIDO no es espera: es parada — y la parada es responsabilidad de
+> quien tiene que pedirlo."*
+
+✅ **Solo la 11 lleva MOTIVO ESCRITO** (*no pedir hasta que la r5 de AIT-145 fije la ruta*): esa es
+una espera correcta y declarada. ⚠️ **Las otras ocho no dicen por que.** **"Decidi no pedirlo" y
+"no se ha pedido" se leen IGUAL — el tercer estado, en el fichero que Aitor lee primero.**
+📌 **Pedido al PM que la lista los distinga.** *No que los pida: que escriba el porque en los que
+no.* **Y el dato para priorizar: la 10 es la unica de las nueve que bloquea una pieza YA
+TERMINADA Y AUDITADA; las otras ocho bloquean trabajo futuro.**
+
+### AIT-134: NO ERA UN DESCUIDO DE REPARTO. ESTABA ENTREGADA Y BLOQUEADA
+
+**El Integrador la tiene desde ~20:20Z, marcada BLOQUEADA.** *Mi entrega funciono: le mande la
+hora del veredicto, la punta, la huella de 9 ficheros y los tres bloqueos.*
+⛔ **Y la razon de la autorizacion la escribi YO en ese mensaje.** Confirmada en **TRES sitios
+independientes**: el apartado 10 del PM; el veredicto del auditor (*"la autorizacion sustancial
+de Aitor sigue pendiente antes del merge"*); y el §0 del export de T3, **declarado como limite
+antes de auditar**.
+> ⛔ **DUDE DE UN HECHO PROPIO POR HABERLO RECIBIDO DE VUELTA.** *T3 me lo dijo, no reconoci que
+> era mio, y lo trate como afirmacion ajena sin medir.* **Un dato vuelve de un relayo sin su
+> procedencia, y entonces parece de quien te lo devuelve.**
+
+⚠️ **Y UN CUARTO BLOQUEO QUE NINGUN VEREDICTO CUBRE** (del Integrador, verificado por mi):
+
+    la rama llama a getWorkloadByOwner (6 ficheros) y getOverdueCountsByOwner (2)
+    en origin/main:  `export const` de las dos -> 0     (las retiraron AIT-141 y AIT-128)
+    CONTROL POSITIVO: `export const remove` en main -> 5 ficheros
+
+> ⛔ **MERGEARIA SIN CONFLICTO Y LLAMANDO A DOS FUNCIONES QUE `main` YA NO DEFINE.**
+> **El trabajo detras del "si" no es un rebase: es CODIGO NUEVO que ningun veredicto cubre.**
+*El `merge-tree` en rc=0 y las superficies disjuntas — por eso la distancia crece y el conflicto
+no llega nunca. **Mergeable no es ejecutable**, y aqui el contraejemplo es limpio.*
+
+✅ **Y NO rehago los controles ahora, por decision del Integrador y con razon:** los mios
+caducaron y **los suyos, de las 22:22:17Z, tambien** — `main` se ha movido dos horas. **Los rehace
+el pegado al merge, que es el contrato.** *Rehacerlos ahora seria medir algo que caducara otra
+vez antes de decidir nada.*
+
+⚠️ **DOS NUMEROS PARECIDOS Y DISTINTOS, que T3 separa antes de que se mezclen:** la rama de
+**AIT-134 va 68 commits detras** de `main` (lo dice su veredicto); la de **AIT-143 va 36**.
+*Dos sujetos, dos numeros — y a estas horas se confunden solos.*
