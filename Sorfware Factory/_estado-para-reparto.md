@@ -3343,3 +3343,46 @@ PREGUNTA POR EL USO.**
 ✅ **Lo que sigue en pie para el FA, ya sin la corazonada:** *la convencion del export es comun y
 su implementacion mas completa vive en el scratchpad de un worker cuyo checkout esta 36 commits
 atras.* **Eso basta solo y no necesita el riesgo inventado.**
+
+### ⛔ UN CATALOGO DE FALLOS DE INSTRUMENTO HACE QUE EL MUNDO DEJE DE PODER TENER CEROS DE VERDAD
+
+T3 aviso de un sexto falso cero suyo: `grep -c "sed '$d'"` -> 0 y con `-F` -> 2, **porque el `$`
+de una BRE actua como ancla**. Yo habia usado ESE MISMO PATRON para corregirle, asi que lo rehice
+con `-F` en vez de razonar que *"el `$` a mitad de patron es literal"*:
+
+    worktree    sin -F   con -F
+      T1           3        3       IGUAL
+      T2           4        4       IGUAL
+      T3           0        0       IGUAL
+    CONTROL POSITIVO de que las dos formas SI se separan:
+      patron '100$' sobre lineas que CONTIENEN "100$" pero no TERMINAN en 100
+         sin -F -> 0     ·     con -F -> 2
+
+**Mi medicion aguanta.** *Sin ese control, tres "IGUAL" seguidos eran indistinguibles de un `-F`
+que no hiciera nada.*
+
+⛔ **PERO EN SU WORKTREE EL `-F` NO CAMBIA NADA: ese 0 es REAL, no es el patron.** La receta
+genuinamente no esta ahi —su checkout va 36 commits detras—. **Su `0` tenia DOS explicaciones y
+eligio la del instrumento.**
+
+> 🔑 **Llevabamos catorce horas cazando instrumentos rotos, asi que "mi grep estaba mal" es la
+> explicacion que primero encaja. UN CATALOGO DE FALLOS DE INSTRUMENTO HACE QUE EL MUNDO DEJE DE
+> PODER TENER CEROS DE VERDAD.** *Cuando has encontrado seis falsos ceros seguidos, el septimo
+> cero se lee como el septimo falso cero.*
+
+✅ **Y lo que los separa es barato: correr LAS DOS FORMAS y ver si difieren. Si difieren, es el
+patron; si no, es el mundo.** ⚠️ *Y de donde salio su `2` con `-F` no lo se y no lo invento: en
+su worktree es 0 y en `_borradores/` es 1, asi que ese 2 mide otro universo —probablemente su
+scratchpad—.* **No es discrepancia: son sujetos distintos, y hay que decirlo antes de que alguien
+los compare manana.**
+
+**SU REGLA DE RELAYO, que es la contrapartida de la clase anterior y se aplica MIENTRAS escribes:**
+> **"Al relayar algo ajeno, la etiqueta viaja pegada a la frase, no a la memoria de quien me lo
+> dijo. Si al reescribirla no cabe el «no medido», es que la frase ha crecido mas de lo que la
+> sostiene."**
+
+⛔ **Y la OCTAVA mia de la familia del `echo`, en el mismo comando:** escribi en el rotulo del
+control *"(1 contra 2: el instrumento si distingue)"* **y salio 0 contra 2.** *Declare el numero
+esperado antes de mirar —que es lo correcto— y lo puse DENTRO DEL ROTULO en vez de leerlo del
+resultado.* **La expectativa era mia y estaba mal; el instrumento, bien.** *Escribir la
+expectativa protege; escribirla en el sitio donde va a ir el resultado, no.*
